@@ -113,14 +113,12 @@ func (s *Session) localIndex(ctx context.Context, event syncthing.Event, now tim
 	changed := false
 	for _, name := range data.Filenames[:min(len(data.Filenames), 16)] {
 		info, err := s.currentFileInfo(ctx, data.Folder, name)
-		if err != nil {
-			continue
-		}
 		entry := info.Local
 		if entry == nil {
 			entry = info.Global
 		}
-		if entry == nil {
+		if err != nil || entry == nil {
+			changed = s.storeActivity(data.Folder, name, "syncing", "", now) || changed
 			continue
 		}
 		if fileType(entry.Type) == "directory" && !entry.Deleted {

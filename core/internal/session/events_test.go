@@ -153,6 +153,52 @@ func TestLocalIndexUsesCurrentFileInformation(t *testing.T) {
 	}
 }
 
+func TestLocalIndexDeletionAfterUserRescan(t *testing.T) {
+	tests := []struct {
+		name      string
+		action    string
+		arguments ActionArguments
+	}{
+		{"folder", "folder.rescan", ActionArguments{FolderID: "folder"}},
+		{"all folders", "folder.rescan-all", ActionArguments{}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			api := &actionAPI{folders: map[string]syncthing.Folder{"folder": {
+				ID: "folder", Label: "Folder", Path: t.TempDir(),
+			}}, devices: []syncthing.Device{{DeviceID: "LOCAL"}},
+				pending: syncthing.PendingFolders{}, theme: "default"}
+			coreSession := newActionSession(t, api)
+			if _, err := coreSession.Refresh(context.Background()); err != nil {
+				t.Fatal(err)
+			}
+			result := coreSession.Act(context.Background(), test.action,
+				test.arguments, "rescan", nil)
+			if !result.OK || api.rescanCount() != 1 {
+				t.Fatalf("rescan failed: %#v count=%d", result, api.rescanCount())
+			}
+
+			now := time.Unix(100, 0)
+			event := syncthing.Event{Type: "LocalIndexUpdated",
+				Data: []byte(`{"folder":"folder","filenames":[` +
+					`"00.bin","01.bin","02.bin","03.bin","04.bin","05.bin",` +
+					`"06.bin","07.bin","08.bin","09.bin","10.bin","11.bin",` +
+					`"12.bin","13.bin","14.bin","old.txt","16.bin"]}`)}
+			if !coreSession.processActivityEvents(context.Background(),
+				[]syncthing.Event{event}, now) {
+				t.Fatal("local index deletion after rescan was skipped")
+			}
+			published := coreSession.publishActivity(false, now)
+			for _, activity := range published.State.Activity.Files {
+				if activity.Path == "old.txt" && activity.Action == "removing" {
+					return
+				}
+			}
+			t.Fatalf("removal activity missing: %#v", published.State.Activity)
+		})
+	}
+}
+
 func TestEventLoopReconnectsRehydratesAndCancels(t *testing.T) {
 	api := &eventAPI{}
 	coreSession := newEventSession(t, api)
