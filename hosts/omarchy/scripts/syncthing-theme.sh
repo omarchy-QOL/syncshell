@@ -2,18 +2,18 @@
 set -euo pipefail
 
 usage() {
-  printf 'Usage: syncthing-theme.sh generate <gui-assets-dir> [colors.toml]\n' >&2
+  printf 'Usage: syncthing-theme.sh generate <gui-assets-dir> <gui-url> [colors.toml]\n' >&2
   exit 2
 }
 
-[[ ${1:-} == "generate" && ( $# == 2 || $# == 3 ) ]] || usage
+[[ ${1:-} == "generate" && ( $# == 3 || $# == 4 ) ]] || usage
 
 assets_root=$2
-colors_file=${3:-}
+gui_url=$3
+colors_file=${4:-}
 theme_root="$assets_root/syncthing-omarchy"
 theme_dir="$theme_root/assets/css"
 script_dir="$theme_root/assets/js"
-gui_url=${SYNCTHING_GUI_URL:-https://127.0.0.1:8384}
 default_index_url="${gui_url%/}/theme-assets/default/index.html"
 refresh_source="$(dirname -- "$0")/../webui/omarchy_theme_refresh.js"
 

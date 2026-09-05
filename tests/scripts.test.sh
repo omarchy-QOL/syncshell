@@ -126,9 +126,8 @@ test_themes() {
   if [[ -d $themes_root ]]; then
     while IFS= read -r colors; do
       theme=$(basename -- "$(dirname -- "$colors")")
-      SYNCTHING_GUI_URL="file://$default_gui" \
-        bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" generate \
-          "$test_root/themes/$theme" "$colors" >/dev/null
+      bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" generate \
+        "$test_root/themes/$theme" "file://$default_gui" "$colors" >/dev/null
       grep -Fxq '@import "/theme-assets/default/assets/css/theme.css";' \
         "$test_root/themes/$theme/syncthing-omarchy/assets/css/theme.css" \
         || fail "$theme did not inherit the Syncthing default theme"
@@ -152,9 +151,9 @@ test_themes() {
     'color5 = "#c792ea"' \
     'color6 = "#89ddff"' \
     >"$user_theme"
-  SYNCTHING_GUI_URL="file://$default_gui" \
+  SYNCTHING_GUI_URL="file://$test_root/wrong-instance" \
     bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" generate \
-      "$test_root/themes/user" "$user_theme" >/dev/null
+      "$test_root/themes/user" "file://$default_gui" "$user_theme" >/dev/null
   grep -Fxq '@import "/theme-assets/default/assets/css/theme.css";' \
     "$test_root/themes/user/syncthing-omarchy/assets/css/theme.css" \
     || fail "user theme did not inherit the Syncthing default theme"

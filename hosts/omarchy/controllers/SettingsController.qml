@@ -33,6 +33,7 @@ QtObject {
     SettingsModel.DefaultProbeIntervalSeconds
   property string currentWebUiTheme: ""
   property string guiAssetsPath: ""
+  property string guiUrl: ""
   property string error: ""
   property string notice: ""
   property bool busy: false
@@ -200,7 +201,7 @@ QtObject {
 
     _themeBeforeGeneration = currentWebUiTheme
     themeProcess.command = [
-      "bash", themeHelperPath, "generate", guiAssetsPath
+      "bash", themeHelperPath, "generate", guiAssetsPath, guiUrl
     ]
     themeProcess.running = true
   }
@@ -234,6 +235,7 @@ QtObject {
   onRuntimeReadyChanged: scheduleReconcile()
   onCurrentWebUiThemeChanged: scheduleReconcile()
   onGuiAssetsPathChanged: scheduleReconcile()
+  onGuiUrlChanged: scheduleReconcile()
   onLegacyThemedIconChanged: {
     if (!settingsExists) iconStyle = legacyThemedIcon ? "themed" : "branded"
   }

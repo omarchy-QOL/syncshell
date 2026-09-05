@@ -476,6 +476,7 @@ QtObject {
     runtimeReady: root.online
     currentWebUiTheme: String(root.webUi.theme || "")
     guiAssetsPath: String(root.webUi.guiAssets || "")
+    guiUrl: root.baseUrl
     selectTheme: function(theme, onSuccess, onError) {
       root.selectTheme(theme, onSuccess, onError)
     }
