@@ -14,17 +14,6 @@ function devices(values) {
   return projected
 }
 
-function connections(values) {
-  var projected = ({})
-  var source = values || []
-  for (var i = 0; i < source.length; i++) {
-    var device = source[i] || ({})
-    var id = String(device.id || "")
-    if (id) projected[id] = { connected: device.connected === true }
-  }
-  return { connections: projected }
-}
-
 function folderStatus(value) {
   var status = value || ({})
   return {

@@ -20,8 +20,8 @@ Notable changes to Syncthing for Omarchy are documented here.
   after snapshot scanning arrives
 - distinguish plain `SCANNING` from concurrent `SCAN+SYNC` during an accepted
   rescan
-- preserve ordinary 0.1.7 fast-forward updates with a usable panel until the
-  standard shell restart activates the native core
+- require a shell restart after updating to load the current plugin while
+  preserving settings and bar placement
 
 ## 0.1.7 - 2026-08-31
 

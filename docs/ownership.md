@@ -1,12 +1,12 @@
 # Syncshell ownership
 
-This is the final ownership map for the 0.1.8 architecture. The phase 04
-cutover moved the retained host implementation after native parity was proven.
+This is the ownership map for the 0.1.8 architecture. Omarchy presentation
+and settings live in the host adapter around the native core.
 
 | Path                         | Sole responsibility                         |
 | ---------------------------- | ------------------------------------------- |
 | `core/`                      | Go native core                              |
-| `core/internal/syncthing/`   | discovery, secrets, transport, wire data     |
+| `core/internal/syncthing/`   | discovery, secrets, transport, wire data    |
 | `core/internal/session/`     | normalized state, events, retries, actions  |
 | `core/internal/systemduser/` | one trusted user lifecycle binding          |
 | `core/internal/protocol/`    | bounded JSONL for session public types      |
@@ -35,15 +35,16 @@ Omarchy entry points. They are boundaries, not additional owners.
 - Protocol code serializes session public types directly. No repository,
   service, mapper, DTO, or view-model chain may merely rename values.
 
-## Transition
+## Runtime and updates
 
 Retained Omarchy presentation and settings files live in `hosts/omarchy/`.
 Replaced REST, credential, event, state, folder, and lifecycle QML code was
 deleted from its original paths.
 There is no mixed runtime, fallback, alias, or feature flag.
 
-The released QML implementation remains available in the `v0.1.7` Git history,
-not in the 0.1.8 runtime. Users restart the shell after updating from 0.1.7 so
-the kept service is replaced atomically by the native-backed service.
+Users restart the shell after updating to load the current panel, service,
+and bundled core together. The interval before restart is unsupported. Old
+helpers or runtime compatibility paths are not retained for that interval;
+released implementations remain available in Git history.
 
 The future host directories are README-only in 0.1.8 and make no support claim.

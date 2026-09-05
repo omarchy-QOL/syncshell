@@ -1,5 +1,4 @@
 {
-  "version": "0.1.7",
   "properties": [
     "phase",
     "online",
@@ -10,7 +9,6 @@
     "localDeviceId",
     "displayDeviceId",
     "displayDeviceName",
-    "connections",
     "devices",
     "folders",
     "pendingFolders",
@@ -36,7 +34,6 @@
     "controlError",
     "configuredServiceState",
     "probeIntervalSeconds",
-    "serviceActiveState",
     "serviceUnitFileState",
     "serviceStateDrift",
     "serviceStateActionRunning",

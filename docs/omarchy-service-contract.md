@@ -1,8 +1,8 @@
-# Omarchy service contract 0.1.7
+# Omarchy service contract
 
-This contract freezes the surface used by the released panel. The phase 04
-native facade must provide the same names and meanings without retaining the
-old domain engine.
+This contract describes the current Omarchy panel-to-service boundary. The
+panel, native-backed facade, and member fixture evolve together within a
+release; they are not a cross-version interface for retained older services.
 
 ## Update boundary
 
@@ -10,16 +10,14 @@ old domain engine.
 the stable plugin ID `io.github.ilyazar.syncthing`. The panel resolves the
 service with `bar.shell.serviceFor(moduleName)`.
 
-An Omarchy plugin update can hot-load the new panel while the kept 0.1.7
-service remains alive. The new panel remains fully usable with the retained
-0.1.7 service until the user's ordinary shell restart activates the new
-native-backed facade. New presentation state is derived from the stable 0.1.7
-surface during that window.
+The supported update sequence is a normal Omarchy plugin update followed by
+a shell restart. Omarchy may retain an older service before that restart;
+plugin usability during that interval is unsupported. After restart, the
+current panel, service, helpers, and bundled core must work together while
+preserving user settings, bar placement, and Syncthing data.
 
-The plugin does not restart the shell automatically or retain an alias,
-fallback, or second runtime. The released QML service already in memory is the
-only pre-restart runtime; the new checkout starts only after the normal shell
-restart.
+The plugin does not restart the shell automatically. Old helper paths,
+aliases, fallback runtimes, and mixed-version bridges are not retained.
 
 ## Connection, identity, and models
 
@@ -34,7 +32,6 @@ restart.
 | `localDeviceId`          | string | live local device ID                   |
 | `displayDeviceId`        | string | live or remembered device ID           |
 | `displayDeviceName`      | string | live or remembered device name         |
-| `connections`            | object | Syncthing connection response          |
 | `devices`                | array  | configured device objects              |
 | `folders`                | array  | configured folder objects              |
 | `pendingFolders`         | object | offers by folder and device            |
@@ -47,11 +44,10 @@ restart.
 | `syncingFolderCount`     | int    | folders with remaining items           |
 | `summaryText`            | string | panel summary for the current state    |
 
-The released phases are `discovering`, `loading`, `ready`, `error`, `stopped`,
-and installation states. The panel treats `phase === "ready"` as online in
-0.1.7. The native facade keeps the property meaning but must make API health
-authoritative, including for a healthy external instance with an inactive
-unrelated user unit.
+The facade publishes connection, installation, and native-core phases. API
+health is authoritative for `online`, including for a healthy external
+instance with an inactive unrelated user unit. Native-core availability is
+reported separately from Syncthing connection state.
 
 Folder objects expose at least `id`, `label`, `path`, `paused`, `markerName`,
 and `devices[].deviceID`. Folder status objects expose at least `state`,
@@ -65,18 +61,17 @@ and `globalBytes`. Device objects expose `deviceID`, `name`, and `untrusted`.
 | `installationState`          | string | current installation phase     |
 | `installationLabel`          | string | visible installation summary   |
 | `executablePath`             | string | discovered executable          |
-| `canUseRuntime`              | bool   | runtime can be contacted        |
-| `canInstall`                 | bool   | install action is safe          |
+| `canUseRuntime`              | bool   | runtime can be contacted       |
+| `canInstall`                 | bool   | install action is safe         |
 | `packageStatus`              | string | installation progress          |
 | `packageError`               | string | installation or status error   |
-| `serviceAvailable`           | bool   | trusted user unit is available  |
-| `serviceActive`              | bool   | observed or pending run state   |
-| `serviceActionRunning`       | bool   | start or stop is in progress    |
-| `canControlService`          | bool   | lifecycle switch may be shown   |
+| `serviceAvailable`           | bool   | trusted user unit is available |
+| `serviceActive`              | bool   | observed or pending run state  |
+| `serviceActionRunning`       | bool   | start or stop is in progress   |
+| `canControlService`          | bool   | lifecycle switch may be shown  |
 | `controlError`               | string | lifecycle action error         |
 | `configuredServiceState`     | string | enabled or disabled preference |
 | `probeIntervalSeconds`       | int    | lifecycle probe interval       |
-| `serviceActiveState`         | string | observed active state          |
 | `serviceUnitFileState`       | string | observed unit-file state       |
 | `serviceStateDrift`          | bool   | preference and unit differ     |
 | `serviceStateActionRunning`  | bool   | drift action is in progress    |
@@ -116,21 +111,20 @@ canonical, non-overlapping path and a unique ID.
 
 An accepted rescan publishes the stable mutation action and target ID before
 the API request starts. The panel derives its optimistic targets from those
-fields and the current folder pause state. This works with both the retained
-0.1.7 service and the native facade. The host keeps matching buttons inert,
-rotates their refresh glyphs, and presents `RESCANNING` until success, failure,
-cancellation, or core loss clears the mutation.
+fields and the current folder pause state. The host keeps matching buttons
+inert, rotates their refresh glyphs, and presents `RESCANNING` until success,
+failure, cancellation, or core loss clears the mutation.
 
 ## Activity and host settings
 
-| Property               | Type   | Meaning                                |
-| ---------------------- | ------ | -------------------------------------- |
-| `syncActivity`         | string | complete visible activity label        |
-| `syncActivityDots`     | string | aligned animation frame                |
-| `syncActivityFolderId` | string | folder owning the current file         |
-| `syncActivityAction`   | string | `syncing`, `upload`, or `removing`     |
-| `syncActivityDetail`   | string | bounded file detail                    |
-| `iconStyle`            | string | host preference: `branded` or `themed` |
+| Property               | Type   | Meaning                                 |
+| ---------------------- | ------ | --------------------------------------- |
+| `syncActivity`         | string | complete visible activity label         |
+| `syncActivityDots`     | string | aligned animation frame                 |
+| `syncActivityFolderId` | string | folder owning the current file          |
+| `syncActivityAction`   | string | `syncing`, `upload`, or `removing`      |
+| `syncActivityDetail`   | string | bounded file detail                     |
+| `iconStyle`            | string | host preference: `branded` or `themed`  |
 | `settingsReady`        | bool   | host settings loaded and valid          |
 | `settingsBusy`         | bool   | settings, theme, or removal work active |
 | `settingsError`        | string | host settings or theme error            |

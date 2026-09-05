@@ -21,7 +21,7 @@ The target ownership and protocol are recorded in:
 - [Syncshell glossary](CONTEXT.md)
 - [ownership map](docs/ownership.md)
 - [adapter protocol v1](docs/adapter-protocol-v1.md)
-- [Omarchy service contract](docs/omarchy-service-contract-0.1.7.md)
+- [Omarchy service contract](docs/omarchy-service-contract.md)
 - [Omarchy interaction contract](docs/omarchy-interaction-contract-0.1.7.md)
 
 The production entry points delegate to the Omarchy host, which starts one
@@ -107,6 +107,13 @@ the VM artifact directory.
 `packaging/bundled/SHA256SUMS` is the sole tracked checksum list for the
 bundled artifact.
 
-The updated panel remains usable with the retained 0.1.7 service until the
-user's ordinary shell restart activates the native facade. Do not retain the
-removed QML helpers or add a second runtime for that boundary.
+## Plugin updates
+
+The supported update sequence is a normal Omarchy plugin update followed by
+a shell restart. Test the current panel and service together after that
+restart, including settings, bar placement, and Syncthing data preservation.
+
+The interval before restart has no cross-version usability guarantee. Do not
+retain old helpers, aliases, fallback runtimes, or version bridges for it.
+The service-contract fixture describes the current host interface; its
+members may evolve together with the panel.

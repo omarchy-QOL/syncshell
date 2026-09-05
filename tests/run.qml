@@ -113,12 +113,6 @@ QtObject {
     }, {
       deviceID: "remote", name: "phone", untrusted: true
     }], "device projection")
-    compare(FacadeModel.connections(sourceDevices), {
-      connections: {
-        local: { connected: true },
-        remote: { connected: false }
-      }
-    }, "connection projection")
     compare(FacadeModel.folderStatuses([{
       id: "folder",
       status: {

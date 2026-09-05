@@ -29,29 +29,29 @@ starts `syncthing.service`. If Syncthing is already installed, the plugin should
 auto-detect this. The native core retries from package status after a new
 installation creates its first Syncthing configuration.
 
-Syncshell 0.1.8 supports Linux x86_64 Omarchy systems. Its static native core
-is bundled at `bin/x86_64/syncshell-core`; startup never downloads or builds an
+Syncshell 0.1.8 supports Linux x86_64 Omarchy systems. Its static native core is
+bundled at `bin/x86_64/syncshell-core`; startup never downloads or builds an
 executable and never falls back to `$PATH`. The reproducible build and SHA-256
 verification scripts live under `packaging/bundled/`.
 
 Omarchy is the only supported host in 0.1.8. The standalone surface is a
-development contract harness. Caelestia, DankMaterialShell,
-Illogical Impulse, Waybar, ARM, multiple instances, and a daemon mode remain
-unsupported future work.
+development contract harness. Caelestia, DankMaterialShell, Illogical Impulse,
+Waybar, ARM, multiple instances, and a daemon mode remain unsupported future
+work.
 
-## Upgrade from 0.1.7
+## Upgrade
 
-Update through Omarchy, then restart the shell to activate the native core:
+Update through Omarchy, then restart the shell to load the updated plugin:
 
 ```bash
 omarchy plugin update io.github.ilyazar.syncthing
 omarchy-restart-shell
 ```
 
-The updated panel remains usable with the kept 0.1.7 service before that
-restart. The restart then replaces it with the 0.1.8 native-backed service.
-Syncshell does not retain a second runtime or restart the shell automatically.
-Plugin settings and bar placement survive the ordinary update and restart.
+A shell restart is required after updating. Until then, Omarchy may retain
+the previous service and plugin actions may fail. Plugin settings and bar
+placement survive the ordinary update and restart. Syncshell does not restart
+the shell automatically.
 
 ## Keybindings
 
@@ -192,8 +192,8 @@ device. Encrypted offers and sharing with untrusted devices must be configured
 in the Web UI.
 
 Large collection bounds are explicit. If a configuration exceeds the panel's
-bounded snapshot, the panel shows a warning and the Web UI remains available
-for the omitted entries.
+bounded snapshot, the panel shows a warning and the Web UI remains available for
+the omitted entries.
 
 A shared folder must use the same Folder ID on every device. Labels and paths
 may differ. Create the folder on one device, share it, and accept the offer on
@@ -218,7 +218,7 @@ Planned work stays at the top. Shipped entries come from
 | Release | State     | Date       | What changed                                            |
 | ------- | --------- | ---------- | ------------------------------------------------------- |
 | 0.1.8   | candidate | TBD        | use one native core without changing the Omarchy panel  |
-|         |           |            | support healthy externally managed Syncthing instances |
+|         |           |            | support healthy externally managed Syncthing instances  |
 | 0.1.7   | shipped   | 2026-08-31 | fix persistent service-state reconciliation             |
 |         |           |            | UI/UX: clear semantics on buttons, harmonize font size  |
 | 0.1.6   | shipped   | 2026-08-22 | make live and indexed file activity accurate            |
@@ -258,10 +258,9 @@ settings, logs, fixtures, or screenshots. Like other Omarchy shell plugins, it
 runs unsandboxed, and the API key permits Syncthing configuration changes.
 
 If the panel reports that its native core is unavailable, verify that the
-checkout contains the regular executable at
-`bin/x86_64/syncshell-core`, that its mode is `0755`, and that the machine
-architecture is `x86_64`. `packaging/bundled/verify.sh` checks the complete
-artifact contract.
+checkout contains the regular executable at `bin/x86_64/syncshell-core`, that
+its mode is `0755`, and that the machine architecture is `x86_64`.
+`packaging/bundled/verify.sh` checks the complete artifact contract.
 
 Plugin code is MIT licensed. Adapted Syncthing status icons are MPL-2.0; their
 source and attribution are documented in `assets/README.md`.

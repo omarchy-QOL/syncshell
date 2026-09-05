@@ -38,7 +38,6 @@ QtObject {
     || identityState.localDeviceId
   readonly property string displayDeviceName: currentLocalDeviceName()
     || identityState.localDeviceName
-  readonly property var connections: FacadeModel.connections(state.devices)
   readonly property var devices: FacadeModel.devices(state.devices)
   readonly property var folders: FacadeModel.folders(state.folders)
   readonly property var pendingFolders: state.pendingFolders || ({})
@@ -72,8 +71,6 @@ QtObject {
   property string controlError: ""
   readonly property string configuredServiceState: settings.serviceState
   readonly property int probeIntervalSeconds: settings.probeIntervalSeconds
-  readonly property string serviceActiveState:
-    String(lifecycle.activeState || "")
   readonly property string serviceUnitFileState:
     String(lifecycle.unitFileState || "")
   readonly property var serviceStateDecision:
