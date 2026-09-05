@@ -96,18 +96,25 @@ Panel {
   }
   readonly property string toggleHint: syncthing && syncthing.serviceActive
     ? "Stop syncing" : "Start syncing"
+  readonly property bool managedStop: syncthing
+    && syncthing.serviceAvailable && !syncthing.serviceActive
   readonly property string visibleError: {
     if (folderPickerError) return folderPickerError
     if (!syncthing) return ""
-    return syncthing.folderMutationError || syncthing.controlError
+    var quiet = managedStop || syncthing.serviceActionRunning
+    return syncthing.folderMutationError
       || syncthing.packageError
       || syncthing.settingsError
-      || syncthing.lastError || ""
+      || (quiet ? "" : syncthing.controlError)
+      || (quiet ? "" : syncthing.lastError) || ""
   }
   readonly property string visibleNotice: syncthing
     ? syncthing.folderMutationNotice || syncthing.settingsNotice : ""
-  readonly property string visibleWarning: syncthing
-    ? syncthing.recoveryWarning || syncthing.serviceStateWarning : ""
+  readonly property string visibleWarning: {
+    if (managedStop) return syncthing.summaryText
+    return syncthing
+      ? syncthing.recoveryWarning || syncthing.serviceStateWarning : ""
+  }
   readonly property bool serviceStateDialogOpen: syncthing
     && syncthing.serviceStateDrift
   readonly property string visibleSyncActivity: syncthing
@@ -179,6 +186,7 @@ Panel {
   }
 
   function folderState(folder) {
+    if (syncthing && !syncthing.online) return "UNKNOWN"
     return PanelModel.folderState(folder,
       syncthing ? syncthing.recentlyLinkedFolderId : "",
       folderHasActivity(folder), folderRescanning(folder))
@@ -190,6 +198,7 @@ Panel {
     if (state === "SCANNING") return warning
     if (state === "SCAN+SYNC") return warning
     if (state === "SYNCING") return warning
+    if (state === "UNKNOWN") return warning
     if (state === "ERROR") return urgent
     return success
   }
