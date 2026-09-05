@@ -55,6 +55,7 @@ function buildFolderRows(syncthing, homePath) {
       path: String(folder.path || ""),
       state: state,
       error: String(status.error || ""),
+      errorDetails: status.errorDetails || [],
       problem: state === "error" || !!status.error || errors > 0,
       syncing: needItems > 0 || state.indexOf("sync") === 0,
       scanning: state.indexOf("scan") === 0,
@@ -102,10 +103,30 @@ function formatBytes(value) {
     : bytes.toFixed(bytes >= 10 ? 0 : 1)) + " " + units[unit]
 }
 
+function folderErrorText(folder) {
+  if (!folder || !folder.problem) return ""
+  var groups = Object.create(null)
+  var errors = folder.errorDetails || []
+  for (var i = 0; i < errors.length; i++) {
+    var error = errors[i]
+    if (!groups[error.error]) groups[error.error] = []
+    groups[error.error].push(error.path)
+  }
+  var messages = Object.keys(groups).map(function(reason) {
+    return reason + "\n\n" + groups[reason].join("\n")
+  })
+  if (folder.error) messages.unshift(folder.error)
+  return messages.join("\n\n") || "Syncthing reported no error details."
+}
+
 function folderMeta(folder, rescanning) {
   var suffix = folder.configuredLabel && folder.configuredLabel !== folder.label
     ? " · " + folder.configuredLabel : ""
-  if (folder.problem) return (folder.error || "Folder needs attention") + suffix
+  if (folder.problem) {
+    var firstError = (folder.errorDetails || [])[0]
+    return (folder.error || (firstError && firstError.error)
+      || "Folder needs attention") + suffix
+  }
   if (folder.paused) return "Syncing paused" + suffix
   if (rescanning) return "Scanning local changes" + suffix
   if (folder.syncing) {

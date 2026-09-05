@@ -126,7 +126,9 @@ Column {
     width: parent.width
     text: root.controller.visibleWarning
     textFormat: Text.PlainText
-    color: root.warning
+    color: root.controller.managedStop
+      || (root.syncthing && root.syncthing.phase === "core-starting")
+      ? Qt.darker(root.foreground, 1.4) : root.warning
     font.family: root.fontFamily
     font.pixelSize: Style.font.bodySmall
     wrapMode: Text.WordWrap

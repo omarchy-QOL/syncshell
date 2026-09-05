@@ -33,6 +33,7 @@ BorderSurface {
 
   signal openRequested
   signal forgetRequested
+  signal errorDetailsRequested(string folderId)
   signal rescanRequested
   signal copyIdRequested(string folderId)
 
@@ -134,14 +135,32 @@ BorderSurface {
       fontFamily: root.fontFamily
     }
 
-    Text {
+    Row {
       width: parent.width
-      text: root.meta
-      textFormat: Text.PlainText
-      color: root.problem ? root.urgent : root.dim
-      font.family: root.fontFamily
-      font.pixelSize: Style.font.caption
-      elide: Text.ElideRight
+      spacing: root.problem ? Style.space(4) : 0
+
+      Text {
+        width: Math.max(0, parent.width - errorHint.width - parent.spacing)
+        text: root.meta
+        textFormat: Text.PlainText
+        color: root.problem ? root.urgent : root.dim
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.caption
+        elide: Text.ElideRight
+      }
+
+      Button {
+        id: errorHint
+        visible: root.problem
+        width: visible ? implicitWidth : 0
+        text: '(see "More" below)'
+        foreground: root.urgent
+        fontFamily: root.fontFamily
+        fontSize: Style.font.caption
+        horizontalPadding: 0
+        verticalPadding: 0
+        onClicked: root.errorDetailsRequested(root.folder.id)
+      }
     }
 
     Text {

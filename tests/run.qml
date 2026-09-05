@@ -51,6 +51,47 @@ QtObject {
     }, "fallback"), "optiplex-sff", "remembered local device name")
   }
 
+  function testFolderErrorDetails() {
+    var details = [
+      { path: "repo", error: "delete dir: contains ignored files" },
+      { path: "repo/child", error: "delete dir: contains ignored files" },
+      { path: "other", error: "permission denied" }
+    ]
+    var service = {
+      folders: [{ id: "failed", path: "/tmp/failed", label: "Named folder" },
+        { id: "healthy", path: "/tmp/healthy" }],
+      folderStatuses: FacadeModel.folderStatuses([
+        { id: "failed", status: { state: "idle", pullErrors: 19,
+            errors: details } },
+        { id: "healthy", status: { state: "idle", errors: [] } }
+      ])
+    }
+    var rows = PanelModel.buildFolderRows(service, "/home/test")
+    var failed = PanelModel.folderById(rows, "failed")
+    compare(failed.errorDetails, details, "per-file errors reach the panel")
+    compare(PanelModel.folderMeta(failed), details[0].error + " · Named folder",
+      "card uses the available reason")
+    compare(PanelModel.folderErrorText(failed),
+      "delete dir: contains ignored files\n\nrepo\nrepo/child\n\n"
+        + "permission denied\n\nother", "identical reasons share paths")
+    compare(PanelModel.folderErrorText(PanelModel.folderById(rows, "healthy")),
+      "", "healthy selection has no errors")
+    failed.error = "folder unavailable"
+    compare(PanelModel.folderMeta(failed), "folder unavailable · Named folder",
+      "folder summary takes precedence")
+    service.folderStatuses.failed = FacadeModel.folderStatus({
+      state: "idle", pullErrors: 0, errors: []
+    })
+    failed = PanelModel.folderById(
+      PanelModel.buildFolderRows(service, "/home/test"), "failed")
+    compare(failed.problem, false, "fresh healthy status clears the problem")
+    compare(PanelModel.folderErrorText(failed), "",
+      "fresh healthy status clears old details")
+    compare(PanelModel.folderErrorText({ problem: true, errorDetails: [
+      { path: "<file>", error: "__proto__" }
+    ] }), "__proto__\n\n<file>", "error text remains data")
+  }
+
   function testSettingsModel() {
     compare(SettingsModel.parse([
       "version = 1",
@@ -122,7 +163,9 @@ QtObject {
       }
     }]).folder.errors, 1, "folder error projection")
     compare(FacadeModel.truncationWarning({}), "", "complete state warning")
-    compare(FacadeModel.truncationWarning({ folderErrors: 1 }),
+    compare(FacadeModel.truncationWarning({ folderErrors: 1 }), "",
+      "folder detail limits are reported with the errors")
+    compare(FacadeModel.truncationWarning({ folders: 1 }),
       "Some Syncthing items exceed panel limits; use the Web UI for the "
         + "hidden entries", "truncated state warning")
   }
@@ -172,6 +215,7 @@ QtObject {
   Component.onCompleted: {
     try {
       testPanelModel()
+    testFolderErrorDetails()
       testSettingsModel()
       testFacadeProjection()
       testDriftPresentation()

@@ -181,6 +181,16 @@ Panel {
     return PanelModel.formatBytes(value)
   }
 
+  function folderErrorText(folder) {
+    return PanelModel.folderErrorText(folder)
+  }
+
+  function showFolderErrors(folderId) {
+    selectedFolderId = folderId
+    moreOpen = true
+    Qt.callLater(function() { popup.scrollToMore() })
+  }
+
   function folderMeta(folder) {
     return PanelModel.folderMeta(folder, folderRescanning(folder))
   }

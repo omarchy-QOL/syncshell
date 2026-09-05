@@ -14,6 +14,7 @@ Column {
   property color urgent: Color.urgent
   property color success: "#a3be8c"
   property string fontFamily: Style.font.family
+  readonly property var selectedFolder: root.controller.selectedFolder()
   readonly property bool folderPopupOpen: folderSelector.popupOpen
   readonly property bool pendingPopupOpen: pendingOfferSelector.popupOpen
 
@@ -24,6 +25,73 @@ Column {
 
   width: parent ? parent.width : implicitWidth
   spacing: Style.space(8)
+
+  Column {
+    visible: root.selectedFolder && root.selectedFolder.problem
+    width: parent.width
+    spacing: Style.space(8)
+
+    PanelSectionHeader {
+      text: "FOLDER ERRORS"
+      foreground: root.foreground
+      fontFamily: root.fontFamily
+    }
+
+    Text {
+      width: parent.width
+      text: root.selectedFolder
+        ? root.selectedFolder.configuredLabel || root.selectedFolder.label : ""
+      textFormat: Text.PlainText
+      color: root.foreground
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.body
+      elide: Text.ElideRight
+    }
+
+    Text {
+      visible: root.syncthing && !root.syncthing.statusFresh
+      width: parent.width
+      text: "Last reported errors; current status is unavailable."
+      textFormat: Text.PlainText
+      color: root.dim
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      wrapMode: Text.Wrap
+    }
+
+    Text {
+      width: parent.width
+      text: root.controller.folderErrorText(root.selectedFolder)
+      textFormat: Text.PlainText
+      color: root.urgent
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.bodySmall
+      wrapMode: Text.Wrap
+    }
+
+    Text {
+      width: parent.width
+      text: "Showing " + (root.selectedFolder
+        ? (root.selectedFolder.errorDetails || []).length : 0)
+        + " file errors. Open Web UI for the full list."
+      textFormat: Text.PlainText
+      color: root.dim
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      wrapMode: Text.Wrap
+    }
+  }
+
+  Button {
+    text: root.syncthing && root.syncthing.refreshing
+      ? "Refreshing..." : "Refresh status"
+    enabled: root.syncthing && root.syncthing.canRefresh
+    foreground: root.foreground
+    fontFamily: root.fontFamily
+    fontSize: Style.font.caption
+    bordered: true
+    onClicked: root.syncthing.refresh()
+  }
 
   PanelSectionHeader {
     text: "FOLDERS"

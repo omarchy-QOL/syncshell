@@ -20,6 +20,7 @@ function folderStatus(value) {
     state: String(status.state || "unknown"),
     error: String(status.error || ""),
     errors: (status.errors || []).length,
+    errorDetails: status.errors || [],
     pullErrors: Number(status.pullErrors || 0),
     needTotalItems: Number(status.needTotalItems || 0),
     needBytes: Number(status.needBytes || 0),
@@ -80,7 +81,7 @@ function lifecyclePresentation(lifecycle) {
 
 function truncationWarning(truncation) {
   var state = truncation || ({})
-  var keys = ["devices", "folders", "folderDevices", "folderErrors",
+  var keys = ["devices", "folders", "folderDevices",
     "pendingFolders", "pendingOffers"]
   for (var i = 0; i < keys.length; i++) {
     if (Number(state[keys[i]] || 0) > 0) {

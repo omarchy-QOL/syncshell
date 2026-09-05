@@ -64,6 +64,9 @@ Column {
         onOpenRequested: root.controller.openFolder(modelData)
         onForgetRequested: root.controller.requestForget(modelData)
         onRescanRequested: root.syncthing.rescanFolder(modelData.id)
+        onErrorDetailsRequested: function(folderId) {
+          root.controller.showFolderErrors(folderId)
+        }
         onCopyIdRequested: function(folderId) {
           root.controller.copyFolderId(folderId)
         }

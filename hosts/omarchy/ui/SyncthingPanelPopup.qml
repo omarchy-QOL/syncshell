@@ -30,13 +30,23 @@ KeyboardPanel {
         keyCatcher.forceActiveFocus();
     }
 
+    function scrollToMore() {
+        moreDetails.forceLayout();
+        content.forceLayout();
+        panelFlick.contentY = Math.max(0, Math.min(moreButton.y,
+            panelFlick.contentHeight - panelFlick.height));
+    }
+
     function scrollToTop() {
         panelFlick.contentY = 0;
     }
 
     focusTarget: keyCatcher
     contentWidth: fittedContentWidth(Style.space(380))
-    contentHeight: fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12), Style.space(560))
+    contentHeight: fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
+        Style.space(root.controller.moreOpen
+            && root.controller.selectedFolder()
+            && root.controller.selectedFolder().problem ? 760 : 560))
 
     PanelKeyCatcher {
         id: keyCatcher
@@ -205,6 +215,7 @@ KeyboardPanel {
             }
 
             Button {
+                id: moreButton
                 visible: !root.controller.settingsMenuOpen
                 width: parent.width
                 text: root.controller.moreOpen ? "Less" : "More"
