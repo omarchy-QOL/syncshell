@@ -40,7 +40,8 @@ Column {
     Text {
       width: parent.width
       text: root.selectedFolder
-        ? root.selectedFolder.configuredLabel || root.selectedFolder.label : ""
+        ? "\uf07b  " + (root.selectedFolder.configuredLabel
+          || root.selectedFolder.label) : ""
       textFormat: Text.PlainText
       color: root.foreground
       font.family: root.fontFamily
