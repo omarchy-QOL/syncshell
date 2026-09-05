@@ -13,6 +13,9 @@ Notable changes to Syncthing for Omarchy are documented here.
 - make accepted single and global rescans visible immediately with rotating,
   inert controls and explicit optimistic folder state
 - keep long-running accepted rescans from surfacing a false request timeout
+- wait until targeted folders leave scanning before reporting rescan
+  completion, so notices and the all-folders control follow the last folder
+  rather than the HTTP accept
 - preserve ordinary 0.1.7 fast-forward updates with a usable panel until the
   standard shell restart activates the native core
 

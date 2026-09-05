@@ -98,6 +98,7 @@ QtObject {
   property string folderMutationAction: ""
   property string folderMutationError: ""
   property string folderMutationNotice: ""
+  property bool pendingRescanResultReady: false
   property string recentlyLinkedFolderId: ""
   property bool folderPreparationBusy: false
   property string folderPreparationError: ""
@@ -217,13 +218,50 @@ QtObject {
     ])
   }
 
+  function isRescanAction(action) {
+    return action === "rescan" || action === "rescan-all"
+  }
+
+  function rescanTargetsScanning() {
+    if (folderMutationAction === "rescan") {
+      var status = folderStatuses[String(folderMutationId || "")] || ({})
+      return String(status.state || "").indexOf("scan") === 0
+    }
+    if (folderMutationAction !== "rescan-all") return false
+    for (var i = 0; i < folders.length; i++) {
+      if (folders[i].paused) continue
+      var state = folderStatuses[String(folders[i].id || "")] || ({})
+      if (String(state.state || "").indexOf("scan") === 0) return true
+    }
+    return false
+  }
+
   function clearFolderAction() {
     folderMutationBusy = false
     folderMutationAction = ""
     folderMutationId = ""
+    pendingRescanResultReady = false
+  }
+
+  function settlePendingRescan() {
+    if (!folderMutationBusy || !pendingRescanResultReady) return
+    if (!isRescanAction(folderMutationAction)) return
+    if (rescanTargetsScanning()) return
+    var notice = folderMutationAction === "rescan-all"
+      ? "Rescan complete for all folders"
+      : "Rescan complete for " + folderLabel(folderMutationId)
+    clearFolderAction()
+    folderMutationNotice = notice
+    noticeTimer.restart()
+    notify(notice)
   }
 
   function finishFolderAction(contractAction, folderId, notice) {
+    if (isRescanAction(contractAction)) {
+      pendingRescanResultReady = true
+      settlePendingRescan()
+      return
+    }
     clearFolderAction()
     if (contractAction === "link") {
       recentlyLinkedFolderId = String(folderId || "")
@@ -256,6 +294,7 @@ QtObject {
     folderMutationError = ""
     noticeTimer.stop()
     folderMutationNotice = ""
+    pendingRescanResultReady = false
     var id = core.action(action, args || ({}), function(ok, revision, data, error) {
       if (!ok) {
         root.failFolderAction(error,
@@ -413,6 +452,7 @@ QtObject {
 
   onLocalDeviceIdChanged: rememberLocalIdentity()
   onDevicesChanged: rememberLocalIdentity()
+  onFolderStatusesChanged: settlePendingRescan()
 
   property CoreProcess core: CoreProcess {
     pluginRoot: root.pluginRoot
