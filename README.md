@@ -178,12 +178,6 @@ deletions.
 Syncthing's reversible `paused` setting; they do not create filesystem links or
 change device sharing.
 
-An accepted rescan changes its target button to `RESCANNING` immediately and
-rotates the refresh glyph while the request is active. A single-folder rescan
-marks only that linked folder. **Rescan all folders** marks every linked folder
-and is unavailable when all configured folders are paused. Success, failure,
-cancellation, or native-core loss always clears the temporary rescan state.
-
 **FORGET** is available for an unlinked folder. It removes that folder from the
 local Syncthing configuration without deleting its directory or data. Its Folder
 ID, settings, and device list are no longer retained by the plugin.

@@ -59,9 +59,13 @@ Panel {
   readonly property int pausedFolderCount: folderStateCount("paused")
   readonly property int rescannableFolderCount:
     Math.max(0, folderRows.length - pausedFolderCount)
+  readonly property bool rescanMutationBusy: syncthing
+    && syncthing.folderMutationBusy
+    && (syncthing.folderMutationAction === "rescan"
+      || syncthing.folderMutationAction === "rescan-all")
   readonly property bool syncInProgress: syncthing
-    ? syncthing.syncingFolderCount > 0 || scanningFolderCount > 0
-      || syncthing.syncingFiles.length > 0
+    ? syncthing.syncingFolderCount > 0 || syncthing.syncingFiles.length > 0
+      || rescanMutationBusy
     : false
   readonly property bool busy: syncthing
     ? syncthing.refreshing || syncInProgress
@@ -183,7 +187,8 @@ Panel {
   function folderStateColor(folder) {
     var state = folderState(folder)
     if (state === "UNLINKED") return warning
-    if (state === "RESCANNING") return warning
+    if (state === "SCANNING") return warning
+    if (state === "SCAN+SYNC") return warning
     if (state === "SYNCING") return warning
     if (state === "ERROR") return urgent
     return success
@@ -196,11 +201,13 @@ Panel {
 
   function folderRescanning(folder) {
     if (!folder || !syncthing || folder.paused) return false
-    if (folder.scanning) return true
     if (!syncthing.folderMutationBusy) return false
-    if (syncthing.folderMutationAction === "rescan-all") return true
-    return syncthing.folderMutationAction === "rescan"
-      && syncthing.folderMutationId === String(folder.id || "")
+    if (syncthing.folderMutationAction === "rescan"
+        && syncthing.folderMutationId === String(folder.id || ""))
+      return true
+    if (syncthing.folderMutationAction !== "rescan-all") return false
+    if (folder.scanning) return true
+    return scanningFolderCount === 0
   }
 
   function selectedFolder() {

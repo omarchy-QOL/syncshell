@@ -36,7 +36,14 @@ QtObject {
     compare(PanelModel.folderMeta(rows[0], true),
       "Scanning local changes · Configured label", "rescan folder metadata")
     compare(PanelModel.folderState(rows[0], "", false, true),
-      "RESCANNING", "optimistic rescan state")
+      "SCANNING", "optimistic rescan state")
+    compare(PanelModel.folderState(rows[0], "", true, true),
+      "SCAN+SYNC", "rescan with activity")
+    rows[0].scanning = true
+    compare(PanelModel.folderState(rows[0], ""), "SYNCED",
+      "background scan is not a user rescan")
+    compare(PanelModel.folderMeta(rows[0]),
+      "3 files · local only · Configured label", "background scan metadata")
     compare(PanelModel.localDeviceName({
       displayDeviceName: "optiplex-sff",
       localDeviceId: "",

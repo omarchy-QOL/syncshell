@@ -108,7 +108,6 @@ function folderMeta(folder, rescanning) {
   if (folder.problem) return (folder.error || "Folder needs attention") + suffix
   if (folder.paused) return "Syncing paused" + suffix
   if (rescanning) return "Scanning local changes" + suffix
-  if (folder.scanning) return "Scanning local changes" + suffix
   if (folder.syncing) {
     var remaining = formatCount(folder.needItems) + " item"
       + (folder.needItems === 1 ? "" : "s") + " remaining"
@@ -127,7 +126,10 @@ function folderState(folder, recentlyLinkedFolderId, hasActivity, rescanning) {
   if (!folder) return "UNKNOWN"
   if (folder.paused) return "UNLINKED"
   if (folder.problem) return "ERROR"
-  if (rescanning || folder.scanning) return "RESCANNING"
+  if (rescanning) {
+    if (folder.syncing || hasActivity) return "SCAN+SYNC"
+    return "SCANNING"
+  }
   if (recentlyLinkedFolderId === folder.id) return "LINKED"
   if (folder.syncing || hasActivity) return "SYNCING"
   return "SYNCED"

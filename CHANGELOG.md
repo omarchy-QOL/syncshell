@@ -16,6 +16,10 @@ Notable changes to Syncthing for Omarchy are documented here.
 - wait until targeted folders leave scanning before reporting rescan
   completion, so notices and the all-folders control follow the last folder
   rather than the HTTP accept
+- show the bar sync overlay as soon as a plugin rescan is busy, not only
+  after snapshot scanning arrives
+- distinguish plain `SCANNING` from concurrent `SCAN+SYNC` during an accepted
+  rescan
 - preserve ordinary 0.1.7 fast-forward updates with a usable panel until the
   standard shell restart activates the native core
 
