@@ -119,7 +119,7 @@ case "${2:-}" in
     printf '%%s\n' 'LoadState=loaded' "ActiveState=$active" \
       "UnitFileState=$enabled" \
       'FragmentPath=/usr/lib/systemd/user/syncthing.service' \
-      'ExecStart=/usr/bin/syncthing serve --config=%s' 'Environment='
+      'ExecStart=/usr/bin/syncthing serve --config=%s --data=%s' 'Environment='
     ;;
   start) printf 'active\n' >%q ;;
   stop) printf 'inactive\n' >%q ;;
@@ -127,7 +127,8 @@ case "${2:-}" in
   disable) printf 'disabled\n' >%q ;;
   *) exit 2 ;;
 esac
-`, activeFile, enabledFile, configPath, activeFile, activeFile, enabledFile, enabledFile)
+`, activeFile, enabledFile, filepath.Dir(configPath), filepath.Dir(configPath),
+		activeFile, activeFile, enabledFile, enabledFile)
 	if err := os.WriteFile(command, []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}

@@ -60,9 +60,10 @@ func TestProbeClassifications(t *testing.T) {
 		{"active API unavailable", "active", false, true, "", "/usr/bin/syncthing serve",
 			"unit-active-api-unavailable", true, false},
 		{"explicit matching config", "active", true, false, config,
-			"/usr/bin/syncthing serve --config=" + config, "managed", true, false},
+			"/usr/bin/syncthing serve --config=" + filepath.Dir(config) +
+				" --data=" + filepath.Dir(config), "managed", true, false},
 		{"explicit mismatched invocation", "active", true, false, config,
-			"/usr/bin/syncthing serve --config=/tmp/other.xml", "external", false, false},
+			"/usr/bin/syncthing serve --config=/tmp/other --data=/tmp/other", "external", false, false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -76,6 +77,38 @@ func TestProbeClassifications(t *testing.T) {
 				t.Fatalf("unexpected state: %#v", state)
 			}
 		})
+	}
+}
+
+func TestProbeDirectoryOptions(t *testing.T) {
+	directory := t.TempDir()
+	other := t.TempDir()
+	for _, flag := range []string{
+		"--home ", "--home=", "-H ", "-H=", "-H",
+		"--config ", "--config=", "-C ", "-C=", "-C",
+	} {
+		for _, selected := range []string{directory, other} {
+			matches := selected == directory
+			t.Run(fmt.Sprintf("%q/matching=%t", flag, matches), func(t *testing.T) {
+				invocation := "/usr/bin/syncthing serve " + flag + selected
+				if strings.HasPrefix(flag, "--config") || strings.HasPrefix(flag, "-C") {
+					invocation += " --data=" + selected
+				}
+				command := fakeSystemctl(t, "active", invocation)
+				state := (Controller{Command: command}).Probe(context.Background(),
+					Binding{Authorized: true, Unit: "syncthing.service"},
+					Target{ConfigPath: filepath.Join(directory, "config.xml"),
+						Local: true, Automatic: true}, true)
+				classification := "external"
+				if matches {
+					classification = "managed"
+				}
+				if state.TargetMatch != matches || state.CanControl != matches ||
+					state.Classification != classification {
+					t.Fatalf("unexpected state: %#v", state)
+				}
+			})
+		}
 	}
 }
 

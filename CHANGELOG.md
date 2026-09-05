@@ -4,6 +4,8 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 ## Unreleased
 
+- match Syncthing home and config directory options consistently so service
+  controls cannot target another instance through short option spellings
 - replace the QML Syncthing engine with one parent-bound native Go core while
   preserving the complete Omarchy panel and settings workflow
 - fix issue 45 by treating healthy external Syncthing instances as online

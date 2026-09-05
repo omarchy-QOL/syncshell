@@ -277,7 +277,8 @@ func newTestSession(t *testing.T, api *testAPI, active, expectedID string) *Sess
 	systemctl := filepath.Join(t.TempDir(), "systemctl")
 	script := "#!/bin/sh\nprintf '%s\\n' 'LoadState=loaded' 'ActiveState=" + active +
 		"' 'UnitFileState=enabled' 'FragmentPath=/usr/lib/systemd/user/syncthing.service' " +
-		"'ExecStart=/usr/bin/syncthing serve --config=" + configPath + "' 'Environment='\n"
+		"'ExecStart=/usr/bin/syncthing serve --config=" + filepath.Dir(configPath) +
+		" --data=" + filepath.Dir(configPath) + "' 'Environment='\n"
 	if err := os.WriteFile(systemctl, []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}

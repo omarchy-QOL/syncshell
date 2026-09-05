@@ -182,21 +182,15 @@ func targetMatches(binding Binding, target Target, properties map[string]string)
 func invocationConfigPath(invocation string) string {
 	fields := strings.Fields(strings.NewReplacer(";", " ", "\"", " ").Replace(invocation))
 	for index, field := range fields {
-		for _, prefix := range []string{"--config=", "--home=", "STCONFDIR=", "STHOMEDIR="} {
-			if strings.HasPrefix(field, prefix) {
-				value := strings.TrimPrefix(field, prefix)
-				if prefix == "--home=" || prefix == "STCONFDIR=" || prefix == "STHOMEDIR=" {
-					return filepath.Join(value, "config.xml")
-				}
-				return value
-			}
+		if (field == "--config" || field == "--home" || field == "-C" || field == "-H") && index+1 < len(fields) {
+			return filepath.Join(fields[index+1], "config.xml")
 		}
-		if (field == "--config" || field == "--home") && index+1 < len(fields) {
-			value := fields[index+1]
-			if field == "--home" {
-				return filepath.Join(value, "config.xml")
+		for _, prefix := range []string{
+			"--config=", "--home=", "-C=", "-H=", "-C", "-H", "STCONFDIR=", "STHOMEDIR=",
+		} {
+			if strings.HasPrefix(field, prefix) {
+				return filepath.Join(strings.TrimPrefix(field, prefix), "config.xml")
 			}
-			return value
 		}
 	}
 	return ""
