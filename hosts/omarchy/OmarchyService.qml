@@ -28,6 +28,9 @@ QtObject {
     : String(connection.phase || "discovering")
   readonly property bool online: connection.online === true
   property bool refreshing: false
+  readonly property bool canRefresh: core.protocolReady && !refreshing
+  readonly property bool statusFresh: core.protocolReady
+    && connection.fresh === true
   readonly property string lastError: core.lastError
     || String(connection.error && connection.error.message || "")
   readonly property string recoveryWarning: core.starting
@@ -182,9 +185,8 @@ QtObject {
     packageController.updateStatus()
     if (!core.protocolReady || refreshing) return
     refreshing = true
-    if (!core.refresh(function(ok, revision, data, error) {
+    if (!core.refresh(function() {
       root.refreshing = false
-      if (!ok) root.controlError = actionError(error, "Could not refresh")
     })) refreshing = false
   }
 

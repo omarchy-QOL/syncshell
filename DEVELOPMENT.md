@@ -46,6 +46,7 @@ bash tests/scripts.test.sh
 bash tests/busy-button.test.sh
 bash tests/rescan-core-loss.test.sh
 bash tests/install-recovery.test.sh
+bash tests/refresh-recovery.test.sh
 bash tests/architecture.test.sh
 bash tests/native-core-architecture.test.sh
 bash tests/omarchy-service-contract.test.sh

@@ -3,6 +3,8 @@
     "phase",
     "online",
     "refreshing",
+    "canRefresh",
+    "statusFresh",
     "lastError",
     "recoveryWarning",
     "baseUrl",

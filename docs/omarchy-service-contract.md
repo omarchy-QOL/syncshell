@@ -26,6 +26,8 @@ aliases, fallback runtimes, and mixed-version bridges are not retained.
 | `phase`                  | string | current connection or install phase    |
 | `online`                 | bool   | authenticated API state is ready       |
 | `refreshing`             | bool   | a visible refresh is open              |
+| `canRefresh`             | bool   | core can accept a status refresh       |
+| `statusFresh`            | bool   | current core state is fresh            |
 | `lastError`              | string | sanitized connection error             |
 | `recoveryWarning`        | string | discovery or recovery progress         |
 | `baseUrl`                | string | URL used by the Web UI action          |
