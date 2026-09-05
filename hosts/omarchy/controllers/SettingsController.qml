@@ -291,7 +291,6 @@ QtObject {
       } else if (root._themeBeforeGeneration !== "syncthing-omarchy") {
         root.setSyncthingTheme("syncthing-omarchy")
       } else {
-        root.notice = "Omarchy Web UI theme updated"
         root.finishReconcile("")
       }
     }
