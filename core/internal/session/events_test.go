@@ -2,11 +2,13 @@ package session
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -257,6 +259,81 @@ func TestEventFailuresStillRunScheduledReconciliation(t *testing.T) {
 	cancelEventUpdates(t, cancel, updates)
 }
 
+func TestEventLoopRecoversCursor(t *testing.T) {
+	for _, name := range []string{"restart", "empty restart", "transient failure"} {
+		t.Run(name, func(t *testing.T) {
+			api := &eventAPI{}
+			calls := 0
+			mu := sync.Mutex{}
+			progress := func(id int64, path string) syncthing.Event {
+				return syncthing.Event{ID: id, Type: "RemoteDownloadProgress",
+					Data: []byte(fmt.Sprintf(`{"folder":"folder","device":"remote","state":{%q:{}}}`, path))}
+			}
+			coreSession := newEventSession(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/rest/events" {
+					api.ServeHTTP(w, r)
+					return
+				}
+				mu.Lock()
+				defer mu.Unlock()
+				calls++
+				events := []syncthing.Event{progress(12, "old.txt")}
+				if calls == 2 {
+					http.Error(w, "temporary", http.StatusServiceUnavailable)
+					return
+				}
+				if calls > 2 {
+					if name == "transient failure" {
+						events = append(events, progress(13, "new.txt"))
+					} else {
+						events = []syncthing.Event{progress(1, "new.txt")}
+					}
+					if name == "empty restart" && calls == 3 {
+						events = nil
+					}
+				}
+				since, _ := strconv.ParseInt(r.URL.Query().Get("since"), 10, 64)
+				limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+				filtered := make([]syncthing.Event, 0, len(events))
+				for _, event := range events {
+					if event.ID > since {
+						filtered = append(filtered, event)
+					}
+				}
+				if limit > 0 && len(filtered) > limit {
+					filtered = filtered[len(filtered)-limit:]
+				}
+				if len(filtered) == 0 {
+					waitContext(r.Context(), 10*time.Millisecond)
+				}
+				_ = json.NewEncoder(w).Encode(filtered)
+			}))
+			if _, err := coreSession.Refresh(context.Background()); err != nil {
+				t.Fatal(err)
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			updates := coreSession.Updates(ctx)
+			defer cancelEventUpdates(t, cancel, updates)
+			deadline := time.After(2 * time.Second)
+			for {
+				select {
+				case update := <-updates:
+					files := update.State.Activity.Files
+					if len(files) == 0 {
+						continue
+					}
+					if len(files) != 1 || files[0].Path != "new.txt" {
+						t.Fatalf("recovery replayed old activity: %#v", files)
+					}
+					return
+				case <-deadline:
+					t.Fatal("new activity was not delivered after event recovery")
+				}
+			}
+		})
+	}
+}
+
 type eventAPI struct {
 	mu          sync.Mutex
 	eventCalls  int
@@ -335,7 +412,7 @@ func (a *eventAPI) healthCallCount() int {
 	return a.healthCalls
 }
 
-func newEventSession(t *testing.T, api *eventAPI) *Session {
+func newEventSession(t *testing.T, api http.Handler) *Session {
 	t.Helper()
 	server := httptest.NewServer(api)
 	t.Cleanup(server.Close)

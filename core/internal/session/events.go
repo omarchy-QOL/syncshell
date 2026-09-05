@@ -41,7 +41,11 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 	nextLifecycle := time.Now().Add(s.ProbeInterval())
 	nextActivity := time.Now().Add(activityCycle)
 	for {
-		events, err := s.client.Events(ctx, cursor, 256, eventPollSeconds, eventTypes)
+		since, limit := cursor, 256
+		if retry > 0 {
+			since, limit = 0, 1
+		}
+		events, err := s.client.Events(ctx, since, limit, eventPollSeconds, eventTypes)
 		if err != nil {
 			if ctx.Err() != nil {
 				return
@@ -64,12 +68,16 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 				&nextRefresh, &nextLifecycle, &nextActivity)
 			continue
 		}
-		if retry > 0 {
+		if retry > 0 { // preserve unread activity when the old sequence survives
+			if len(events) == 0 || events[len(events)-1].ID < cursor {
+				cursor = 0
+			}
 			published, _ := s.Refresh(ctx)
 			emitLatest(updates, published)
 			nextRefresh = time.Now().Add(s.RefreshInterval())
 			nextLifecycle = time.Now().Add(s.ProbeInterval())
 			retry = 0
+			continue
 		}
 		if len(events) > 0 {
 			gap := eventDiscontinuity(cursor, events)

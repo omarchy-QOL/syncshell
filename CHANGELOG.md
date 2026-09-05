@@ -4,6 +4,8 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 ## Unreleased
 
+- resume file activity when Syncthing's event sequence resets on reconnect
+  while preserving unread events from a surviving daemon
 - match Syncthing home and config directory options consistently so service
   controls cannot target another instance through short option spellings
 - replace the QML Syncthing engine with one parent-bound native Go core while
