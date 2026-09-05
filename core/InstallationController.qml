@@ -11,6 +11,8 @@ QtObject {
   property string state: "checking"
   property string label: "Checking"
   property string executablePath: ""
+  property string backend: "path"
+  property string flatpakId: ""
   property bool serviceAvailable: false
   property bool serviceRunning: false
   property string serviceActiveState: "inactive"
@@ -77,6 +79,8 @@ QtObject {
     state = nextState
     label = String(data.label || "Unavailable")
     executablePath = String(data.executable || "")
+    backend = String(data.backend || "path")
+    flatpakId = String(data.flatpakId || "")
     serviceAvailable = data.serviceAvailable === true
     serviceRunning = data.serviceRunning === true
     serviceActiveState = String(data.serviceActiveState || "")

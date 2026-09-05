@@ -48,6 +48,8 @@ QtObject {
   readonly property string installationState: installation.state
   readonly property string installationLabel: installation.label
   readonly property string executablePath: installation.executablePath
+  readonly property string installationBackend: installation.backend
+  readonly property string installationFlatpakId: installation.flatpakId
   readonly property bool serviceAvailable: installation.serviceAvailable
   readonly property string packageStatus: installation.packageStatus
   readonly property string packageError: installation.packageError
@@ -502,13 +504,12 @@ QtObject {
     phase = "discovering"
     lastError = ""
     _keyOutput = ""
-    apiKeyProcess.command = [
-      executablePath,
-      "cli",
-      "config",
-      "gui",
-      "dump-json"
-    ]
+    apiKeyProcess.command = installationBackend === "flatpak"
+      ? [
+          "flatpak", "run", "--command=syncthing",
+          installationFlatpakId, "cli", "config", "gui", "dump-json"
+        ]
+      : [executablePath, "cli", "config", "gui", "dump-json"]
     apiKeyProcess.running = true
   }
 

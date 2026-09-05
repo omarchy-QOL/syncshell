@@ -34,15 +34,37 @@ operation_running() {
   [[ $pid =~ ^[0-9]+$ ]] && kill -0 "$pid" 2>/dev/null
 }
 
+flatpak_apps=(
+  "com.github.zocker_160.SyncThingy"
+)
+
+detect_flatpak() {
+  local id=""
+  command -v flatpak >/dev/null 2>&1 || return 1
+  for id in "${flatpak_apps[@]}"; do
+    if flatpak info "$id" >/dev/null 2>&1; then
+      printf '%s\n' "$id"
+      return 0
+    fi
+  done
+  return 1
+}
+
 detect_status() {
-  local active_state="inactive" executable="" executable_path=""
-  local label="Not installed" load_state="not-found" state="missing"
-  local unit_file_state="not-found"
+  local active_state="inactive" backend="path" executable=""
+  local executable_path="" flatpak_id="" label="Not installed"
+  local load_state="not-found" state="missing" unit_file_state="not-found"
 
   executable="$(command -v syncthing 2>/dev/null || true)"
   if [[ -n $executable ]]; then
     executable_path="$(readlink -f -- "$executable" 2>/dev/null || true)"
     [[ -n $executable_path ]] || executable_path="$executable"
+  else
+    flatpak_id="$(detect_flatpak 2>/dev/null || true)"
+    if [[ -n $flatpak_id ]]; then
+      backend="flatpak"
+      executable_path="$flatpak_id (Flatpak)"
+    fi
   fi
 
   load_state="$(service_property LoadState)"
@@ -66,6 +88,8 @@ detect_status() {
     --arg state "$state" \
     --arg label "$label" \
     --arg executable "$executable_path" \
+    --arg backend "$backend" \
+    --arg flatpakId "$flatpak_id" \
     --arg serviceActiveState "$active_state" \
     --arg unitFileState "$unit_file_state" \
     --argjson serviceAvailable \
@@ -78,6 +102,8 @@ detect_status() {
       state: $state,
       label: $label,
       executable: $executable,
+      backend: $backend,
+      flatpakId: $flatpakId,
       serviceAvailable: $serviceAvailable,
       serviceRunning: $serviceRunning,
       serviceActiveState: $serviceActiveState,
