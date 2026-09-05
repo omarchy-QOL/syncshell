@@ -84,8 +84,9 @@ Column {
   }
 
   Button {
-    text: root.syncthing && root.syncthing.refreshing
-      ? "Refreshing..." : "Refresh status"
+    iconText: "󰑐"
+    text: "Refresh Syncthing status"
+    tooltipText: "Request latest Syncthing state\nimmediately without rescan."
     enabled: root.syncthing && root.syncthing.canRefresh
     foreground: root.foreground
     fontFamily: root.fontFamily
