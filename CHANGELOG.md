@@ -4,6 +4,9 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 ## Unreleased
 
+- detect Syncthing installed through the SyncThingy Flatpak and read its local
+  API key, in addition to the conventional package installation
+
 ## 0.1.7 - 2026-08-31
 
 - reconcile configured and systemd user-service startup states without changing
