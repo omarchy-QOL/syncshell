@@ -4,7 +4,7 @@
   "name": "Syncthing",
   "version": "0.1.8",
   "author": "ilyaZar",
-  "license": "MIT AND MPL-2.0",
+  "license": "MIT AND MPL-2.0 AND OFL-1.1",
   "description": "A Syncthing plugin with a bundled native core for monitoring file activity, safely managing folders, controlling the user service, and following the Omarchy theme.",
   "kinds": ["service", "bar-widget"],
   "keepLoaded": true,
