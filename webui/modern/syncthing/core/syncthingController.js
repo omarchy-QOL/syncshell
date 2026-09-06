@@ -1147,6 +1147,13 @@ angular.module('syncthing.core')
             return 'info';
         };
 
+        $scope.folderStateClass = function (folderCfg) {
+            var status = $scope.folderStatus(folderCfg);
+            var color = $scope.folderClass(folderCfg);
+            return color === 'primary' || status === 'outofsync' || status === 'localadditions'
+                ? 'warning' : color;
+        };
+
         $scope.syncPercentage = function (folder) {
             var model = $scope.model[folder];
             if (typeof model === 'undefined') {
