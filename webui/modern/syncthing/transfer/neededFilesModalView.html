@@ -1,0 +1,76 @@
+<modal id="needed" status="info" icon="fas fa-cloud-download-alt" heading="{{'Out of Sync Items' | translate}}" large="yes" closeable="yes">
+
+  <div class="modal-body">
+
+    <div id="download-legend" ng-if="downloadProgressEnabled()">
+      <div class="progress">
+        <div class="progress-bar progress-bar-success" style="width: 20%"><span translate class="show">Reused</span></div>
+        <div class="progress-bar" style="width: 20%"><span translate class="show">Copied from original</span></div>
+        <div class="progress-bar progress-bar-info" style="width: 20%"><span translate class="show">Copied from elsewhere</span></div>
+        <div class="progress-bar progress-bar-warning" style="width: 20%"><span translate class="show">Downloaded</span></div>
+        <div class="progress-bar progress-bar-danger" style="width: 20%"><span translate class="show">Downloading</span></div>
+      </div>
+
+      <hr />
+    </div>
+
+    <table class="table table-striped table-condensed">
+
+      <tr dir-paginate="f in needed.items | itemsPerPage: needed.perpage" current-page="needed.page" total-items="model[neededFolder].needTotalItems" pagination-id="needed">
+
+        <!-- Icon -->
+        <td class="small-data col-xs-2">
+          <span class="{{needIcons[f.action]}}"></span> {{needActions[f.action]}}
+        </td>
+
+        <!-- Name -->
+        <td class="small-data col-xs-6">
+          <span ng-if="f.type != 'queued'">
+            <span tooltip data-original-title="{{f.name}}">{{f.name | basename}}</span>
+          </span>
+          <span ng-if="f.type == 'queued'">
+            <a href="" ng-click="bumpFile(neededFolder, f.name)" tooltip data-original-title="{{'Move to top of queue' | translate}}">
+              <span class="fas fa-eject"></span>
+            </a>
+            <span tooltip data-original-title="{{f.name}}">&nbsp;{{f.name | basename}}</span>
+          </span>
+        </td>
+
+        <!-- Size/Progress -->
+        <td class="col-xs-4">
+          <div ng-if="f.type == 'progress' && f.action == 'sync' && progress[neededFolder] && progress[neededFolder][f.name]">
+            <div class="progress">
+              <div class="progress-bar progress-bar-success" style="width: {{progress[neededFolder][f.name].reused | percent}}"></div>
+              <div class="progress-bar" style="width: {{progress[neededFolder][f.name].copiedFromOrigin | percent}}"></div>
+              <div class="progress-bar progress-bar-info" style="width: {{progress[neededFolder][f.name].copiedFromElsewhere | percent}}"></div>
+              <div class="progress-bar progress-bar-warning" style="width: {{progress[neededFolder][f.name].pulled | percent}}"></div>
+              <div class="progress-bar progress-bar-danger" style="width: {{progress[neededFolder][f.name].pulling | percent}}"></div>
+              <span class="show frontal">
+                {{progress[neededFolder][f.name].bytesDone | binary}}B / {{progress[neededFolder][f.name].bytesTotal | binary}}B
+              </span>
+            </div>
+          </div>
+          <div ng-if="f.type != 'progress' || f.action != 'sync' || !progress[neededFolder] || !progress[neededFolder][f.name]" class="text-right small-data">
+            <span ng-if="f.size > 0">{{f.size | binary}}B</span>
+          </div>
+        </td>
+
+      </tr>
+    </table>
+
+    <dir-pagination-controls on-page-change="refreshNeed(newPageNumber, needed.perpage)" pagination-id="needed" ></dir-pagination-controls>
+    <ul class="pagination pull-right">
+      <li ng-repeat="option in [10, 25, 50]" ng-class="{ active: needed.perpage == option }">
+        <a href="#" ng-click="refreshNeed(needed.page, option)">{{option}}</a>
+      </li>
+    </ul>
+    <div class="clearfix"></div>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+      <span class="fas fa-times"></span>&nbsp;<span translate>Close</span>
+    </button>
+  </div>
+
+</modal>

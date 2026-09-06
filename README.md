@@ -262,5 +262,7 @@ checkout contains the regular executable at `bin/x86_64/syncshell-core`, that
 its mode is `0755`, and that the machine architecture is `x86_64`.
 `packaging/bundled/verify.sh` checks the complete artifact contract.
 
-Plugin code is MIT licensed. Adapted Syncthing status icons are MPL-2.0; their
+Plugin code is MIT licensed. The bundled Web UI retains its upstream MPL-2.0
+and vendor licenses; see [its provenance](webui/UPSTREAM.md).
+Adapted Syncthing status icons are MPL-2.0; their
 source and attribution are documented in `assets/README.md`.

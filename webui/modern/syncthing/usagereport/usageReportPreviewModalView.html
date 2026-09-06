@@ -1,0 +1,29 @@
+<modal id="urPreview" status="success" icon="fas fa-chart-bar" heading="{{'Anonymous Usage Reporting' | translate}}" large="yes" closeable="yes">
+  <div class="modal-body">
+    <p translate>
+      The encrypted usage report is sent daily. It is used to track common platforms, folder sizes, and app versions. If the reported data set is changed you will be prompted with this dialog again.
+    </p>
+    <p translate>The aggregated statistics are publicly available at the URL below.</p>
+    <p><a href="https://data.syncthing.net/" target="_blank">https://data.syncthing.net/</a></p>
+    <label translate>Version</label>
+    <select id="urPreviewVersion" class="form-control" ng-model="reportDataPreviewVersion" ng-change="refreshReportDataPreview(reportDataPreviewVersion, reportDataPreviewDiff)">
+      <option selected value translate>Select a version</option>
+      <option ng-repeat="n in urVersions()" value="{{n}}">{{'Version' | translate}} {{n}}</option>
+    </select>
+    <div class="checkbox" ng-if="reportDataPreviewVersion > 2">
+      <label>
+        <input type="checkbox" ng-model="reportDataPreviewDiff" ng-change="refreshReportDataPreview(reportDataPreviewVersion, reportDataPreviewDiff)" />
+        <span translate>Show diff with previous version</span>
+      </label>
+    </div>
+    <hr>
+    <form>
+      <textarea class="form-control" rows="20" ng-if="reportDataPreview">{{reportDataPreview | json}}</textarea>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+      <span class="fas fa-times"></span>&nbsp;<span translate>Close</span>
+    </button>
+  </div>
+</modal>
