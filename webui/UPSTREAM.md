@@ -12,6 +12,9 @@ notification templates and conditional actions are retained. Folder cards group
 activity, configuration, and identification. A compact count filter truncates
 summary totals to one decimal; a controller helper exposes exact comparison
 rows when the folder is not up to date or its local/global totals differ.
+Count tooltips show files, folders, and total size; the Shared menu opens
+the existing device editor. The ignore-pattern information icon opens the
+existing folder ignore editor.
 
 `themes/` contains the unchanged `gui/{black,dark,light}/assets/css/theme.css`
 files from the same commit. The default stylesheet imports dark/light CSS;

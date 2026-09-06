@@ -219,12 +219,17 @@
                           <td class="text-right">{{folderStatusText(folder)}}</td>
                         </tr>
                         <tr ng-if="!folder.paused && model[folder.id].state" class="folder-state-summary">
-                          <th><span translate>Global and Local State</span></th>
+                          <th>
+                            <span translate>Global/local State</span>&nbsp;<span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>
+                            <a ng-if="model[folder.id].ignorePatterns" href="" ng-click="editFolderExisting(folder, '#folder-ignores')" tooltip data-original-title="{{'Reduced by ignore patterns' | translate}}" aria-label="{{'Reduced by ignore patterns' | translate}}"><span class="fas fa-info-circle"></span></a>
+                          </th>
                           <td class="text-right">
-                            <span class="fa fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}" title="{{folderStatusText(folder)}}"></span>&ensp;
-                            <span tooltip data-original-title="{{'Global State' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}} {{'files' | translate}}, {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}} {{'directories' | translate}}, ~{{model[folder.id].globalBytes | binary}}B">
+                            <span tooltip data-html="true"
+                              data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                              data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</div>
+                                <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</div>
+                                <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].globalBytes | binary}}B</div>">
                               <span class="far fa-copy"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
-                              <span class="far fa-folder"></span>&nbsp;{{model[folder.id].globalDirectories | compactNumber}}&ensp;
                               <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
                             </span>
                           </td>
@@ -232,9 +237,12 @@
                         <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
                           <th><span class="fas fa-fw fa-globe"></span>&nbsp;<span translate>Global State</span></th>
                           <td class="text-right">
-                            <span tooltip data-original-title="{{model[folder.id].globalFiles | alwaysNumber | localeNumber}} {{'files' | translate}}, {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}} {{'directories' | translate}}, ~{{model[folder.id].globalBytes | binary}}B">
+                            <span tooltip data-html="true"
+                              data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                              data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</div>
+                                <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</div>
+                                <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].globalBytes | binary}}B</div>">
                               <span class="far fa-copy"></span>&nbsp;{{model[folder.id].globalFiles | alwaysNumber | localeNumber}}&ensp;
-                              <span class="far fa-folder"></span>&nbsp;{{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}&ensp;
                               <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
                             </span>
                           </td>
@@ -242,20 +250,18 @@
                         <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
                           <th><span class="fas fa-fw fa-home"></span>&nbsp;<span translate>Local State</span></th>
                           <td class="text-right">
-                            <div>
-                              <span tooltip data-original-title="{{model[folder.id].localFiles | alwaysNumber | localeNumber}} {{'files' | translate}}, {{model[folder.id].localDirectories | alwaysNumber | localeNumber}} {{'directories' | translate}}, ~{{model[folder.id].localBytes | binary}}B">
-                                <span class="far fa-copy"></span>&nbsp;{{model[folder.id].localFiles | alwaysNumber | localeNumber}}&ensp;
-                                <span class="far fa-folder"></span>&nbsp;{{model[folder.id].localDirectories | alwaysNumber | localeNumber}}&ensp;
-                                <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].localBytes | binary}}B
-                              </span>
-                            </div>
+                            <span tooltip data-html="true"
+                              data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                              data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].localFiles | alwaysNumber | localeNumber}}</div>
+                                <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].localDirectories | alwaysNumber | localeNumber}}</div>
+                                <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].localBytes | binary}}B</div>">
+                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].localFiles | alwaysNumber | localeNumber}}&ensp;
+                              <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].localBytes | binary}}B
+                            </span>
                           </td>
                         </tr>
-                        <tr ng-if="!folder.paused && model[folder.id].state && (model[folder.id].ignorePatterns || folder.ignoreDelete)">
+                        <tr ng-if="!folder.paused && model[folder.id].state && folder.ignoreDelete">
                           <td colspan="2" class="text-right">
-                            <div ng-if="model[folder.id].ignorePatterns">
-                              <a href="" ng-click="editFolderExisting(folder, '#folder-ignores')"><i class="small" translate>Reduced by ignore patterns</i></a>
-                            </div>
                             <div ng-if="folder.ignoreDelete">
                               <i class="small">
                                 <span translate>Altered by ignoring deletes.</span>
@@ -435,28 +441,25 @@
                       </tbody>
                     </table>
                     </details>
-                    <table class="table table-condensed table-striped table-auto folder-sharing">
-                      <tbody>
-                        <tr>
-                          <th><span class="fas fa-fw fa-share-alt"></span>&nbsp;<span translate>Shared With</span></th>
-                          <td class="text-right no-overflow-ellipse overflow-break-word">
-                            <span ng-repeat="device in otherDevices(folder.devices)">
-                              <span ng-if="folder.type !== 'receiveencrypted' && device.encryptionPassword" class="text-nowrap">
-                                <span class="fa fa-lock"></span>&nbsp;<!-- Avoid stray space...
-                          --></span><!-- Avoid stray space...
-                          --><span ng-switch="completion[device.deviceID][folder.id].remoteState"><!-- Avoid stray space...
-                            --><a ng-switch-when="notSharing" href="" ng-click="editDeviceExisting(devices[device.deviceID])" data-original-title="{{'The remote device has not accepted sharing this folder.' | translate}}" tooltip>{{deviceName(devices[device.deviceID])}}<sup>1</sup></a><!-- Avoid stray space...
-                            --><a ng-switch-when="paused" href="" ng-click="editDeviceExisting(devices[device.deviceID])" data-original-title="{{'The remote device has paused this folder.' | translate}}" tooltip>{{deviceName(devices[device.deviceID])}}<sup>2</sup></a><!-- Avoid stray space...
-                            --><a ng-switch-default href="" ng-click="editDeviceExisting(devices[device.deviceID])">{{deviceName(devices[device.deviceID])}}</a><!-- Avoid stray space...
-                            --><span ng-if="!$last">,</span>
-                              </span>
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
                   </div>
-                  <div class="panel-footer">
+                  <div class="panel-footer folder-actions">
+                    <div class="dropdown folder-sharing pull-left">
+                      <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="!otherDevices(folder.devices).length">
+                        <span class="fas fa-share-alt"></span>&nbsp;<span translate>Shared</span>&nbsp;<span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li ng-repeat="device in otherDevices(folder.devices)">
+                          <a href="" ng-click="editDeviceExisting(devices[device.deviceID])">
+                            <span ng-if="folder.type !== 'receiveencrypted' && device.encryptionPassword" class="fa fa-lock"></span>
+                            {{deviceName(devices[device.deviceID])}}
+                            <span ng-switch="completion[device.deviceID][folder.id].remoteState">
+                              <sup ng-switch-when="notSharing" tooltip data-original-title="{{'The remote device has not accepted sharing this folder.' | translate}}">1</sup>
+                              <sup ng-switch-when="paused" tooltip data-original-title="{{'The remote device has paused this folder.' | translate}}">2</sup>
+                            </span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
                     <button type="button" class="btn btn-sm btn-danger pull-left" ng-click="revertOverrideConfirmationModal('override', folder.id)" ng-if="folderStatus(folder) == 'outofsync' && folder.type == 'sendonly'">
                       <span class="fas fa-arrow-circle-up"></span>&nbsp;<span translate>Override Changes</span>
                     </button>
