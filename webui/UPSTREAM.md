@@ -14,7 +14,9 @@ summary totals to one decimal; a controller helper exposes exact comparison
 rows when the folder is not up to date or its local/global totals differ.
 Count tooltips show files, folders, and total size; the Shared menu opens
 the existing device editor. The ignore-pattern information icon opens the
-existing folder ignore editor.
+existing folder ignore editor. The folder column uses two-thirds of its
+original desktop width. Long names and paths truncate with full tooltips;
+path and filename truncation preserves the ending.
 
 `themes/` contains the unchanged `gui/{black,dark,light}/assets/css/theme.css`
 files from the same commit. The default stylesheet imports dark/light CSS;

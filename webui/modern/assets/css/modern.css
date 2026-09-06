@@ -20,7 +20,7 @@
 @media (min-width: 1000px) {
     .dashboard-authenticated {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr);
         gap: 24px;
         align-items: start;
     }
@@ -31,7 +31,7 @@
 
 @media (min-width: 1400px) {
     .dashboard-authenticated {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: minmax(320px, 2fr) repeat(2, minmax(0, 3.5fr));
     }
     .notifications {
         grid-column: auto;
@@ -125,9 +125,11 @@
 
 .folder-details > table {
     margin-bottom: 0;
+    table-layout: fixed;
 }
 
-.folder-state-summary th {
+.folder-details > table th {
+    width: 50%;
     white-space: normal;
 }
 
@@ -159,4 +161,33 @@
 .folder-actions::before,
 .folder-actions::after {
     display: none;
+}
+
+.folder-details > table td {
+    max-width: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.folder-tail,
+.folder-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.folder-tail {
+    direction: rtl;
+    text-align: right;
+}
+
+.folder-change {
+    display: flex;
+    gap: 0.3em;
+}
+
+.folder-change .folder-tail {
+    min-width: 0;
+    flex: 1;
 }
