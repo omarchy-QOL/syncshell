@@ -5,6 +5,10 @@ without changes from commit `946e2b83a1f6c6ae119427c09e0a5802940b82ff`:
 
 https://github.com/syncthing/syncthing/tree/946e2b83a1f6c6ae119427c09e0a5802940b82ff/gui/default
 
+`themes/` contains the unchanged `gui/{black,dark,light}/assets/css/theme.css`
+files from the same commit. The default stylesheet imports dark/light CSS;
+preparation redirects those imports to the bundled files.
+
 It contains application code, templates, translations, fonts, images, and
 vendor libraries. Syncthing serves these static files alongside its own
 REST API, authentication, `meta.js`, QR endpoints, and `themes.json`.
@@ -30,7 +34,7 @@ UI changes separately. Preserve vendor notices and review API differences.
 Regenerate the shipped manifest after intentional asset changes:
 
 ```bash
-find modern -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS
+find modern themes -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS
 ```
 
 The initial import is preserved in Git history. Keep one maintained source
