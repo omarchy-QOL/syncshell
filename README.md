@@ -73,7 +73,7 @@ activity, folder management, Web UI theming, and plugin settings.
   <tr>
     <td width="50%" valign="top">
       <a
-        href="https://ilyazar.github.io/syncshell/assets/published/01_syncthing_file_activity.mp4"
+        href="https://omarchy-qol.github.io/syncshell/assets/published/01_syncthing_file_activity.mp4"
       >
         <img
           src="assets/published/01_syncthing_file_activity.png"
@@ -88,7 +88,7 @@ activity, folder management, Web UI theming, and plugin settings.
     </td>
     <td width="50%" valign="top">
       <a
-        href="https://ilyazar.github.io/syncshell/assets/published/02_syncthing_folder_lifecycle.mp4"
+        href="https://omarchy-qol.github.io/syncshell/assets/published/02_syncthing_folder_lifecycle.mp4"
       >
         <img
           src="assets/published/02_syncthing_folder_lifecycle.png"
@@ -104,7 +104,7 @@ activity, folder management, Web UI theming, and plugin settings.
   <tr>
     <td width="50%" valign="top">
       <a
-        href="https://ilyazar.github.io/syncshell/assets/published/03_syncthing_theme_aware_webUI.mp4"
+        href="https://omarchy-qol.github.io/syncshell/assets/published/03_syncthing_theme_aware_webUI.mp4"
       >
         <img
           src="assets/published/03_syncthing_theme_aware_webUI.png"
@@ -118,7 +118,7 @@ activity, folder management, Web UI theming, and plugin settings.
     </td>
     <td width="50%" valign="top">
       <a
-        href="https://ilyazar.github.io/syncshell/assets/published/04_syncthing_icon_change_and_other_settings.mp4"
+        href="https://omarchy-qol.github.io/syncshell/assets/published/04_syncthing_icon_change_and_other_settings.mp4"
       >
         <img
           src="assets/published/04_syncthing_icon_change_and_other_settings.png"
