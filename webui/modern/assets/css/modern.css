@@ -61,11 +61,6 @@
     flex-shrink: 0;
 }
 
-.device-role,
-.folder-state-summary .text-success {
-    color: #29b74e !important;
-}
-
 .device-role {
     text-transform: lowercase;
 }
@@ -126,6 +121,7 @@
 .folder-details > table {
     margin-bottom: 0;
     table-layout: fixed;
+    font-size: 14px;
 }
 
 .folder-details > table th {
@@ -135,10 +131,6 @@
 
 .folder-details > table > tbody > tr > th {
     padding-left: 20px;
-}
-
-.folder-details .folder-state-detail th {
-    padding-left: 32px;
 }
 
 .folder-count-tooltip .tooltip-inner {

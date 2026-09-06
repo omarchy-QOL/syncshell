@@ -216,7 +216,7 @@
                       <tbody>
                         <tr ng-if="!folder.paused && model[folder.id].state" class="folder-state-summary">
                           <th>
-                            <span translate>Global/local State</span>&nbsp;<span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>
+                            <span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-fw fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>&nbsp;<span translate>Global/local State</span>
                             <a ng-if="model[folder.id].ignorePatterns" href="" ng-click="editFolderExisting(folder, '#folder-ignores')" tooltip data-original-title="{{'Reduced by ignore patterns' | translate}}" aria-label="{{'Reduced by ignore patterns' | translate}}"><span class="fas fa-info-circle"></span></a>
                           </th>
                           <td class="text-right">
@@ -231,7 +231,7 @@
                           </td>
                         </tr>
                         <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
-                          <th><span class="fas fa-fw fa-globe"></span>&nbsp;<span translate>Global State</span></th>
+                          <th><span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-fw fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>&nbsp;<span translate>Global State</span></th>
                           <td class="text-right">
                             <span tooltip data-html="true"
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
@@ -244,7 +244,7 @@
                           </td>
                         </tr>
                         <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
-                          <th><span class="fas fa-fw fa-home"></span>&nbsp;<span translate>Local State</span></th>
+                          <th><span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-fw fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>&nbsp;<span translate>Local State</span></th>
                           <td class="text-right">
                             <span tooltip data-html="true"
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
@@ -309,10 +309,13 @@
                         <tr ng-if="folder.type != 'sendonly' && folder.type != 'receiveencrypted' && folderStats[folder.id].lastFile && folderStats[folder.id].lastFile.filename">
                           <th><span class="fas fa-fw fa-exchange-alt"></span>&nbsp;<span translate>Latest Change</span></th>
                           <td class="text-right">
-                            <span class="folder-change" tooltip data-original-title="{{folder.path}}/{{folderStats[folder.id].lastFile.filename}} @ {{folderStats[folder.id].lastFile.at | date:'yyyy-MM-dd HH:mm:ss'}}">
-                              <span translate ng-if="!folderStats[folder.id].lastFile.deleted">Updated</span>
-                              <span translate ng-if="folderStats[folder.id].lastFile.deleted">Deleted</span>
-                              <span class="folder-tail"><bdi dir="ltr">{{folderStats[folder.id].lastFile.filename | basename}}</bdi></span>
+                            <span class="folder-tail" tooltip data-container="body">
+                              <bdi dir="ltr">{{folderStats[folder.id].lastFile.filename | basename}}</bdi>
+                              <span tooltip-content hidden>
+                                {{folder.path}}/{{folderStats[folder.id].lastFile.filename}}
+                                <span ng-class="folderStats[folder.id].lastFile.deleted ? 'text-danger' : 'text-success'">{{(folderStats[folder.id].lastFile.deleted ? 'Deleted' : 'Updated') | translate}}</span>
+                                @ <span class="text-warning folder-change-time">{{folderStats[folder.id].lastFile.at | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+                              </span>
                             </span>
                           </td>
                         </tr>
@@ -401,7 +404,7 @@
                         <tr>
                           <th><span class="fas fa-fw fa-folder-open"></span>&nbsp;<span translate>Folder Path</span></th>
                           <td class="text-right">
-                            <span class="folder-tail" tooltip data-original-title="{{folder.path}}"><bdi dir="ltr">{{(folder.path | basename) || folder.path}}</bdi></span>
+                            <span class="folder-tail" tooltip data-container="body" data-original-title="{{folder.path}}"><bdi dir="ltr">{{(folder.path | basename) || folder.path}}</bdi></span>
                           </td>
                         </tr>
                         <tr>

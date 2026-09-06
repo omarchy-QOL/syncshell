@@ -160,6 +160,10 @@ li.hidden-xs:hover,
   color: {{orange}} !important;
 }
 
+.folder-change-time {
+  color: {{yellow}} !important;
+}
+
 .text-danger {
   color: {{red}} !important;
 }

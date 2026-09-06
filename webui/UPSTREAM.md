@@ -16,7 +16,8 @@ Count tooltips show files, folders, and total size; the Shared menu opens
 the existing device editor. The ignore-pattern information icon opens the
 existing folder ignore editor. The folder column uses three-quarters of its
 original desktop width. Long names and paths truncate with full tooltips;
-path and filename truncation preserves the ending.
+path and filename truncation preserves the ending. The tooltip directive
+also accepts hidden Angular-rendered content for the colored change metadata.
 
 `themes/` contains the unchanged `gui/{black,dark,light}/assets/css/theme.css`
 files from the same commit. The default stylesheet imports dark/light CSS;
