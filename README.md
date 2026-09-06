@@ -14,7 +14,7 @@ shell adapters remain future work.
 - select a folder card to open its directory
 - select **+** to configure an existing local directory
 - select **RESCAN** on a folder or **Rescan all folders** for linked folders
-- select **Open Web UI** for device setup and advanced folder options
+- select **Web UI** for device setup and advanced folder options
 - select the gear or press `s` for appearance settings and clean removal
 
 ## Install
@@ -77,13 +77,17 @@ inside the owned `[style]` and `[service]` sections remain validation errors.
 
 - `style.icon_style = "branded"` uses the classic Syncthing bar icon. Use
   `themed` for an icon colored by the active Omarchy theme.
+- `style.web_ui_theme = "default"` uses Syncthing's own Web UI.
+- `style.web_ui_theme = "modern"` uses the complete bundled Syncshell Web UI,
+  initially an unchanged copy of Syncthing v2.1.3.
 - `style.web_ui_theme = "omarchy"` applies the complete Omarchy palette to
-  Syncthing's Web UI. Use `default` for Syncthing's own styling.
+  that same bundled UI. This is the default plugin preference.
 
-Changing the Omarchy theme regenerates the Web UI palette immediately. An open
-Web UI applies the new colors without a page reload. The generated Omarchy theme
-is separate from Syncthing's default theme assets, so selecting `default` keeps
-Syncthing's styling and any user customization intact.
+In `omarchy` mode, changing the desktop theme regenerates the Web UI palette.
+An open themed Web UI applies the new colors without a page reload. `modern`
+keeps its own appearance. Both generated profiles are separate from Syncthing's
+default assets and unrelated user themes. Reload an already-open page when
+switching between profiles to load its HTML and scripts.
 
 ## Demo videos
 
@@ -207,8 +211,11 @@ and sharing.
 Folder management and Web UI theming use Syncthing's granular configuration and
 system-path APIs and require Syncthing 1.21.0 or later.
 
-The current Web UI integration preserves the released Omarchy workflow. A
-modernized Web UI belongs to a later shell release and is not part of 0.1.8.
+The bundled Web UI is pinned to Syncthing v2.1.3. Its daemon compatibility is
+validated separately from the plugin's minimum API version; use `default` for
+the UI shipped by your daemon. The portable bundle and its provenance are
+documented in [webui/UPSTREAM.md](webui/UPSTREAM.md). Layout redesign and browser
+conflict resolution are later work; the current bundle retains upstream's UI.
 
 ## Roadmap and prior releases
 
@@ -236,8 +243,8 @@ Planned work stays at the top. Shipped entries come from
 
 Open the plugin settings and select **Cleanly remove Syncthing plugin**. The
 confirmation can preserve or delete the plugin settings. Both choices restore
-Syncthing's default Web UI when the Omarchy theme is active, remove the
-generated Omarchy theme, and then use Omarchy's native plugin removal.
+Syncthing's default Web UI when either bundled profile is active. Removal uses
+Omarchy's native plugin removal and deletes both generated custom profiles.
 
 Clean plugin removal never uninstalls Syncthing or removes its configuration,
 folders, devices, or synchronized data. Uninstall Syncthing separately only when

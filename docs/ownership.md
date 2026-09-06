@@ -14,6 +14,7 @@ and settings live in the host adapter around the native core.
 | `hosts/omarchy/`             | Omarchy facade, settings, UI, and platform  |
 | `hosts/standalone/`          | maintained contract harness                 |
 | `packaging/bundled/`         | reproducible x86_64 artifact tooling        |
+| `webui/modern/`              | portable bundled browser frontend          |
 
 The root `Panel.qml`, `Service.qml`, and `manifest.json` remain regular-file
 Omarchy entry points. They are boundaries, not additional owners.
@@ -46,5 +47,9 @@ Users restart the shell after updating to load the current panel, service,
 and bundled core together. The interval before restart is unsupported. Old
 helpers or runtime compatibility paths are not retained for that interval;
 released implementations remain available in Git history.
+
+The bundled browser frontend is served by Syncthing. Omarchy owns preparing
+its runtime profiles and generating the Omarchy palette; the modern source
+contains no Omarchy commands or QML dependencies.
 
 The future host directories are README-only in 0.1.8 and make no support claim.

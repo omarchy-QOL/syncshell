@@ -34,6 +34,7 @@ Run the complete released suite from the repository root:
 ```bash
 git diff --check
 jq empty manifest.json
+(cd webui && sha256sum --quiet --check SHA256SUMS)
 omarchy plugin validate .
 /usr/lib/qt6/bin/qmllint -I /usr/share/omarchy/shell Panel.qml Service.qml \
   shared/*.qml hosts/omarchy/*.qml hosts/omarchy/controllers/*.qml \

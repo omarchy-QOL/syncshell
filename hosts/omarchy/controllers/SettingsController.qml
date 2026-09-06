@@ -33,7 +33,6 @@ QtObject {
     SettingsModel.DefaultProbeIntervalSeconds
   property string currentWebUiTheme: ""
   property string guiAssetsPath: ""
-  property string guiUrl: ""
   property string error: ""
   property string notice: ""
   property bool busy: false
@@ -41,12 +40,15 @@ QtObject {
   property bool _settingsValid: false
   property bool _reconciling: false
   property bool _reconcileAgain: false
-  property string _themeBeforeGeneration: ""
+  property string _preparedTheme: ""
   property bool _openAfterEnsure: false
   property string _settingsAction: ""
   property bool _deleteSettingsAfterRemoval: false
 
   readonly property bool settingsReady: _settingsLoaded && _settingsValid
+  readonly property string desiredTheme: webUiTheme === "modern"
+    ? "syncshell-modern" : webUiTheme === "omarchy"
+      ? "syncthing-omarchy" : "default"
   readonly property bool serviceStateActionRunning:
     settingsProcess.running && _settingsAction === "service-state"
 
@@ -141,7 +143,7 @@ QtObject {
       finishRemoval("Syncthing did not report its GUI assets path")
       return
     }
-    if (currentWebUiTheme === "syncthing-omarchy") {
+    if (ownsTheme(currentWebUiTheme)) {
       selectTheme("default", function() {
         root.startRemovalWorker()
       }, function(actionError) {
@@ -186,22 +188,22 @@ QtObject {
 
   function applyDesiredTheme() {
     if (!settingsExists && currentWebUiTheme !== "default"
-        && currentWebUiTheme !== "syncthing-omarchy") {
+        && !ownsTheme(currentWebUiTheme)) {
       notice = "Keeping Syncthing Web UI theme " + currentWebUiTheme
       finishReconcile("")
       return
     }
 
     if (webUiTheme === "default") {
-      if (currentWebUiTheme === "syncthing-omarchy") {
+      if (ownsTheme(currentWebUiTheme)) {
         setSyncthingTheme("default")
       } else finishReconcile("")
       return
     }
 
-    _themeBeforeGeneration = currentWebUiTheme
+    _preparedTheme = desiredTheme
     themeProcess.command = [
-      "bash", themeHelperPath, "generate", guiAssetsPath, guiUrl
+      "bash", themeHelperPath, "prepare", webUiTheme, guiAssetsPath
     ]
     themeProcess.running = true
   }
@@ -210,11 +212,16 @@ QtObject {
     selectTheme(theme, function() {
       root.notice = theme === "syncthing-omarchy"
         ? "Omarchy Web UI theme applied"
-        : "Syncthing default Web UI theme restored"
+        : theme === "syncshell-modern" ? "Modern Web UI applied"
+          : "Syncthing default Web UI theme restored"
       root.finishReconcile("")
     }, function(actionError) {
       root.finishReconcile(root.apiErrorMessage(actionError))
     })
+  }
+
+  function ownsTheme(theme) {
+    return theme === "syncshell-modern" || theme === "syncthing-omarchy"
   }
 
   function apiErrorMessage(apiError) {
@@ -235,7 +242,6 @@ QtObject {
   onRuntimeReadyChanged: scheduleReconcile()
   onCurrentWebUiThemeChanged: scheduleReconcile()
   onGuiAssetsPathChanged: scheduleReconcile()
-  onGuiUrlChanged: scheduleReconcile()
   onLegacyThemedIconChanged: {
     if (!settingsExists) iconStyle = legacyThemedIcon ? "themed" : "branded"
   }
@@ -289,9 +295,10 @@ QtObject {
     command: []
     onExited: function(exitCode) {
       if (exitCode !== 0) {
-        root.finishReconcile("Could not generate the Omarchy Web UI theme")
-      } else if (root._themeBeforeGeneration !== "syncthing-omarchy") {
-        root.setSyncthingTheme("syncthing-omarchy")
+        root.finishReconcile("Could not prepare the " + root.webUiTheme + " Web UI")
+      } else if (root._preparedTheme === root.desiredTheme
+          && root.currentWebUiTheme !== root._preparedTheme) {
+        root.setSyncthingTheme(root._preparedTheme)
       } else {
         root.finishReconcile("")
       }
@@ -317,6 +324,7 @@ QtObject {
 
   property Connections themeConnections: Connections {
     target: Color
+    enabled: root.webUiTheme === "omarchy"
     function onBackgroundChanged() { root.scheduleReconcile() }
     function onForegroundChanged() { root.scheduleReconcile() }
     function onAccentChanged() { root.scheduleReconcile() }

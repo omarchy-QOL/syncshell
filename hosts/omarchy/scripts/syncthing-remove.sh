@@ -49,14 +49,15 @@ validate_installation() {
     || fail "the installed plugin path changed"
 }
 
-validate_theme_path() {
-  local gui_assets=$1
+validate_theme_paths() {
+  local gui_assets=$1 theme_path
   [[ $gui_assets == /* ]] || fail "the GUI assets path must be absolute"
   gui_assets=$(realpath -m -- "$gui_assets")
-  theme_path="$gui_assets/syncthing-omarchy"
-  [[ $(dirname -- "$theme_path") == "$gui_assets"
-    && $(basename -- "$theme_path") == "syncthing-omarchy" ]] \
-    || fail "refusing unsafe theme path"
+  theme_paths=("$gui_assets/syncthing-omarchy" "$gui_assets/syncshell-modern")
+  for theme_path in "${theme_paths[@]}"; do
+    [[ $(dirname -- "$theme_path") == "$gui_assets" && ! -L $theme_path ]] \
+      || fail "refusing unsafe theme path"
+  done
 }
 
 delete_tree() {
@@ -77,7 +78,7 @@ worker() {
   local source_root=$1
   local gui_assets=$2
   local cleanup_mode=$3
-  local exit_code worker_dir
+  local exit_code worker_dir theme_path
 
   init_paths
   worker_dir=$(dirname -- "$(realpath -m -- "$0")")
@@ -87,7 +88,7 @@ worker() {
     trap 'find "$worker_cleanup_path" -depth -delete 2>/dev/null || true' EXIT
   fi
   validate_installation "$source_root"
-  validate_theme_path "$gui_assets"
+  validate_theme_paths "$gui_assets"
   [[ $cleanup_mode == preserve || $cleanup_mode == purge ]] \
     || fail "invalid cleanup mode"
 
@@ -103,7 +104,9 @@ worker() {
     fi
   fi
 
-  delete_tree "$theme_path"
+  for theme_path in "${theme_paths[@]}"; do
+    delete_tree "$theme_path"
+  done
   if [[ $cleanup_mode == purge ]]; then
     delete_tree "$config_root"
     delete_tree "$state_root"
@@ -120,7 +123,7 @@ start() {
 
   init_paths
   validate_installation "$source_root"
-  validate_theme_path "$gui_assets"
+  validate_theme_paths "$gui_assets"
   [[ $cleanup_mode == preserve || $cleanup_mode == purge ]] \
     || fail "invalid cleanup mode"
 

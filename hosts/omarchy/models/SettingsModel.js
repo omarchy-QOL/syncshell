@@ -128,8 +128,8 @@ function parse(raw) {
   if (values.web_ui_theme === undefined) {
     return { error: "Missing setting web_ui_theme" }
   }
-  if (["default", "omarchy"].indexOf(values.web_ui_theme) < 0) {
-    return { error: "web_ui_theme must be default or omarchy" }
+  if (["default", "modern", "omarchy"].indexOf(values.web_ui_theme) < 0) {
+    return { error: "web_ui_theme must be default, modern, or omarchy" }
   }
   if (values.service_state === undefined) {
     values.service_state = DefaultServiceState

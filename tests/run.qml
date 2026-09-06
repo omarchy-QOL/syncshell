@@ -94,6 +94,10 @@ QtObject {
 
   function testSettingsModel() {
     compare(SettingsModel.parse([
+      "version = 1", "[style]", "icon_style = \"branded\"",
+      "web_ui_theme = \"modern\""
+    ].join("\n")).webUiTheme, "modern", "bundled modern UI setting")
+    compare(SettingsModel.parse([
       "version = 1",
       "",
       "[style]",
@@ -120,7 +124,7 @@ QtObject {
       "icon_style = \"branded\"",
       "web_ui_theme = \"unknown\""
     ].join("\n")).error,
-      "web_ui_theme must be default or omarchy", "invalid Web UI theme")
+      "web_ui_theme must be default, modern, or omarchy", "invalid Web UI theme")
     compare(SettingsModel.parse([
       "version = 1",
       "",
