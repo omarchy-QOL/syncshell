@@ -145,7 +145,7 @@ QtObject {
 
   function setLegacyThemedIcon(enabled) {
     legacyThemedIcon = enabled === true
-    if (!settingsExists) iconStyle = legacyThemedIcon ? "themed" : "branded"
+    if (!settingsExists) iconStyle = SettingsModel.defaults(legacyThemedIcon).iconStyle
   }
 
   function openSettings() {
@@ -347,7 +347,7 @@ QtObject {
   onCurrentWebUiThemeChanged: scheduleReconcile()
   onGuiAssetsPathChanged: scheduleReconcile()
   onLegacyThemedIconChanged: {
-    if (!settingsExists) iconStyle = legacyThemedIcon ? "themed" : "branded"
+    if (!settingsExists) iconStyle = SettingsModel.defaults(legacyThemedIcon).iconStyle
   }
 
   property FileView settingsFile: FileView {

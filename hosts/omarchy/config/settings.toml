@@ -1,8 +1,8 @@
 version = 2
 
 [style]
-# "branded" vs. "themed": classic Syncthing icons vs. Omarchy-colored icons
-icon_style = "branded"
+# "themed": Omarchy colors; "branded": classic Syncthing icons
+icon_style = "themed"
 # "default": Syncthing's own UI; "modern": the bundled Syncshell UI
 # "omarchy": the bundled UI following the active Omarchy theme
 web_ui_theme = "omarchy"

@@ -1,6 +1,6 @@
 .pragma library
 
-var DefaultIconStyle = "branded"
+var DefaultIconStyle = "themed"
 var DefaultWebUiTheme = "omarchy"
 var DefaultServiceState = "enabled"
 var DefaultProbeIntervalSeconds = 15

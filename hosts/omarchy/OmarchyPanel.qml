@@ -80,7 +80,7 @@ Panel {
     return "default"
   }
   readonly property bool legacyThemedIcon:
-    setting("themedIcon", false) === true
+    setting("themedIcon", true) === true
   readonly property bool themedIcon: syncthing
     ? syncthing.iconStyle === "themed" : legacyThemedIcon
   readonly property url syncthingIconSource: Qt.resolvedUrl(
