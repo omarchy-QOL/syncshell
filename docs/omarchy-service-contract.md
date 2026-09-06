@@ -132,6 +132,10 @@ failure, cancellation, or core loss clears the mutation.
 | `settingsError`        | string | host settings or theme error            |
 | `settingsNotice`       | string | host settings or theme success notice   |
 
+Migration properties are `settingsMigrationOpen` (bool), `settingsCanAutoPort`
+(bool), and `settingsMigrationMessage` (string). The message identifies the
+actual file, explains compatibility, and previews the mapped preferences.
+
 `RemoteDownloadProgress` is presented as a local upload. Indexed additions and
 deletions are classified from current file information. Rename and move are
 not inferred.
@@ -154,7 +158,11 @@ not inferred.
   directory.
 - `clearFolderMutationMessage()` clears the folder error and notice.
 - `clearFolderMutationNotice()` clears the folder notice only.
-- `openSettings()` ensures and opens the host settings file.
+- `openSettings()` opens the host file or its migration dialog.
+- `recheckSettings()` reloads and validates the actual file.
+- `autoPortSettings()` writes a validated older-format conversion with backup.
+- `manualPortSettings()` opens the user file and temporary reference template.
+- `cancelSettingsMigration()` dismisses without writing; a warning remains.
 - `clearSettingsNotice()` clears the host settings notice.
 - `requestSelfRemoval(deleteSettings)` starts native removal after theme
   restoration.

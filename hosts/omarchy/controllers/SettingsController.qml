@@ -36,6 +36,15 @@ QtObject {
   property string error: ""
   property string notice: ""
   property bool busy: false
+  property bool migrationOpen: false
+  property string migrationError: ""
+  property int settingsVersion: SettingsModel.SupportedVersion
+  property var migration: ({})
+  property string _settingsRaw: ""
+  property string _settingsInput: ""
+  property bool _migrationPrompted: false
+  property bool _migrationCanceled: false
+  property bool _hasAcceptedSettings: false
   property bool _settingsLoaded: false
   property bool _settingsValid: false
   property bool _reconciling: false
@@ -46,6 +55,29 @@ QtObject {
   property bool _deleteSettingsAfterRemoval: false
 
   readonly property bool settingsReady: _settingsLoaded && _settingsValid
+  readonly property bool migrationRequired: settingsExists
+    && settingsVersion !== SettingsModel.SupportedVersion
+  readonly property bool canAutoPort: migrationRequired && !!migration.text
+    && !migration.error
+  readonly property string migrationMessage: {
+    var version = settingsVersion === 0 ? "Unversioned settings"
+      : "Settings version " + settingsVersion
+    var message = version + " must be updated for version "
+      + SettingsModel.SupportedVersion + ".\n\n" + settingsPath
+    if (settingsVersion > SettingsModel.SupportedVersion) {
+      return message + "\n\nAuto-port cannot downgrade newer settings. "
+        + "Use a newer Syncshell or compare manually."
+    }
+    if (!canAutoPort) return message + "\n\nAuto-port unavailable: "
+      + (migration.error || error)
+    var values = migration.values
+    message += "\n\nIcon: " + values.iconStyle + "\nWeb UI: " + values.webUiTheme
+      + "\nService: " + values.serviceState + "\nProbe: " + values.probeIntervalSeconds + " seconds"
+    if (migration.additions.length) message += "\n\nAdd missing defaults:\n"
+      + migration.additions.join("\n")
+    return message + "\n\nYour comments are preserved. A backup is kept beside the original file."
+      + (migrationError ? "\n\n" + migrationError : "")
+  }
   readonly property string desiredTheme: webUiTheme === "modern"
     ? "syncshell-modern" : webUiTheme === "omarchy"
       ? "syncthing-omarchy" : "default"
@@ -60,18 +92,33 @@ QtObject {
 
   function loadSettings(raw) {
     var parsed = SettingsModel.parse(raw)
+    _settingsValid = false
+    _settingsRaw = raw
+    settingsVersion = parsed.version
     settingsExists = true
     _settingsLoaded = true
+    migration = migrationRequired ? SettingsModel.migrate(raw) : ({})
+    if (!migrationRequired) migrationOpen = false
     if (parsed.error) {
       _settingsValid = false
-      error = "Settings not applied: " + parsed.error
+      error = _migrationCanceled && migrationRequired
+        ? canceledMessage() : "Settings not applied: " + parsed.error
+      if (migrationRequired && !_migrationPrompted) {
+        _migrationPrompted = true
+        migrationOpen = true
+      }
       return
     }
-    _settingsValid = true
+    migrationOpen = false
+    migrationError = ""
+    _migrationPrompted = false
+    _migrationCanceled = false
+    _hasAcceptedSettings = true
     iconStyle = parsed.iconStyle
     webUiTheme = parsed.webUiTheme
     serviceState = parsed.serviceState
     probeIntervalSeconds = parsed.probeIntervalSeconds
+    _settingsValid = true
     error = ""
     scheduleReconcile()
   }
@@ -79,6 +126,13 @@ QtObject {
   function useImplicitDefaults() {
     var values = SettingsModel.defaults(legacyThemedIcon)
     settingsExists = false
+    settingsVersion = SettingsModel.SupportedVersion
+    migrationOpen = false
+    migration = ({})
+    migrationError = ""
+    _migrationPrompted = false
+    _migrationCanceled = false
+    _hasAcceptedSettings = true
     _settingsLoaded = true
     _settingsValid = true
     iconStyle = values.iconStyle
@@ -95,6 +149,13 @@ QtObject {
   }
 
   function openSettings() {
+    recheckSettings()
+    if (migrationRequired) {
+      _migrationPrompted = true
+      _migrationCanceled = false
+      migrationOpen = true
+      return
+    }
     if (settingsExists) {
       Quickshell.execDetached([
         "omarchy", "launch", "config-editor", settingsPath
@@ -110,6 +171,49 @@ QtObject {
       settingsPath, iconStyle
     ]
     settingsProcess.running = true
+  }
+
+  function recheckSettings() { settingsFile.reload() }
+
+  function autoPort() {
+    if (!canAutoPort || busy) return
+    var checked = SettingsModel.parse(migration.text)
+    if (checked.error) { error = checked.error; return }
+    _settingsInput = JSON.stringify({
+      original: _settingsRaw, replacement: migration.text
+    })
+    migrationError = ""
+    _settingsAction = "migrate"
+    busy = true
+    settingsProcess.command = ["bash", settingsHelperPath, "migrate", settingsPath]
+    settingsProcess.running = true
+  }
+
+  function manualPort() {
+    if (busy) return
+    migrationOpen = false
+    migrationError = ""
+    _migrationCanceled = false
+    _settingsAction = "compare"
+    busy = true
+    settingsProcess.command = [
+      "bash", settingsHelperPath, "compare", settingsTemplatePath, settingsPath
+    ]
+    settingsProcess.running = true
+  }
+
+  function canceledMessage() {
+    return "Settings were not upgraded. Update them manually or ask your agent to migrate them. "
+      + (_hasAcceptedSettings ? "Using the last valid settings for this session."
+        : "Incompatible settings are not applied; status monitoring remains available.")
+  }
+
+  function cancelMigration() {
+    if (busy) return
+    migrationOpen = false
+    _migrationPrompted = true
+    _migrationCanceled = true
+    error = canceledMessage()
   }
 
   function setServiceState(state) {
@@ -230,7 +334,7 @@ QtObject {
   }
 
   function finishReconcile(message) {
-    error = message || ""
+    if (settingsReady) error = message || ""
     _reconciling = false
     busy = false
     if (_reconcileAgain) {
@@ -267,6 +371,13 @@ QtObject {
   property Process settingsProcess: Process {
     id: settingsProcess
     command: []
+    stdinEnabled: true
+    stdout: StdioCollector { id: settingsOutput }
+    stderr: StdioCollector { id: settingsErrors }
+    onStarted: {
+      if (root._settingsAction === "migrate") write(root._settingsInput + "\n")
+      root._settingsInput = ""
+    }
     onExited: function(exitCode) {
       var action = root._settingsAction
       root.busy = false
@@ -279,11 +390,17 @@ QtObject {
         }
         if (action === "service-state") {
           root.notice = "Syncthing service preference updated"
+        } else if (action === "migrate") {
+          root.notice = "Settings upgraded. Backup: " + settingsOutput.text.trim()
+        } else if (action === "compare") {
+          root.notice = "Save your settings to recheck them. "
+            + "The temporary template is only a reference."
         }
       } else {
-        root.error = action === "service-state"
+        root.error = settingsErrors.text.trim() || (action === "service-state"
           ? "Could not update Syncthing service preference"
-          : "Could not create Syncthing plugin settings"
+          : "Could not prepare Syncthing plugin settings")
+        if (action === "migrate" || action === "compare") root.migrationError = root.error
       }
       root._openAfterEnsure = false
       root._settingsAction = ""
@@ -294,7 +411,9 @@ QtObject {
     id: themeProcess
     command: []
     onExited: function(exitCode) {
-      if (exitCode !== 0) {
+      if (!root.settingsReady) {
+        root.finishReconcile("")
+      } else if (exitCode !== 0) {
         root.finishReconcile("Could not prepare the " + root.webUiTheme + " Web UI")
       } else if (root._preparedTheme === root.desiredTheme
           && root.currentWebUiTheme !== root._preparedTheme) {

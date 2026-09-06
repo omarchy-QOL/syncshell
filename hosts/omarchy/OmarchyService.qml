@@ -119,6 +119,9 @@ QtObject {
   readonly property bool settingsBusy: settings.busy
   readonly property string settingsError: settings.error
   readonly property string settingsNotice: settings.notice
+  readonly property bool settingsMigrationOpen: settings.migrationOpen
+  readonly property bool settingsCanAutoPort: settings.canAutoPort
+  readonly property string settingsMigrationMessage: settings.migrationMessage
 
   property int refreshIntervalSec: 60
   property int _activityDotIndex: 0
@@ -444,6 +447,10 @@ QtObject {
 
   function installSyncthing() { packageController.install() }
   function openSettings() { settings.openSettings() }
+  function recheckSettings() { settings.recheckSettings() }
+  function autoPortSettings() { settings.autoPort() }
+  function manualPortSettings() { settings.manualPort() }
+  function cancelSettingsMigration() { settings.cancelMigration() }
   function clearSettingsNotice() { settings.clearNotice() }
   function requestSelfRemoval(deletePluginSettings) {
     settings.requestSelfRemoval(deletePluginSettings)

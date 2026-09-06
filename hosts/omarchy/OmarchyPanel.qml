@@ -117,6 +117,16 @@ Panel {
   }
   readonly property bool serviceStateDialogOpen: syncthing
     && syncthing.serviceStateDrift
+  readonly property bool settingsMigrationOpen: syncthing
+    && syncthing.settingsMigrationOpen
+
+  onSettingsMigrationOpenChanged: {
+    if (settingsMigrationOpen) {
+      closeTransientViews()
+      settingsMenuOpen = false
+      open()
+    }
+  }
   readonly property string visibleSyncActivity: syncthing
     ? syncthing.syncActivity : ""
   readonly property string visibleSyncDots: syncthing
@@ -432,6 +442,13 @@ Panel {
     Qt.callLater(function() { popup.focusPanel() })
   }
 
+  function chooseSettingsPort(index) {
+    if (!syncthing) return
+    if (index === 0) syncthing.autoPortSettings()
+    else if (index === 1) syncthing.manualPortSettings()
+    else syncthing.cancelSettingsMigration()
+  }
+
   function closeSettingsMenu() {
     removalConfirmOpen = false
     settingsMenuOpen = false
@@ -514,11 +531,15 @@ Panel {
   }
   onOpenedChanged: {
     if (opened) {
-      if (syncthing) syncthing.refresh()
+      if (syncthing) {
+        syncthing.recheckSettings()
+        syncthing.refresh()
+      }
       ensureFolderSelection()
       popup.scrollToTop()
       Qt.callLater(function() { popup.focusPanel() })
     } else if (!preserveStateForFolderPicker) {
+      if (settingsMigrationOpen) syncthing.cancelSettingsMigration()
       resetTransientState()
     }
   }

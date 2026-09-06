@@ -8,18 +8,33 @@ FocusScope {
   property bool busy: false
   property int selectedChoice: 0
   property string message: ""
-  property string primaryText: ""
-  property string secondaryText: ""
+  property var choices: []
+  property var choiceEnabled: []
+  property int initialChoice: 0
+  property string busyText: "Applying Syncthing setting..."
   property string fontFamily: Style.font.family
 
   signal actionRequested(int index)
 
   function choose() {
-    if (!busy) actionRequested(selectedChoice)
+    if (!busy && isEnabled(selectedChoice)) actionRequested(selectedChoice)
+  }
+
+  function isEnabled(index) {
+    return !choiceEnabled.length || choiceEnabled[index] === true
+  }
+
+  function moveChoice(direction) {
+    if (busy) return
+    for (var step = 1; step <= choices.length; step++) {
+      var index = (selectedChoice + (direction > 0 ? step : -step)
+        + choices.length) % choices.length
+      if (isEnabled(index)) { selectedChoice = index; return }
+    }
   }
 
   visible: opened
-  onOpenedChanged: if (opened) selectedChoice = 0
+  onOpenedChanged: if (opened) selectedChoice = initialChoice
 
   Rectangle {
     anchors.fill: parent
@@ -60,16 +75,17 @@ FocusScope {
           color: Color.menu.text
           font.family: root.fontFamily
           font.pixelSize: Style.font.body
-          wrapMode: Text.WordWrap
+          wrapMode: Text.Wrap
         }
 
         Repeater {
-          model: [root.primaryText, root.secondaryText]
+          model: root.choices
 
           delegate: Rectangle {
             id: choiceRow
             required property int index
             required property string modelData
+            opacity: root.isEnabled(index) ? 1 : 0.45
 
             width: content.width
             height: Math.max(Style.space(40), choiceText.implicitHeight
@@ -93,12 +109,12 @@ FocusScope {
                 ? Color.menu.selectedText : Color.menu.text
               font.family: root.fontFamily
               font.pixelSize: Style.font.caption
-              wrapMode: Text.WordWrap
+              wrapMode: Text.Wrap
             }
 
             MouseArea {
               anchors.fill: parent
-              enabled: !root.busy
+              enabled: !root.busy && root.isEnabled(choiceRow.index)
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
               onEntered: root.selectedChoice = index
@@ -111,7 +127,7 @@ FocusScope {
           visible: root.busy
           width: parent.width
           topPadding: Style.spacing.sm
-          text: "Applying Syncthing setting..."
+          text: root.busyText
           textFormat: Text.PlainText
           color: Util.alpha(Color.menu.text, 0.66)
           font.family: root.fontFamily

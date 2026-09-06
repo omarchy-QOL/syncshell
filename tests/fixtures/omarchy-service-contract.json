@@ -61,7 +61,10 @@
     "settingsReady",
     "settingsBusy",
     "settingsError",
-    "settingsNotice"
+    "settingsNotice",
+    "settingsMigrationOpen",
+    "settingsCanAutoPort",
+    "settingsMigrationMessage"
   ],
   "methods": [
     "refresh",
@@ -79,6 +82,10 @@
     "clearFolderMutationMessage",
     "clearFolderMutationNotice",
     "openSettings",
+    "recheckSettings",
+    "autoPortSettings",
+    "manualPortSettings",
+    "cancelSettingsMigration",
     "clearSettingsNotice",
     "requestSelfRemoval"
   ]

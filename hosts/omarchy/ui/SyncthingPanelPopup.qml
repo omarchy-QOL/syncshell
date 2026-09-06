@@ -43,7 +43,9 @@ KeyboardPanel {
 
     focusTarget: keyCatcher
     contentWidth: fittedContentWidth(Style.space(380))
-    contentHeight: fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
+    contentHeight: root.controller.settingsMigrationOpen
+        ? fittedContentHeight(Style.space(520), Style.space(560))
+        : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
         Style.space(root.controller.moreOpen
             && root.controller.selectedFolder()
             && root.controller.selectedFolder().problem ? 760 : 560))
@@ -53,7 +55,9 @@ KeyboardPanel {
         anchors.fill: parent
         blocked: root.controller.addOpen || moreDetails.folderPopupOpen || moreDetails.pendingPopupOpen
         onCloseRequested: {
-            if (root.controller.serviceStateDialogOpen) {
+            if (root.controller.settingsMigrationOpen) {
+                root.controller.chooseSettingsPort(2);
+            } else if (root.controller.serviceStateDialogOpen) {
                 root.controller.close();
             } else if (root.controller.removalConfirmOpen) {
                 root.controller.removalConfirmOpen = false;
@@ -68,8 +72,10 @@ KeyboardPanel {
                 root.controller.close();
         }
         onTabRequested: function (direction) {
-            if (root.controller.serviceStateDialogOpen) {
-                serviceStateDialog.selectedChoice = serviceStateDialog.selectedChoice === 0 ? 1 : 0;
+            if (root.controller.settingsMigrationOpen) {
+                migrationDialog.moveChoice(direction);
+            } else if (root.controller.serviceStateDialogOpen) {
+                serviceStateDialog.moveChoice(direction);
             } else if (root.controller.removalConfirmOpen) {
                 removalDialog.selectedChoice = (removalDialog.selectedChoice + (direction > 0 ? 1 : 2)) % 3;
             } else if (root.controller.settingsMenuOpen) {
@@ -78,7 +84,9 @@ KeyboardPanel {
                 root.controller.switchPanel(direction);
         }
         onMoveRequested: function (dx, dy) {
-            if (root.controller.serviceStateDialogOpen && (dx !== 0 || dy !== 0)) {
+            if (root.controller.settingsMigrationOpen && (dx !== 0 || dy !== 0)) {
+                migrationDialog.moveChoice(dy || dx);
+            } else if (root.controller.serviceStateDialogOpen && (dx !== 0 || dy !== 0)) {
                 serviceStateDialog.selectedChoice = serviceStateDialog.selectedChoice === 0 ? 1 : 0;
             } else if (root.controller.removalConfirmOpen && dy !== 0) {
                 removalDialog.selectedChoice = (removalDialog.selectedChoice + (dy > 0 ? 1 : 2)) % 3;
@@ -91,7 +99,9 @@ KeyboardPanel {
             }
         }
         onActivateRequested: {
-            if (root.controller.serviceStateDialogOpen) {
+            if (root.controller.settingsMigrationOpen) {
+                migrationDialog.choose();
+            } else if (root.controller.serviceStateDialogOpen) {
                 serviceStateDialog.choose();
             } else if (root.controller.removalConfirmOpen) {
                 removalDialog.choose();
@@ -107,6 +117,10 @@ KeyboardPanel {
         }
         onTextKey: function (text) {
             var key = text.toLowerCase();
+            if (root.controller.settingsMigrationOpen) {
+                if (key === "q") root.controller.chooseSettingsPort(2);
+                return;
+            }
             if (root.controller.serviceStateDialogOpen) {
                 if (key === "q")
                     root.controller.close();
@@ -323,7 +337,7 @@ KeyboardPanel {
         z: root.controller.removalConfirmOpen ? 12 : 0
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        text: root.controller.settingsMenuOpen
+        text: root.controller.settingsMenuOpen || root.controller.settingsMigrationOpen
             ? "MOVE (j/k or Up/Down)  SELECT (Enter)  BACK (q/Esc)"
             : "[r]escan all  [w]ebUI  [p]ause/continue  [s]ettings"
         textFormat: Text.PlainText
@@ -334,7 +348,7 @@ KeyboardPanel {
         font.letterSpacing: 0.8
     }
 
-    ServiceStateDialog {
+    ChoiceDialog {
         id: serviceStateDialog
         parent: keyCatcher
         anchors.fill: parent
@@ -343,15 +357,30 @@ KeyboardPanel {
             ? root.controller.syncthing.serviceStateActionRunning : false
         message: root.controller.syncthing
             ? root.controller.syncthing.serviceStateMessage : ""
-        primaryText: root.controller.syncthing
-            ? root.controller.syncthing.serviceStatePrimaryLabel : ""
-        secondaryText: root.controller.syncthing
-            ? root.controller.syncthing.serviceStateSecondaryLabel : ""
+        choices: root.controller.syncthing
+            ? [root.controller.syncthing.serviceStatePrimaryLabel,
+               root.controller.syncthing.serviceStateSecondaryLabel] : []
         fontFamily: root.controller.fontFamily
         z: 12
         onActionRequested: function (index) {
             root.controller.chooseServiceStateAction(index);
         }
+    }
+
+    ChoiceDialog {
+        id: migrationDialog
+        parent: keyCatcher
+        anchors.fill: parent
+        opened: root.controller.settingsMigrationOpen
+        busy: root.controller.syncthing && root.controller.syncthing.settingsBusy
+        message: root.controller.syncthing ? root.controller.syncthing.settingsMigrationMessage : ""
+        choices: ["Auto-port", "Manual port", "Cancel"]
+        choiceEnabled: [root.controller.syncthing && root.controller.syncthing.settingsCanAutoPort, true, true]
+        initialChoice: choiceEnabled[0] ? 0 : 1
+        busyText: "Preparing settings..."
+        fontFamily: root.controller.fontFamily
+        z: 13
+        onActionRequested: function(index) { root.controller.chooseSettingsPort(index); }
     }
 
     CompactConfirmDialog {

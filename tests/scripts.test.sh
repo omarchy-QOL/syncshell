@@ -14,7 +14,7 @@ test_settings() {
   local target="$test_root/settings/config/settings.toml"
   bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" ensure \
     "$root/hosts/omarchy/config/settings.toml" "$target" themed >/dev/null
-  grep -q '^version = 1$' "$target" \
+  grep -q '^version = 2$' "$target" \
     || fail "settings version was not seeded"
   grep -q '^\[style\]$' "$target" \
     || fail "style section was not seeded"

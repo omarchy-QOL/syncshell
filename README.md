@@ -69,11 +69,22 @@ As shown in the footer at the bottom of the main plugin menu
 ## Settings
 
 The settings menu opens `~/.config/omarchy/ilyazar.syncthing/settings.toml` in
-the default editor. The file is created only when it is first opened, and
-changes apply when saved. New files use configuration version `1`, with
-appearance options grouped under the `[style]` section. Existing files are never
-overwritten. Unknown additive sections are retained and ignored; unknown fields
-inside the owned `[style]` and `[service]` sections remain validation errors.
+the default editor. A new file is created only when first opened; saves apply
+after validation. Schema version `2` accepts only the documented sections,
+keys, value types, and choices. A rejected edit leaves the session's last
+valid values in memory and shows a settings error.
+
+Recognized version 1 and unversioned files offer **Auto-port**, **Manual port**,
+and **Cancel**. Auto-port previews retained values and missing defaults,
+preserves comments, and keeps an exact backup beside the original. It refuses
+a changed source and preserves managed symlinks and file permissions. Unknown
+content, invalid values, and newer schemas require manual review.
+
+Manual port opens the actual settings file and a temporary shipped template
+in the default editor. Only saves to the actual file affect Syncshell. Cancel
+leaves the file untouched and keeps a warning; open settings to return to the
+dialog. An incompatible file at startup does not apply service or Web UI
+preferences. Syncthing status remains available when its API is reachable.
 
 - `style.icon_style = "branded"` uses the classic Syncthing bar icon. Use
   `themed` for an icon colored by the active Omarchy theme.
