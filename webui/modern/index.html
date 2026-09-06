@@ -24,6 +24,7 @@
   <link href="assets/css/tree.css" rel="stylesheet"/>
   <link href="assets/css/overrides.css" rel="stylesheet"/>
   <link href="assets/css/theme.css" rel="stylesheet"/>
+  <link href="assets/css/modern.css" rel="stylesheet"/>
 </head>
 
 <body>
@@ -133,210 +134,6 @@
 
     <div class="container content">
 
-      <!-- Panel: Open, no auth -->
-
-      <div ng-if="openNoAuth" class="row">
-        <div class="col-md-12">
-          <div class="panel panel-danger">
-            <div class="panel-heading">
-              <h3 class="panel-title">
-                <div class="panel-icon">
-                  <span class="fas fa-exclamation-circle"></span>
-                </div>
-                <span translate>Danger!</span>
-              </h3>
-            </div>
-            <div class="panel-body">
-              <p>
-              <span translate>The Syncthing admin interface is configured to allow remote access without a password.</span>
-              <b><span translate>This can easily give hackers access to read and change any files on your computer.</span></b>
-              <span translate>Please set a GUI Authentication User and Password in the Settings dialog.</span>
-              </p>
-            </div>
-            <div class="panel-footer">
-              <button type="button" class="btn btn-sm btn-default pull-right" ng-click="showSettings()">
-                <span class="fas fa-cog"></span>&nbsp;<span translate>Settings</span>
-              </button>
-              <div class="clearfix"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel: Restart Needed -->
-
-      <div ng-if="!configInSync" class="row">
-        <div class="col-md-12">
-          <div class="panel panel-warning">
-            <div class="panel-heading">
-              <h3 class="panel-title">
-                <div class="panel-icon">
-                  <span class="fas fa-exclamation-circle"></span>
-                </div>
-                <span translate>Restart Needed</span>
-              </h3>
-            </div>
-            <div class="panel-body">
-              <p translate>The configuration has been saved but not activated. Syncthing must restart to activate the new configuration.</p>
-            </div>
-            <div class="panel-footer">
-              <button type="button" class="btn btn-sm btn-default pull-right" ng-click="restart()">
-                <span class="fas fa-refresh"></span>&nbsp;<span translate>Restart</span>
-              </button>
-              <div class="clearfix"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div ng-if="config">
-
-        <!-- Panel: Notifications -->
-
-        <div ng-if="config.options && config.options.unackedNotificationIDs" ng-include="'syncthing/core/notifications.html'"></div>
-
-        <!-- Panel: New Device -->
-
-        <div ng-repeat="(deviceID, pendingDevice) in pendingDevices" class="row">
-          <div class="col-md-12">
-            <div class="panel panel-warning">
-              <div class="panel-heading">
-                <h3 class="panel-title">
-                  <identicon class="panel-icon" data-value="device"></identicon>
-                  <span translate>New Device</span>
-                  <span class="pull-right">{{ pendingDevice.time | date:"yyyy-MM-dd HH:mm:ss" }}</span>
-                </h3>
-              </div>
-              <div class="panel-body">
-                <p>
-                  <span translate translate-value-device="{{ deviceID }}" translate-value-address="{{ pendingDevice.address }}" translate-value-name="{{ pendingDevice.name }}">
-                    Device "{%name%}" ({%device%} at {%address%}) wants to connect. Add new device?
-                  </span>
-                </p>
-              </div>
-              <div class="panel-footer clearfix">
-                <div class="pull-right">
-                  <button type="button" class="btn btn-sm btn-success" ng-click="addDevice(deviceID, pendingDevice.name)">
-                    <span class="fas fa-plus"></span>&nbsp;<span translate>Add Device</span>
-                  </button>
-                  <button type="button" class="btn btn-sm btn-danger" ng-click="ignoreDevice(deviceID, pendingDevice)" tooltip data-original-title="{{'Permanently add it to the ignore list, suppressing further notifications.' | translate}}">
-                    <span class="fas fa-times"></span>&nbsp;<span translate>Ignore</span>
-                  </button>
-                  <button type="button" class="btn btn-sm btn-default" ng-click="dismissPendingDevice(deviceID)" tooltip data-original-title="{{'Do not add it to the ignore list, so this notification will reappear if the device connects again.' | translate}}">
-                    <span class="far fa-clock"></span>&nbsp;<span translate>Dismiss</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel: New Folder -->
-        <div ng-repeat="(folderID, pendingFolder) in pendingFolders">
-          <div ng-repeat="(deviceID, offeringDevice) in pendingFolder.offeredBy" class="row reject">
-            <div class="col-md-12">
-              <div class="panel panel-warning">
-                <div class="panel-heading">
-                  <h3 class="panel-title">
-                    <div class="panel-icon">
-                      <span class="fas fa-folder"></span>
-                    </div>
-                    <span translate ng-if="!folders[folderID]">New Folder</span>
-                    <span translate ng-if="folders[folderID]">Share Folder</span>
-                    <span class="pull-right">{{ offeringDevice.time | date:"yyyy-MM-dd HH:mm:ss" }}</span>
-                  </h3>
-                </div>
-                <div class="panel-body">
-                  <p>
-                    <span ng-if="offeringDevice.label.length == 0" translate translate-value-device="{{ deviceName(devices[deviceID]) }}" translate-value-folder="{{ folderID }}">
-                      {%device%} wants to share folder "{%folder%}".
-                    </span>
-                    <span ng-if="offeringDevice.label.length != 0" translate translate-value-device="{{ deviceName(devices[deviceID]) }}" translate-value-folder="{{ folderID }}" translate-value-folderlabel="{{ offeringDevice.label }}">
-                      {%device%} wants to share folder "{%folderlabel%}" ({%folder%}).
-                    </span>
-                    <span translate ng-if="folders[folderID]">Share this folder?</span>
-                    <span translate ng-if="!folders[folderID]">Add new folder?</span>
-                  </p>
-                </div>
-                <div class="panel-footer clearfix">
-                  <div class="pull-right">
-                    <button type="button" class="btn btn-sm btn-success" ng-click="addFolderAndShare(folderID, pendingFolder, deviceID)" ng-if="!folders[folderID]">
-                      <span class="fas fa-check"></span>&nbsp;<span translate>Add</span>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-success" ng-click="shareFolderWithDevice(folderID, deviceID)" ng-if="folders[folderID]">
-                      <span class="fas fa-check"></span>&nbsp;<span translate>Share</span>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-danger" ng-click="ignoreFolder(deviceID, folderID, offeringDevice)" tooltip data-original-title="{{'Permanently add it to the ignore list, suppressing further notifications.' | translate}}">
-                      <span class="fas fa-times"></span>&nbsp;<span translate>Ignore</span>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-default" ng-click="dismissPendingFolder(folderID, deviceID)" tooltip data-original-title="{{'Do not add it to the ignore list, so this notification will reappear if the device offering this folder connects again.' | translate}}">
-                      <span class="far fa-clock"></span>&nbsp;<span translate>Dismiss</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Panel: Notice -->
-
-      <div ng-if="errorList().length > 0" class="row">
-        <div class="col-md-12">
-          <div class="panel panel-warning">
-            <div class="panel-heading">
-              <h3 class="panel-title">
-                <div class="panel-icon">
-                  <span class="fas fa-exclamation-circle"></span>
-                </div>
-                <span translate>Notice</span>
-              </h3>
-            </div>
-            <div class="panel-body">
-              <p ng-repeat="err in errorList()">
-                <small>{{err.when | date:"yyyy-MM-dd HH:mm:ss"}}:</small>
-                <span ng-bind="friendlyDevices(err.message)"></span>
-              </p>
-            </div>
-            <div class="panel-footer">
-              <button type="button" class="btn btn-sm btn-default pull-right" ng-click="clearErrors()">
-                <span class="fas fa-check"></span>&nbsp;<span translate>OK</span>
-              </button>
-              <div class="clearfix"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel: FS watcher errors -->
-
-      <div ng-if="sizeOf(fsWatcherErrorMap()) > 0" class="row">
-        <div class="col-md-12">
-          <div class="panel panel-warning">
-            <div class="panel-heading">
-              <h3 class="panel-title">
-                <div class="panel-icon">
-                  <span class="fas fa-exclamation-circle"></span>
-                </div>
-                <span translate>Filesystem Watcher Errors</span>
-              </h3>
-            </div>
-            <div class="panel-body">
-              <p>
-                <span translate>For the following folders an error occurred while starting to watch for changes. It will be retried every minute, so the errors might go away soon. If they persist, try to fix the underlying issue and ask for help if you can't.</span>&emsp;<a href="https://forum.syncthing.net" target="_blank"><span class="fas fa-question-circle"></span>&nbsp;<span translate>Support</span></a>
-              </p>
-              <table>
-                <tr ng-repeat="(id, err) in fsWatcherErrorMap()">
-                  <td>{{folderLabel(id)}}: </td><td>{{err}}</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Login form -->
       <div ng-if="!authenticated" class="center-block">
         <h3 translate>Authentication Required</h3>
@@ -375,11 +172,12 @@
       </div>
 
       <!-- First regular row -->
-      <div ng-if="authenticated" class="row">
+      <div class="dashboard" ng-class="{'dashboard-authenticated': authenticated}">
+      <div ng-if="authenticated" class="dashboard-primary">
 
         <!-- Folder list (top left) -->
 
-        <div class="col-md-6" aria-labelledby="folder_list" role="region" >
+        <div class="dashboard-folders" aria-labelledby="folder_list" role="region" >
           <h3 id="folder_list"><span translate>Folders</span><span ng-if="folderList().length > 1"> ({{folderList().length}})</span></h3>
           <div ng-repeat="(folderGroupName, groupedFolders) in foldersGrouped">
             <h4 ng-if="folderGroupName !== ''">{{ folderGroupName }}
@@ -677,13 +475,16 @@
 
         <!-- This device -->
 
-        <div class="col-md-6" aria-label="{{'Devices' | translate}}" role="region">
-          <h3 translate>This Device</h3>
+        <div class="dashboard-devices" aria-label="{{'Devices' | translate}}" role="region">
+          <h3 translate>Devices</h3>
           <div class="panel panel-default" ng-repeat="deviceCfg in [thisDevice()]">
             <button class="btn panel-heading" data-toggle="collapse" data-target="#device-this" aria-expanded="true">
-              <h4 class="panel-title">
+              <h4 class="panel-title device-title">
                 <identicon class="panel-icon" data-value="deviceCfg.deviceID"></identicon>
-                <div class="panel-title-text">{{deviceName(deviceCfg)}}</div>
+                <div class="panel-title-text">
+                  <span class="device-name" title="{{deviceName(deviceCfg)}}">{{deviceName(deviceCfg)}}</span>
+                  <small class="device-role text-success">(<span translate>This Device</span>)</small>
+                </div>
               </h4>
             </button>
             <div id="device-this" class="panel-collapse collapse in" lazy-collapse>
@@ -781,7 +582,6 @@
           </div>
 
           <!-- Remote devices -->
-          <h3><span translate>Remote Devices</span> <span ng-if="otherDevices().length > 1"> ({{otherDevices().length}})</span></h3>
           <div ng-repeat="(deviceGroupName, groupedDevices) in devicesGrouped">
             <h4>{{ deviceGroupName }}
               <span ng-if="groupedDevices.length > 1 && deviceGroupName.length > 0"> ({{groupedDevices.length}})</span>
@@ -790,7 +590,7 @@
                 <div class="panel panel-default" ng-repeat="deviceCfg in groupedDevices">
                   <button class="btn panel-heading" data-toggle="collapse" data-parent="#devices-{{ $parent.$index }}" data-target="#device-{{$parent.$index}}-{{$index}}" aria-expanded="false">
                     <div class="panel-progress" ng-show="deviceStatus(deviceCfg) == 'syncing'" ng-attr-style="width: {{completion[deviceCfg.deviceID]._total | percent}}"></div>
-                    <h4 class="panel-title">
+                    <h4 class="panel-title device-title">
                       <identicon class="panel-icon" data-value="deviceCfg.deviceID"></identicon>
                       <div class="panel-status pull-right text-{{deviceClass(deviceCfg)}}" ng-switch="deviceStatus(deviceCfg)">
                         <span class="hidden-xs">{{deviceStatusText(deviceCfg)}}</span>
@@ -802,7 +602,10 @@
                           <span ng-class="rdConnTypeIcon(rdConnType(deviceCfg.deviceID))" class="reception reception-theme"></span>
                         </span>
                       </div>
-                      <div class="panel-title-text">{{deviceName(deviceCfg)}}</div>
+                      <div class="panel-title-text">
+                        <span class="device-name" title="{{deviceName(deviceCfg)}}">{{deviceName(deviceCfg)}}</span>
+                        <small class="device-role text-success">(<span translate>Remote</span>)</small>
+                      </div>
                     </h4>
                   </button>
                   <div id="device-{{$parent.$index}}-{{$index}}" class="panel-collapse collapse" lazy-collapse>
@@ -1014,7 +817,214 @@
             <div class="clearfix"></div>
           </div>
         </div>
-      </div> <!-- /row -->
+      </div> <!-- /dashboard-primary -->
+      <aside class="notifications" aria-labelledby="notifications-heading">
+        <h3 id="notifications-heading" translate>Notifications</h3>
+      <!-- Panel: Open, no auth -->
+
+      <div ng-if="openNoAuth" class="row">
+        <div class="col-md-12">
+          <div class="panel panel-danger">
+            <div class="panel-heading">
+              <h3 class="panel-title">
+                <div class="panel-icon">
+                  <span class="fas fa-exclamation-circle"></span>
+                </div>
+                <span translate>Danger!</span>
+              </h3>
+            </div>
+            <div class="panel-body">
+              <p>
+              <span translate>The Syncthing admin interface is configured to allow remote access without a password.</span>
+              <b><span translate>This can easily give hackers access to read and change any files on your computer.</span></b>
+              <span translate>Please set a GUI Authentication User and Password in the Settings dialog.</span>
+              </p>
+            </div>
+            <div class="panel-footer">
+              <button type="button" class="btn btn-sm btn-default pull-right" ng-click="showSettings()">
+                <span class="fas fa-cog"></span>&nbsp;<span translate>Settings</span>
+              </button>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Restart Needed -->
+
+      <div ng-if="!configInSync" class="row">
+        <div class="col-md-12">
+          <div class="panel panel-warning">
+            <div class="panel-heading">
+              <h3 class="panel-title">
+                <div class="panel-icon">
+                  <span class="fas fa-exclamation-circle"></span>
+                </div>
+                <span translate>Restart Needed</span>
+              </h3>
+            </div>
+            <div class="panel-body">
+              <p translate>The configuration has been saved but not activated. Syncthing must restart to activate the new configuration.</p>
+            </div>
+            <div class="panel-footer">
+              <button type="button" class="btn btn-sm btn-default pull-right" ng-click="restart()">
+                <span class="fas fa-refresh"></span>&nbsp;<span translate>Restart</span>
+              </button>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div ng-if="config">
+
+        <!-- Panel: Notifications -->
+
+        <div ng-if="config.options && config.options.unackedNotificationIDs" ng-include="'syncthing/core/notifications.html'"></div>
+
+        <!-- Panel: New Device -->
+
+        <div ng-repeat="(deviceID, pendingDevice) in pendingDevices" class="row">
+          <div class="col-md-12">
+            <div class="panel panel-warning">
+              <div class="panel-heading">
+                <h3 class="panel-title">
+                  <identicon class="panel-icon" data-value="device"></identicon>
+                  <span translate>New Device</span>
+                  <span class="pull-right">{{ pendingDevice.time | date:"yyyy-MM-dd HH:mm:ss" }}</span>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p>
+                  <span translate translate-value-device="{{ deviceID }}" translate-value-address="{{ pendingDevice.address }}" translate-value-name="{{ pendingDevice.name }}">
+                    Device "{%name%}" ({%device%} at {%address%}) wants to connect. Add new device?
+                  </span>
+                </p>
+              </div>
+              <div class="panel-footer clearfix">
+                <div class="pull-right">
+                  <button type="button" class="btn btn-sm btn-success" ng-click="addDevice(deviceID, pendingDevice.name)">
+                    <span class="fas fa-plus"></span>&nbsp;<span translate>Add Device</span>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-danger" ng-click="ignoreDevice(deviceID, pendingDevice)" tooltip data-original-title="{{'Permanently add it to the ignore list, suppressing further notifications.' | translate}}">
+                    <span class="fas fa-times"></span>&nbsp;<span translate>Ignore</span>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-default" ng-click="dismissPendingDevice(deviceID)" tooltip data-original-title="{{'Do not add it to the ignore list, so this notification will reappear if the device connects again.' | translate}}">
+                    <span class="far fa-clock"></span>&nbsp;<span translate>Dismiss</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel: New Folder -->
+        <div ng-repeat="(folderID, pendingFolder) in pendingFolders">
+          <div ng-repeat="(deviceID, offeringDevice) in pendingFolder.offeredBy" class="row reject">
+            <div class="col-md-12">
+              <div class="panel panel-warning">
+                <div class="panel-heading">
+                  <h3 class="panel-title">
+                    <div class="panel-icon">
+                      <span class="fas fa-folder"></span>
+                    </div>
+                    <span translate ng-if="!folders[folderID]">New Folder</span>
+                    <span translate ng-if="folders[folderID]">Share Folder</span>
+                    <span class="pull-right">{{ offeringDevice.time | date:"yyyy-MM-dd HH:mm:ss" }}</span>
+                  </h3>
+                </div>
+                <div class="panel-body">
+                  <p>
+                    <span ng-if="offeringDevice.label.length == 0" translate translate-value-device="{{ deviceName(devices[deviceID]) }}" translate-value-folder="{{ folderID }}">
+                      {%device%} wants to share folder "{%folder%}".
+                    </span>
+                    <span ng-if="offeringDevice.label.length != 0" translate translate-value-device="{{ deviceName(devices[deviceID]) }}" translate-value-folder="{{ folderID }}" translate-value-folderlabel="{{ offeringDevice.label }}">
+                      {%device%} wants to share folder "{%folderlabel%}" ({%folder%}).
+                    </span>
+                    <span translate ng-if="folders[folderID]">Share this folder?</span>
+                    <span translate ng-if="!folders[folderID]">Add new folder?</span>
+                  </p>
+                </div>
+                <div class="panel-footer clearfix">
+                  <div class="pull-right">
+                    <button type="button" class="btn btn-sm btn-success" ng-click="addFolderAndShare(folderID, pendingFolder, deviceID)" ng-if="!folders[folderID]">
+                      <span class="fas fa-check"></span>&nbsp;<span translate>Add</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success" ng-click="shareFolderWithDevice(folderID, deviceID)" ng-if="folders[folderID]">
+                      <span class="fas fa-check"></span>&nbsp;<span translate>Share</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" ng-click="ignoreFolder(deviceID, folderID, offeringDevice)" tooltip data-original-title="{{'Permanently add it to the ignore list, suppressing further notifications.' | translate}}">
+                      <span class="fas fa-times"></span>&nbsp;<span translate>Ignore</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-default" ng-click="dismissPendingFolder(folderID, deviceID)" tooltip data-original-title="{{'Do not add it to the ignore list, so this notification will reappear if the device offering this folder connects again.' | translate}}">
+                      <span class="far fa-clock"></span>&nbsp;<span translate>Dismiss</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel: Notice -->
+
+      <div ng-if="errorList().length > 0" class="row">
+        <div class="col-md-12">
+          <div class="panel panel-warning">
+            <div class="panel-heading">
+              <h3 class="panel-title">
+                <div class="panel-icon">
+                  <span class="fas fa-exclamation-circle"></span>
+                </div>
+                <span translate>Notice</span>
+              </h3>
+            </div>
+            <div class="panel-body">
+              <p ng-repeat="err in errorList()">
+                <small>{{err.when | date:"yyyy-MM-dd HH:mm:ss"}}:</small>
+                <span ng-bind="friendlyDevices(err.message)"></span>
+              </p>
+            </div>
+            <div class="panel-footer">
+              <button type="button" class="btn btn-sm btn-default pull-right" ng-click="clearErrors()">
+                <span class="fas fa-check"></span>&nbsp;<span translate>OK</span>
+              </button>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: FS watcher errors -->
+
+      <div ng-if="sizeOf(fsWatcherErrorMap()) > 0" class="row">
+        <div class="col-md-12">
+          <div class="panel panel-warning">
+            <div class="panel-heading">
+              <h3 class="panel-title">
+                <div class="panel-icon">
+                  <span class="fas fa-exclamation-circle"></span>
+                </div>
+                <span translate>Filesystem Watcher Errors</span>
+              </h3>
+            </div>
+            <div class="panel-body">
+              <p>
+                <span translate>For the following folders an error occurred while starting to watch for changes. It will be retried every minute, so the errors might go away soon. If they persist, try to fix the underlying issue and ask for help if you can't.</span>&emsp;<a href="https://forum.syncthing.net" target="_blank"><span class="fas fa-question-circle"></span>&nbsp;<span translate>Support</span></a>
+              </p>
+              <table>
+                <tr ng-repeat="(id, err) in fsWatcherErrorMap()">
+                  <td>{{folderLabel(id)}}: </td><td>{{err}}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      </aside>
+      </div> <!-- /dashboard -->
 
     </div> <!-- /container -->
   </div> <!-- /ng-cloak -->
