@@ -10,11 +10,11 @@ arrange the main page into Folders, Devices, and Notifications columns.
 Device headers identify the local and remote devices. The original
 notification templates and conditional actions are retained. Folder cards group
 activity, configuration, and identification. A compact count filter truncates
-summary totals to one decimal; a controller helper exposes exact comparison
+summary totals to one decimal; a controller helper exposes comparison
 rows when the folder is not up to date or its local/global totals differ.
 Count tooltips show files, folders, and total size; the Shared menu opens
 the existing device editor. The ignore-pattern information icon opens the
-existing folder ignore editor. The folder column uses two-thirds of its
+existing folder ignore editor. The folder column uses three-quarters of its
 original desktop width. Long names and paths truncate with full tooltips;
 path and filename truncation preserves the ending.
 
