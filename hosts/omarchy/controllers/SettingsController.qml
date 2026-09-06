@@ -71,11 +71,16 @@ QtObject {
     if (!canAutoPort) return message + "\n\nAuto-port unavailable: "
       + (migration.error || error)
     var values = migration.values
-    message += "\n\nIcon: " + values.iconStyle + "\nWeb UI: " + values.webUiTheme
-      + "\nService: " + values.serviceState + "\nProbe: " + values.probeIntervalSeconds + " seconds"
+    message += "\n\nIcon:    " + values.iconStyle
+      + "\nProbe:   " + values.probeIntervalSeconds + " seconds"
+      + "\nWeb UI:  " + values.webUiTheme + "\nService: " + values.serviceState
     if (migration.additions.length) message += "\n\nAdd missing defaults:\n"
       + migration.additions.join("\n")
-    return message + "\n\nYour comments are preserved. A backup is kept beside the original file."
+    var originalPath = backupLocationOutput.text.trim()
+    return message + "\n\nYour comments are preserved. Auto-port keeps a backup "
+      + "beside the original file under:\n\n"
+      + (originalPath ? originalPath + ".before-port.*\n\n* is a unique suffix."
+        : "Resolving backup location...")
       + (migrationError ? "\n\n" + migrationError : "")
   }
   readonly property string desiredTheme: webUiTheme === "modern"
@@ -98,6 +103,7 @@ QtObject {
     settingsExists = true
     _settingsLoaded = true
     migration = migrationRequired ? SettingsModel.migrate(raw) : ({})
+    if (migrationRequired) backupLocationProcess.running = true
     if (!migrationRequired) migrationOpen = false
     if (parsed.error) {
       _settingsValid = false
@@ -366,6 +372,11 @@ QtObject {
       }
     }
     onFileChanged: reload()
+  }
+
+  property Process backupLocationProcess: Process {
+    command: ["realpath", "-e", root.settingsPath]
+    stdout: StdioCollector { id: backupLocationOutput }
   }
 
   property Process settingsProcess: Process {

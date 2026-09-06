@@ -38,6 +38,9 @@ ShellRoot {
           && service.settingsCanAutoPort, "old startup must require migration")
         root.check(service.settingsMigrationMessage.indexOf(source.path) >= 0,
           "migration identifies the actual file")
+        root.check(service.settingsMigrationMessage.indexOf(
+          Quickshell.env("TEST_SANDBOX") + "/owner.toml.before-port.*") >= 0,
+          "migration identifies the backup beside the symlink target")
         root.check(!settings.themeProcess.running, "no startup theme preparation")
         root.older = source.text()
         service.cancelSettingsMigration()
