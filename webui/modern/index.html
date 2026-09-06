@@ -211,13 +211,9 @@
                 <div id="folder-{{$parent.$index}}-{{$index}}" class="panel-collapse collapse" lazy-collapse>
                   <div class="panel-body less-padding" ng-if="lazyReady">
                     <details class="folder-details" open>
-                      <summary translate>Current activity</summary>
+                      <summary><span translate>Current activity</span><span class="visible-xs-inline">: {{folderStatusText(folder)}}</span></summary>
                     <table class="table table-condensed table-striped table-auto">
                       <tbody>
-                        <tr class="visible-xs">
-                          <th><span class="fa fa-fw {{folderStatusIcon(folder)}}"></span>&nbsp;<span translate>Folder Status</span></th>
-                          <td class="text-right">{{folderStatusText(folder)}}</td>
-                        </tr>
                         <tr ng-if="!folder.paused && model[folder.id].state" class="folder-state-summary">
                           <th>
                             <span translate>Global/local State</span>&nbsp;<span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>
@@ -416,7 +412,7 @@
                             <span ng-if="folder.type == 'receiveencrypted'" translate>Receive Encrypted</span>
                           </td>
                         </tr>
-                        <tr ng-show="folder.label != undefined && folder.label.length > 0">
+                        <tr ng-if="folder.label != undefined && folder.label.length > 0">
                           <th><span class="fas fa-fw fa-info-circle"></span>&nbsp;<span translate>Folder ID</span></th>
                           <td class="text-right no-overflow-ellipse">{{folder.id}}</td>
                         </tr>
