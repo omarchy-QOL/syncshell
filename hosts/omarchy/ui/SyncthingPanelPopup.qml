@@ -294,7 +294,7 @@ KeyboardPanel {
             }
 
             Button {
-                text: "Open Web UI"
+                text: "Web UI"
                 bordered: true
                 foreground: root.controller.foreground
                 fontFamily: root.controller.fontFamily
@@ -325,7 +325,7 @@ KeyboardPanel {
         anchors.bottom: parent.bottom
         text: root.controller.settingsMenuOpen
             ? "MOVE (j/k or Up/Down)  SELECT (Enter)  BACK (q/Esc)"
-            : "[r]escan all  [w]eb UI  [p]ause/continue  [s]ettings"
+            : "[r]escan all  [w]ebUI  [p]ause/continue  [s]ettings"
         textFormat: Text.PlainText
         color: root.controller.dim
         font.family: root.controller.fontFamily

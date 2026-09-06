@@ -88,11 +88,23 @@ Column {
     text: "Refresh Syncthing status"
     tooltipText: "Request latest Syncthing state\nimmediately without rescan."
     enabled: root.syncthing && root.syncthing.canRefresh
-    foreground: root.foreground
+    foreground: refreshFeedback.running
+      ? root.controller.warning : root.foreground
     fontFamily: root.fontFamily
     fontSize: Style.font.caption
     bordered: true
-    onClicked: root.syncthing.refresh()
+    onClicked: {
+      refreshFeedback.restart()
+      root.syncthing.refresh()
+    }
+
+    NumberAnimation on iconRotation {
+      id: refreshFeedback
+      from: 0
+      to: 360
+      duration: 300
+      running: false
+    }
   }
 
   PanelSectionHeader {
