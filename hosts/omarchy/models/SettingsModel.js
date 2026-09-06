@@ -29,11 +29,6 @@ function parseValue(raw) {
   return match ? match[2] : null
 }
 
-function parseVersion(raw) {
-  var value = String(raw || "").trim()
-  return /^(0|[1-9][0-9]*)$/.test(value) ? Number(value) : null
-}
-
 function parseInteger(raw) {
   var value = String(raw || "").trim()
   return /^(0|[1-9][0-9]*)$/.test(value) ? Number(value) : null
@@ -78,7 +73,7 @@ function parse(raw, allowOlder) {
       if (version !== null) {
         return invalid("Duplicate setting version on line " + (i + 1))
       }
-      version = parseVersion(assignment[2])
+      version = parseInteger(assignment[2])
       if (version === null) {
         return invalid("version must be an integer")
       }
