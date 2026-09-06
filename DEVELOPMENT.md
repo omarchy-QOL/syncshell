@@ -29,19 +29,30 @@ bundled native core. Do not introduce a mixed QML and Go domain runtime.
 
 ## Baseline checks
 
-Run the complete released suite from the repository root:
+Run the baseline checks from the repository root:
 
 ```bash
 git diff --check
 jq empty manifest.json
 (cd webui && sha256sum --quiet --check SHA256SUMS)
 omarchy plugin validate .
-/usr/lib/qt6/bin/qmllint -I /usr/share/omarchy/shell Panel.qml Service.qml \
-  shared/*.qml hosts/omarchy/*.qml hosts/omarchy/controllers/*.qml \
-  hosts/omarchy/ui/*.qml tests*.qml
-bash -n hosts/omarchy/scripts/*.sh packaging/bundled/*.sh tests/*.sh
+(
+  qml_imports=$(mktemp -d)
+  trap 'find "$qml_imports" -depth -delete' EXIT
+  mkdir "$qml_imports/qs"
+  ln -s /usr/share/omarchy/shell/{Commons,Ui} "$qml_imports/qs/"
+  /usr/lib/qt6/bin/qmllint -I "$qml_imports" Panel.qml Service.qml \
+    shared/*.qml hosts/omarchy/*.qml hosts/omarchy/controllers/*.qml \
+    hosts/omarchy/ui/*.qml hosts/standalone/*.qml tests/*.qml
+)
+for script in hosts/omarchy/scripts/*.sh packaging/bundled/*.sh \
+  tests/*.sh tests/live/*.sh; do
+  bash -n "$script" || exit 1
+done
 mise exec aqua:koalaman/shellcheck@0.11.0 -- \
-  shellcheck hosts/omarchy/scripts/*.sh packaging/bundled/*.sh tests/*.sh
+  shellcheck -x -P SCRIPTDIR \
+    hosts/omarchy/scripts/*.sh packaging/bundled/*.sh \
+    tests/*.sh tests/live/copy-*.sh
 qml6 --apptype core -f tests/run.qml
 bash tests/scripts.test.sh
 bash tests/busy-button.test.sh
@@ -55,6 +66,11 @@ bash tests/omarchy-service-contract.test.sh
 ```
 
 ## Isolated runtime tests
+
+QML scenarios live beside their shell runners in `tests/`. The shared test
+helper stages only each scenario's dependencies in a temporary shell root;
+Omarchy scenarios also link the installed `Commons` and `Ui` there. Run the
+shell wrappers so Quickshell resolves imports within that temporary root.
 
 Never use the owner's normal Syncthing configuration, database, API key, or
 synchronized data. Test instances use temporary configuration, database, GUI,
@@ -96,7 +112,7 @@ provide an isolated Syncthing configuration:
 packaging/bundled/build.sh
 SYNCSHELL_PLUGIN_ROOT="$PWD" \
 SYNCSHELL_CONFIG_PATH=/path/to/isolated/config.xml \
-  quickshell -p tests-standalone.qml
+  bash tests/standalone.sh
 ```
 
 Never point the harness at the owner's normal Syncthing configuration. The

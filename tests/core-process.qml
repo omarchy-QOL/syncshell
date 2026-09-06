@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "shared"
+import "../shared"
 
 ShellRoot {
   id: root

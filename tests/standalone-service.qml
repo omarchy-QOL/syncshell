@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "hosts/standalone"
+import "../hosts/standalone"
 
 ShellRoot {
   id: root

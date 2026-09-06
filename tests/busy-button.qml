@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "ui"
+import "../hosts/omarchy/ui"
 
 ShellRoot {
   id: root
