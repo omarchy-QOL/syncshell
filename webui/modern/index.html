@@ -330,7 +330,9 @@
                     <table class="table table-condensed table-striped table-auto">
                       <tbody>
                         <tr>
-                          <th><span class="fas fa-fw fa-refresh"></span>&nbsp;<span translate>Rescans</span></th>
+                          <th tooltip tabindex="0" data-container="body"
+                            data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                            data-original-title="{{'Detects local changes through periodic full scans and filesystem watching. The clock shows the scan interval; the eye shows whether watching is enabled.' | translate}}"><span class="fas fa-fw fa-refresh"></span>&nbsp;<span translate>Rescans</span></th>
                           <td class="text-right">
                             <div ng-if="folder.rescanIntervalS > 0">
                               <span ng-if="!folder.fsWatcherEnabled" tooltip data-original-title="{{'Periodic scanning at given interval and disabled watching for changes' | translate}}">
@@ -420,18 +422,24 @@
                           </td>
                         </tr>
                         <tr ng-if="folder.label != undefined && folder.label.length > 0">
-                          <th><span class="fas fa-fw fa-info-circle"></span>&nbsp;<span translate>Folder ID</span></th>
+                          <th tooltip tabindex="0" data-container="body"
+                            data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                            data-original-title="{{'Identifies this shared folder across devices. Every device sharing it must use exactly the same ID, including letter case.' | translate}}"><span class="fas fa-fw fa-info-circle"></span>&nbsp;<span translate>Folder ID</span></th>
                           <td class="text-right"><span class="folder-text" tooltip data-original-title="{{folder.id}}">{{folder.id}}</span></td>
                         </tr>
                         <tr>
-                          <th><span class="far fa-fw fa-book"></span>&nbsp;<span translate>Block Indexing</span></th>
+                          <th tooltip tabindex="0" data-container="body"
+                            data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                            data-original-title="{{'Keeps an index of data blocks so Syncthing can reuse existing content from other files, including other folders. Disabling it saves database space but can increase transfer bandwidth.' | translate}}"><span class="far fa-fw fa-book"></span>&nbsp;<span translate>Block Indexing</span></th>
                           <td class="text-right">
                             <span ng-if="folder.blockIndexing" translate>Yes</span>
                             <span ng-if="!folder.blockIndexing" translate>No</span>
                           </td>
                         </tr>
                         <tr ng-if="folder.type != 'sendonly'">
-                          <th><span class="fas fa-fw fa-sort"></span>&nbsp;<span translate>File Pull Order</span></th>
+                          <th tooltip tabindex="0" data-container="body"
+                            data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                            data-original-title="{{'Sets the download priority for files needed from other devices. Ordering applies only to files already discovered during scanning.' | translate}}"><span class="fas fa-fw fa-sort"></span>&nbsp;<span translate>File Pull Order</span></th>
                           <td class="text-right" ng-switch="folder.order">
                             <span ng-switch-when="random" translate>Random</span>
                             <span ng-switch-when="alphabetic" translate>Alphabetic</span>

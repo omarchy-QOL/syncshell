@@ -189,3 +189,8 @@
     text-align: left;
     overflow-wrap: anywhere;
 }
+
+.folder-help-tooltip .tooltip-inner {
+    max-width: 280px;
+    text-align: left;
+}
