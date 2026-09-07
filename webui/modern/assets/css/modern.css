@@ -194,3 +194,10 @@
     max-width: 280px;
     text-align: left;
 }
+
+.folder-help-icon {
+    box-sizing: content-box;
+    padding: 2px;
+    margin: -2px;
+    cursor: help;
+}

@@ -216,9 +216,9 @@
                       <tbody>
                         <tr ng-if="!folder.paused && model[folder.id].state" class="folder-state-summary">
                           <th>
-                            <span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-fw fa-circle text-{{folderStateClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>&nbsp;<span tooltip tabindex="0" data-container="body"
+                            <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Global/local State' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Shows the global totals alongside the folder status. Separate rows show global and local contents when details are needed; ignore patterns can make the totals differ even when up to date.' | translate}}" translate>Global/local State</span>
+                            data-original-title="{{folderStatusText(folder)}}. {{'Shows the global totals alongside the folder status. Separate rows show global and local contents when details are needed; ignore patterns can make the totals differ even when up to date.' | translate}}" class="fa fa-fw fa-circle text-{{folderStateClass(folder)}} folder-help-icon"></span>&nbsp;<span translate>Global/local State</span>
                             <a ng-if="model[folder.id].ignorePatterns" href="" ng-click="editFolderExisting(folder, '#folder-ignores')" tooltip data-original-title="{{'Reduced by ignore patterns' | translate}}" aria-label="{{'Reduced by ignore patterns' | translate}}"><span class="fas fa-info-circle"></span></a>
                           </th>
                           <td class="text-right">
@@ -233,9 +233,9 @@
                           </td>
                         </tr>
                         <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Global State' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'The latest known versions of files across the sharing devices. These totals describe the contents this folder would have when fully synchronized, before local ignore rules.' | translate}}"><span class="fas fa-fw fa-globe" aria-hidden="true"></span>&nbsp;<span translate>Global State</span></th>
+                            data-original-title="{{'The latest known versions of files across the sharing devices. These totals describe the contents this folder would have when fully synchronized, before local ignore rules.' | translate}}" class="fas fa-fw fa-globe folder-help-icon"></span>&nbsp;<span translate>Global State</span></th>
                           <td class="text-right">
                             <span tooltip data-html="true"
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
@@ -248,9 +248,9 @@
                           </td>
                         </tr>
                         <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Local State' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'The files and data Syncthing currently tracks in this folder on this device. These totals can differ from the global contents during synchronization or because of ignore patterns.' | translate}}"><span class="fas fa-fw fa-home" aria-hidden="true"></span>&nbsp;<span translate>Local State</span></th>
+                            data-original-title="{{'The files and data Syncthing currently tracks in this folder on this device. These totals can differ from the global contents during synchronization or because of ignore patterns.' | translate}}" class="fas fa-fw fa-home folder-help-icon"></span>&nbsp;<span translate>Local State</span></th>
                           <td class="text-right">
                             <span tooltip data-html="true"
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
@@ -263,9 +263,9 @@
                           </td>
                         </tr>
                         <tr ng-if="model[folder.id].needTotalItems > 0">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Out of Sync Items' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Items this device still needs to synchronize with other devices. The size counts whole files; reusing existing data can reduce the amount actually downloaded. Click the value to see the items.' | translate}}"><span class="fas fa-fw fa-cloud-download-alt"></span>&nbsp;<span translate>Out of Sync Items</span></th>
+                            data-original-title="{{'Items this device still needs to synchronize with other devices. The size counts whole files; reusing existing data can reduce the amount actually downloaded. Click the value to see the items.' | translate}}" class="fas fa-fw fa-cloud-download-alt folder-help-icon"></span>&nbsp;<span translate>Out of Sync Items</span></th>
                           <td class="text-right">
                             <a href="" ng-click="showNeed(folder.id)">{{model[folder.id].needTotalItems | alwaysNumber | localeNumber}} <span translate>items</span>, ~{{model[folder.id].needBytes | binary}}B</a>
                           </td>
@@ -274,62 +274,62 @@
                           <td colspan="2" class="text-right">
                             <div ng-if="folder.ignoreDelete">
                               <i class="small">
-                                <span tooltip tabindex="0" data-container="body"
-                            data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Deletion requests from other devices are ignored, so files deleted elsewhere can remain in this folder.' | translate}}" translate>Altered by ignoring deletes.</span>
+                                <span translate>Altered by ignoring deletes.</span>
                                 <a href="{{docsURL('advanced/folder-ignoredelete')}}" target="_blank">
-                                  <span class="fas fa-question-circle"></span>&nbsp;<span translate>Help</span>
+                                  <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Altered by ignoring deletes.' | translate}}" data-container="body"
+                            data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                            data-original-title="{{'Deletion requests from other devices are ignored, so files deleted elsewhere can remain in this folder.' | translate}}" class="fas fa-question-circle folder-help-icon"></span>&nbsp;<span translate>Help</span>
                                 </a>
                               </i>
                             </div>
                           </td>
                         </tr>
                         <tr ng-if="folderStats[folder.id].lastScan">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Last Scan' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'When Syncthing last scanned this folder for local changes. This is a scan timestamp, not the time of the last file transfer.' | translate}}"><span class="far fa-fw fa-clock"></span>&nbsp;<span translate>Last Scan</span></th>
+                            data-original-title="{{'When Syncthing last scanned this folder for local changes. This is a scan timestamp, not the time of the last file transfer.' | translate}}" class="far fa-fw fa-clock folder-help-icon"></span>&nbsp;<span translate>Last Scan</span></th>
                           <td translate ng-if="folderStats[folder.id].lastScanDays >= 365" class="text-right">Never</td>
                           <td ng-if="folderStats[folder.id].lastScanDays < 365" class="text-right">
                             <span>{{folderStats[folder.id].lastScan | date:'yyyy-MM-dd HH:mm:ss'}}</span>
                           </td>
                         </tr>
                         <tr ng-if="!folder.paused && (model[folder.id].invalid || model[folder.id].error)">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Error' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'The problem Syncthing reports for this folder. Hover over the message to read the full details.' | translate}}"><span class="fas fa-fw fa-exclamation-triangle"></span>&nbsp;<span translate>Error</span></th>
+                            data-original-title="{{'The problem Syncthing reports for this folder. Hover over the message to read the full details.' | translate}}" class="fas fa-fw fa-exclamation-triangle folder-help-icon"></span>&nbsp;<span translate>Error</span></th>
                           <td class="text-right">
                             <span class="folder-text" tooltip data-original-title="{{model[folder.id].invalid || model[folder.id].error}}">{{model[folder.id].invalid || model[folder.id].error}}</span>
                           </td>
                         </tr>
                         <tr ng-if="hasFailedFiles(folder.id)">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Failed Items' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Items Syncthing could not synchronize. Click the count to see the affected paths and their individual errors.' | translate}}"><span class="fas fa-fw fa-exclamation-circle"></span>&nbsp;<span translate>Failed Items</span></th>
+                            data-original-title="{{'Items Syncthing could not synchronize. Click the count to see the affected paths and their individual errors.' | translate}}" class="fas fa-fw fa-exclamation-circle folder-help-icon"></span>&nbsp;<span translate>Failed Items</span></th>
                           <!-- Show the number of failed items as a link to bring up the list. -->
                           <td class="text-right">
                             <a href="" ng-click="showFailed(folder.id)">{{model[folder.id].pullErrors | alwaysNumber | localeNumber}}&nbsp;<span translate>items</span></a>
                           </td>
                         </tr>
                         <tr ng-if="hasReceiveOnlyChanged(folder)">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Locally Changed Items' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Local changes in a receive-only folder that are not sent to other devices, or unexpected local items in a receive-encrypted folder. Click the value to inspect them.' | translate}}"><span class="fas fa-fw fa-exclamation-circle"></span>&nbsp;<span translate>Locally Changed Items</span></th>
+                            data-original-title="{{'Local changes in a receive-only folder that are not sent to other devices, or unexpected local items in a receive-encrypted folder. Click the value to inspect them.' | translate}}" class="fas fa-fw fa-exclamation-circle folder-help-icon"></span>&nbsp;<span translate>Locally Changed Items</span></th>
                           <td class="text-right">
                             <a href="" ng-click="showLocalChanged(folder.id, folder.type)">{{model[folder.id].receiveOnlyTotalItems | alwaysNumber | localeNumber}} <span translate>items</span>, ~{{model[folder.id].receiveOnlyChangedBytes | binary}}B</a>
                           </td>
                         </tr>
                         <tr ng-if="folderStatus(folder) === 'scanning' && scanRate(folder.id) > 0">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Scan Time Remaining' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Estimated time left for the current scan, calculated from the remaining data and current scanning rate. This estimates scanning, not synchronization.' | translate}}"><span class="fas fa-fw fa-hourglass-half"></span>&nbsp;<span translate>Scan Time Remaining</span></th>
+                            data-original-title="{{'Estimated time left for the current scan, calculated from the remaining data and current scanning rate. This estimates scanning, not synchronization.' | translate}}" class="fas fa-fw fa-hourglass-half folder-help-icon"></span>&nbsp;<span translate>Scan Time Remaining</span></th>
                           <td class="text-right">
                             <span tooltip data-original-title="{{scanRate(folder.id) | binary}}B/s">~ {{scanRemaining(folder.id)}}</span>
                           </td>
                         </tr>
                         <tr ng-if="folder.type != 'sendonly' && folder.type != 'receiveencrypted' && folderStats[folder.id].lastFile && folderStats[folder.id].lastFile.filename">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Latest Change' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'The most recent file synchronized here, as reported by Syncthing. Hover over the filename for its full path, update or deletion, and timestamp.' | translate}}"><span class="fas fa-fw fa-exchange-alt"></span>&nbsp;<span translate>Latest Change</span></th>
+                            data-original-title="{{'The most recent file synchronized here, as reported by Syncthing. Hover over the filename for its full path, update or deletion, and timestamp.' | translate}}" class="fas fa-fw fa-exchange-alt folder-help-icon"></span>&nbsp;<span translate>Latest Change</span></th>
                           <td class="text-right">
                             <span class="folder-tail" tooltip data-container="body"
                               data-template="<div class='tooltip folder-change-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>">
@@ -352,9 +352,9 @@
                     <table class="table table-condensed table-striped table-auto">
                       <tbody>
                         <tr>
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Rescans' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Detects local changes through periodic full scans and filesystem watching. The clock shows the scan interval; the eye shows whether watching is enabled.' | translate}}"><span class="fas fa-fw fa-refresh"></span>&nbsp;<span translate>Rescans</span></th>
+                            data-original-title="{{'Detects local changes through periodic full scans and filesystem watching. The clock shows the scan interval; the eye shows whether watching is enabled.' | translate}}" class="fas fa-fw fa-refresh folder-help-icon"></span>&nbsp;<span translate>Rescans</span></th>
                           <td class="text-right">
                             <div ng-if="folder.rescanIntervalS > 0">
                               <span ng-if="!folder.fsWatcherEnabled" tooltip data-original-title="{{'Periodic scanning at given interval and disabled watching for changes' | translate}}">
@@ -387,9 +387,9 @@
                           </td>
                         </tr>
                         <tr ng-if="folder.versioning.type">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'File Versioning' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Keeps older copies when changes from another device replace or delete files here. It does not archive changes you make locally; retention depends on the selected versioning method.' | translate}}"><span class="fa fa-fw fa-files-o"></span>&nbsp;<span translate>File Versioning</span></th>
+                            data-original-title="{{'Keeps older copies when changes from another device replace or delete files here. It does not archive changes you make locally; retention depends on the selected versioning method.' | translate}}" class="fa fa-fw fa-files-o folder-help-icon"></span>&nbsp;<span translate>File Versioning</span></th>
                           <td class="text-right">
                             <span ng-switch="folder.versioning.type">
                               <span ng-switch-when="trashcan" translate>Trash Can</span>
@@ -418,9 +418,9 @@
                           </td>
                         </tr>
                         <tr ng-if="folder.ignorePerms">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Ignore Permissions' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'File permission changes are not synchronized for this folder. File contents still synchronize normally.' | translate}}"><span class="far fa-fw fa-minus-square"></span>&nbsp;<span translate>Ignore Permissions</span></th>
+                            data-original-title="{{'File permission changes are not synchronized for this folder. File contents still synchronize normally.' | translate}}" class="far fa-fw fa-minus-square folder-help-icon"></span>&nbsp;<span translate>Ignore Permissions</span></th>
                           <td class="text-right">
                             <span translate>Yes</span>
                           </td>
@@ -433,17 +433,17 @@
                     <table class="table table-condensed table-striped table-auto">
                       <tbody>
                         <tr>
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Folder Path' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Full path to your Syncthing folder on the file system of this device. Hover over the value to see the complete path.' | translate}}"><span class="fas fa-fw fa-folder-open"></span>&nbsp;<span translate>Folder Path</span></th>
+                            data-original-title="{{'Full path to your Syncthing folder on the file system of this device. Hover over the value to see the complete path.' | translate}}" class="fas fa-fw fa-folder-open folder-help-icon"></span>&nbsp;<span translate>Folder Path</span></th>
                           <td class="text-right">
                             <span class="folder-tail" tooltip data-container="body" data-original-title="{{folder.path}}"><bdi dir="ltr">{{folder.path}}</bdi></span>
                           </td>
                         </tr>
                         <tr>
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Folder Type' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Controls how changes travel: Send and Receive exchanges changes both ways; Send Only publishes local changes; Receive Only accepts remote changes without publishing local edits; Receive Encrypted stores protected data without decrypting it.' | translate}}"><span class="fas fa-fw fa-folder"></span>&nbsp;<span translate>Folder Type</span></th>
+                            data-original-title="{{'Controls how changes travel: Send and Receive exchanges changes both ways; Send Only publishes local changes; Receive Only accepts remote changes without publishing local edits; Receive Encrypted stores protected data without decrypting it.' | translate}}" class="fas fa-fw fa-folder folder-help-icon"></span>&nbsp;<span translate>Folder Type</span></th>
                           <td class="text-right">
                             <span ng-if="folder.type == 'sendreceive'" translate>Send &amp; Receive</span>
                             <span ng-if="folder.type == 'sendonly'" translate>Send Only</span>
@@ -452,24 +452,24 @@
                           </td>
                         </tr>
                         <tr ng-if="folder.label != undefined && folder.label.length > 0">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Folder ID' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Identifies this shared folder across devices. Every device sharing it must use exactly the same ID, including letter case.' | translate}}"><span class="fas fa-fw fa-info-circle"></span>&nbsp;<span translate>Folder ID</span></th>
+                            data-original-title="{{'Identifies this shared folder across devices. Every device sharing it must use exactly the same ID, including letter case.' | translate}}" class="fas fa-fw fa-info-circle folder-help-icon"></span>&nbsp;<span translate>Folder ID</span></th>
                           <td class="text-right"><span class="folder-text" tooltip data-original-title="{{folder.id}}">{{folder.id}}</span></td>
                         </tr>
                         <tr>
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Block Indexing' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Keeps an index of data blocks so Syncthing can reuse existing content from other files, including other folders. Disabling it saves database space but can increase transfer bandwidth.' | translate}}"><span class="far fa-fw fa-book"></span>&nbsp;<span translate>Block Indexing</span></th>
+                            data-original-title="{{'Keeps an index of data blocks so Syncthing can reuse existing content from other files, including other folders. Disabling it saves database space but can increase transfer bandwidth.' | translate}}" class="far fa-fw fa-book folder-help-icon"></span>&nbsp;<span translate>Block Indexing</span></th>
                           <td class="text-right">
                             <span ng-if="folder.blockIndexing" translate>Yes</span>
                             <span ng-if="!folder.blockIndexing" translate>No</span>
                           </td>
                         </tr>
                         <tr ng-if="folder.type != 'sendonly'">
-                          <th tooltip tabindex="0" data-container="body"
+                          <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'File Pull Order' | translate}}" data-container="body"
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                            data-original-title="{{'Sets the download priority for files needed from other devices. Ordering applies only to files already discovered during scanning.' | translate}}"><span class="fas fa-fw fa-sort"></span>&nbsp;<span translate>File Pull Order</span></th>
+                            data-original-title="{{'Sets the download priority for files needed from other devices. Ordering applies only to files already discovered during scanning.' | translate}}" class="fas fa-fw fa-sort folder-help-icon"></span>&nbsp;<span translate>File Pull Order</span></th>
                           <td class="text-right" ng-switch="folder.order">
                             <span ng-switch-when="random" translate>Random</span>
                             <span ng-switch-when="alphabetic" translate>Alphabetic</span>
