@@ -238,7 +238,7 @@
                               data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].globalBytes | binary}}B</div>">
-                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].globalFiles | alwaysNumber | localeNumber}}&ensp;
+                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
                               <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
                             </span>
                           </td>
@@ -251,7 +251,7 @@
                               data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].localFiles | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].localDirectories | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].localBytes | binary}}B</div>">
-                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].localFiles | alwaysNumber | localeNumber}}&ensp;
+                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].localFiles | compactNumber}}&ensp;
                               <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].localBytes | binary}}B
                             </span>
                           </td>

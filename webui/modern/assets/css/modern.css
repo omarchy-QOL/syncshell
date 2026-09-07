@@ -20,7 +20,7 @@
 @media (min-width: 1000px) {
     .dashboard-authenticated {
         display: grid;
-        grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr);
+        grid-template-columns: minmax(320px, 3fr) minmax(0, 5fr);
         gap: 24px;
         align-items: start;
     }
@@ -31,7 +31,7 @@
 
 @media (min-width: 1400px) {
     .dashboard-authenticated {
-        grid-template-columns: minmax(320px, 2fr) repeat(2, minmax(0, 3.5fr));
+        grid-template-columns: minmax(320px, 2fr) repeat(2, minmax(0, 3fr));
     }
     .notifications {
         grid-column: auto;
