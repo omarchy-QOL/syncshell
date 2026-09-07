@@ -36,14 +36,22 @@ for (const [index, framework] of ['svelte', 'preact'].entries()) {
     }
     const password = randomUUID();
     let page;
+    let control;
+    let browserContextId;
     try {
         await api('config/gui', {...original, user: 'port-test', password});
         await new Promise(resolve => setTimeout(resolve, 200));
         await waitForGui();
         const tabs = await fetch(debug + '/json/list').then(response => response.json());
-        const tab = tabs.find(tab => tab.url === url);
-        assert.ok(tab, framework + ' review tab');
-        page = await connect(tab);
+        const review = tabs.find(tab => tab.url === url);
+        assert.ok(review, framework + ' review tab');
+        control = await connect(await fetch(debug + '/json/version')
+            .then(response => response.json()));
+        ({browserContextId} = await control.call('Target.createBrowserContext'));
+        const {targetId} = await control.call('Target.createTarget',
+            {url, browserContextId, background: true});
+        const fresh = await fetch(debug + '/json/list').then(response => response.json());
+        page = await connect(fresh.find(tab => tab.id === targetId));
         await page.call('Runtime.enable');
         await page.call('Page.reload', {ignoreCache: true});
         await waitFor(page, `document.querySelector('#user') !== null`, framework + ' login');
@@ -70,8 +78,9 @@ for (const [index, framework] of ['svelte', 'preact'].entries()) {
         await new Promise(resolve => setTimeout(resolve, 200));
         await waitForGui();
         if (page) {
-            await page.call('Page.reload', {ignoreCache: true});
             page.close();
         }
+        if (browserContextId) await control.call('Target.disposeBrowserContext', {browserContextId});
+        control?.close();
     }
 }
