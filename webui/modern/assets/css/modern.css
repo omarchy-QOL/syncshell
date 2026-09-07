@@ -33,7 +33,7 @@
     .dashboard-authenticated {
         grid-template-columns:
             minmax(320px, calc((100% - 48px) * 0.25))
-            minmax(320px, calc((100% - 48px) * 0.1875))
+            minmax(320px, calc((100% - 48px) * 0.25))
             minmax(280px, calc((100% - 48px) * 0.1875));
     }
     .notifications {
