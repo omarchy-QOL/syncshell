@@ -224,9 +224,9 @@
                           <td class="text-right">
                             <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-delay='{"show":400,"hide":0}'
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                              data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</div>
-                                <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</div>
-                                <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].globalBytes | binary}}B</div>">
+                              data-original-title="<div><span><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}:</span><span>{{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</span></div>
+                                <div><span><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}:</span><span>{{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</span></div>
+                                <div><span><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}:</span><span>~{{model[folder.id].globalBytes | binary}}B</span></div>">
                               <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
                               <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
                             </span>
@@ -239,9 +239,9 @@
                           <td class="text-right">
                             <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-delay='{"show":400,"hide":0}'
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                              data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</div>
-                                <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</div>
-                                <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].globalBytes | binary}}B</div>">
+                              data-original-title="<div><span><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}:</span><span>{{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</span></div>
+                                <div><span><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}:</span><span>{{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</span></div>
+                                <div><span><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}:</span><span>~{{model[folder.id].globalBytes | binary}}B</span></div>">
                               <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
                               <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
                             </span>
@@ -254,9 +254,9 @@
                           <td class="text-right">
                             <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-delay='{"show":400,"hide":0}'
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                              data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].localFiles | alwaysNumber | localeNumber}}</div>
-                                <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].localDirectories | alwaysNumber | localeNumber}}</div>
-                                <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].localBytes | binary}}B</div>">
+                              data-original-title="<div><span><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}:</span><span>{{model[folder.id].localFiles | alwaysNumber | localeNumber}}</span></div>
+                                <div><span><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}:</span><span>{{model[folder.id].localDirectories | alwaysNumber | localeNumber}}</span></div>
+                                <div><span><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}:</span><span>~{{model[folder.id].localBytes | binary}}B</span></div>">
                               <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{model[folder.id].localFiles | compactNumber}}&ensp;
                               <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{model[folder.id].localBytes | binary}}B
                             </span>
@@ -622,9 +622,9 @@
                       <td class="text-right">
                             <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-delay='{"show":400,"hide":0}'
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                              data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{localStateTotal.files | alwaysNumber | localeNumber}}</div>
-                                <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{localStateTotal.directories | alwaysNumber | localeNumber}}</div>
-                                <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{localStateTotal.bytes | binary}}B</div>">
+                              data-original-title="<div><span><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}:</span><span>{{localStateTotal.files | alwaysNumber | localeNumber}}</span></div>
+                                <div><span><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}:</span><span>{{localStateTotal.directories | alwaysNumber | localeNumber}}</span></div>
+                                <div><span><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}:</span><span>~{{localStateTotal.bytes | binary}}B</span></div>">
                               <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{localStateTotal.files | compactNumber}}&ensp;
                               <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{localStateTotal.bytes | binary}}B
                             </span>
@@ -785,7 +785,7 @@
                             <td class="text-right">
                               <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-container="body" data-delay='{"show":400,"hide":0}'
                                 data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                                data-original-title="<div><span class='fas fa-fw fa-exchange-alt'></span> {{'items' | translate}}: {{completion[deviceCfg.deviceID]._needItems | alwaysNumber | localeNumber}}</div><div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{completion[deviceCfg.deviceID]._needBytes | binary}}B</div>">
+                                data-original-title="<div><span><span class='fas fa-fw fa-exchange-alt'></span> {{'items' | translate}}:</span><span>{{completion[deviceCfg.deviceID]._needItems | alwaysNumber | localeNumber}}</span></div><div><span><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}:</span><span>~{{completion[deviceCfg.deviceID]._needBytes | binary}}B</span></div>">
                                 <span class="fas fa-exchange-alt folder-count-icon" tabindex="0" role="img" aria-label="{{'Out of Sync Items' | translate}}"></span>
                               </span>&nbsp;<a href="" ng-click="showRemoteNeed(deviceCfg)">{{completion[deviceCfg.deviceID]._needItems | compactNumber}} <span translate>items</span>, ~{{completion[deviceCfg.deviceID]._needBytes | binary}}B</a>
                             </td>
