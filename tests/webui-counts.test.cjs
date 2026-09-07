@@ -18,3 +18,17 @@ for (const [input, expected] of [
     assert.equal(compact(input), expected, String(input));
 }
 console.log('compact count boundaries passed');
+
+const app = fs.readFileSync(path.join(__dirname,
+    '../webui/modern/syncthing/app.js'), 'utf8');
+const units = {};
+vm.runInNewContext(app.slice(app.indexOf('function unitPrefixed(')), units);
+for (const [input, expected] of [
+    [0, '0 '], [1023, '1,023 '], [1024, '1,024 '], [1025, '1 Ki'],
+    [1048576, '1,024 Ki'], [1073741824, '1,024 Mi'],
+    [1073741825, '1 Gi'], [7351042089, '6.85 Gi'],
+    [1099511627776, '1,024 Gi'], [1099511627777, '1 Ti']
+]) {
+    assert.equal(units.unitPrefixed(input, true), expected, String(input));
+}
+console.log('binary size boundaries and significant digits passed');
