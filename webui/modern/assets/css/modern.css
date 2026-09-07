@@ -74,10 +74,23 @@
 }
 
 .notifications .panel-title {
+    font-size: 14px;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 0.4em;
+}
+
+.notifications .panel-title > [translate] {
+    min-width: 0;
+}
+
+.notifications .panel-title > .panel-icon,
+.notifications .panel-title > .fas {
+    flex-shrink: 0;
+}
+
+.notifications .panel-body {
+    font-size: 12px;
 }
 
 .notifications .panel-title .pull-right {
@@ -125,8 +138,15 @@
 }
 
 .folder-details > table th {
-    width: 50%;
+    width: auto;
+    max-width: 75%;
     white-space: normal;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+}
+
+.folder-details > table > tbody > tr {
+    display: flex;
 }
 
 .folder-details > table > tbody > tr > th {
@@ -141,12 +161,25 @@
 
 .folder-actions {
     display: flex;
+    justify-content: flex-end;
     flex-wrap: wrap;
     gap: 5px;
 }
 
 .folder-actions > .pull-right {
-    margin-left: auto;
+    display: contents;
+}
+
+.folder-actions .folder-sharing {
+    margin-right: auto;
+}
+
+.folder-actions .btn {
+    font-size: 12px;
+    padding: 5px 6px;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .folder-actions .clearfix,
@@ -156,6 +189,8 @@
 }
 
 .folder-details > table td {
+    flex: 1;
+    min-width: 0;
     max-width: none;
     white-space: normal;
     overflow-wrap: anywhere;
