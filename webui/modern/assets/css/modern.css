@@ -264,6 +264,17 @@
     cursor: default;
 }
 
+.remote-address {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    column-gap: 6px;
+}
+
+.remote-address > .folder-text {
+    max-width: 100%;
+}
+
 .remote-status {
     font-size: 14px;
 }
