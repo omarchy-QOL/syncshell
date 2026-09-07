@@ -11,6 +11,10 @@ angular.module('syncthing.core')
                     });
                     scope.$broadcast('dashboardTabShown');
                 }
+                function click(event) {
+                    event.preventDefault();
+                    $(event.currentTarget).tab('show');
+                }
                 function keydown(event) {
                     var index = tabs.index(event.currentTarget);
                     switch (event.key) {
@@ -24,9 +28,9 @@ angular.module('syncthing.core')
                     event.preventDefault();
                     tabs.eq(index).tab('show').trigger('focus');
                 }
-                tabs.on('shown.bs.tab', selected).on('keydown', keydown);
+                tabs.on('shown.bs.tab', selected).on('keydown', keydown).on('click', click);
                 scope.$on('$destroy', function () {
-                    tabs.off('shown.bs.tab', selected).off('keydown', keydown);
+                    tabs.off('shown.bs.tab', selected).off('keydown', keydown).off('click', click);
                 });
             }
         };
