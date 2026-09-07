@@ -180,7 +180,7 @@
         <div class="dashboard-folders" aria-labelledby="folder_list" role="region" >
           <h3 id="folder_list"><span translate>Folders</span><span ng-if="folderList().length > 1"> ({{folderList().length}})</span></h3>
           <div ng-repeat="(folderGroupName, groupedFolders) in foldersGrouped">
-            <h4 ng-if="folderGroupName !== ''">{{ folderGroupName }}
+            <h4 ng-if="folderGroupName !== ''" class="folder-text" tooltip data-original-title="{{folderGroupName}}">{{ folderGroupName }}
               <span ng-if="groupedFolders.length > 1 && folderGroupName.length > 0"> ({{groupedFolders.length}})</span>
             </h4>
             <div class="panel-group" id="folders-{{ $index }}">
@@ -204,7 +204,7 @@
                       </span>
                     </div>
                     <div class="panel-title-text">
-                      <span tooltip data-original-title="{{folder.label.length != 0 ? folder.id : ''}}">{{folder.label.length != 0 ? folder.label : folder.id}}</span>
+                      <span tooltip data-original-title="{{folder.label.length != 0 ? folder.label : folder.id}}">{{folder.label.length != 0 ? folder.label : folder.id}}</span>
                     </div>
                   </h4>
                 </button>
@@ -278,7 +278,7 @@
                         <tr ng-if="!folder.paused && (model[folder.id].invalid || model[folder.id].error)">
                           <th><span class="fas fa-fw fa-exclamation-triangle"></span>&nbsp;<span translate>Error</span></th>
                           <td class="text-right">
-                            <span tooltip data-original-title="{{model[folder.id].invalid || model[folder.id].error}}">{{model[folder.id].invalid || model[folder.id].error}}</span>
+                            <span class="folder-text" tooltip data-original-title="{{model[folder.id].invalid || model[folder.id].error}}">{{model[folder.id].invalid || model[folder.id].error}}</span>
                           </td>
                         </tr>
                         <tr ng-if="hasFailedFiles(folder.id)">
@@ -309,9 +309,10 @@
                         <tr ng-if="folder.type != 'sendonly' && folder.type != 'receiveencrypted' && folderStats[folder.id].lastFile && folderStats[folder.id].lastFile.filename">
                           <th><span class="fas fa-fw fa-exchange-alt"></span>&nbsp;<span translate>Latest Change</span></th>
                           <td class="text-right">
-                            <span tooltip data-original-title="{{folderStats[folder.id].lastFile.filename}} @ {{folderStats[folder.id].lastFile.at | date:'yyyy-MM-dd HH:mm:ss'}}">
-                              <span translate translate-value-file="{{folderStats[folder.id].lastFile.filename | basename}}" ng-if="!folderStats[folder.id].lastFile.deleted">Updated {%file%}</span>
-                              <span translate translate-value-file="{{folderStats[folder.id].lastFile.filename | basename}}" ng-if="folderStats[folder.id].lastFile.deleted">Deleted {%file%}</span>
+                            <span class="folder-change" tooltip data-original-title="{{folder.path}}/{{folderStats[folder.id].lastFile.filename}} @ {{folderStats[folder.id].lastFile.at | date:'yyyy-MM-dd HH:mm:ss'}}">
+                              <span translate ng-if="!folderStats[folder.id].lastFile.deleted">Updated</span>
+                              <span translate ng-if="folderStats[folder.id].lastFile.deleted">Deleted</span>
+                              <span class="folder-tail"><bdi dir="ltr">{{folderStats[folder.id].lastFile.filename | basename}}</bdi></span>
                             </span>
                           </td>
                         </tr>
@@ -378,8 +379,8 @@
                                 &ensp;<span class="fa fa-recycle"></span>&nbsp;<span ng-if="folder.versioning.cleanupIntervalS == 0" translate>Disabled</span><span ng-if="folder.versioning.cleanupIntervalS > 0">{{folder.versioning.cleanupIntervalS | duration}}</span>
                               </span>
                               <!-- Keep the path last, so that it truncates without pushing other information out of the screen. -->
-                              <span tooltip data-original-title="{{folder.versioning.fsPath === '' ? '.stversions' : folder.versioning.fsPath}}">
-                                &ensp;<span class="fa fa-folder-open-o"></span>&nbsp;{{folder.versioning.fsPath === '' ? '.stversions' : folder.versioning.fsPath}}
+                              <span class="folder-change" tooltip data-original-title="{{folder.versioning.fsPath === '' ? '.stversions' : folder.versioning.fsPath}}">
+                                <span class="fa fa-folder-open-o"></span><span class="folder-tail"><bdi dir="ltr">{{(folder.versioning.fsPath === '' ? '.stversions' : folder.versioning.fsPath) | basename}}</bdi></span>
                               </span>
                             </span>
                           </td>
@@ -400,7 +401,7 @@
                         <tr>
                           <th><span class="fas fa-fw fa-folder-open"></span>&nbsp;<span translate>Folder Path</span></th>
                           <td class="text-right">
-                            <span tooltip data-original-title="{{folder.path}}">{{folder.path}}</span>
+                            <span class="folder-tail" tooltip data-original-title="{{folder.path}}"><bdi dir="ltr">{{(folder.path | basename) || folder.path}}</bdi></span>
                           </td>
                         </tr>
                         <tr>
@@ -414,7 +415,7 @@
                         </tr>
                         <tr ng-if="folder.label != undefined && folder.label.length > 0">
                           <th><span class="fas fa-fw fa-info-circle"></span>&nbsp;<span translate>Folder ID</span></th>
-                          <td class="text-right no-overflow-ellipse">{{folder.id}}</td>
+                          <td class="text-right"><span class="folder-text" tooltip data-original-title="{{folder.id}}">{{folder.id}}</span></td>
                         </tr>
                         <tr>
                           <th><span class="far fa-fw fa-book"></span>&nbsp;<span translate>Block Indexing</span></th>
