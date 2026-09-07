@@ -46,14 +46,14 @@ for (const [index, framework] of ['svelte', 'preact'].entries()) {
         page = await connect(tab);
         await page.call('Runtime.enable');
         await page.call('Page.reload', {ignoreCache: true});
-        await waitFor(page, `document.querySelector('#username') !== null`, framework + ' login');
+        await waitFor(page, `document.querySelector('#user') !== null`, framework + ' login');
         assert.equal(await page.evaluate(`document.querySelector('.dashboard') === null`), true);
         const fill = async (id, value) => page.evaluate(`(() => {
             const input = document.getElementById(${JSON.stringify(id)});
             input.value = ${JSON.stringify(value)};
             input.dispatchEvent(new Event('input', {bubbles: true}));
         })()`);
-        await fill('username', 'port-test');
+        await fill('user', 'port-test');
         await fill('password', 'incorrect');
         await page.evaluate(`document.querySelector('button[type="submit"]').click()`);
         await waitFor(page, `document.querySelector('[role="alert"]')?.textContent.includes('Incorrect')`,
