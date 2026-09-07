@@ -245,6 +245,10 @@
     cursor: default;
 }
 
+.remote-status {
+    font-size: 14px;
+}
+
 .remote-actions {
     position: relative;
     justify-content: flex-start;
