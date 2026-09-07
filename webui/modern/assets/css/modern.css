@@ -120,11 +120,10 @@
     display: list-item;
     list-style-position: inside;
     cursor: pointer;
-    padding: 10px;
+    padding: 10px 0;
 }
 
-.folder-details > table,
-.folder-sharing {
+.folder-details > table {
     margin-bottom: 0;
 }
 
@@ -132,6 +131,32 @@
     white-space: normal;
 }
 
-.folder-state-detail th {
+.folder-details > table > tbody > tr > th {
     padding-left: 20px;
+}
+
+.folder-details .folder-state-detail th {
+    padding-left: 32px;
+}
+
+.folder-count-tooltip .tooltip-inner {
+    max-width: none;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.folder-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.folder-actions > .pull-right {
+    margin-left: auto;
+}
+
+.folder-actions .clearfix,
+.folder-actions::before,
+.folder-actions::after {
+    display: none;
 }
