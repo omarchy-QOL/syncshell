@@ -165,9 +165,24 @@
 }
 
 .folder-count-tooltip .tooltip-inner {
+    display: table;
     max-width: none;
     text-align: left;
     white-space: nowrap;
+}
+
+.folder-count-tooltip .tooltip-inner > div {
+    display: table-row;
+}
+
+.folder-count-tooltip .tooltip-inner > div > span {
+    display: table-cell;
+}
+
+.folder-count-tooltip .tooltip-inner > div > span:last-child {
+    padding-left: 12px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
 .folder-actions {
