@@ -160,6 +160,10 @@
     padding-left: 20px;
 }
 
+.folder-details > table > tbody > .folder-state-detail > th {
+    padding-left: 32px;
+}
+
 .folder-count-tooltip .tooltip-inner {
     max-width: none;
     text-align: left;
