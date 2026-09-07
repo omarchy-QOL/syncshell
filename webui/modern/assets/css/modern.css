@@ -166,6 +166,7 @@
 
 .folder-count-tooltip .tooltip-inner {
     display: table;
+    border-collapse: separate;
     max-width: none;
     text-align: left;
     white-space: nowrap;
