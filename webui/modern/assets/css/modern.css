@@ -183,3 +183,9 @@
     min-width: 0;
     flex: 1;
 }
+
+.folder-change-tooltip .tooltip-inner {
+    max-width: min(400px, calc(100vw - 24px));
+    text-align: left;
+    overflow-wrap: anywhere;
+}

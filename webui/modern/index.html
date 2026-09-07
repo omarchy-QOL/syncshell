@@ -309,12 +309,15 @@
                         <tr ng-if="folder.type != 'sendonly' && folder.type != 'receiveencrypted' && folderStats[folder.id].lastFile && folderStats[folder.id].lastFile.filename">
                           <th><span class="fas fa-fw fa-exchange-alt"></span>&nbsp;<span translate>Latest Change</span></th>
                           <td class="text-right">
-                            <span class="folder-tail" tooltip data-container="body">
+                            <span class="folder-tail" tooltip data-container="body"
+                              data-template="<div class='tooltip folder-change-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>">
                               <bdi dir="ltr">{{folderStats[folder.id].lastFile.filename | basename}}</bdi>
                               <span tooltip-content hidden>
                                 {{folder.path}}/{{folderStats[folder.id].lastFile.filename}}
-                                <span ng-class="folderStats[folder.id].lastFile.deleted ? 'text-danger' : 'text-success'">{{(folderStats[folder.id].lastFile.deleted ? 'Deleted' : 'Updated') | translate}}</span>
-                                @ <span class="text-warning folder-change-time">{{folderStats[folder.id].lastFile.at | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+                                <br><span class="text-nowrap">
+                                  <span ng-class="folderStats[folder.id].lastFile.deleted ? 'text-danger' : 'text-success'">{{(folderStats[folder.id].lastFile.deleted ? 'Deleted' : 'Updated') | translate}}</span>
+                                  @ <span class="text-warning folder-change-time">{{folderStats[folder.id].lastFile.at | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+                                </span>
                               </span>
                             </span>
                           </td>
