@@ -4,6 +4,7 @@ import {createApi} from '../client/api.mjs';
 import {createSession, initialState} from '../client/session.mjs';
 import {Folder} from './Folder.jsx';
 import {Login} from './Login.jsx';
+import '../client/components.css';
 
 function App() {
     const [state, setState] = useState(initialState);
