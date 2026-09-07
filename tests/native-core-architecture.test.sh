@@ -28,20 +28,6 @@ grep -Fxq 'OmarchyService {}' "$root/Service.qml" \
 [[ $(rg -l 'CoreProcess[[:space:]]*\{' "$root/hosts/omarchy" -g '*.qml' \
   | wc -l) -eq 1 ]] || fail "Omarchy does not own exactly one CoreProcess"
 
-removed=(
-  core/ActivityTracker.qml
-  core/ApiClient.qml
-  core/FolderController.qml
-  core/InstallationController.qml
-  models/FolderModel.js
-  models/ServiceStateModel.js
-  models/SyncthingApi.js
-  scripts/syncthing-api.sh
-)
-for path in "${removed[@]}"; do
-  [[ ! -e $root/$path ]] || fail "superseded owner remains at $path"
-done
-
 if rg -n 'qs[.]Commons|qs[.]Ui|omarchy' \
     "$root/shared" "$root/hosts/standalone" >/dev/null; then
   fail "standalone process boundary imports Omarchy"

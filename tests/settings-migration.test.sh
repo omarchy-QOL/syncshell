@@ -1,31 +1,25 @@
 #!/bin/bash
 set -euo pipefail
 
-root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-sandbox=$(mktemp -d /tmp/syncshell-settings-test.XXXXXX)
-trap 'find "$sandbox" -depth -delete' EXIT
+# shellcheck source=qml-test-helper.sh
+source "$(dirname -- "${BASH_SOURCE[0]}")/qml-test-helper.sh"
 helper=$root/hosts/omarchy/scripts/syncthing-settings.sh
 template=$root/hosts/omarchy/config/settings.toml
-mkdir -p "$sandbox/bin/x86_64" "$sandbox/hosts/omarchy" \
-  "$sandbox/config/omarchy/ilyazar.syncthing" "$sandbox/state" "$sandbox/runtime"
-cp -a "$root/shared" "$sandbox/shared"
-cp -a "$root/hosts/omarchy/." "$sandbox/hosts/omarchy/"
-ln -s /usr/share/omarchy/shell/Commons "$sandbox/Commons"
-ln -s /usr/share/omarchy/shell/Ui "$sandbox/Ui"
-cp "$root/tests-settings-migration.qml" "$sandbox/"
-export TEST_SANDBOX=$sandbox TEST_REFERENCE=$sandbox/reference.toml
-export XDG_CONFIG_HOME=$sandbox/config XDG_STATE_HOME=$sandbox/state
-export XDG_RUNTIME_DIR=$sandbox/runtime
-export PATH=$sandbox/bin:$PATH
+stage_omarchy_test settings-migration shared hosts/omarchy
+mkdir -p -- "$test_root/config/omarchy/ilyazar.syncthing" "$test_root/state" "$test_root/runtime"
+export TEST_SANDBOX=$test_root TEST_REFERENCE=$test_root/reference.toml
+export XDG_CONFIG_HOME=$test_root/config XDG_STATE_HOME=$test_root/state
+export XDG_RUNTIME_DIR=$test_root/runtime
+export PATH=$test_root/bin:$PATH
 
-cat >"$sandbox/bin/omarchy" <<'MOCK'
+cat >"$test_root/bin/omarchy" <<'MOCK'
 #!/bin/bash
 set -euo pipefail
 [[ $1 == launch && $2 == editor && $# == 4 ]]
 printf '%s\n' "$3" "$4" >"$TEST_SANDBOX/editor-args"
 ln -s "$4" "$TEST_REFERENCE"
 MOCK
-cat >"$sandbox/bin/x86_64/syncshell-core" <<'MOCK'
+cat >"$test_root/bin/x86_64/syncshell-core" <<'MOCK'
 #!/bin/bash
 set -euo pipefail
 printf '%s\n' \
@@ -37,39 +31,39 @@ while IFS= read -r line; do
   printf '{"v":1,"type":"result","id":"%s","ok":true,"revision":1}\n' "$id"
 done
 MOCK
-chmod 755 "$sandbox/bin/omarchy" "$sandbox/bin/x86_64/syncshell-core"
+chmod 755 "$test_root/bin/omarchy" "$test_root/bin/x86_64/syncshell-core"
 sed -e 's/version = 2/version = 1/' -e 's/"branded"/"themed"/' \
   -e 's/"omarchy"/"default"/' -e 's/"enabled"/"disabled"/' \
-  -e 's/seconds = 15/seconds = 27/' "$template" >"$sandbox/original.toml"
-cp "$sandbox/original.toml" "$sandbox/owner.toml"
-chmod 640 "$sandbox/owner.toml"
-target=$sandbox/config/omarchy/ilyazar.syncthing/settings.toml
-ln -s "$sandbox/owner.toml" "$target"
+  -e 's/seconds = 15/seconds = 27/' "$template" >"$test_root/original.toml"
+cp "$test_root/original.toml" "$test_root/owner.toml"
+chmod 640 "$test_root/owner.toml"
+target=$test_root/config/omarchy/ilyazar.syncthing/settings.toml
+ln -s "$test_root/owner.toml" "$target"
 QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
-  timeout 12s quickshell --no-color -p "$sandbox/tests-settings-migration.qml"
-[[ -L $target && $(stat -c %a "$sandbox/owner.toml") == 640 ]]
-cmp "$sandbox/original.toml" "$sandbox"/owner.toml.before-port.*
-[[ $(head -n 1 "$sandbox/editor-args") == "$target" ]]
-[[ -f $(tail -n 1 "$sandbox/editor-args") ]]
+  timeout 12s quickshell --no-color -p "$test_root/shell.qml"
+[[ -L $target && $(stat -c %a "$test_root/owner.toml") == 640 ]]
+cmp "$test_root/original.toml" "$test_root"/owner.toml.before-port.*
+[[ $(head -n 1 "$test_root/editor-args") == "$target" ]]
+[[ -f $(tail -n 1 "$test_root/editor-args") ]]
 # Cold startup and migration may configure intent, but never mutate the daemon.
 jq -es 'all(.type == "configure" or .type == "shutdown")' \
-  "$sandbox/requests" >/dev/null
+  "$test_root/requests" >/dev/null
 
 # A stale preview cannot replace an intervening user edit.
-jq -n --rawfile original "$sandbox/original.toml" \
+jq -n --rawfile original "$test_root/original.toml" \
   --rawfile replacement "$template" '{original:$original,replacement:$replacement}' \
-  | jq -c . >"$sandbox/request.json"
-cp "$target" "$sandbox/before.toml"
-if bash "$helper" migrate "$target" <"$sandbox/request.json" \
-    >"$sandbox/output" 2>"$sandbox/error"; then
+  | jq -c . >"$test_root/request.json"
+cp "$target" "$test_root/before.toml"
+if bash "$helper" migrate "$target" <"$test_root/request.json" \
+    >"$test_root/output" 2>"$test_root/error"; then
   printf 'stale preview was accepted\n' >&2
   exit 1
 fi
-cmp "$sandbox/before.toml" "$target"
-grep -q 'changed since the preview' "$sandbox/error"
-[[ $(find "$sandbox" -name '*.before-port.*' | wc -l) == 1 ]]
+cmp "$test_root/before.toml" "$target"
+grep -q 'changed since the preview' "$test_root/error"
+[[ $(find "$test_root" -name '*.before-port.*' | wc -l) == 1 ]]
 # Ordinary preference writes also retain managed symlinks.
 bash "$helper" set-service-state "$template" "$target" themed enabled >/dev/null
-[[ -L $target && $(stat -c %a "$sandbox/owner.toml") == 640 ]]
+[[ -L $target && $(stat -c %a "$test_root/owner.toml") == 640 ]]
 grep -q '^service_state = "enabled"$' "$target"
 printf 'settings writer tests passed\n'

@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "hosts/omarchy"
+import "../hosts/omarchy"
 
 ShellRoot {
   id: root
