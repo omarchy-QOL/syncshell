@@ -1,0 +1,17 @@
+.port-tooltip {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    border: 0;
+    max-width: calc(100vw - 16px);
+    background: transparent;
+    overflow: visible;
+}
+
+.port-tooltip:not(:popover-open) {
+    display: none;
+}
+
+.port-tooltip-anchor {
+    display: inline;
+}
