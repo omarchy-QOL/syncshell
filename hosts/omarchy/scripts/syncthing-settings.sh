@@ -43,7 +43,7 @@ seed_settings() {
   fi
 
   temporary=$(mktemp --tmpdir="$target_dir" .settings.toml.XXXXXX)
-  sed -E "s/^(icon_style[[:space:]]*=[[:space:]]*)\"branded\"/\1\"$icon_style\"/" \
+  sed -E "s/^(icon_style[[:space:]]*=[[:space:]]*)\"(branded|themed)\"/\1\"$icon_style\"/" \
     "$template" >"$temporary"
   chmod 600 -- "$temporary"
   mv -- "$temporary" "$target"

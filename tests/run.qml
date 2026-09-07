@@ -102,7 +102,7 @@ QtObject {
     }
     compare(SettingsModel.parse(current), expected, "current settings")
     compare(SettingsModel.defaults(false), {
-      iconStyle: "branded", webUiTheme: "omarchy", serviceState: "enabled",
+      iconStyle: "themed", webUiTheme: "omarchy", serviceState: "enabled",
       probeIntervalSeconds: 15
     }, "implicit defaults")
     ;["default", "modern", "omarchy"].forEach(function(theme) {
