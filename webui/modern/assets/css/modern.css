@@ -254,6 +254,15 @@
     justify-content: flex-start;
 }
 
+.remote-actions > .pull-right > .btn:first-child {
+    margin-left: auto;
+}
+
+.remote-actions [aria-disabled="true"] {
+    opacity: 0.65;
+    cursor: default;
+}
+
 .remote-folders {
     position: static;
 }
