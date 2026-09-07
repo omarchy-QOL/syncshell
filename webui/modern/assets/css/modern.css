@@ -31,7 +31,7 @@
 
 @media (min-width: 1400px) {
     .dashboard-authenticated {
-        grid-template-columns: minmax(320px, 2fr) repeat(2, minmax(0, 3fr));
+        grid-template-columns: minmax(320px, 8fr) minmax(320px, 9fr) minmax(0, 15fr);
     }
     .notifications {
         grid-column: auto;
@@ -124,20 +124,20 @@
     display: none;
 }
 
-.folder-details > summary {
+:is(.folder-details, .device-details) > summary {
     display: list-item;
     list-style-position: inside;
     cursor: pointer;
     padding: 10px 0;
 }
 
-.folder-details > table {
+:is(.folder-details, .device-details) > table {
     margin-bottom: 0;
     table-layout: fixed;
     font-size: 14px;
 }
 
-.folder-details > table th {
+:is(.folder-details, .device-details) > table th {
     width: auto;
     max-width: 75%;
     white-space: normal;
@@ -145,11 +145,11 @@
     hyphens: auto;
 }
 
-.folder-details > table > tbody > tr {
+:is(.folder-details, .device-details) > table > tbody > tr {
     display: flex;
 }
 
-.folder-details > table > tbody > tr > th {
+:is(.folder-details, .device-details) > table > tbody > tr > th {
     padding-left: 20px;
 }
 
@@ -188,7 +188,7 @@
     display: none;
 }
 
-.folder-details > table td {
+:is(.folder-details, .device-details) > table td {
     flex: 1;
     min-width: 0;
     max-width: none;

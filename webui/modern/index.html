@@ -569,15 +569,50 @@
             </button>
             <div id="device-this" class="panel-collapse collapse in" lazy-collapse>
               <div class="panel-body less-padding" ng-if="lazyReady">
-                <table class="table table-condensed table-striped table-auto">
-                  <tbody>
+                <details class="device-details" open>
+                  <summary><span translate>Connectivity</span></summary>
+                  <table class="table table-condensed table-striped table-auto">
+                    <tbody>
                     <tr>
-                      <th><span class="fas fa-fw fa-cloud-download-alt"></span>&nbsp;<span translate>Download Rate</span></th>
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Listeners' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                        data-original-title="{{'Listening services that accept incoming device connections. Shows working services out of the total. Click the count for addresses and errors.' | translate}}" class="fas fa-fw fa-sitemap folder-help-icon"></span>&nbsp;<span translate>Listeners</span></th>
+                      <td class="text-right">
+                        <span class="data">
+                          <a href="" ng-class="{'text-success': listenersTotal > 0 && listenersFailed.length == 0, 'text-danger': listenersTotal > 0 && listenersFailed.length == listenersTotal}" ng-click="showListenerStatus()">
+                            {{listenersTotal-listenersFailed.length}}/{{listenersTotal}}
+                          </a>
+                        </span>
+                      </td>
+                    </tr>
+                    <tr ng-if="system.discoveryEnabled">
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Discovery' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                        data-original-title="{{'Services used to find other devices. Shows working discovery methods out of the total. Click the count for details; discovery success does not mean a device is connected.' | translate}}" class="fas fa-fw fa-map-signs folder-help-icon"></span>&nbsp;<span translate>Discovery</span></th>
+                      <td class="text-right">
+                        <span class="data">
+                          <a href="" ng-class="{'text-success': discoveryFailed.length == 0, 'text-danger': discoveryFailed.length == discoveryTotal}" ng-click="showDiscoveryStatus()">
+                            {{discoveryTotal-discoveryFailed.length}}/{{discoveryTotal}}
+                          </a>
+                        </span>
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </details>
+                <details class="device-details" open>
+                  <summary><span translate>Current activity</span></summary>
+                  <table class="table table-condensed table-striped table-auto">
+                    <tbody>
+                    <tr>
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Download Rate' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" class="fas fa-fw fa-cloud-download-alt folder-help-icon">
+                          <span tooltip-content class="hidden"><span translate>Incoming traffic across all connected devices. Click the rate to switch between bytes and bits per second. A configured limit appears below.</span><br/><span translate>Total</span>: ~{{connectionsTotal.inBytesTotal | binary}}B</span>
+                        </span>&nbsp;<span translate>Download Rate</span></th>
                       <td class="text-right">
                         <a href="#" class="toggler" ng-click="toggleUnits()">
                           <span ng-if="!metricRates">{{connectionsTotal.inbps | binary}}B/s</span>
                           <span ng-if="metricRates">{{connectionsTotal.inbps*8 | metric}}bps</span>
-                          ({{connectionsTotal.inBytesTotal | binary}}B)
                           <small ng-if="config.options.maxRecvKbps > 0"><br/>
                             <i class="text-muted"><span translate>Limit</span>:
                               <span ng-if="!metricRates">{{config.options.maxRecvKbps*1024 | binary}}B/s</span>
@@ -591,12 +626,14 @@
                       </td>
                     </tr>
                     <tr>
-                      <th><span class="fas fa-fw fa-cloud-upload-alt"></span>&nbsp;<span translate>Upload Rate</span></th>
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Upload Rate' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" class="fas fa-fw fa-cloud-upload-alt folder-help-icon">
+                          <span tooltip-content class="hidden"><span translate>Outgoing traffic across all connected devices. Click the rate to switch between bytes and bits per second. A configured limit appears below.</span><br/><span translate>Total</span>: ~{{connectionsTotal.outBytesTotal | binary}}B</span>
+                        </span>&nbsp;<span translate>Upload Rate</span></th>
                       <td class="text-right">
                         <a href="#" class="toggler" ng-click="toggleUnits()">
                           <span ng-if="!metricRates">{{connectionsTotal.outbps | binary}}B/s</span>
                           <span ng-if="metricRates">{{connectionsTotal.outbps*8 | metric}}bps</span>
-                          ({{connectionsTotal.outBytesTotal | binary}}B)
                           <small ng-if="config.options.maxSendKbps > 0"><br/>
                             <i class="text-muted"><span translate>Limit</span>:
                               <span ng-if="!metricRates">{{config.options.maxSendKbps*1024 | binary}}B/s</span>
@@ -610,53 +647,52 @@
                       </td>
                     </tr>
                     <tr>
-                      <th><span class="fas fa-fw fa-home"></span>&nbsp;<span translate>Local State (Total)</span></th>
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Local State (Total)' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                        data-original-title="{{'Local files and data indexed across all folders on this device. These totals do not indicate whether every folder is synchronized.' | translate}}" class="fas fa-fw fa-home folder-help-icon"></span>&nbsp;<span translate>Local State (Total)</span></th>
                       <td class="text-right">
-                          <span tooltip data-original-title="{{localStateTotal.files | alwaysNumber | localeNumber}} {{'files' | translate}}, {{ localStateTotal.directories | alwaysNumber | localeNumber}} {{'directories' | translate}}, ~{{ localStateTotal.bytes | binary}}B">
-                            <span class="far fa-copy"></span>&nbsp;{{localStateTotal.files | alwaysNumber | localeNumber}}&ensp;
-                            <span class="far fa-folder"></span>&nbsp;{{localStateTotal.directories| alwaysNumber | localeNumber}}&ensp;
-                            <span class="far fa-hdd"></span>&nbsp;~{{localStateTotal.bytes | binary}}B
-                          </span>
+                            <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-delay='{"show":400,"hide":0}'
+                              data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                              data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{localStateTotal.files | alwaysNumber | localeNumber}}</div>
+                                <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{localStateTotal.directories | alwaysNumber | localeNumber}}</div>
+                                <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{localStateTotal.bytes | binary}}B</div>">
+                              <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{localStateTotal.files | compactNumber}}&ensp;
+                              <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{localStateTotal.bytes | binary}}B
+                            </span>
                       </td>
                     </tr>
+                    </tbody>
+                  </table>
+                </details>
+                <details class="device-details">
+                  <summary><span translate>Device information</span></summary>
+                  <table class="table table-condensed table-striped table-auto">
+                    <tbody>
                     <tr>
-                      <th><span class="fas fa-fw fa-sitemap"></span>&nbsp;<span translate>Listeners</span></th>
-                      <td class="text-right">
-                        <span class="data" tooltip data-original-title="{{'Show detailed listener status' | translate}}.">
-                          <a href="" ng-class="{'text-success': listenersTotal > 0 && listenersFailed.length == 0, 'text-danger': listenersTotal > 0 && listenersFailed.length == listenersTotal}" ng-click="showListenerStatus()">
-                            {{listenersTotal-listenersFailed.length}}/{{listenersTotal}}
-                          </a>
-                        </span>
-                      </td>
-                    </tr>
-                    <tr ng-if="system.discoveryEnabled">
-                      <th><span class="fas fa-fw fa-map-signs"></span>&nbsp;<span translate>Discovery</span></th>
-                      <td class="text-right">
-                        <span class="data" tooltip data-original-title="{{'Show detailed discovery status' | translate}}.">
-                          <a href="" ng-class="{'text-success': discoveryFailed.length == 0, 'text-danger': discoveryFailed.length == discoveryTotal}" ng-click="showDiscoveryStatus()">
-                            {{discoveryTotal-discoveryFailed.length}}/{{discoveryTotal}}
-                          </a>
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th><span class="far fa-fw fa-clock"></span>&nbsp;<span translate>Uptime</span></th>
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Uptime' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                        data-original-title="{{'Time since this Syncthing process started. Reloading the Web UI does not reset it.' | translate}}" class="far fa-fw fa-clock folder-help-icon"></span>&nbsp;<span translate>Uptime</span></th>
                       <td class="text-right">{{system.uptime | duration:"m"}}</td>
                     </tr>
                     <tr>
-                      <th><span class="fas fa-fw fa-qrcode"></span>&nbsp;<span translate>Identification</span></th>
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Identification' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                        data-original-title="{{'The unique ID used to pair this device with other devices. Click the shortened ID to see the full ID and QR code.' | translate}}" class="fas fa-fw fa-qrcode folder-help-icon"></span>&nbsp;<span translate>Identification</span></th>
                       <td class="text-right">
-                        <span tooltip data-original-title="{{'Click to see full identification string and QR code.' | translate}}">
+                        <span>
                           <a href="" ng-click="showDeviceIdentification(thisDevice())">{{deviceShortID(deviceCfg.deviceID)}}</a>
                         </span>
                       </td>
                     </tr>
                     <tr>
-                      <th><span class="fas fa-fw fa-tag"></span>&nbsp;<span translate>Version</span></th>
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Version' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                        data-original-title="{{'Version and platform of the Syncthing service running on this device.' | translate}}" class="fas fa-fw fa-tag folder-help-icon"></span>&nbsp;<span translate>Version</span></th>
                       <td class="text-right no-overflow-ellipse">{{versionString()}}</td>
                     </tr>
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </details>
               </div>
             </div>
           </div>
