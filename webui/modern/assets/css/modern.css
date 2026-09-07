@@ -195,9 +195,10 @@
     text-align: left;
 }
 
-.folder-help-icon {
+.folder-help-icon,
+.folder-count-icon {
     box-sizing: content-box;
     padding: 2px;
     margin: -2px;
-    cursor: help;
+    cursor: default;
 }
