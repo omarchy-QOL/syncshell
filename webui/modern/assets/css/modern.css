@@ -29,6 +29,18 @@
     display: inline-block;
 }
 
+
+.notification-indicator > :is(.text-warning, .text-danger),
+.dashboard:has(.notifications :is(.panel-warning, .panel-danger)) .notification-indicator > .text-success,
+.dashboard:has(.notifications .panel-danger) .notification-indicator > .text-warning {
+    display: none;
+}
+
+.dashboard:has(.notifications .panel-warning):not(:has(.notifications .panel-danger)) .notification-indicator > .text-warning,
+.dashboard:has(.notifications .panel-danger) .notification-indicator > .text-danger {
+    display: inline-block;
+}
+
 .notifications:has(.panel) .notifications-empty {
     display: none;
 }
