@@ -208,11 +208,11 @@
                     </div>
                   </h4>
                 </button>
-                <div id="folder-{{$parent.$index}}-{{$index}}" class="panel-collapse collapse" lazy-collapse>
+                <div id="folder-{{$parent.$index}}-{{$index}}" class="panel-collapse collapse" lazy-collapse stripe-sections>
                   <div class="panel-body less-padding" ng-if="lazyReady">
                     <details class="folder-details" open>
                       <summary><span translate>Current activity</span><span class="visible-xs-inline">: {{folderStatusText(folder)}}</span></summary>
-                    <table class="table table-condensed table-striped table-auto">
+                    <table class="table table-condensed table-auto">
                       <tbody>
                         <tr ng-if="!folder.paused && model[folder.id].state" class="folder-state-summary">
                           <th>
@@ -349,7 +349,7 @@
                     </details>
                     <details class="folder-details">
                       <summary translate>Configuration</summary>
-                    <table class="table table-condensed table-striped table-auto">
+                    <table class="table table-condensed table-auto">
                       <tbody>
                         <tr>
                           <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Rescans' | translate}}" data-container="body"
@@ -430,7 +430,7 @@
                     </details>
                     <details class="folder-details">
                       <summary translate>Folder information</summary>
-                    <table class="table table-condensed table-striped table-auto">
+                    <table class="table table-condensed table-auto">
                       <tbody>
                         <tr>
                           <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Folder Path' | translate}}" data-container="body"
@@ -567,11 +567,11 @@
                 </div>
               </h4>
             </button>
-            <div id="device-this" class="panel-collapse collapse in" lazy-collapse>
+            <div id="device-this" class="panel-collapse collapse in" lazy-collapse stripe-sections>
               <div class="panel-body less-padding" ng-if="lazyReady">
                 <details class="device-details" open>
                   <summary><span translate>Current activity</span></summary>
-                  <table class="table table-condensed table-striped table-auto">
+                  <table class="table table-condensed table-auto">
                     <tbody>
                     <tr>
                       <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Download Rate' | translate}}" data-container="body"
@@ -635,7 +635,7 @@
                 </details>
                 <details class="device-details" open>
                   <summary><span translate>Connectivity</span></summary>
-                  <table class="table table-condensed table-striped table-auto">
+                  <table class="table table-condensed table-auto">
                     <tbody>
                     <tr>
                       <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Listeners' | translate}}" data-container="body"
@@ -666,7 +666,7 @@
                 </details>
                 <details class="device-details">
                   <summary><span translate>Device information</span></summary>
-                  <table class="table table-condensed table-striped table-auto">
+                  <table class="table table-condensed table-auto">
                     <tbody>
                     <tr>
                       <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Uptime' | translate}}" data-container="body"
@@ -724,7 +724,7 @@
                       </div>
                     </h4>
                   </button>
-                  <div id="device-{{$parent.$index}}-{{$index}}" class="panel-collapse collapse" lazy-collapse>
+                  <div id="device-{{$parent.$index}}-{{$index}}" class="panel-collapse collapse" lazy-collapse stripe-sections>
                     <div class="panel-body less-padding" ng-if="lazyReady">
                       <table class="table table-condensed visible-xs remote-status">
                         <tbody>
@@ -737,7 +737,7 @@
                       </table>
                       <details class="device-details" open ng-if="connections[deviceCfg.deviceID].connected || deviceFolders(deviceCfg).length > 0 || completion[deviceCfg.deviceID]._needItems">
                         <summary><span translate>Current activity</span></summary>
-                        <table class="table table-condensed table-striped table-auto">
+                        <table class="table table-condensed table-auto">
                           <tbody>
                           <tr ng-if="!connections[deviceCfg.deviceID].connected && deviceFolders(deviceCfg).length > 0">
                             <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Sync Status' | translate}}" data-container="body"
@@ -795,7 +795,7 @@
                       </details>
                       <details class="device-details" open>
                         <summary><span translate>Connectivity</span></summary>
-                        <table class="table table-condensed table-striped table-auto">
+                        <table class="table table-condensed table-auto">
                           <tbody>
                           <tr ng-if="!connections[deviceCfg.deviceID].connected">
                             <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Last seen' | translate}}" data-container="body"
@@ -857,7 +857,7 @@
                       </details>
                       <details class="device-details">
                         <summary><span translate>Device information</span></summary>
-                        <table class="table table-condensed table-striped table-auto">
+                        <table class="table table-condensed table-auto">
                           <tbody>
                           <tr ng-if="connections[deviceCfg.deviceID].clientVersion">
                             <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Version' | translate}}" data-container="body"
@@ -1253,6 +1253,7 @@
   <script type="text/javascript" src="syncthing/core/popoverDirective.js"></script>
   <script type="text/javascript" src="syncthing/core/syncthingController.js"></script>
   <script type="text/javascript" src="syncthing/core/tooltipDirective.js"></script>
+  <script type="text/javascript" src="syncthing/core/stripeSectionsDirective.js"></script>
   <script type="text/javascript" src="syncthing/core/lazyCollapseDirective.js"></script>
   <script type="text/javascript" src="syncthing/core/uncamelFilter.js"></script>
   <script type="text/javascript" src="syncthing/core/uniqueFolderDirective.js"></script>
