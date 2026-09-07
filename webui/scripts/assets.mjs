@@ -3,7 +3,8 @@ import {resolve} from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const output = resolve(root, 'dist');
-for (const path of ['assets', 'vendor/bootstrap/css', 'vendor/fork-awesome']) {
+for (const path of ['assets', 'vendor/bootstrap/css', 'vendor/fork-awesome',
+    'vendor/HumanizeDuration.js/humanize-duration.js']) {
     await cp(resolve(root, 'modern', path), resolve(output, path), {recursive: true});
 }
 await cp(resolve(root, 'LICENSE.syncthing'), resolve(output, 'LICENSE.syncthing'));
