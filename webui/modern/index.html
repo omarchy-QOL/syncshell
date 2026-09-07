@@ -726,14 +726,80 @@
                   </button>
                   <div id="device-{{$parent.$index}}-{{$index}}" class="panel-collapse collapse" lazy-collapse>
                     <div class="panel-body less-padding" ng-if="lazyReady">
-                      <table class="table table-condensed table-striped table-auto">
+                      <table class="table table-condensed visible-xs">
                         <tbody>
                           <tr class="visible-xs">
-                            <th><span class="fa fa-fw {{deviceStatusIcon(deviceCfg)}}"></span>&nbsp;<span translate>Device Status</span></th>
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Device Status' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Connection and synchronization status of this remote device.' | translate}}" class="fa fa-fw {{deviceStatusIcon(deviceCfg)}} folder-help-icon"></span>&nbsp;<span translate>Device Status</span></th>
                             <td class="text-right">{{deviceStatusText(deviceCfg)}}</td>
                           </tr>
+                        </tbody>
+                      </table>
+                      <details class="device-details" open ng-if="connections[deviceCfg.deviceID].connected || deviceFolders(deviceCfg).length > 0 || completion[deviceCfg.deviceID]._needItems">
+                        <summary><span translate>Current activity</span></summary>
+                        <table class="table table-condensed table-striped table-auto">
+                          <tbody>
+                          <tr ng-if="!connections[deviceCfg.deviceID].connected && deviceFolders(deviceCfg).length > 0">
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Sync Status' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Last known synchronization progress across folders shared with this device. An offline device may have changed since its last connection.' | translate}}" class="fas fa-fw fa-cloud folder-help-icon"></span>&nbsp;<span translate>Sync Status</span></th>
+                            <td translate ng-if="completion[deviceCfg.deviceID]._total == 100" class="text-right">Up to Date</td>
+                            <td ng-if="completion[deviceCfg.deviceID]._total < 100" class="text-right">
+                                <span class="hidden-xs" translate>Out of Sync</span> ({{completion[deviceCfg.deviceID]._total | percent}})
+                            </td>
+                          </tr>
+                          <tr ng-if="connections[deviceCfg.deviceID].connected">
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Download Rate' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" class="fas fa-fw fa-cloud-download-alt folder-help-icon"><span tooltip-content class="hidden"><span translate>Data received by this machine from this remote device. Click the rate to switch between bytes and bits per second.</span><br/><span translate>Total</span>: ~{{connections[deviceCfg.deviceID].inBytesTotal | binary}}B</span></span>&nbsp;<span translate>Download Rate</span></th>
+                            <td class="text-right">
+                              <a href="#" class="toggler" ng-click="toggleUnits()">
+                                <span ng-if="!metricRates">{{connections[deviceCfg.deviceID].inbps | binary}}B/s</span>
+                                <span ng-if="metricRates">{{connections[deviceCfg.deviceID].inbps*8 | metric}}bps</span>
+                                <small ng-if="deviceCfg.maxRecvKbps > 0"><br/>
+                                  <i class="text-muted"><span translate>Limit</span>:
+                                    <span ng-if="!metricRates">{{deviceCfg.maxRecvKbps*1024 | binary}}B/s</span>
+                                    <span ng-if="metricRates">{{deviceCfg.maxRecvKbps*1024*8 | metric}}bps</span>
+                                  </i>
+                                </small>
+                              </a>
+                            </td>
+                          </tr>
+                          <tr ng-if="connections[deviceCfg.deviceID].connected">
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Upload Rate' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" class="fas fa-fw fa-cloud-upload-alt folder-help-icon"><span tooltip-content class="hidden"><span translate>Data sent by this machine to this remote device. Click the rate to switch between bytes and bits per second.</span><br/><span translate>Total</span>: ~{{connections[deviceCfg.deviceID].outBytesTotal | binary}}B</span></span>&nbsp;<span translate>Upload Rate</span></th>
+                            <td class="text-right">
+                              <a href="#" class="toggler" ng-click="toggleUnits()">
+                                <span ng-if="!metricRates">{{connections[deviceCfg.deviceID].outbps | binary}}B/s</span>
+                                <span ng-if="metricRates">{{connections[deviceCfg.deviceID].outbps*8 | metric}}bps</span>
+                                <small ng-if="deviceCfg.maxSendKbps > 0"><br/>
+                                  <i class="text-muted"><span translate>Limit</span>:
+                                    <span ng-if="!metricRates">{{deviceCfg.maxSendKbps*1024 | binary}}B/s</span>
+                                    <span ng-if="metricRates">{{deviceCfg.maxSendKbps*1024*8 | metric}}bps</span>
+                                  </i>
+                                </small>
+                              </a>
+                            </td>
+                          </tr>
+                          <tr ng-if="completion[deviceCfg.deviceID]._needItems">
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Out of Sync Items' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Items still needed by this remote device across shared folders, including pending deletions. Click the count to view the remaining work.' | translate}}" class="fas fa-fw fa-exchange-alt folder-help-icon"></span>&nbsp;<span translate>Out of Sync Items</span></th>
+                            <td class="text-right">
+                              <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-container="body" data-delay='{"show":400,"hide":0}'
+                                data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                                data-original-title="<div><span class='fas fa-fw fa-exchange-alt'></span> {{'items' | translate}}: {{completion[deviceCfg.deviceID]._needItems | alwaysNumber | localeNumber}}</div><div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{completion[deviceCfg.deviceID]._needBytes | binary}}B</div>">
+                                <span class="fas fa-exchange-alt folder-count-icon" tabindex="0" role="img" aria-label="{{'Out of Sync Items' | translate}}"></span>
+                              </span>&nbsp;<a href="" ng-click="showRemoteNeed(deviceCfg)">{{completion[deviceCfg.deviceID]._needItems | compactNumber}} <span translate>items</span>, ~{{completion[deviceCfg.deviceID]._needBytes | binary}}B</a>
+                            </td>
+                          </tr>
+                          </tbody>
+                        </table>
+                      </details>
+                      <details class="device-details" open>
+                        <summary><span translate>Connectivity</span></summary>
+                        <table class="table table-condensed table-striped table-auto">
+                          <tbody>
                           <tr ng-if="!connections[deviceCfg.deviceID].connected">
-                            <th><span class="fas fa-fw fa-eye"></span>&nbsp;<span translate>Last seen</span></th>
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Last seen' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'When this device was last seen connected. Never means no previous connection is recorded.' | translate}}" class="fas fa-fw fa-eye folder-help-icon"></span>&nbsp;<span translate>Last seen</span></th>
                             <td class="text-right">
                               <div ng-if="!deviceStats[deviceCfg.deviceID].lastSeenDays" translate>
                                 Never
@@ -750,163 +816,140 @@
                               </div>
                             </td>
                           </tr>
-                          <tr ng-if="!connections[deviceCfg.deviceID].connected && deviceFolders(deviceCfg).length > 0">
-                            <th><span class="fas fa-fw fa-cloud"></span>&nbsp;<span translate>Sync Status</span></th>
-                            <td translate ng-if="completion[deviceCfg.deviceID]._total == 100" class="text-right">Up to Date</td>
-                            <td ng-if="completion[deviceCfg.deviceID]._total < 100" class="text-right">
-                                <span class="hidden-xs" translate>Out of Sync</span> ({{completion[deviceCfg.deviceID]._total | percent}})
-                            </td>
-                          </tr>
-                          <tr ng-if="connections[deviceCfg.deviceID].connected">
-                            <th><span class="fas fa-fw fa-cloud-download-alt"></span>&nbsp;<span translate>Download Rate</span></th>
-                            <td class="text-right">
-                              <a href="#" class="toggler" ng-click="toggleUnits()">
-                                <span ng-if="!metricRates">{{connections[deviceCfg.deviceID].inbps | binary}}B/s</span>
-                                <span ng-if="metricRates">{{connections[deviceCfg.deviceID].inbps*8 | metric}}bps</span>
-                                ({{connections[deviceCfg.deviceID].inBytesTotal | binary}}B)
-                                <small ng-if="deviceCfg.maxRecvKbps > 0"><br/>
-                                  <i class="text-muted"><span translate>Limit</span>:
-                                    <span ng-if="!metricRates">{{deviceCfg.maxRecvKbps*1024 | binary}}B/s</span>
-                                    <span ng-if="metricRates">{{deviceCfg.maxRecvKbps*1024*8 | metric}}bps</span>
-                                  </i>
-                                </small>
-                              </a>
-                            </td>
-                          </tr>
-                          <tr ng-if="connections[deviceCfg.deviceID].connected">
-                            <th><span class="fas fa-fw fa-cloud-upload-alt"></span>&nbsp;<span translate>Upload Rate</span></th>
-                            <td class="text-right">
-                              <a href="#" class="toggler" ng-click="toggleUnits()">
-                                <span ng-if="!metricRates">{{connections[deviceCfg.deviceID].outbps | binary}}B/s</span>
-                                <span ng-if="metricRates">{{connections[deviceCfg.deviceID].outbps*8 | metric}}bps</span>
-                                ({{connections[deviceCfg.deviceID].outBytesTotal | binary}}B)
-                                <small ng-if="deviceCfg.maxSendKbps > 0"><br/>
-                                  <i class="text-muted"><span translate>Limit</span>:
-                                    <span ng-if="!metricRates">{{deviceCfg.maxSendKbps*1024 | binary}}B/s</span>
-                                    <span ng-if="metricRates">{{deviceCfg.maxSendKbps*1024*8 | metric}}bps</span>
-                                  </i>
-                                </small>
-                              </a>
-                            </td>
-                          </tr>
-                          <tr ng-if="completion[deviceCfg.deviceID]._needItems">
-                            <th><span class="fas fa-fw fa-exchange-alt"></span>&nbsp;<span translate>Out of Sync Items</span></th>
-                            <td class="text-right">
-                              <a href="" ng-click="showRemoteNeed(deviceCfg)">{{completion[deviceCfg.deviceID]._needItems | alwaysNumber | localeNumber}} <span translate>items</span>, ~{{completion[deviceCfg.deviceID]._needBytes | binary}}B</a>
-                            </td>
-                          </tr>
                           <tr>
-                            <th><span class="fas fa-fw fa-link"></span>&nbsp;<span translate>Address</span></th>
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Address' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Address used for the current connection, or configured and discovered addresses to try while disconnected. Connection errors appear beside each address.' | translate}}" class="fas fa-fw fa-link folder-help-icon"></span>&nbsp;<span translate>Address</span></th>
                             <td ng-if="connections[deviceCfg.deviceID].connected" class="text-right">
-                              <span tooltip data-original-title="{{ connections[deviceCfg.deviceID].type.indexOf('Relay') > -1 ? '' : connections[deviceCfg.deviceID].type }} {{ connections[deviceCfg.deviceID].crypto }}">
+                              <span class="folder-text" tooltip data-container="body" data-original-title="{{deviceAddr(deviceCfg)}} {{ connections[deviceCfg.deviceID].type.indexOf('Relay') > -1 ? '' : connections[deviceCfg.deviceID].type }} {{ connections[deviceCfg.deviceID].crypto }}">
                                 {{deviceAddr(deviceCfg)}}
                               </span>
                             </td>
                             <td ng-if="!connections[deviceCfg.deviceID].connected" class="text-right">
                               <span ng-repeat="addr in deviceCfg.addresses">
-                                <span tooltip data-original-title="{{'Configured' | translate}}">{{addr}}</span><br>
-                                <small ng-if="system.lastDialStatus[addr].error && !deviceCfg.paused" tooltip data-original-title="{{system.lastDialStatus[addr].error}}" class="text-danger">{{abbreviatedError(addr)}}<br></small>
+                                <span class="folder-text" title="{{addr}}" tooltip data-container="body" data-original-title="{{'Configured' | translate}}: {{addr}}">{{addr}}</span><br>
+                                <small ng-if="system.lastDialStatus[addr].error && !deviceCfg.paused" tooltip data-container="body" data-template="<div class='tooltip folder-change-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{system.lastDialStatus[addr].error}}" class="text-danger">{{abbreviatedError(addr)}}<br></small>
                               </span>
                               <span ng-repeat="addr in discoveryCache[deviceCfg.deviceID].addresses">
-                                <span tooltip data-original-title="{{'Discovered' | translate}}">{{addr}}</span><br>
-                                <small ng-if="system.lastDialStatus[addr].error && !deviceCfg.paused" tooltip data-original-title="{{system.lastDialStatus[addr].error}}" class="text-danger">{{abbreviatedError(addr)}}<br></small>
+                                <span class="folder-text" title="{{addr}}" tooltip data-container="body" data-original-title="{{'Discovered' | translate}}: {{addr}}">{{addr}}</span><br>
+                                <small ng-if="system.lastDialStatus[addr].error && !deviceCfg.paused" tooltip data-container="body" data-template="<div class='tooltip folder-change-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{system.lastDialStatus[addr].error}}" class="text-danger">{{abbreviatedError(addr)}}<br></small>
                               </span>
                             </td>
                           </tr>
                           <tr ng-if="connections[deviceCfg.deviceID].connected">
-                            <th><span class="reception reception-4 reception-theme"></span>&nbsp;<span translate>Connection Type</span></th>
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Connection Type' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" class="reception reception-4 reception-theme folder-help-icon"><span tooltip-content class="hidden"><span translate>Transport and network used to reach this device. A relay forwards traffic when a direct connection is unavailable.</span><br/>{{rdConnDetails(rdConnType(deviceCfg.deviceID))}}</span></span>&nbsp;<span translate>Connection Type</span></th>
                             <td class="text-right">
-                              <span tooltip data-original-title="{{rdConnDetails(rdConnType(deviceCfg.deviceID))}}">
+                              <span>
                                 {{rdConnTypeString(rdConnType(deviceCfg.deviceID))}}
                               </span>
                             </td>
                           </tr>
                           <tr ng-if="connections[deviceCfg.deviceID].connected">
-                            <th><span class="fas fa-fw fa-random"></span>&nbsp;<span translate>Number of Connections</span></th>
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Number of Connections' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Current connections to this device: one primary connection plus any additional connections.' | translate}}" class="fas fa-fw fa-random folder-help-icon"></span>&nbsp;<span translate>Number of Connections</span></th>
                             <td class="text-right">
                               <span ng-if="connections[deviceCfg.deviceID].secondary.length">1 + {{connections[deviceCfg.deviceID].secondary.length | alwaysNumber}}</span>
                               <span ng-if="!connections[deviceCfg.deviceID].secondary.length">1</span>
                             </td>
                           </tr>
-                          <tr ng-if="deviceCfg.allowedNetworks.length > 0">
-                            <th><span class="fas fa-fw fa-filter"></span>&nbsp;<span translate>Allowed Networks</span></th>
-                            <td class="text-right">
-                              <span>{{deviceCfg.allowedNetworks.join(", ")}}</span>
-                            </td>
+                          </tbody>
+                        </table>
+                      </details>
+                      <details class="device-details">
+                        <summary><span translate>Device information</span></summary>
+                        <table class="table table-condensed table-striped table-auto">
+                          <tbody>
+                          <tr ng-if="connections[deviceCfg.deviceID].clientVersion">
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Version' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Syncthing client version reported by this remote device.' | translate}}" class="fas fa-fw fa-tag folder-help-icon"></span>&nbsp;<span translate>Version</span></th>
+                            <td class="text-right">{{connections[deviceCfg.deviceID].clientVersion}}</td>
+                          </tr>
+                          <tr ng-if="deviceCfg.introducedBy">
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Introduced By' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'The device that introduced this peer to this machine.' | translate}}" class="far fa-fw fa-handshake-o folder-help-icon"></span>&nbsp;<span translate>Introduced By</span></th>
+                            <td class="text-right">{{ deviceName(devices[deviceCfg.introducedBy]) || deviceShortID(deviceCfg.introducedBy) }}</td>
                           </tr>
                           <tr>
-                            <th><span class="fas fa-fw fa-compress"></span>&nbsp;<span translate>Compression</span></th>
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Compression' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Whether messages sent to this device are compressed: metadata only, all data, or off.' | translate}}" class="fas fa-fw fa-compress folder-help-icon"></span>&nbsp;<span translate>Compression</span></th>
                             <td class="text-right">
                               <span ng-if="deviceCfg.compression == 'always'" translate>All Data</span>
                               <span ng-if="deviceCfg.compression == 'metadata'" translate>Metadata Only</span>
                               <span ng-if="deviceCfg.compression == 'never'" translate>Off</span>
                             </td>
                           </tr>
-                          <tr ng-if="deviceCfg.introducer">
-                            <th><span class="far fa-fw fa-thumbs-up"></span>&nbsp;<span translate>Introducer</span></th>
-                            <td translate class="text-right">Yes</td>
+                          <tr ng-if="deviceCfg.allowedNetworks.length > 0">
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Allowed Networks' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Connections to this device are restricted to these networks.' | translate}}" class="fas fa-fw fa-filter folder-help-icon"></span>&nbsp;<span translate>Allowed Networks</span></th>
+                            <td class="text-right">
+                              <span>{{deviceCfg.allowedNetworks.join(", ")}}</span>
+                            </td>
                           </tr>
-                          <tr ng-if="deviceCfg.introducedBy">
-                            <th><span class="far fa-fw fa-handshake-o"></span>&nbsp;<span translate>Introduced By</span></th>
-                            <td class="text-right">{{ deviceName(devices[deviceCfg.introducedBy]) || deviceShortID(deviceCfg.introducedBy) }}</td>
+                          <tr ng-if="deviceCfg.introducer">
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Introducer' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Automatically follows the devices this peer shares folders with.' | translate}}" class="far fa-fw fa-thumbs-up folder-help-icon"></span>&nbsp;<span translate>Introducer</span></th>
+                            <td translate class="text-right">Yes</td>
                           </tr>
                           <tr ng-if="deviceCfg.autoAcceptFolders">
-                            <th><span class="fa fa-fw fa-level-down"></span>&nbsp;<span translate>Auto Accept</span></th>
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Auto Accept' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Automatically accepts folders offered by this device and adds them locally using the default folder path.' | translate}}" class="fa fa-fw fa-level-down folder-help-icon"></span>&nbsp;<span translate>Auto Accept</span></th>
                             <td translate class="text-right">Yes</td>
-                          </tr>
-                          <tr>
-                            <th><span class="fas fa-fw fa-qrcode"></span>&nbsp;<span translate>Identification</span></th>
-                            <td class="text-right">
-                              <span tooltip data-original-title="{{'Click to see full identification string and QR code.' | translate}}">
-                                <a href="" ng-click="showDeviceIdentification(deviceCfg)">{{deviceShortID(deviceCfg.deviceID)}}</a>
-                              </span>
-                            </td>
                           </tr>
                           <tr ng-if="deviceCfg.untrusted">
-                            <th><span class="fa fa-fw fa-user-secret"></span>&nbsp;<span translate>Untrusted</span></th>
+                            <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Untrusted' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Only encrypted folder data may be shared with this device.' | translate}}" class="fa fa-fw fa-user-secret folder-help-icon"></span>&nbsp;<span translate>Untrusted</span></th>
                             <td translate class="text-right">Yes</td>
                           </tr>
-                          <tr ng-if="connections[deviceCfg.deviceID].clientVersion">
-                            <th><span class="fas fa-fw fa-tag"></span>&nbsp;<span translate>Version</span></th>
-                            <td class="text-right">{{connections[deviceCfg.deviceID].clientVersion}}</td>
-                          </tr>
-                          <tr ng-if="deviceFolders(deviceCfg).length > 0">
-                            <th><span class="fas fa-fw fa-folder"></span>&nbsp;<span translate>Folders</span></th>
-                            <td class="text-right no-overflow-ellipse overflow-break-word">
-                              <span ng-repeat="folderID in deviceFolders(deviceCfg)">
-                                <span ng-if="folderIsSharedEncrypted(folderID, deviceCfg.deviceID)" class="text-nowrap">
-                                  <span class="fa fa-lock"></span>&nbsp;<!-- Avoid stray space...
-                            --></span><!-- Avoid stray space...
-                            --><span ng-switch="completion[deviceCfg.deviceID][folderID].remoteState"><!-- Avoid stray space...
-                              --><span ng-switch-when="notSharing" data-original-title="{{'The remote device has not accepted sharing this folder.' | translate}}" tooltip>{{folderLabel(folderID)}}<sup>1</sup></span><!-- Avoid stray space...
-                              --><span ng-switch-when="paused" data-original-title="{{'The remote device has paused this folder.' | translate}}" tooltip>{{folderLabel(folderID)}}<sup>2</sup></span><!-- Avoid stray space...
-                              --><span ng-switch-default>{{folderLabel(folderID)}}</span><!-- Avoid stray space...
-                              --><span ng-if="!$last">,</span>
-                                </span>
-                              </span>
-                            </td>
-                          </tr>
-                          <tr ng-if="deviceCfg.remoteGUIPort > 0">
-                            <th><span class="fas fa-fw fa-desktop"></span>&nbsp;<span translate>Remote GUI</span></th>
-                            <td class="text-right" ng-attr-title="Port {{deviceCfg.remoteGUIPort}}">
-                              <!-- Apply RFC6874 encoding for IPv6 link-local zone identifier -->
-                              <a ng-if="hasRemoteGUIAddress(deviceCfg)" href="{{remoteGUIAddress(deviceCfg).replace('%', '%25')}}">{{remoteGUIAddress(deviceCfg)}}</a>
-                              <span translate ng-if="!hasRemoteGUIAddress(deviceCfg)">Unknown</span>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                          </tbody>
+                        </table>
+                      </details>
                     </div>
-                    <div class="panel-footer">
+                    <div class="panel-footer folder-actions remote-actions">
+                      <button type="button" class="btn btn-sm btn-default" ng-click="showDeviceIdentification(deviceCfg)">
+                        <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Identification' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Show the full device ID and QR code for this remote device.' | translate}}" class="fas fa-qrcode folder-help-icon"></span>&nbsp;<span translate>Identification</span>
+                      </button>
+                      <div class="dropup folder-sharing remote-folders" ng-if="deviceFolders(deviceCfg).length > 0">
+                        <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Folders' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Folders this machine shares with this device. Select a folder to edit its sharing settings.' | translate}}" class="fas fa-folder folder-help-icon"></span>&nbsp;<span translate>Folders</span>&nbsp;<span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li ng-repeat="folderID in deviceFolders(deviceCfg)">
+                            <a href="" ng-click="editFolderExisting(folders[folderID], '#folder-sharing')">
+                              <span ng-if="folderIsSharedEncrypted(folderID, deviceCfg.deviceID)"><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Encrypted' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Folder data is encrypted for this remote device.' | translate}}" class="fa fa-lock folder-help-icon"></span></span>
+                              <span class="folder-text" title="{{folderLabel(folderID)}}">{{folderLabel(folderID)}}</span>
+                              <span ng-switch="completion[deviceCfg.deviceID][folderID].remoteState">
+                                <span ng-switch-when="notSharing"><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Not Sharing' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'The remote device has not accepted sharing this folder.' | translate}}" class="fas fa-exclamation-circle folder-help-icon"></span></span>
+                                <span ng-switch-when="paused"><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Paused' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'The remote device has paused this folder.' | translate}}" class="fas fa-pause folder-help-icon"></span></span>
+                              </span>
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
                       <span class="pull-right">
+                        <a ng-if="deviceCfg.remoteGUIPort > 0 && hasRemoteGUIAddress(deviceCfg)" class="btn btn-sm btn-default" href="{{remoteGUIAddress(deviceCfg).replace('%', '%25')}}">
+                          <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Remote GUI' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Open the Web UI at the configured port on this remote device.' | translate}}" class="fas fa-desktop folder-help-icon"></span>&nbsp;<span translate>Remote GUI</span>
+                        </a>
+                        <span ng-if="deviceCfg.remoteGUIPort > 0 && !hasRemoteGUIAddress(deviceCfg)" class="btn btn-sm btn-default" aria-disabled="true">
+                          <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Remote GUI' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Remote GUI address is unavailable. A direct connection to this device is required.' | translate}}" class="fas fa-desktop folder-help-icon"></span>&nbsp;<span translate>Remote GUI</span>
+                        </span>
                         <button ng-if="!deviceCfg.paused" type="button" class="btn btn-sm btn-default" ng-click="setDevicePause(deviceCfg.deviceID, true)">
-                          <span class="fas fa-pause"></span>&nbsp;<span translate>Pause</span>
+                          <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Pause' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Temporarily pause synchronization with this remote device.' | translate}}" class="fas fa-pause folder-help-icon"></span>&nbsp;<span translate>Pause</span>
                         </button>
                         <button ng-if="deviceCfg.paused" type="button" class="btn btn-sm btn-default" ng-click="setDevicePause(deviceCfg.deviceID, false)">
-                          <span class="fas fa-play"></span>&nbsp;<span translate>Resume</span>
+                          <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Resume' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Resume synchronization with this remote device.' | translate}}" class="fas fa-play folder-help-icon"></span>&nbsp;<span translate>Resume</span>
                         </button>
                         <button type="button" class="btn btn-sm btn-default" ng-click="editDeviceExisting(deviceCfg)">
-                          <span class="fas fa-pencil-alt"></span>&nbsp;<span translate>Edit</span>
+                          <span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Edit' | translate}}" data-container="body"
+                              data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{'Edit the configuration for this remote device.' | translate}}" class="fas fa-pencil-alt folder-help-icon"></span>&nbsp;<span translate>Edit</span>
                         </button>
                       </span>
                       <div class="clearfix"></div>

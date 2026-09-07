@@ -244,3 +244,33 @@
     margin: -2px;
     cursor: default;
 }
+
+.remote-actions {
+    position: relative;
+    justify-content: flex-start;
+}
+
+.remote-folders {
+    position: static;
+}
+
+.remote-folders .dropdown-menu {
+    left: 10px;
+    right: 10px;
+    min-width: 0;
+    max-height: min(320px, 40vh);
+    overflow-y: auto;
+    font-size: 14px;
+}
+
+.remote-folders .dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+}
+
+.remote-folders .folder-text {
+    flex: 1;
+    min-width: 0;
+}
