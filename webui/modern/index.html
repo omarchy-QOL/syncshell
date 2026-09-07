@@ -216,7 +216,7 @@
                       <tbody>
                         <tr ng-if="!folder.paused && model[folder.id].state" class="folder-state-summary">
                           <th>
-                            <span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-fw fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>&nbsp;<span translate>Global/local State</span>
+                            <span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-fw fa-circle text-{{folderStateClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>&nbsp;<span translate>Global/local State</span>
                             <a ng-if="model[folder.id].ignorePatterns" href="" ng-click="editFolderExisting(folder, '#folder-ignores')" tooltip data-original-title="{{'Reduced by ignore patterns' | translate}}" aria-label="{{'Reduced by ignore patterns' | translate}}"><span class="fas fa-info-circle"></span></a>
                           </th>
                           <td class="text-right">
@@ -231,7 +231,7 @@
                           </td>
                         </tr>
                         <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
-                          <th><span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-fw fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>&nbsp;<span translate>Global State</span></th>
+                          <th><span class="fas fa-fw fa-globe" aria-hidden="true"></span>&nbsp;<span translate>Global State</span></th>
                           <td class="text-right">
                             <span tooltip data-html="true"
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
@@ -244,7 +244,7 @@
                           </td>
                         </tr>
                         <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
-                          <th><span tooltip data-original-title="{{folderStatusText(folder)}}" class="fa fa-fw fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}"></span>&nbsp;<span translate>Local State</span></th>
+                          <th><span class="fas fa-fw fa-home" aria-hidden="true"></span>&nbsp;<span translate>Local State</span></th>
                           <td class="text-right">
                             <span tooltip data-html="true"
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
