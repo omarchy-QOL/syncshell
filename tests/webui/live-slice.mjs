@@ -45,7 +45,7 @@ try {
             const model = await response.json();
             return model.localFiles === 1 && model.needTotalItems === 0;
         })()`, framework + ' actual synchronization');
-        await waitFor(pages[index], `document.querySelector('.folder-state-summary td').textContent.includes('16 KiB')`,
+        await waitFor(pages[index], `document.querySelector('.folder-state-summary td').innerText.includes('16 KiB')`,
             framework + ' visible event update');
     }
     assert.deepEqual(await readFile(resolve(root, 'preact/files', filename)), content);
