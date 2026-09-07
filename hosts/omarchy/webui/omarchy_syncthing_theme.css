@@ -86,6 +86,7 @@ li.hidden-xs:hover,
   border-color: {{muted}} !important;
 }
 
+.section-stripe,
 .table-striped > tbody > tr:nth-of-type(odd),
 .fancytree-container tr:hover,
 .fancytree-focused {

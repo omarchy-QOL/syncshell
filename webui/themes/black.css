@@ -110,6 +110,7 @@ li.hidden-xs:hover, .navbar-link:hover, .navbar-link:focus {
     border-width: 0 !important;
 }
 
+.section-stripe,
 .table-striped>tbody>tr:nth-of-type(odd) {
     background-color: #181818 !important;
 }
