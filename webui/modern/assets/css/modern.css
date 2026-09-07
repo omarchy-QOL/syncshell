@@ -1,0 +1,112 @@
+.navbar > .container,
+.container.content {
+    width: auto;
+    margin-left: 24px;
+    margin-right: 24px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.dashboard-primary {
+    display: contents;
+}
+
+.dashboard-folders,
+.dashboard-devices,
+.notifications {
+    min-width: 0;
+}
+
+@media (min-width: 1000px) {
+    .dashboard-authenticated {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+        align-items: start;
+    }
+    .notifications {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (min-width: 1400px) {
+    .dashboard-authenticated {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .notifications {
+        grid-column: auto;
+    }
+}
+
+.device-title,
+.device-title .panel-title-text {
+    display: flex;
+    align-items: center;
+}
+
+.device-title .panel-title-text {
+    flex: 1;
+    min-width: 0;
+    gap: 0.4em;
+}
+
+.device-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.device-role,
+.device-title .panel-icon,
+.device-title .panel-status {
+    flex-shrink: 0;
+}
+
+.device-role {
+    text-transform: lowercase;
+}
+
+.device-title .panel-status {
+    order: 1;
+}
+
+.notifications {
+    overflow-wrap: anywhere;
+}
+
+.notifications .panel-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.notifications .panel-title .pull-right {
+    margin-left: auto;
+}
+
+.notifications .panel-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.notifications .panel-footer > .pull-left {
+    order: -1;
+}
+
+.notifications .panel-footer > div.pull-right {
+    display: contents;
+}
+
+.notifications .panel-footer .btn {
+    float: none !important;
+    white-space: normal;
+    max-width: 100%;
+}
+
+.notifications .panel-footer .clearfix,
+.notifications .panel-footer::before,
+.notifications .panel-footer::after {
+    display: none;
+}

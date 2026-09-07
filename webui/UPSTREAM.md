@@ -1,9 +1,14 @@
 # Bundled Web UI
 
-`modern/` is the complete Syncthing v2.1.3 `gui/default/` tree, imported
-without changes from commit `946e2b83a1f6c6ae119427c09e0a5802940b82ff`:
+`modern/` starts from the complete Syncthing v2.1.3 `gui/default/` tree at
+commit `946e2b83a1f6c6ae119427c09e0a5802940b82ff`:
 
 https://github.com/syncthing/syncthing/tree/946e2b83a1f6c6ae119427c09e0a5802940b82ff/gui/default
+
+Local changes in `modern/index.html` and `modern/assets/css/modern.css`
+arrange the main page into Folders, Devices, and Notifications columns.
+Device headers identify the local and remote devices. The original
+controllers, notification templates, and conditional actions are retained.
 
 `themes/` contains the unchanged `gui/{black,dark,light}/assets/css/theme.css`
 files from the same commit. The default stylesheet imports dark/light CSS;
