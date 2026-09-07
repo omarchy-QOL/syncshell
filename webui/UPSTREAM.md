@@ -8,7 +8,10 @@ https://github.com/syncthing/syncthing/tree/946e2b83a1f6c6ae119427c09e0a5802940b
 Local changes in `modern/index.html` and `modern/assets/css/modern.css`
 arrange the main page into Folders, Devices, and Notifications columns.
 Device headers identify the local and remote devices. The original
-controllers, notification templates, and conditional actions are retained.
+notification templates and conditional actions are retained. Folder cards group
+activity, configuration, and identification. A compact count filter truncates
+summary totals to one decimal; a controller helper exposes exact comparison
+rows when the folder is not up to date or its local/global totals differ.
 
 `themes/` contains the unchanged `gui/{black,dark,light}/assets/css/theme.css`
 files from the same commit. The default stylesheet imports dark/light CSS;

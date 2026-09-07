@@ -1113,6 +1113,15 @@ angular.module('syncthing.core')
             return state;
         };
 
+        $scope.folderStateDetails = function (folderCfg) {
+            var info = $scope.model[folderCfg.id];
+            return info && info.state && !folderCfg.paused && (
+                $scope.folderStatus(folderCfg) !== 'idle' ||
+                info.globalFiles !== info.localFiles ||
+                info.globalDirectories !== info.localDirectories ||
+                info.globalBytes !== info.localBytes);
+        };
+
         $scope.folderClass = function (folderCfg) {
             var status = $scope.folderStatus(folderCfg);
 

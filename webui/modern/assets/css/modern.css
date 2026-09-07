@@ -61,8 +61,12 @@
     flex-shrink: 0;
 }
 
-.device-role {
+.device-role,
+.folder-state-summary .text-success {
     color: #29b74e !important;
+}
+
+.device-role {
     text-transform: lowercase;
 }
 
@@ -110,4 +114,24 @@
 .notifications .panel-footer::before,
 .notifications .panel-footer::after {
     display: none;
+}
+
+.folder-details > summary {
+    display: list-item;
+    list-style-position: inside;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.folder-details > table,
+.folder-sharing {
+    margin-bottom: 0;
+}
+
+.folder-state-summary th {
+    white-space: normal;
+}
+
+.folder-state-detail th {
+    padding-left: 20px;
 }

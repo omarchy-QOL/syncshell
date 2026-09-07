@@ -210,29 +210,26 @@
                 </button>
                 <div id="folder-{{$parent.$index}}-{{$index}}" class="panel-collapse collapse" lazy-collapse>
                   <div class="panel-body less-padding" ng-if="lazyReady">
+                    <details class="folder-details" open>
+                      <summary translate>Current activity</summary>
                     <table class="table table-condensed table-striped table-auto">
                       <tbody>
                         <tr class="visible-xs">
                           <th><span class="fa fa-fw {{folderStatusIcon(folder)}}"></span>&nbsp;<span translate>Folder Status</span></th>
                           <td class="text-right">{{folderStatusText(folder)}}</td>
                         </tr>
-                        <tr ng-show="folder.label != undefined && folder.label.length > 0">
-                          <th><span class="fas fa-fw fa-info-circle"></span>&nbsp;<span translate>Folder ID</span></th>
-                          <td class="text-right no-overflow-ellipse">{{folder.id}}</td>
-                        </tr>
-                        <tr>
-                          <th><span class="fas fa-fw fa-folder-open"></span>&nbsp;<span translate>Folder Path</span></th>
+                        <tr ng-if="!folder.paused && model[folder.id].state" class="folder-state-summary">
+                          <th><span translate>Global and Local State</span></th>
                           <td class="text-right">
-                            <span tooltip data-original-title="{{folder.path}}">{{folder.path}}</span>
+                            <span class="fa fa-circle text-{{folderStatus(folder) === 'localadditions' ? 'warning' : folderClass(folder)}}" role="img" aria-label="{{folderStatusText(folder)}}" title="{{folderStatusText(folder)}}"></span>&ensp;
+                            <span tooltip data-original-title="{{'Global State' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}} {{'files' | translate}}, {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}} {{'directories' | translate}}, ~{{model[folder.id].globalBytes | binary}}B">
+                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
+                              <span class="far fa-folder"></span>&nbsp;{{model[folder.id].globalDirectories | compactNumber}}&ensp;
+                              <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
+                            </span>
                           </td>
                         </tr>
-                        <tr ng-if="!folder.paused && (model[folder.id].invalid || model[folder.id].error)">
-                          <th><span class="fas fa-fw fa-exclamation-triangle"></span>&nbsp;<span translate>Error</span></th>
-                          <td class="text-right">
-                            <span tooltip data-original-title="{{model[folder.id].invalid || model[folder.id].error}}">{{model[folder.id].invalid || model[folder.id].error}}</span>
-                          </td>
-                        </tr>
-                        <tr ng-if="!folder.paused">
+                        <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
                           <th><span class="fas fa-fw fa-globe"></span>&nbsp;<span translate>Global State</span></th>
                           <td class="text-right">
                             <span tooltip data-original-title="{{model[folder.id].globalFiles | alwaysNumber | localeNumber}} {{'files' | translate}}, {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}} {{'directories' | translate}}, ~{{model[folder.id].globalBytes | binary}}B">
@@ -242,7 +239,7 @@
                             </span>
                           </td>
                         </tr>
-                        <tr ng-if="!folder.paused">
+                        <tr ng-if="folderStateDetails(folder)" class="folder-state-detail">
                           <th><span class="fas fa-fw fa-home"></span>&nbsp;<span translate>Local State</span></th>
                           <td class="text-right">
                             <div>
@@ -252,6 +249,10 @@
                                 <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].localBytes | binary}}B
                               </span>
                             </div>
+                          </td>
+                        </tr>
+                        <tr ng-if="!folder.paused && model[folder.id].state && (model[folder.id].ignorePatterns || folder.ignoreDelete)">
+                          <td colspan="2" class="text-right">
                             <div ng-if="model[folder.id].ignorePatterns">
                               <a href="" ng-click="editFolderExisting(folder, '#folder-ignores')"><i class="small" translate>Reduced by ignore patterns</i></a>
                             </div>
@@ -265,16 +266,17 @@
                             </div>
                           </td>
                         </tr>
-                        <tr ng-if="model[folder.id].needTotalItems > 0">
-                          <th><span class="fas fa-fw fa-cloud-download-alt"></span>&nbsp;<span translate>Out of Sync Items</span></th>
-                          <td class="text-right">
-                            <a href="" ng-click="showNeed(folder.id)">{{model[folder.id].needTotalItems | alwaysNumber | localeNumber}} <span translate>items</span>, ~{{model[folder.id].needBytes | binary}}B</a>
+                        <tr ng-if="folderStats[folder.id].lastScan">
+                          <th><span class="far fa-fw fa-clock"></span>&nbsp;<span translate>Last Scan</span></th>
+                          <td translate ng-if="folderStats[folder.id].lastScanDays >= 365" class="text-right">Never</td>
+                          <td ng-if="folderStats[folder.id].lastScanDays < 365" class="text-right">
+                            <span>{{folderStats[folder.id].lastScan | date:'yyyy-MM-dd HH:mm:ss'}}</span>
                           </td>
                         </tr>
-                        <tr ng-if="folderStatus(folder) === 'scanning' && scanRate(folder.id) > 0">
-                          <th><span class="fas fa-fw fa-hourglass-half"></span>&nbsp;<span translate>Scan Time Remaining</span></th>
+                        <tr ng-if="!folder.paused && (model[folder.id].invalid || model[folder.id].error)">
+                          <th><span class="fas fa-fw fa-exclamation-triangle"></span>&nbsp;<span translate>Error</span></th>
                           <td class="text-right">
-                            <span tooltip data-original-title="{{scanRate(folder.id) | binary}}B/s">~ {{scanRemaining(folder.id)}}</span>
+                            <span tooltip data-original-title="{{model[folder.id].invalid || model[folder.id].error}}">{{model[folder.id].invalid || model[folder.id].error}}</span>
                           </td>
                         </tr>
                         <tr ng-if="hasFailedFiles(folder.id)">
@@ -284,34 +286,40 @@
                             <a href="" ng-click="showFailed(folder.id)">{{model[folder.id].pullErrors | alwaysNumber | localeNumber}}&nbsp;<span translate>items</span></a>
                           </td>
                         </tr>
+                        <tr ng-if="model[folder.id].needTotalItems > 0">
+                          <th><span class="fas fa-fw fa-cloud-download-alt"></span>&nbsp;<span translate>Out of Sync Items</span></th>
+                          <td class="text-right">
+                            <a href="" ng-click="showNeed(folder.id)">{{model[folder.id].needTotalItems | alwaysNumber | localeNumber}} <span translate>items</span>, ~{{model[folder.id].needBytes | binary}}B</a>
+                          </td>
+                        </tr>
                         <tr ng-if="hasReceiveOnlyChanged(folder)">
                           <th><span class="fas fa-fw fa-exclamation-circle"></span>&nbsp;<span translate>Locally Changed Items</span></th>
                           <td class="text-right">
                             <a href="" ng-click="showLocalChanged(folder.id, folder.type)">{{model[folder.id].receiveOnlyTotalItems | alwaysNumber | localeNumber}} <span translate>items</span>, ~{{model[folder.id].receiveOnlyChangedBytes | binary}}B</a>
                           </td>
                         </tr>
-                        <tr>
-                          <th><span class="fas fa-fw fa-folder"></span>&nbsp;<span translate>Folder Type</span></th>
+                        <tr ng-if="folderStatus(folder) === 'scanning' && scanRate(folder.id) > 0">
+                          <th><span class="fas fa-fw fa-hourglass-half"></span>&nbsp;<span translate>Scan Time Remaining</span></th>
                           <td class="text-right">
-                            <span ng-if="folder.type == 'sendreceive'" translate>Send &amp; Receive</span>
-                            <span ng-if="folder.type == 'sendonly'" translate>Send Only</span>
-                            <span ng-if="folder.type == 'receiveonly'" translate>Receive Only</span>
-                            <span ng-if="folder.type == 'receiveencrypted'" translate>Receive Encrypted</span>
+                            <span tooltip data-original-title="{{scanRate(folder.id) | binary}}B/s">~ {{scanRemaining(folder.id)}}</span>
                           </td>
                         </tr>
-                        <tr>
-                          <th><span class="far fa-fw fa-book"></span>&nbsp;<span translate>Block Indexing</span></th>
+                        <tr ng-if="folder.type != 'sendonly' && folder.type != 'receiveencrypted' && folderStats[folder.id].lastFile && folderStats[folder.id].lastFile.filename">
+                          <th><span class="fas fa-fw fa-exchange-alt"></span>&nbsp;<span translate>Latest Change</span></th>
                           <td class="text-right">
-                            <span ng-if="folder.blockIndexing" translate>Yes</span>
-                            <span ng-if="!folder.blockIndexing" translate>No</span>
+                            <span tooltip data-original-title="{{folderStats[folder.id].lastFile.filename}} @ {{folderStats[folder.id].lastFile.at | date:'yyyy-MM-dd HH:mm:ss'}}">
+                              <span translate translate-value-file="{{folderStats[folder.id].lastFile.filename | basename}}" ng-if="!folderStats[folder.id].lastFile.deleted">Updated {%file%}</span>
+                              <span translate translate-value-file="{{folderStats[folder.id].lastFile.filename | basename}}" ng-if="folderStats[folder.id].lastFile.deleted">Deleted {%file%}</span>
+                            </span>
                           </td>
                         </tr>
-                        <tr ng-if="folder.ignorePerms">
-                          <th><span class="far fa-fw fa-minus-square"></span>&nbsp;<span translate>Ignore Permissions</span></th>
-                          <td class="text-right">
-                            <span translate>Yes</span>
-                          </td>
-                        </tr>
+                      </tbody>
+                    </table>
+                    </details>
+                    <details class="folder-details">
+                      <summary translate>Configuration</summary>
+                    <table class="table table-condensed table-striped table-auto">
+                      <tbody>
                         <tr>
                           <th><span class="fas fa-fw fa-refresh"></span>&nbsp;<span translate>Rescans</span></th>
                           <td class="text-right">
@@ -345,17 +353,6 @@
                             </div>
                           </td>
                         </tr>
-                        <tr ng-if="folder.type != 'sendonly'">
-                          <th><span class="fas fa-fw fa-sort"></span>&nbsp;<span translate>File Pull Order</span></th>
-                          <td class="text-right" ng-switch="folder.order">
-                            <span ng-switch-when="random" translate>Random</span>
-                            <span ng-switch-when="alphabetic" translate>Alphabetic</span>
-                            <span ng-switch-when="smallestFirst" translate>Smallest First</span>
-                            <span ng-switch-when="largestFirst" translate>Largest First</span>
-                            <span ng-switch-when="oldestFirst" translate>Oldest First</span>
-                            <span ng-switch-when="newestFirst" translate>Newest First</span>
-                          </td>
-                        </tr>
                         <tr ng-if="folder.versioning.type">
                           <th><span class="fa fa-fw fa-files-o"></span>&nbsp;<span translate>File Versioning</span></th>
                           <td class="text-right">
@@ -385,6 +382,61 @@
                             </span>
                           </td>
                         </tr>
+                        <tr ng-if="folder.ignorePerms">
+                          <th><span class="far fa-fw fa-minus-square"></span>&nbsp;<span translate>Ignore Permissions</span></th>
+                          <td class="text-right">
+                            <span translate>Yes</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    </details>
+                    <details class="folder-details">
+                      <summary translate>Folder information</summary>
+                    <table class="table table-condensed table-striped table-auto">
+                      <tbody>
+                        <tr>
+                          <th><span class="fas fa-fw fa-folder-open"></span>&nbsp;<span translate>Folder Path</span></th>
+                          <td class="text-right">
+                            <span tooltip data-original-title="{{folder.path}}">{{folder.path}}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><span class="fas fa-fw fa-folder"></span>&nbsp;<span translate>Folder Type</span></th>
+                          <td class="text-right">
+                            <span ng-if="folder.type == 'sendreceive'" translate>Send &amp; Receive</span>
+                            <span ng-if="folder.type == 'sendonly'" translate>Send Only</span>
+                            <span ng-if="folder.type == 'receiveonly'" translate>Receive Only</span>
+                            <span ng-if="folder.type == 'receiveencrypted'" translate>Receive Encrypted</span>
+                          </td>
+                        </tr>
+                        <tr ng-show="folder.label != undefined && folder.label.length > 0">
+                          <th><span class="fas fa-fw fa-info-circle"></span>&nbsp;<span translate>Folder ID</span></th>
+                          <td class="text-right no-overflow-ellipse">{{folder.id}}</td>
+                        </tr>
+                        <tr>
+                          <th><span class="far fa-fw fa-book"></span>&nbsp;<span translate>Block Indexing</span></th>
+                          <td class="text-right">
+                            <span ng-if="folder.blockIndexing" translate>Yes</span>
+                            <span ng-if="!folder.blockIndexing" translate>No</span>
+                          </td>
+                        </tr>
+                        <tr ng-if="folder.type != 'sendonly'">
+                          <th><span class="fas fa-fw fa-sort"></span>&nbsp;<span translate>File Pull Order</span></th>
+                          <td class="text-right" ng-switch="folder.order">
+                            <span ng-switch-when="random" translate>Random</span>
+                            <span ng-switch-when="alphabetic" translate>Alphabetic</span>
+                            <span ng-switch-when="smallestFirst" translate>Smallest First</span>
+                            <span ng-switch-when="largestFirst" translate>Largest First</span>
+                            <span ng-switch-when="oldestFirst" translate>Oldest First</span>
+                            <span ng-switch-when="newestFirst" translate>Newest First</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    </details>
+                    <table class="table table-condensed table-striped table-auto folder-sharing">
+                      <tbody>
                         <tr>
                           <th><span class="fas fa-fw fa-share-alt"></span>&nbsp;<span translate>Shared With</span></th>
                           <td class="text-right no-overflow-ellipse overflow-break-word">
@@ -398,22 +450,6 @@
                             --><a ng-switch-default href="" ng-click="editDeviceExisting(devices[device.deviceID])">{{deviceName(devices[device.deviceID])}}</a><!-- Avoid stray space...
                             --><span ng-if="!$last">,</span>
                               </span>
-                            </span>
-                          </td>
-                        </tr>
-                        <tr ng-if="folderStats[folder.id].lastScan">
-                          <th><span class="far fa-fw fa-clock"></span>&nbsp;<span translate>Last Scan</span></th>
-                          <td translate ng-if="folderStats[folder.id].lastScanDays >= 365" class="text-right">Never</td>
-                          <td ng-if="folderStats[folder.id].lastScanDays < 365" class="text-right">
-                            <span>{{folderStats[folder.id].lastScan | date:'yyyy-MM-dd HH:mm:ss'}}</span>
-                          </td>
-                        </tr>
-                        <tr ng-if="folder.type != 'sendonly' && folder.type != 'receiveencrypted' && folderStats[folder.id].lastFile && folderStats[folder.id].lastFile.filename">
-                          <th><span class="fas fa-fw fa-exchange-alt"></span>&nbsp;<span translate>Latest Change</span></th>
-                          <td class="text-right">
-                            <span tooltip data-original-title="{{folderStats[folder.id].lastFile.filename}} @ {{folderStats[folder.id].lastFile.at | date:'yyyy-MM-dd HH:mm:ss'}}">
-                              <span translate translate-value-file="{{folderStats[folder.id].lastFile.filename | basename}}" ng-if="!folderStats[folder.id].lastFile.deleted">Updated {%file%}</span>
-                              <span translate translate-value-file="{{folderStats[folder.id].lastFile.filename | basename}}" ng-if="folderStats[folder.id].lastFile.deleted">Deleted {%file%}</span>
                             </span>
                           </td>
                         </tr>
@@ -1080,6 +1116,7 @@
   <script type="text/javascript" src="syncthing/core/basenameFilter.js"></script>
   <script type="text/javascript" src="syncthing/core/binaryFilter.js"></script>
   <script type="text/javascript" src="syncthing/core/localeNumberFilter.js"></script>
+  <script type="text/javascript" src="syncthing/core/compactNumberFilter.js"></script>
   <script type="text/javascript" src="syncthing/core/percentFilter.js"></script>
   <script type="text/javascript" src="syncthing/core/durationFilter.js"></script>
   <script type="text/javascript" src="syncthing/core/eventService.js"></script>
