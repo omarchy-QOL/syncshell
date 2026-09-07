@@ -825,13 +825,13 @@
                               </span>
                             </td>
                             <td ng-if="!connections[deviceCfg.deviceID].connected" class="text-right">
-                              <span ng-repeat="addr in deviceCfg.addresses">
+                              <span ng-repeat="addr in deviceCfg.addresses" class="remote-address">
                                 <span class="folder-text" tooltip data-container="body" data-original-title="{{'Configured' | translate}}: {{addr}}">{{addr}}</span>
-                                <small ng-if="system.lastDialStatus[addr].error && !deviceCfg.paused" tooltip data-container="body" data-template="<div class='tooltip folder-change-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{system.lastDialStatus[addr].error}}" class="text-danger">{{abbreviatedError(addr)}}<br></small>
+                                <small ng-if="system.lastDialStatus[addr].error && !deviceCfg.paused" tooltip data-container="body" data-template="<div class='tooltip folder-change-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{system.lastDialStatus[addr].error}}" class="text-danger">{{abbreviatedError(addr)}}</small>
                               </span>
-                              <span ng-repeat="addr in discoveryCache[deviceCfg.deviceID].addresses">
+                              <span ng-repeat="addr in discoveryCache[deviceCfg.deviceID].addresses" class="remote-address">
                                 <span class="folder-text" tooltip data-container="body" data-original-title="{{'Discovered' | translate}}: {{addr}}">{{addr}}</span>
-                                <small ng-if="system.lastDialStatus[addr].error && !deviceCfg.paused" tooltip data-container="body" data-template="<div class='tooltip folder-change-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{system.lastDialStatus[addr].error}}" class="text-danger">{{abbreviatedError(addr)}}<br></small>
+                                <small ng-if="system.lastDialStatus[addr].error && !deviceCfg.paused" tooltip data-container="body" data-template="<div class='tooltip folder-change-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>" data-original-title="{{system.lastDialStatus[addr].error}}" class="text-danger">{{abbreviatedError(addr)}}</small>
                               </span>
                             </td>
                           </tr>
