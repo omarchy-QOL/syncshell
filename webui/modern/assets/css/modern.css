@@ -31,7 +31,10 @@
 
 @media (min-width: 1400px) {
     .dashboard-authenticated {
-        grid-template-columns: minmax(320px, 8fr) minmax(320px, 9fr) minmax(0, 15fr);
+        grid-template-columns:
+            minmax(320px, calc((100% - 48px) * 0.25))
+            minmax(320px, calc((100% - 48px) * 0.28125))
+            minmax(280px, calc((100% - 48px) * 0.1875));
     }
     .notifications {
         grid-column: auto;
@@ -76,11 +79,13 @@
 .notifications .panel-title {
     font-size: 16px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.4em;
 }
 
 .notifications .panel-title > [translate] {
+    flex: 1;
     min-width: 0;
 }
 
@@ -94,7 +99,9 @@
 }
 
 .notifications .panel-title .pull-right {
-    margin-left: auto;
+    flex-basis: 100%;
+    font-size: 14px;
+    text-align: right;
 }
 
 .notifications .panel-footer {
