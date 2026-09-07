@@ -60,6 +60,10 @@ li.hidden-xs:hover,
 .panel-group .panel-heading + .panel-collapse > .panel-body,
 .panel-group .panel-heading + .panel-collapse > .list-group {
   border-color: {{muted}} !important;
+}
+
+.divider,
+.nav-tabs {
   background-color: {{muted}} !important;
 }
 
