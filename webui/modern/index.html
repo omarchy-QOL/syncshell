@@ -222,13 +222,13 @@
                             <a ng-if="model[folder.id].ignorePatterns" href="" ng-click="editFolderExisting(folder, '#folder-ignores')" tooltip data-original-title="{{'Reduced by ignore patterns' | translate}}" aria-label="{{'Reduced by ignore patterns' | translate}}"><span class="fas fa-info-circle"></span></a>
                           </th>
                           <td class="text-right">
-                            <span tooltip data-html="true"
+                            <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-delay='{"show":400,"hide":0}'
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
                               data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].globalBytes | binary}}B</div>">
-                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
-                              <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
+                              <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
+                              <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
                             </span>
                           </td>
                         </tr>
@@ -237,13 +237,13 @@
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
                             data-original-title="{{'The latest known versions of files across the sharing devices. These totals describe the contents this folder would have when fully synchronized, before local ignore rules.' | translate}}" class="fas fa-fw fa-globe folder-help-icon"></span>&nbsp;<span translate>Global State</span></th>
                           <td class="text-right">
-                            <span tooltip data-html="true"
+                            <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-delay='{"show":400,"hide":0}'
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
                               data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].globalFiles | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].globalDirectories | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].globalBytes | binary}}B</div>">
-                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
-                              <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
+                              <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{model[folder.id].globalFiles | compactNumber}}&ensp;
+                              <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{model[folder.id].globalBytes | binary}}B
                             </span>
                           </td>
                         </tr>
@@ -252,13 +252,13 @@
                             data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
                             data-original-title="{{'The files and data Syncthing currently tracks in this folder on this device. These totals can differ from the global contents during synchronization or because of ignore patterns.' | translate}}" class="fas fa-fw fa-home folder-help-icon"></span>&nbsp;<span translate>Local State</span></th>
                           <td class="text-right">
-                            <span tooltip data-html="true"
+                            <span tooltip tooltip-selector=".folder-count-icon" data-html="true" data-delay='{"show":400,"hide":0}'
                               data-template="<div class='tooltip folder-count-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
                               data-original-title="<div><span class='far fa-fw fa-copy'></span> {{'Files' | translate}}: {{model[folder.id].localFiles | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-folder'></span> {{'Folders' | translate}}: {{model[folder.id].localDirectories | alwaysNumber | localeNumber}}</div>
                                 <div><span class='far fa-fw fa-hdd'></span> {{'Total' | translate}}: ~{{model[folder.id].localBytes | binary}}B</div>">
-                              <span class="far fa-copy"></span>&nbsp;{{model[folder.id].localFiles | compactNumber}}&ensp;
-                              <span class="far fa-hdd"></span>&nbsp;~{{model[folder.id].localBytes | binary}}B
+                              <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{model[folder.id].localFiles | compactNumber}}&ensp;
+                              <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{model[folder.id].localBytes | binary}}B
                             </span>
                           </td>
                         </tr>
