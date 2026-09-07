@@ -570,37 +570,6 @@
             <div id="device-this" class="panel-collapse collapse in" lazy-collapse>
               <div class="panel-body less-padding" ng-if="lazyReady">
                 <details class="device-details" open>
-                  <summary><span translate>Connectivity</span></summary>
-                  <table class="table table-condensed table-striped table-auto">
-                    <tbody>
-                    <tr>
-                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Listeners' | translate}}" data-container="body"
-                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                        data-original-title="{{'Listening services that accept incoming device connections. Shows working services out of the total. Click the count for addresses and errors.' | translate}}" class="fas fa-fw fa-sitemap folder-help-icon"></span>&nbsp;<span translate>Listeners</span></th>
-                      <td class="text-right">
-                        <span class="data">
-                          <a href="" ng-class="{'text-success': listenersTotal > 0 && listenersFailed.length == 0, 'text-danger': listenersTotal > 0 && listenersFailed.length == listenersTotal}" ng-click="showListenerStatus()">
-                            {{listenersTotal-listenersFailed.length}}/{{listenersTotal}}
-                          </a>
-                        </span>
-                      </td>
-                    </tr>
-                    <tr ng-if="system.discoveryEnabled">
-                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Discovery' | translate}}" data-container="body"
-                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
-                        data-original-title="{{'Services used to find other devices. Shows working discovery methods out of the total. Click the count for details; discovery success does not mean a device is connected.' | translate}}" class="fas fa-fw fa-map-signs folder-help-icon"></span>&nbsp;<span translate>Discovery</span></th>
-                      <td class="text-right">
-                        <span class="data">
-                          <a href="" ng-class="{'text-success': discoveryFailed.length == 0, 'text-danger': discoveryFailed.length == discoveryTotal}" ng-click="showDiscoveryStatus()">
-                            {{discoveryTotal-discoveryFailed.length}}/{{discoveryTotal}}
-                          </a>
-                        </span>
-                      </td>
-                    </tr>
-                    </tbody>
-                  </table>
-                </details>
-                <details class="device-details" open>
                   <summary><span translate>Current activity</span></summary>
                   <table class="table table-condensed table-striped table-auto">
                     <tbody>
@@ -659,6 +628,37 @@
                               <span class="far fa-copy folder-count-icon" tabindex="0" role="img" aria-label="{{'Files' | translate}}"></span>&nbsp;{{localStateTotal.files | compactNumber}}&ensp;
                               <span class="far fa-hdd folder-count-icon" tabindex="0" role="img" aria-label="{{'Total' | translate}}"></span>&nbsp;~{{localStateTotal.bytes | binary}}B
                             </span>
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </details>
+                <details class="device-details" open>
+                  <summary><span translate>Connectivity</span></summary>
+                  <table class="table table-condensed table-striped table-auto">
+                    <tbody>
+                    <tr>
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Listeners' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                        data-original-title="{{'Listening services that accept incoming device connections. Shows working services out of the total. Click the count for addresses and errors.' | translate}}" class="fas fa-fw fa-sitemap folder-help-icon"></span>&nbsp;<span translate>Listeners</span></th>
+                      <td class="text-right">
+                        <span class="data">
+                          <a href="" ng-class="{'text-success': listenersTotal > 0 && listenersFailed.length == 0, 'text-danger': listenersTotal > 0 && listenersFailed.length == listenersTotal}" ng-click="showListenerStatus()">
+                            {{listenersTotal-listenersFailed.length}}/{{listenersTotal}}
+                          </a>
+                        </span>
+                      </td>
+                    </tr>
+                    <tr ng-if="system.discoveryEnabled">
+                      <th><span tooltip tabindex="0" data-delay='{"show":400,"hide":0}' role="img" aria-label="{{'Discovery' | translate}}" data-container="body"
+                        data-template="<div class='tooltip folder-help-tooltip' role='tooltip'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>"
+                        data-original-title="{{'Services used to find other devices. Shows working discovery methods out of the total. Click the count for details; discovery success does not mean a device is connected.' | translate}}" class="fas fa-fw fa-map-signs folder-help-icon"></span>&nbsp;<span translate>Discovery</span></th>
+                      <td class="text-right">
+                        <span class="data">
+                          <a href="" ng-class="{'text-success': discoveryFailed.length == 0, 'text-danger': discoveryFailed.length == discoveryTotal}" ng-click="showDiscoveryStatus()">
+                            {{discoveryTotal-discoveryFailed.length}}/{{discoveryTotal}}
+                          </a>
+                        </span>
                       </td>
                     </tr>
                     </tbody>
