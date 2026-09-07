@@ -1,4 +1,4 @@
-import {useState} from 'preact/hooks';
+import {useEffect, useRef, useState} from 'preact/hooks';
 import {createApi} from '../client/api.mjs';
 
 export function Login() {
@@ -7,6 +7,8 @@ export function Login() {
     const [stayLoggedIn, setStayLoggedIn] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
+    const userInput = useRef();
+    useEffect(() => { userInput.current.focus(); }, []);
     async function login(event) {
         event.preventDefault();
         setBusy(true);
@@ -18,19 +20,26 @@ export function Login() {
             setError(failure.status === 403 ? 'Incorrect user name or password.' : 'Login failed, see Syncthing logs for details.');
         } finally { setBusy(false); }
     }
-    return <form class="panel panel-default" onSubmit={login}>
-        <div class="panel-heading"><h3 class="panel-title">Log In</h3></div>
-        <div class="panel-body">
-            {error && <p class="text-danger" role="alert">{error}</p>}
-            <div class="form-group"><label for="username">Username</label>
-                <input id="username" class="form-control" autoComplete="username" value={username}
+    return <div class="center-block">
+        <h3>Authentication Required</h3>
+        <form onSubmit={login}>
+            <div class="form-group"><label for="user">User</label>
+                <input id="user" name="user" class="form-control" autoComplete="username"
+                    ref={userInput} value={username} required
                     onInput={event => setUsername(event.currentTarget.value)} /></div>
             <div class="form-group"><label for="password">Password</label>
-                <input id="password" class="form-control" type="password" autoComplete="current-password"
-                    value={password} onInput={event => setPassword(event.currentTarget.value)} /></div>
-            <label><input type="checkbox" checked={stayLoggedIn}
-                onChange={event => setStayLoggedIn(event.currentTarget.checked)} /> Stay logged in</label>
-        </div>
-        <div class="panel-footer"><button class="btn btn-primary" type="submit" disabled={busy}>Log In</button></div>
-    </form>;
+                <input id="password" name="password" class="form-control" type="password"
+                    autoComplete="current-password" value={password}
+                    onInput={event => setPassword(event.currentTarget.value)} /></div>
+            <div class="form-group"><label><input id="stayLoggedIn" type="checkbox"
+                checked={stayLoggedIn} onChange={event => setStayLoggedIn(event.currentTarget.checked)} /> Stay logged in</label></div>
+            <div class="row">
+                <div class="col-md-9 login-form-messages">
+                    {error && <p class="text-danger" role="alert">{error}</p>}
+                </div>
+                <div class="col-md-3 text-right"><button id="submit" class="btn btn-default"
+                    type="submit" disabled={busy}>Log In</button></div>
+            </div>
+        </form>
+    </div>;
 }
