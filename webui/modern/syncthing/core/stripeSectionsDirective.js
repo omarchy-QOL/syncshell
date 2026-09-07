@@ -32,6 +32,7 @@ angular.module('syncthing.core')
                 });
                 observer.observe(root, {childList: true, subtree: true, attributes: true,
                     attributeFilter: ['open', 'hidden', 'class'], attributeOldValue: true});
+                scope.$on('dashboardTabShown', schedule);
                 root.addEventListener('toggle', schedule, true);
                 window.addEventListener('resize', schedule);
                 scope.$on('$destroy', function () {

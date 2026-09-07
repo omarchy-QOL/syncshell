@@ -171,9 +171,20 @@
         </form>
       </div>
 
-      <!-- First regular row -->
-      <div class="dashboard" ng-class="{'dashboard-authenticated': authenticated}">
-      <div ng-if="authenticated" class="dashboard-primary">
+      <div class="dashboard" ng-if="authenticated" dashboard-tabs>
+        <ul class="nav nav-tabs dashboard-tabs" role="tablist" aria-label="{{'Dashboard' | translate}}">
+          <li class="active" role="presentation">
+            <a id="overview-tab" href="#dashboard-overview" data-toggle="tab" role="tab" aria-controls="dashboard-overview" aria-selected="true"><span translate>Overview</span></a>
+          </li>
+          <li role="presentation">
+            <a id="conflicts-tab" href="#dashboard-conflicts" data-toggle="tab" role="tab" aria-controls="dashboard-conflicts" aria-selected="false" tabindex="-1"><span translate>Resolve sync conflicts</span></a>
+          </li>
+          <li role="presentation">
+            <a id="notifications-tab" href="#dashboard-notifications" data-toggle="tab" role="tab" aria-controls="dashboard-notifications" aria-selected="false" tabindex="-1"><span translate>Notifications</span><span class="notification-indicator text-success" role="img" aria-label="{{'Pending notifications' | translate}}"><span class="fas fa-circle" aria-hidden="true"></span></span></a>
+          </li>
+        </ul>
+        <div class="tab-content">
+      <div id="dashboard-overview" class="tab-pane active dashboard-primary" role="tabpanel" aria-labelledby="overview-tab" tabindex="0">
 
         <!-- Folder list (top left) -->
 
@@ -977,8 +988,13 @@
           </div>
         </div>
       </div> <!-- /dashboard-primary -->
-      <aside class="notifications" aria-labelledby="notifications-heading">
+      <section id="dashboard-conflicts" class="tab-pane" role="tabpanel" aria-labelledby="conflicts-tab" tabindex="0">
+        <h3 translate>Resolve sync conflicts</h3>
+        <p translate>Sync conflict resolution is not available yet.</p>
+      </section>
+      <section id="dashboard-notifications" class="tab-pane notifications" role="tabpanel" aria-labelledby="notifications-tab" tabindex="0">
         <h3 id="notifications-heading" translate>Notifications</h3>
+        <p class="notifications-empty" translate>No pending notifications.</p>
       <!-- Panel: Open, no auth -->
 
       <div ng-if="openNoAuth" class="row">
@@ -1182,7 +1198,8 @@
           </div>
         </div>
       </div>
-      </aside>
+      </section>
+        </div> <!-- /tab-content -->
       </div> <!-- /dashboard -->
 
     </div> <!-- /container -->
@@ -1254,6 +1271,7 @@
   <script type="text/javascript" src="syncthing/core/syncthingController.js"></script>
   <script type="text/javascript" src="syncthing/core/tooltipDirective.js"></script>
   <script type="text/javascript" src="syncthing/core/stripeSectionsDirective.js"></script>
+  <script type="text/javascript" src="syncthing/core/dashboardTabsDirective.js"></script>
   <script type="text/javascript" src="syncthing/core/lazyCollapseDirective.js"></script>
   <script type="text/javascript" src="syncthing/core/uncamelFilter.js"></script>
   <script type="text/javascript" src="syncthing/core/uniqueFolderDirective.js"></script>
