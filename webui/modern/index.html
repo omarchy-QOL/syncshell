@@ -256,6 +256,12 @@
                             </span>
                           </td>
                         </tr>
+                        <tr ng-if="model[folder.id].needTotalItems > 0">
+                          <th><span class="fas fa-fw fa-cloud-download-alt"></span>&nbsp;<span translate>Out of Sync Items</span></th>
+                          <td class="text-right">
+                            <a href="" ng-click="showNeed(folder.id)">{{model[folder.id].needTotalItems | alwaysNumber | localeNumber}} <span translate>items</span>, ~{{model[folder.id].needBytes | binary}}B</a>
+                          </td>
+                        </tr>
                         <tr ng-if="!folder.paused && model[folder.id].state && folder.ignoreDelete">
                           <td colspan="2" class="text-right">
                             <div ng-if="folder.ignoreDelete">
@@ -286,12 +292,6 @@
                           <!-- Show the number of failed items as a link to bring up the list. -->
                           <td class="text-right">
                             <a href="" ng-click="showFailed(folder.id)">{{model[folder.id].pullErrors | alwaysNumber | localeNumber}}&nbsp;<span translate>items</span></a>
-                          </td>
-                        </tr>
-                        <tr ng-if="model[folder.id].needTotalItems > 0">
-                          <th><span class="fas fa-fw fa-cloud-download-alt"></span>&nbsp;<span translate>Out of Sync Items</span></th>
-                          <td class="text-right">
-                            <a href="" ng-click="showNeed(folder.id)">{{model[folder.id].needTotalItems | alwaysNumber | localeNumber}} <span translate>items</span>, ~{{model[folder.id].needBytes | binary}}B</a>
                           </td>
                         </tr>
                         <tr ng-if="hasReceiveOnlyChanged(folder)">
