@@ -11,6 +11,7 @@ import {Login} from './Login.jsx';
 import {LanguageMenu} from './LanguageMenu.jsx';
 import {Notifications} from './Notifications.jsx';
 import {ActionDialog} from './ActionDialog.jsx';
+import {Conflicts} from './Conflicts.jsx';
 import {LocaleContext} from './locale-context.jsx';
 import '../client/components.css';
 
@@ -140,7 +141,7 @@ function App() {
                                 </div>
                             </section>
                         </div>
-                        <section id="dashboard-conflicts" class={`tab-pane ${activeTab === 'conflicts' ? 'active' : ''}`} role="tabpanel" aria-labelledby="conflicts-tab"><h3>{t('Resolve sync conflicts')}</h3><p>{t('Sync conflict resolution is not available yet.')}</p></section>
+                        <section id="dashboard-conflicts" class={`tab-pane ${activeTab === 'conflicts' ? 'active' : ''}`} role="tabpanel" aria-labelledby="conflicts-tab"><Conflicts api={api} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></section>
                         <section id="dashboard-notifications" class={`tab-pane notifications ${activeTab === 'notifications' ? 'active' : ''}`} role="tabpanel" aria-labelledby="notifications-tab"><Notifications cards={cards} session={session} onAction={openAction} /></section>
                     </div>
                 </div>
