@@ -1,7 +1,9 @@
-import {useEffect, useRef, useState} from 'preact/hooks';
+import {LocaleContext} from './locale-context.jsx';
+import {useContext, useEffect, useRef, useState} from 'preact/hooks';
 import {createApi} from '../client/api.mjs';
 
 export function Login() {
+    const {t} = useContext(LocaleContext);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [stayLoggedIn, setStayLoggedIn] = useState(false);
@@ -21,24 +23,24 @@ export function Login() {
         } finally { setBusy(false); }
     }
     return <div class="center-block">
-        <h3>Authentication Required</h3>
+        <h3>{t('Authentication Required')}</h3>
         <form onSubmit={login}>
-            <div class="form-group"><label for="user">User</label>
+            <div class="form-group"><label for="user">{t('User')}</label>
                 <input id="user" name="user" class="form-control" autoComplete="username"
                     ref={userInput} value={username} required
                     onInput={event => setUsername(event.currentTarget.value)} /></div>
-            <div class="form-group"><label for="password">Password</label>
+            <div class="form-group"><label for="password">{t('Password')}</label>
                 <input id="password" name="password" class="form-control" type="password"
                     autoComplete="current-password" value={password}
                     onInput={event => setPassword(event.currentTarget.value)} /></div>
             <div class="form-group"><label><input id="stayLoggedIn" type="checkbox"
-                checked={stayLoggedIn} onChange={event => setStayLoggedIn(event.currentTarget.checked)} /> Stay logged in</label></div>
+                checked={stayLoggedIn} onChange={event => setStayLoggedIn(event.currentTarget.checked)} /> {t('Stay logged in')}</label></div>
             <div class="row">
                 <div class="col-md-9 login-form-messages">
-                    {error && <p class="text-danger" role="alert">{error}</p>}
+                    {error && <p class="text-danger" role="alert">{t(error)}</p>}
                 </div>
                 <div class="col-md-3 text-right"><button id="submit" class="btn btn-default"
-                    type="submit" disabled={busy}>Log In</button></div>
+                    type="submit" disabled={busy}>{t('Log In')}</button></div>
             </div>
         </form>
     </div>;
