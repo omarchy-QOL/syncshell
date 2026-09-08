@@ -30,13 +30,14 @@ export function ItemsDialog({api, folder, kind, total, revision = 0, progress = 
             setItems(pageItems('need', data));
         } catch (failure) { setError(failure.message); }
     }
-    return <Dialog title={itemTitles[kind]} large status={kind === 'failed' ? 'warning' : 'info'}
+    return <Dialog title={itemTitles[kind]} large status={kind === 'failed' || (kind === 'local' && folder.type === 'receiveencrypted') ? 'warning' : 'info'}
         icon={kind === 'need' ? 'fas fa-cloud-download-alt' : 'fas fa-exclamation-circle'} onClose={onClose}>
         {kind === 'failed' && <p>{t('The following items could not be synchronized.')} {t('They are retried automatically and will be synced when the error is resolved.')}</p>}
         {kind === 'local' && <p>{t(folder.type === 'receiveencrypted' ? 'The following unexpected items were found.' : 'The following items were changed locally.')}</p>}
+        {kind === 'local' && folder.type === 'receiveencrypted' && <p>{t('You should never add or change anything locally in a "{%receiveEncrypted%}" folder.', {receiveEncrypted:t('Receive Encrypted')})}</p>}
         {error && <p role="alert" class="text-danger">{error}</p>}
         {kind === 'need' && progressEnabled && <TransferProgress legend />}
-        <table class="table table-striped table-condensed port-items" aria-busy={loading}><tbody>
+        <table class="table table-striped table-condensed port-items" aria-busy={loading}>{kind === 'local' && <thead><tr><th>{t('Path')}</th><th>{t('Size')}</th></tr></thead>}<tbody>
             {items.map((file, index) => <tr key={`${file.name || file.path}:${index}`}>
                 {kind === 'need' && <td class="small-data"><span aria-hidden="true" class={needIcons[file.action]} /> {t(file.action)}</td>}
                 <td class="word-break-all">{kind === 'need' ? <>
@@ -44,7 +45,7 @@ export function ItemsDialog({api, folder, kind, total, revision = 0, progress = 
                         onClick={() => prioritize(file.name)}><span class="fas fa-eject" /></button>}
                     <Tooltip label={file.name} text={file.name} triggerText={file.name.split('/').at(-1)} />
                 </> : file.path || file.name}</td>
-                <td>{kind === 'need' && file.type === 'progress' && file.action === 'Sync' && progress[file.name] ? <TransferProgress progress={progress[file.name]} /> : kind === 'failed' ? file.error : file.size > 0 ? unitPrefixed(file.size, true) + 'B' : ''}</td>
+                <td>{kind === 'need' && file.type === 'progress' && file.action === 'Sync' && progress[file.name] ? <TransferProgress progress={progress[file.name]} /> : kind === 'failed' ? file.error : kind === 'local' ? (['DIRECTORY', 'FILE_INFO_TYPE_DIRECTORY'].includes(file.type) ? '' : unitPrefixed(file.size, true) + 'B') : file.size > 0 ? unitPrefixed(file.size, true) + 'B' : ''}</td>
             </tr>)}
         </tbody></table>
         <Pagination page={page} perpage={perpage} total={total} onPage={setPage} onSize={setPerpage} />

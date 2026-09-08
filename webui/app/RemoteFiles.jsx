@@ -11,7 +11,7 @@ export function RemoteFiles({api, folder, device, state, single}) {
     useEffect(() => {
         const controller = new AbortController();
         api.get('db/remoteneed', {folder: folder.id, device: device.deviceID, page, perpage}, controller.signal)
-            .then(data => setFiles(data.files || [])).catch(failure => { if (!controller.signal.aborted) setError(failure.message); });
+            .then(data => { setFiles(data.files || []); setError(''); }).catch(failure => { if (!controller.signal.aborted) setError(failure.message); });
         return () => controller.abort();
     }, [api, folder.id, device.deviceID, page, perpage, revision]);
     const friendly = id => deviceName(state.config.devices.find(item => item.deviceID.startsWith(id || '\0'))) || id || t('Unknown');
@@ -19,8 +19,8 @@ export function RemoteFiles({api, folder, device, state, single}) {
         <summary class="panel-heading">{folder.label || folder.id}</summary>
         <div class="panel-body less-padding">
             {error && <p class="text-danger" role="alert">{error}</p>}
-            <table class="table table-striped"><thead><tr>{['Path', 'Size', 'Mod. Time', 'Mod. Device'].map(label => <th key={label}>{t(label)}</th>)}</tr></thead>
-                <tbody>{files.map(file => <tr key={file.name}><td class="word-break-all">{file.name}</td><td>{file.type === 'DIRECTORY' ? '' : unitPrefixed(file.size, true) + 'B'}</td><td>{timestamp(file.modified)}</td><td>{friendly(file.modifiedBy)}</td></tr>)}</tbody>
+            <table class="table table-striped"><thead><tr>{['Path', 'Size', 'Mod. Time', 'Mod. Device'].map(label => <th key={label} title={label === 'Mod. Time' ? t('Time the item was last modified') : label === 'Mod. Device' ? t('Device that last modified the item') : undefined}>{t(label)}</th>)}</tr></thead>
+                <tbody>{files.map(file => <tr key={file.name}><td class="word-break-all">{file.name}</td><td>{['DIRECTORY', 'FILE_INFO_TYPE_DIRECTORY'].includes(file.type) ? '' : unitPrefixed(file.size, true) + 'B'}</td><td>{timestamp(file.modified)}</td><td>{friendly(file.modifiedBy)}</td></tr>)}</tbody>
             </table>
             <Pagination page={page} perpage={perpage} total={state.completion[device.deviceID]?.[folder.id]?.needItems || files.length} onPage={setPage} onSize={setPerpage} />
         </div>
