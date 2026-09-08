@@ -55,7 +55,8 @@ function App() {
             }
             if (next.type === 'add-folder') {
                 const folder = await api.get('config/defaults/folder');
-                folder.id = typeof next.folder === 'string' ? next.folder : Math.random().toString(36).slice(2, 7) + '-' + Math.random().toString(36).slice(2, 7);
+                const random = typeof next.folder === 'string' ? null : (await api.get('svc/random/string', {length: 10})).random;
+                folder.id = typeof next.folder === 'string' ? next.folder : (random.slice(0, 5) + '-' + random.slice(5)).toLowerCase();
                 folder.label = next.pending?.label || '';
                 folder.devices = [{deviceID: state.system.myID}, ...(next.device ? [{deviceID: next.device}] : [])];
                 if (next.pending?.receiveEncrypted) folder.type = 'receiveencrypted';
