@@ -1,6 +1,8 @@
 import {test, expect} from '@playwright/test';
 
 test('identity previews retain encoded text and About retains attribution and paths', async ({page},testInfo)=>{
+    const pathsResponse = page.waitForResponse(response =>
+        new URL(response.url()).pathname === '/rest/system/paths' && response.ok());
     await page.goto('/');
     await expect(page.locator('.dashboard-folders .panel-heading')).toBeVisible();
     await page.getByRole('link',{name:/Actions/}).click();
@@ -31,6 +33,7 @@ test('identity previews retain encoded text and About retains attribution and pa
     const license=await about.getByRole('link',{name:'MIT license',exact:true}).getAttribute('href');
     expect((await page.request.get(license)).status()).toBe(200);
     await about.getByRole('link',{name:'Paths',exact:true}).click();
-    await expect(about).toContainText('/syncshell-framework-ports/runtime/');
+    const paths = await (await pathsResponse).json();
+    await expect(about).toContainText(paths['baseDir-userHome']);
     await page.screenshot({path:testInfo.outputPath('about-paths.png')});
 });

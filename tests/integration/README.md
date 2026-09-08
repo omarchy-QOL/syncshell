@@ -27,3 +27,32 @@ The real browser action check is `../webui/live-conflict-actions.mjs`. It
 creates tiny disposable conflicts, verifies reveal/rename/refusal behavior,
 and removes its files afterward. Unit tests can run without a desktop or
 Syncthing process.
+
+For a browser suite on a fresh pair, prepare the branch's Modern profile,
+then start the fixture process. It exits and stops both daemons on SIGINT or
+SIGTERM. The new runtime directory must not already exist.
+
+```sh
+bash ../../hosts/omarchy/scripts/syncthing-theme.sh prepare modern /tmp/gui
+go run . -fixture-assets /tmp/gui/syncshell-modern -runtime /tmp/browser-test
+```
+
+In a second terminal, run the branch's browser tests. The URL and Chromium
+executable can be selected using SYNCSHELL_WEBUI_URL and SYNCSHELL_CHROMIUM.
+Without the latter, Playwright uses its installed browser.
+
+The launcher acceptance command needs root and a running systemd/logind host:
+
+```sh
+go build -o /tmp/syncshell-test .
+sudo /tmp/syncshell-test -launcher-core /absolute/syncshell-core \
+  -fixture-port 18601 -runtime /var/tmp/launcher-test
+```
+
+It creates one new system account and tests real system/manual launchers,
+the unrelated inactive user unit, rescan through the panel's core protocol,
+automatic outage recovery, authorized user-service control and explicit
+custom-config selection. The account and its systemd units are removed at
+the end; result files remain in the selected test directory. No owner's
+configuration is used. This covers the launcher behavior, not rendered QML
+popup appearance; graphical acceptance remains a separate host check.
