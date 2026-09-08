@@ -178,7 +178,7 @@ interface:
   the highest severity and disappears when all messages are resolved.
 - **Smaller frontend:** Preact replaces
   [AngularJS, whose support ended in 2022](https://angularjs.org/). The 0.1.8
-  frontend has about **4,500 lines of application code**, compared with about
+  frontend has about **4,800 lines of application code**, compared with about
   **9,300** in our earlier AngularJS-based version. Counts exclude blank lines,
   comments, libraries, translations and generated bundles; they cover JSX,
   JavaScript, HTML and CSS.
