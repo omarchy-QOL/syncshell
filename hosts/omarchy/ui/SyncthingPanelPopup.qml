@@ -356,7 +356,9 @@ KeyboardPanel {
         busy: root.controller.syncthing
             ? root.controller.syncthing.serviceStateActionRunning : false
         message: root.controller.syncthing
-            ? root.controller.syncthing.serviceStateMessage : ""
+            ? [root.controller.syncthing.serviceStateMessage,
+               root.controller.syncthing.controlError,
+               root.controller.syncthing.settingsError].filter(Boolean).join("\n\n") : ""
         choices: root.controller.syncthing
             ? [root.controller.syncthing.serviceStatePrimaryLabel,
                root.controller.syncthing.serviceStateSecondaryLabel] : []
