@@ -22,4 +22,4 @@ through `SYNCSHELL_WEBUI_REFERENCE`, pointing to its `webui/modern` directory.
 
 Conflict filesystem actions still require the separately identified host
 integration. The local review runner injects the existing test capability;
-its Python handler and adapter script are not release assets.
+its Go review server and browser adapter are not release assets.
