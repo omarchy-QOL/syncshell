@@ -61,7 +61,7 @@ func main() {
 		log.Fatal(err)
 	}
 	if *themeHelper != "" {
-		if err := followReviewTheme(*themeHelper, filepath.Join(*runtime, "gui")); err != nil {
+		if err := followReviewTheme(context.Background(), *themeHelper, filepath.Join(*runtime, "gui")); err != nil {
 			log.Fatal(err)
 		}
 	}

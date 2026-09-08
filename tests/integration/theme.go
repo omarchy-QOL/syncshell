@@ -11,7 +11,7 @@ import (
 )
 
 // Review instances do not receive the installed shell's theme IPC.
-func followReviewTheme(helper, assets string) error {
+func followReviewTheme(ctx context.Context, helper, assets string) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -22,7 +22,7 @@ func followReviewTheme(helper, assets string) error {
 		if err != nil {
 			return [32]byte{}, err
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 		err = exec.CommandContext(ctx, "bash", helper, "prepare", "omarchy", assets).Run()
 		return sha256.Sum256(data), err
@@ -34,7 +34,12 @@ func followReviewTheme(helper, assets string) error {
 	go func() {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
-		for range ticker.C {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+			}
 			data, err := os.ReadFile(colors)
 			if err != nil || sha256.Sum256(data) == previous {
 				continue
