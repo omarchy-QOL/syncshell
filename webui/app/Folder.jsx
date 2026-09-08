@@ -120,6 +120,7 @@ export function Folder({folder, info, stats, progress, api, rescan, state, sessi
                     <button class="btn btn-sm btn-default" disabled={scanning || !['idle', 'stopped', 'unshared', 'outofsync', 'faileditems', 'localadditions'].includes(status)} onClick={scan}>
                         <span class="fas fa-fw fa-refresh" aria-hidden="true" /> {t('Rescan')}
                     </button>
+                    {folder.versioning?.type && folder.versioning.type !== 'external' && <button class="btn btn-sm btn-default" disabled={folder.paused} onClick={() => onAction({type: 'versions', folder})}><span aria-hidden="true" class="fas fa-undo" /> {t('Versions')}</button>}
                     <button class="btn btn-sm btn-default" onClick={() => onAction({type: 'edit-folder', folder})}><span class="fas fa-pencil-alt" /> {t('Edit')}</button>
                 </div>
             </div>}

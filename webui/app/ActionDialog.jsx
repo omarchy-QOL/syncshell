@@ -3,6 +3,7 @@ import {LocaleContext} from './locale-context.jsx';
 import {Dialog} from './Dialog.jsx';
 import {Editor} from './Editor.jsx';
 import {RemoteFiles} from './RemoteFiles.jsx';
+import {RestoreVersions} from './RestoreVersions.jsx';
 import {deviceName, sharedFolders, serviceHealth} from '../client/devices.mjs';
 import {timestamp} from '../client/format.mjs';
 export function ActionDialog({action, state, api, session, onClose}) {
@@ -11,6 +12,7 @@ export function ActionDialog({action, state, api, session, onClose}) {
     const friendly = id => deviceName(state.config.devices.find(device => device.deviceID.startsWith(id || '\0'))) || id || t('Unknown');
     if (action.type.startsWith('edit-') || action.type.startsWith('add-') || action.type === 'settings')
         return <Editor action={action} state={state} api={api} session={session} onClose={onClose} />;
+    if (action.type === 'versions') return <RestoreVersions api={api} folder={action.folder} onClose={onClose} />;
     if (action.type === 'about') return <Dialog title="About" icon="fas fa-info-circle" onClose={onClose}>
         <h3>Syncshell Modern / Omarchy UI</h3>
         <p>Based on Syncthing, by the Syncthing authors and community.</p>
