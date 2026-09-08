@@ -7,7 +7,7 @@ const output = resolve(root, 'dist');
 const shipped = resolve(root, 'modern');
 for (const path of ['assets', 'vendor/bootstrap/css', 'vendor/bootstrap/fonts', 'vendor/bootstrap/LICENSE', 'vendor/fork-awesome',
     'vendor/HumanizeDuration.js/humanize-duration.js', 'vendor/HumanizeDuration.js/LICENSE.txt']) {
-    await cp(resolve(shipped, path), resolve(output, path), {recursive: true});
+    await cp(resolve(shipped, path), resolve(output, path), {recursive: true, filter: source => source !== resolve(shipped, 'assets/compiled')});
 }
 await cp(resolve(root, 'LICENSE.syncthing'), resolve(output, 'LICENSE.syncthing'));
 await cp(resolve(root, 'licenses'), resolve(output, 'licenses'), {recursive: true});
@@ -21,8 +21,8 @@ await writeFile(resolve(output, 'assets/css/theme.css'), css.replaceAll(
     /\.\.\/\.\.\/theme-assets\/(dark|light)\/assets\/css\/theme.css/g,
     'syncshell-$1.css'));
 // Only generated chunks are replaced; static sources stay in one shipped tree.
-await rm(resolve(shipped, 'compiled'), {recursive: true, force: true});
-await cp(resolve(output, 'compiled'), resolve(shipped, 'compiled'), {recursive: true});
+await rm(resolve(shipped, 'assets/compiled'), {recursive: true, force: true});
+await cp(resolve(output, 'assets/compiled'), resolve(shipped, 'assets/compiled'), {recursive: true});
 await cp(resolve(output, 'index.html'), resolve(shipped, 'index.html'));
 async function files(directory) {
     const result = [];

@@ -20,12 +20,23 @@ async function api(body) {
 }
 const original = await api();
 if (original.user) throw new Error('Authentication fixture must start without a login user');
+async function setGUI(value) {
+    // The GUI listener may close its response while applying authentication.
+    await api(value).catch(() => {});
+    await expect.poll(() => api().then(config => config.user === value.user, () => false)).toBe(true);
+}
 const browser = await chromium.launch({headless:true,
     ...(process.env.SYNCSHELL_CHROMIUM ? {executablePath:process.env.SYNCSHELL_CHROMIUM} : {})});
 try {
     const password = randomUUID();
-    await api({...original,user:'fixture-user',password});
-    await expect.poll(() => api().then(()=>true,()=>false)).toBe(true);
+    await setGUI({...original,user:'fixture-user',password});
+    await expect.poll(async () => {
+        try {
+            const response = await fetch(url + 'meta.js', {headers:{Connection:'close'}});
+            await response.text();
+            return response.status === 403 || response.status === 401;
+        } catch { return false; }
+    }).toBe(true);
     const page = await browser.newPage();
     await page.goto(url);
     await page.locator('#user:visible').fill('fixture-user');
@@ -42,7 +53,7 @@ try {
     console.log('real frontend authentication passed');
 } finally {
     await expect.poll(() => api().then(()=>true,()=>false)).toBe(true);
-    await api(original);
+    await setGUI(original);
     await expect.poll(() => api().then(()=>true,()=>false)).toBe(true);
     await browser.close();
 }
