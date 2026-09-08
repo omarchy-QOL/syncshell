@@ -3,7 +3,7 @@ import {folderFixture} from './folder-fixture.mjs';
 
 test('version filters, bulk selection and recoverable errors preserve REST values', async ({page}, testInfo) => {
     await page.emulateMedia({colorScheme: 'dark'});
-    await folderFixture(page, {folder: {versioning: {type: 'simple'}}});
+    await folderFixture(page, {folder: {versioning: {type: 'simple', params: {keep: '5', cleanoutDays: '0'}, cleanupIntervalS: 3600}}});
     const path = 'nested/name & <literal>.txt', requests = [];
     const versions = [
         {versionTime: '2026-08-10T14:15:16+02:00', modTime: '2026-08-09T12:00:00Z', size: 40},
@@ -21,7 +21,7 @@ test('version filters, bulk selection and recoverable errors preserve REST value
     await expect(dialog.getByRole('combobox', {name: path})).toBeVisible();
     expect(await dialog.evaluate(element => getComputedStyle(element).color))
         .toBe(await page.locator('body').evaluate(element => getComputedStyle(element).color));
-    await dialog.getByLabel('Filter by date · From').fill('2026-08-10T00:00:00');
+    await dialog.getByLabel('Filter by date · From').fill('2026-08-10T00:00');
     await expect(dialog.getByRole('combobox', {name: path}).locator('option')).toHaveCount(2);
     await dialog.getByLabel('Filter by date · From').fill('');
     await dialog.getByRole('button', {name: 'Select oldest version', exact: true}).first().click();
