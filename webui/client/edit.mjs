@@ -33,7 +33,7 @@ export function editorFields(kind, tab, config, myID) {
             field('fsWatcherEnabled', 'Watch for Changes', 'checkbox'), field('rescanIntervalS', 'Full Rescan Interval (s)', 'number'),
             field('ignorePerms', 'Ignore Permissions', 'checkbox'), field('blockIndexing', 'Block Indexing', 'checkbox'),
             field('order', 'File Pull Order', 'select', [['random', 'Random'], ['alphabetic', 'Alphabetic'], ['smallestFirst', 'Smallest First'], ['largestFirst', 'Largest First'], ['oldestFirst', 'Oldest First'], ['newestFirst', 'Newest First']]),
-            field('minDiskFree.value', 'Minimum Free Disk Space', 'number'), field('minDiskFree.unit', 'Unit', 'select', [['%', '%'], ['GB', 'GB']]),
+            field('minDiskFree.value', 'Minimum Free Disk Space', 'number'), field('minDiskFree.unit', 'Unit', 'select', [['%', '%'], ['kB', 'kB'], ['MB', 'MB'], ['GB', 'GB'], ['TB', 'TB']]),
             field('syncOwnership', 'Sync Ownership', 'checkbox'), field('sendOwnership', 'Send Ownership', 'checkbox'),
             field('syncXattrs', 'Sync Extended Attributes', 'checkbox'), field('sendXattrs', 'Send Extended Attributes', 'checkbox'),
             field('xattrFilter.maxSingleEntrySize', 'Maximum Single Entry Size', 'number'), field('xattrFilter.maxTotalSize', 'Maximum Total Size', 'number')];
@@ -49,7 +49,7 @@ export function editorFields(kind, tab, config, myID) {
     const self = config.devices.findIndex(device => device.deviceID === myID);
     return [field('devices.' + self + '.name', 'Device Name'), field('options.startBrowser', 'Start Browser', 'checkbox'),
         field('options.minHomeDiskFree.value', 'Minimum Free Disk Space', 'number'),
-        field('options.minHomeDiskFree.unit', 'Unit', 'select', [['%', '%'], ['GB', 'GB']])];
+        field('options.minHomeDiskFree.unit', 'Unit', 'select', [['%', '%'], ['kB', 'kB'], ['MB', 'MB'], ['GB', 'GB'], ['TB', 'TB']])];
 }
 
 export function inputValue(draft, field) {
@@ -64,9 +64,12 @@ export function changedValue(field, input) {
 }
 export function ignoreLines(text) { return text === '' ? [] : text.split('\n'); }
 
-export async function saveEditor({session, api, state, kind, draft, isNew, shares}) {
-    if (kind === 'settings') return session.saveConfig(copy(draft));
+export async function saveEditor({session, api, state, kind, draft, isNew, shares, defaults = false, ignores = []}) {
     const value = copy(draft);
+    if (defaults) return session.changeConfig(config => {
+        config.defaults[kind] = value;
+        if (kind === 'folder') config.defaults.ignores.lines = ignores;
+    });
     if (kind === 'device') {
         const checked = await api.get('svc/deviceid', {id: value.deviceID});
         if (checked.error) throw new Error(checked.error);
