@@ -358,6 +358,12 @@ test_removal_mode() {
   fi
 }
 
+if [[ ${1:-} == --installation-only ]]; then
+  test_installation_status
+  printf 'installation script tests passed\n'
+  exit 0
+fi
+
 test_settings
 test_installation_status
 test_modern_bundle
