@@ -197,7 +197,7 @@ QtObject {
   function recoverCoreIfNeeded() {
     if (packageController.state !== "existing" || core.running
         || core.protocolReady || core.incompatible || !core.executableReady
-        || !core.unavailable || !core.desiredRunning) return false
+        || !core.unavailable || core.everProtocolReady) return false
     return core.restart()
   }
 

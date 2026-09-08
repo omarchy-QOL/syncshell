@@ -12,6 +12,7 @@ QtObject {
   property bool starting: true
   property bool desiredRunning: true
   property bool protocolReady: false
+  property bool everProtocolReady: false
   property bool incompatible: false
   property bool unavailable: false
   property string lastError: ""
@@ -144,6 +145,7 @@ QtObject {
       return
     }
     protocolReady = true
+    everProtocolReady = true
     incompatible = false
     unavailable = false
     lastError = ""
