@@ -26,7 +26,7 @@ QtObject {
     : core.incompatible ? "core-incompatible"
     : core.unavailable && !core.running ? "core-unavailable"
     : String(connection.phase || "discovering")
-  readonly property bool online: connection.online === true
+  readonly property bool online: core.protocolReady && connection.online === true
   property bool refreshing: false
   readonly property bool canRefresh: core.protocolReady && !refreshing
   readonly property bool statusFresh: core.protocolReady
@@ -70,7 +70,8 @@ QtObject {
   readonly property bool serviceAvailable: lifecyclePresentation.available
   readonly property bool serviceActive: lifecycle.active === true
   property bool serviceActionRunning: false
-  readonly property bool canControlService: lifecyclePresentation.controllable
+  readonly property bool canControlService: core.protocolReady
+    && lifecyclePresentation.controllable
   property string controlError: ""
   readonly property string configuredServiceState: settings.serviceState
   readonly property int probeIntervalSeconds: settings.probeIntervalSeconds
@@ -184,6 +185,17 @@ QtObject {
     settings.setLegacyThemedIcon(enabled)
   }
 
+  function openWebUi() {
+    if (!online) return
+    if (webUi.theme !== "syncshell-modern" && webUi.theme !== "syncthing-omarchy") {
+      Qt.openUrlExternally(baseUrl)
+      return
+    }
+    core.action("webui.open", {}, function(ok) {
+      if (!ok) Qt.openUrlExternally(root.baseUrl)
+    })
+  }
+
   function refresh() {
     packageController.updateStatus()
     if (!core.protocolReady || refreshing) return
@@ -196,7 +208,7 @@ QtObject {
   function recoverCoreIfNeeded() {
     if (packageController.state !== "existing" || core.running
         || core.protocolReady || core.incompatible || !core.executableReady
-        || !core.unavailable || !core.desiredRunning) return false
+        || !core.unavailable || core.everProtocolReady) return false
     return core.restart()
   }
 
@@ -459,6 +471,12 @@ QtObject {
   onLocalDeviceIdChanged: rememberLocalIdentity()
   onDevicesChanged: rememberLocalIdentity()
   onFolderStatusesChanged: settlePendingRescan()
+  onOnlineChanged: {
+    if (!online && folderMutationBusy && pendingRescanResultReady) {
+      failFolderAction(null,
+        "Could not confirm rescan completion because Syncthing became unavailable")
+    }
+  }
 
   property CoreProcess core: CoreProcess {
     pluginRoot: root.pluginRoot

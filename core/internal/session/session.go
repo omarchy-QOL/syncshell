@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/omarchy-QOL/syncshell/core/internal/desktop"
 	"github.com/omarchy-QOL/syncshell/core/internal/syncthing"
 	"github.com/omarchy-QOL/syncshell/core/internal/systemduser"
 )
@@ -33,12 +34,14 @@ type hydratedState struct {
 // Session owns refresh, public state, lifecycle classification, and mutation
 // serialization for one selected instance.
 type Session struct {
-	hostID     string
-	executable string
-	client     *syncthing.Client
-	target     syncthing.Target
-	binding    systemduser.Binding
-	lifecycle  systemduser.Controller
+	desktopEnabled bool
+	desktop        *desktop.Bridge
+	hostID         string
+	executable     string
+	client         *syncthing.Client
+	target         syncthing.Target
+	binding        systemduser.Binding
+	lifecycle      systemduser.Controller
 
 	refreshMu sync.Mutex
 	actionMu  sync.Mutex
@@ -143,6 +146,9 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 			"lifecycle.disable", "lifecycle.enable", "lifecycle.start", "lifecycle.stop",
 			"refresh", "webui.set-theme",
 		},
+	}
+	if s.desktopEnabled {
+		snapshot.Capabilities = append(snapshot.Capabilities, "webui.open")
 	}
 	if err := s.client.Health(ctx); err != nil {
 		snapshot.Connection.Phase = "error"

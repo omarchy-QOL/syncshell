@@ -58,6 +58,35 @@ func TestLifecycleActionsRequireAndRetainTargetAuthority(t *testing.T) {
 		t.Fatalf("unit-file state is %s", state)
 	}
 
+	script, err := os.ReadFile(command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	script = []byte(strings.Replace(string(script), "set -euo pipefail\n",
+		"set -euo pipefail\n[[ ${2:-} == show ]] || exit 1\n", 1))
+	if err := os.WriteFile(command, script, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct{ action, active, enabled string }{
+		{"start", "inactive", "disabled"},
+		{"stop", "active", "disabled"},
+		{"enable", "active", "disabled"},
+		{"disable", "active", "enabled"},
+	} {
+		t.Run("rejected "+test.action, func(t *testing.T) {
+			writeState(t, activeFile, test.active)
+			writeState(t, enabledFile, test.enabled)
+			failed := coreSession.Act(context.Background(), "lifecycle."+test.action,
+				ActionArguments{}, "failed-"+test.action, nil)
+			if failed.OK || failed.Error == nil || failed.Error.Code != "lifecycle_failed" {
+				t.Fatalf("service rejection was not returned: %#v", failed)
+			}
+			if readState(t, activeFile) != test.active || readState(t, enabledFile) != test.enabled {
+				t.Fatal("rejected action changed service state")
+			}
+		})
+	}
+
 	external, err := New(context.Background(), Config{
 		Discovery: syncthing.DiscoveryOptions{ConfigPath: configPath},
 	})

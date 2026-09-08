@@ -31,12 +31,16 @@ operation_running() {
 
 detect_status() {
   local executable="" executable_path=""
+  local flatpak_id="com.github.zocker_160.SyncThingy"
   local label="Not installed" state="missing"
 
   executable="$(command -v syncthing 2>/dev/null || true)"
   if [[ -n $executable ]]; then
     executable_path="$(readlink -f -- "$executable" 2>/dev/null || true)"
     [[ -n $executable_path ]] || executable_path="$executable"
+  elif command -v flatpak >/dev/null 2>&1 &&
+      timeout 3s flatpak info "$flatpak_id" >/dev/null 2>&1; then
+    executable_path="$flatpak_id (Flatpak)"
   fi
 
   if [[ -n $executable_path ]]; then

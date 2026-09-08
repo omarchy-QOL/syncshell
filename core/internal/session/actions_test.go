@@ -273,6 +273,33 @@ func TestAddValidationRejectsUnsafeInputs(t *testing.T) {
 	}
 }
 
+func TestExistingFolderPathOverlap(t *testing.T) {
+	home := t.TempDir()
+	wanted := filepath.Join(home, "files", "nested")
+	for _, test := range []struct {
+		name, configured, home, code string
+	}{
+		{"absolute", filepath.Join(home, "files"), home, "path_overlap"},
+		{"tilde", "~/files", home, "path_overlap"},
+		{"home", "~", home, "path_overlap"},
+		{"separate", "~/other", home, ""},
+		{"relative", "files", home, "path_unresolved"},
+		{"unknown home", "~/files", "", "path_unresolved"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			folders := []syncthing.Folder{{ID: "existing", Path: test.configured}}
+			result := validateUnusedFolder("new", wanted, folders, test.home)
+			if test.code == "" {
+				if result != nil {
+					t.Fatalf("unrelated folder rejected: %#v", result)
+				}
+			} else if result == nil || result.Error == nil || result.Error.Code != test.code {
+				t.Fatalf("expected %s, got %#v", test.code, result)
+			}
+		})
+	}
+}
+
 func newActionSession(t *testing.T, api *actionAPI) *Session {
 	t.Helper()
 	server := httptest.NewServer(api)

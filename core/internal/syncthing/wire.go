@@ -4,7 +4,8 @@ import "encoding/json"
 
 // SystemStatus is the narrow identity response used by the session.
 type SystemStatus struct {
-	MyID string `json:"myID"`
+	MyID  string `json:"myID"`
+	Tilde string `json:"tilde"`
 }
 
 // SystemVersion is the narrow version response used by the session.
@@ -78,6 +79,7 @@ type GUIConfig struct {
 // SystemPaths contains only paths required by current host workflows.
 type SystemPaths struct {
 	GUIAssets string `json:"guiAssets"`
+	Config    string `json:"config"`
 }
 
 // FolderErrors is the current bounded folder error response.

@@ -56,6 +56,11 @@ and `devices[].deviceID`. Folder status objects expose at least `state`,
 `error`, `errors`, `pullErrors`, `needTotalItems`, `needBytes`, `globalFiles`,
 and `globalBytes`. Device objects expose `deviceID`, `name`, and `untrusted`.
 
+The `openWebUi()` method opens the selected GUI. Bundled profiles request the
+core's `webui.open` action to grant local desktop access; the default profile
+opens `baseUrl` directly. An unavailable desktop connection leaves the ordinary
+Web UI accessible without local file actions.
+
 ## Installation and lifecycle
 
 | Property                     | Type   | Meaning                        |

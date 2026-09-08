@@ -100,6 +100,7 @@ The domain action names are:
 - `lifecycle.enable`
 - `lifecycle.disable`
 - `webui.set-theme`
+- `webui.open` (Omarchy desktop capability only)
 
 Unsupported names fail; they do not fall back or alias another action.
 
@@ -113,6 +114,8 @@ Action arguments are exact:
 - `folder.add-existing` takes `folderId`, `path`, optional `label`, bounded
   `deviceIds`, and optional `pendingDeviceId`.
 - `webui.set-theme` takes `theme`.
+- `webui.open` takes no arguments. It launches the selected GUI with a private
+  desktop grant; the result and snapshots contain no grant.
 
 Successful folder-ID suggestion and add results return the resulting
 `folderId` in `data`. Irrelevant fields are rejected rather than ignored.

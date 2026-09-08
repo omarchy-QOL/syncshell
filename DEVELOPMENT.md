@@ -2,8 +2,9 @@
 
 ## Branches
 
-Preact is the release frontend. `dev` integrates release work before promotion
-of the verified candidate to `main`. The cleaned comparison snapshots are:
+Preact is the release frontend. `dev` is the integration branch for release
+work before promotion of the verified candidate to `main`. The cleaned
+comparison snapshots are:
 
 - `dev-preact-webUI-upgrade`: Preact release snapshot
 - `dev-svelte-webUI-upgrade`: Svelte alternative
@@ -61,7 +62,7 @@ mise exec aqua:koalaman/shellcheck@0.11.0 -- \
     tests/*.sh tests/live/copy-*.sh
 qml6 --apptype core -f tests/run.qml
 bash tests/scripts.test.sh
-node tests/webui-counts.test.cjs
+node --test tests/webui/*.test.*
 bash tests/busy-button.test.sh
 bash tests/rescan-core-loss.test.sh
 bash tests/install-recovery.test.sh
@@ -89,6 +90,10 @@ copying code, keep the guest inhibitor active, pull evidence, and fully stop the
 guest afterward.
 
 ## Native core development
+
+For byte-identical reproduction, use the compiler recorded by
+`go version -m bin/x86_64/syncshell-core` (currently Go 1.27.0). The module's
+minimum Go version is a source-compatibility floor, not the bundle's compiler.
 
 Build and verify the exact production artifact before running the native
 checks:

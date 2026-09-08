@@ -13,6 +13,8 @@ ShellRoot {
   property bool lineBoundPassed: false
   property bool pendingRequestSent: false
   property bool pendingFailurePassed: false
+  property bool crashCapPassed: false
+  property bool manualRecoveryPassed: false
   readonly property string testPluginRoot:
     Quickshell.env("SYNCSHELL_TEST_PLUGIN_ROOT") || ""
 
@@ -26,6 +28,7 @@ ShellRoot {
     console.error(message)
     core.terminate()
     pendingProbe.terminate()
+    crashProbe.terminate()
     Qt.exit(1)
   }
 
@@ -95,6 +98,20 @@ ShellRoot {
   }
 
   CoreProcess {
+    id: crashProbe
+    pluginRoot: root.testPluginRoot
+    startupArguments: ["--test-exit-on-request"]
+    onRevisionChanged: {
+      if (!protocolReady || revision < 1) return
+      if (!root.crashCapPassed) refresh()
+      else {
+        root.manualRecoveryPassed = true
+        terminate()
+      }
+    }
+  }
+
+  CoreProcess {
     id: versionProbe
     pluginRoot: root.testPluginRoot
     desiredRunning: false
@@ -117,7 +134,21 @@ ShellRoot {
     interval: 100
     repeat: false
     onTriggered: {
-      if (core.running || pendingProbe.running || !root.pendingFailurePassed) {
+      if (!root.crashCapPassed) {
+        if (crashProbe.desiredRunning) {
+          restart()
+          return
+        }
+        if (crashProbe.generation !== 4 || crashProbe.restartAttempts !== 3) {
+          root.fail("crashes did not stop after three automatic retries")
+          return
+        }
+        root.crashCapPassed = true
+        crashProbe.startupArguments = []
+        crashProbe.restart()
+      }
+      if (core.running || pendingProbe.running || !root.pendingFailurePassed
+          || crashProbe.running || !root.manualRecoveryPassed) {
         restart()
         return
       }

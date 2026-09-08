@@ -1,3 +1,5 @@
+import syncshellMark from '../../assets/mono/status-default.svg?url';
+import {desktopActions} from '../client/desktop.mjs';
 import {render} from 'preact';
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {createApi} from '../client/api.mjs';
@@ -20,6 +22,8 @@ import '../client/components.css';
 
 const tabs = [['overview', 'Overview'], ['conflicts', 'Resolve sync conflicts'], ['notifications', 'Notifications']];
 const helpLinks = [['Introduction','https://github.com/omarchy-QOL/syncshell#readme'], ['Home page','https://github.com/omarchy-QOL/syncshell'], ['Documentation','https://docs.syncthing.net/'], ['Support','https://github.com/omarchy-QOL/syncshell/issues'], ['Changelog','https://github.com/omarchy-QOL/syncshell/blob/main/CHANGELOG.md'], ['Statistics','https://data.syncthing.net/'], ['Bugs','https://github.com/omarchy-QOL/syncshell/issues'], ['Source Code','https://github.com/omarchy-QOL/syncshell']];
+const desktop = desktopActions();
+
 function App() {
     const [state, setState] = useState(initialState);
     const [api] = useState(() => createApi());
@@ -87,10 +91,10 @@ function App() {
         if (authenticated) session.start();
         return () => { session.stop(); document.removeEventListener('pointerdown', outside); };
     }, [session, authenticated]);
-    useEffect(() => { document.title = name + ' | Syncshell (Preact)'; }, [name]);
+    useEffect(() => { document.title = name + ' | Syncshell'; }, [name]);
     return <LocaleContext.Provider value={{...locale, select: selectLanguage}}>
         <nav class="navbar navbar-top navbar-default" aria-label="Main"><div class="container">
-            <span class="navbar-brand"><img class="logo" src="assets/img/logo-horizontal.svg" height="32" width="117" alt="Syncthing" /></span>
+            <span class="navbar-brand syncshell-brand"><span class="syncshell-mark" aria-hidden="true" style={{'--syncshell-mark': `url("${syncshellMark}")`}} /><span class="text-success">Syncshell</span></span>
             {authenticated && <p class="navbar-text hidden-xs">{name}</p>}
             <ul class="nav navbar-nav navbar-right"><LanguageMenu />
                 <li class={`dropdown action-menu ${menu === 'help' ? 'open' : ''}`}><a href="#help" class="dropdown-toggle" aria-expanded={menu === 'help'} onClick={event => { event.preventDefault(); setMenu(menu === 'help' ? '' : 'help'); }}><span class="fa fa-question-circle" /> {t('Help')} <span class="caret" /></a>
@@ -120,7 +124,7 @@ function App() {
                 {!state.ready && <p role="status">{t('Loading data...')}</p>}
                 <div class="dashboard">
                     <ul class="nav nav-tabs dashboard-tabs" role="tablist" onKeyDown={tabKey}>{tabs.map(([id, label]) =>
-                        <li key={id} class={id === activeTab ? 'active' : ''} role="presentation"><a id={id + '-tab'} href={'#dashboard-' + id} role="tab" aria-controls={'dashboard-' + id} aria-selected={id === activeTab} tabIndex={id === activeTab ? 0 : -1} onClick={event => { event.preventDefault(); setActiveTab(id); }}>{t(label)}
+                        <li key={id} class={id === activeTab ? 'active' : ''} role="presentation"><a id={id + '-tab'} href={'#dashboard-' + id} role="tab" aria-controls={'dashboard-' + id} aria-selected={id === activeTab} tabIndex={id === activeTab ? 0 : -1} onClick={event => { event.preventDefault(); setActiveTab(id); }}>{t(label)}{id === 'conflicts' ? ' (beta)' : ''}
                             {id === 'notifications' && <span class="notification-indicator"><span class="fas fa-circle text-success" role="img" aria-label={t('Pending notifications')} /><span class="fas fa-circle text-warning" role="img" aria-label={t('Pending warnings')} /><span class="fas fa-circle text-danger" role="img" aria-label={t('Pending errors')} /></span>}
                         </a></li>)}</ul>
                     <div class="tab-content">
@@ -149,7 +153,7 @@ function App() {
                                 </div>
                             </section>
                         </div>
-                        <section id="dashboard-conflicts" class={`tab-pane ${activeTab === 'conflicts' ? 'active' : ''}`} role="tabpanel" aria-labelledby="conflicts-tab"><Conflicts api={api} hostActions={window.syncshellHostActions || null} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></section>
+                        <section id="dashboard-conflicts" class={`tab-pane ${activeTab === 'conflicts' ? 'active' : ''}`} role="tabpanel" aria-labelledby="conflicts-tab"><Conflicts api={api} hostActions={desktop || window.syncshellHostActions || null} device={state.system.myID} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></section>
                         <section id="dashboard-notifications" class={`tab-pane notifications ${activeTab === 'notifications' ? 'active' : ''}`} role="tabpanel" aria-labelledby="notifications-tab"><Notifications cards={cards} session={session} onAction={openAction} /></section>
                     </div>
                 </div>

@@ -72,4 +72,3 @@ export function replaceDirectory(groups, group, updated) {
         (prefix && !item.path.startsWith(prefix + '/'))), ...updated];
 }
 export const missingHelp = 'The latest Syncthing index has no usable file at the original name. Conflict files are ordinary files with a conflict marker in their names. Rename the version you want to keep, or delete unwanted conflict files, then recheck. Rechecking alone does not rename or delete files.';
-export const hostActionHelp = 'Opening or renaming local files requires the file-manager integration, which is not connected in this port yet.';

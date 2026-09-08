@@ -26,6 +26,8 @@ jobs:
           node-version: '24'
       - name: Core and launcher contracts
         run: go -C core test -race ./...
+      - name: Installation script contracts
+        run: bash tests/scripts.test.sh --installation-only
       - name: Review server contracts
         run: go -C tests/integration test -race ./...
       - name: Browser API contracts

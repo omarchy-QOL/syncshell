@@ -77,6 +77,60 @@ func TestTrustedActiveBindingIsManaged(t *testing.T) {
 	}
 }
 
+func TestSyncThingyCannotControlNativeService(t *testing.T) {
+	for _, key := range []string{"STCONFDIR", "STHOMEDIR", "XDG_CONFIG_HOME", "XDG_STATE_HOME"} {
+		t.Setenv(key, "")
+	}
+	home := t.TempDir()
+	api := &testAPI{}
+	server := httptest.NewServer(api)
+	defer server.Close()
+	directory := filepath.Join(home,
+		".var/app/com.github.zocker_160.SyncThingy/.local/state/syncthing")
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	config := fmt.Sprintf(`<configuration><gui><address>%s</address><apikey>%s</apikey></gui></configuration>`,
+		server.URL, sessionTestKey)
+	if err := os.WriteFile(filepath.Join(directory, "config.xml"), []byte(config), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	systemctl := filepath.Join(home, "systemctl")
+	script := `#!/bin/sh
+test "$1 $2" = '--user show' || exit 1
+printf '%s\n' 'LoadState=loaded' 'ActiveState=inactive' \
+  'FragmentPath=/usr/lib/systemd/user/syncthing.service' \
+  'ExecStart=/usr/bin/syncthing serve'
+`
+	if err := os.WriteFile(systemctl, []byte(script), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	coreSession, err := New(context.Background(), Config{
+		Discovery: syncthing.DiscoveryOptions{Home: home,
+			SyncthingBinary: filepath.Join(home, "missing-syncthing")},
+		Lifecycle:      systemduser.Binding{Authorized: true, Unit: "syncthing.service"},
+		SystemdCommand: systemctl,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, authorized := range []bool{false, true, false, true} {
+		api.unauthorized.Store(!authorized)
+		published, err := coreSession.Refresh(context.Background())
+		if (err == nil) != authorized || published.State.Connection.Online != authorized {
+			t.Fatalf("unexpected connection state: authorized=%v err=%v", authorized, err)
+		}
+		state := published.State.Lifecycle
+		if state.CanControl || state.CanStart || state.TargetMatch {
+			t.Fatalf("Flatpak gained native service authority: %#v", state)
+		}
+		result := coreSession.Act(context.Background(), "lifecycle.start", ActionArguments{}, "test", nil)
+		if result.OK {
+			t.Fatal("Flatpak started the unrelated native service")
+		}
+	}
+}
+
 func TestLifecycleProbeDoesNotHydrateSyncthing(t *testing.T) {
 	api := &testAPI{}
 	coreSession := newTestSession(t, api, "active", "LOCAL-ID")
@@ -119,8 +173,17 @@ func TestExpectedIdentityMismatchRemovesAuthority(t *testing.T) {
 
 func TestUnauthorizedResponseIsSanitized(t *testing.T) {
 	api := &testAPI{}
-	api.unauthorized.Store(true)
 	coreSession := newTestSession(t, api, "active", "LOCAL-ID")
+	if _, err := coreSession.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	api.unauthorized.Store(true)
+	result := coreSession.Act(context.Background(), "folder.rescan",
+		ActionArguments{FolderID: "folder"}, "unauthorized", nil)
+	if result.OK || result.Error == nil || result.Error.Code != "unauthorized" ||
+		api.rescans.Load() != 0 || coreSession.Current().State.Mutation.Busy {
+		t.Fatalf("unauthorized action was not rejected cleanly: %#v", result)
+	}
 	published, err := coreSession.Refresh(context.Background())
 	if err == nil || published.State.Connection.Error == nil {
 		t.Fatal("unauthorized response succeeded")
@@ -128,6 +191,15 @@ func TestUnauthorizedResponseIsSanitized(t *testing.T) {
 	encoded := fmt.Sprintf("%#v %v", published, err)
 	if strings.Contains(encoded, sessionTestKey) {
 		t.Fatal("public state exposed the API key")
+	}
+	api.unauthorized.Store(false)
+	if _, err := coreSession.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	result = coreSession.Act(context.Background(), "folder.rescan",
+		ActionArguments{FolderID: "folder"}, "recovered", nil)
+	if !result.OK || api.rescans.Load() != 1 {
+		t.Fatalf("restored authorization did not recover: %#v", result)
 	}
 }
 
