@@ -1,9 +1,25 @@
 import {chromium, expect} from '@playwright/test';
-import {mkdtemp, writeFile, readFile, rm, access} from 'node:fs/promises';
+import {mkdtemp, writeFile, readFile, rm, access, mkdir} from 'node:fs/promises';
 import {join, basename} from 'node:path';
-const root = '/home/iz/Work/syncshell-framework-ports';
-const browser = await chromium.launch({headless: true, executablePath: '/usr/bin/chromium'});
-const pages = [], results = [];
+const runtime = process.env.SYNCSHELL_TEST_RUNTIME, peerRoot = process.env.SYNCSHELL_TEST_PEER;
+const root = process.env.SYNCSHELL_TEST_OUTPUT || 'test-results';
+if (!runtime || !peerRoot) throw new Error('Set SYNCSHELL_TEST_RUNTIME and SYNCSHELL_TEST_PEER');
+async function endpoint(directory) {
+    await access(join(directory,'.syncshell-port-fixture'));
+    const xml = await readFile(join(directory,'home/config.xml'),'utf8');
+    const address = xml.match(/<gui\b[\s\S]*?<address>(.*?)<\/address>/)[1];
+    if (!/^127\.0\.0\.1:\d+$/.test(address)) throw new Error('Version fixtures must use loopback');
+    return {url:'http://'+address+'/', key:xml.match(/<apikey>(.*?)<\/apikey>/)[1]};
+}
+const current = await endpoint(runtime), peer = await endpoint(peerRoot);
+async function peerScan() {
+    const response = await fetch(peer.url+'rest/db/scan?folder=port-verification', {method:'POST',headers:{'X-API-Key':peer.key}});
+    if (!response.ok) throw new Error('Peer scan failed');
+    await response.text();
+}
+await mkdir(root,{recursive:true});
+const browser = await chromium.launch({headless:true,...(process.env.SYNCSHELL_CHROMIUM?{executablePath:process.env.SYNCSHELL_CHROMIUM}:{})});
+const results = [];
 async function api(page, path, method = 'GET', body) {
     return page.evaluate(async ({path, method, body}) => {
         const name = 'CSRF-Token-' + window.metadata.deviceIDShort;
@@ -14,28 +30,22 @@ async function api(page, path, method = 'GET', body) {
     }, {path, method, body});
 }
 try {
-    for (const [index, name] of ['svelte', 'preact'].entries()) {
-        await access(join(root, 'runtime', name, '.syncshell-port-fixture'));
-        const page = await browser.newPage({viewport: {width: 1500, height: 954}, colorScheme: 'dark'});
-        await page.goto(`http://127.0.0.1:${18401 + index}/`);
-        await page.locator('.dashboard-folders .panel-heading').click();
-        pages.push(page);
-    }
-    for (const [index, name] of ['svelte', 'preact'].entries()) {
-        const page = pages[index], sender = pages[1-index];
-        const names = ['svelte','preact'], failures = [];
-        page.on('pageerror', error => failures.push(error.message));
+    const name = 'current', failures = [];
+    const page = await browser.newPage({viewport:{width:1500,height:954},colorScheme:'dark'});
+    page.on('pageerror',error=>failures.push(error.message));
+    await page.goto(current.url);
+    await page.locator('.dashboard-folders .panel-heading').click();
         const original = await api(page, 'config/folders/port-verification');
-        const source = await mkdtemp(join(root, 'runtime', names[1-index], 'files', 'port-version-'));
+        const source = await mkdtemp(join(peerRoot, 'files', 'port-version-'));
         const relative = basename(source) + '/version.txt';
-        const destination = join(root, 'runtime', name, 'files', relative);
+        const destination = join(runtime, 'files', relative);
         try {
             await api(page, 'config/folders/port-verification', 'PATCH', {versioning: {...original.versioning, type:'simple', params:{keep:'5', cleanoutDays:'0'}}});
             await writeFile(join(source, 'version.txt'), 'original archived contents\n');
-            await api(sender, 'db/scan?folder=port-verification', 'POST');
+            await peerScan();
             await expect.poll(async () => readFile(destination, 'utf8').catch(() => ''), {timeout:15000}).toBe('original archived contents\n');
             await writeFile(join(source, 'version.txt'), 'replacement current contents\n');
-            await api(sender, 'db/scan?folder=port-verification', 'POST');
+            await peerScan();
             await expect.poll(async () => readFile(destination, 'utf8').catch(() => ''), {timeout:15000}).toBe('replacement current contents\n');
             await page.getByRole('button', {name:'Versions', exact:true}).click();
             const dialog = page.getByRole('dialog');
@@ -62,12 +72,11 @@ try {
             results.push({framework:name, result:'passed', checks:['real incoming change archived','name filtering','version selection','confirmation and cancel','exact REST path/time payload','archived contents restored']});
         } finally {
             await rm(source, {recursive:true, force:true});
-            await rm(join(root, 'runtime', name, 'files', basename(source)), {recursive:true, force:true});
-            for (const peer of pages) await api(peer, 'db/scan?folder=port-verification', 'POST');
+            await rm(join(runtime, 'files', basename(source)), {recursive:true, force:true});
+            await peerScan(); await api(page, 'db/scan?folder=port-verification', 'POST');
             await api(page, 'config/folders/port-verification', 'PATCH', {versioning:original.versioning});
-            await rm(join(root, 'runtime', name, 'files', '.stversions', basename(source)), {recursive:true, force:true});
+            await rm(join(runtime, 'files', '.stversions', basename(source)), {recursive:true, force:true});
         }
-    }
     await writeFile(join(root,'versions-results.json'), JSON.stringify(results,null,2));
-    console.log(JSON.stringify(results));
+    console.log('real archived version restoration passed');
 } finally { await browser.close(); }

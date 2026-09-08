@@ -44,13 +44,17 @@ test('status, semantic colors, details and progress agree with shipped rules', (
 });
 
 test('compact counts retain truncation at k, M and B boundaries', () => {
-    for (const [input, output] of [[999, '999'], [1000, '1.0k'],
-        [109274, '109.2k'], [999999, '999.9k'], [1000000, '1.0M'],
-        [999999999, '999.9M'], [1000000000, '1.0B'],
-        [109699999999, '109.6B'], [NaN, '-'], [Infinity, '-'], [-1, '-']]) {
+    for (const [input, output] of [[0,'0'], [999,'999'], [1000,'1.0k'],
+        [1099,'1.0k'], [1100,'1.1k'], [12921,'12.9k'], [109274,'109.2k'],
+        [999999,'999.9k'], [1000000,'1.0M'], [12999999,'12.9M'],
+        [999999999,'999.9M'], [1000000000,'1.0B'], [109699999999,'109.6B'],
+        [undefined,'-'], [NaN,'-'], [Infinity,'-'], [-1,'-']]) {
         assert.equal(compactNumber(input), output);
     }
-    assert.equal(unitPrefixed(7351042089, true), '6.85 Gi');
-    assert.equal(unitPrefixed(1073741824, true), '1,024 Mi');
-    assert.equal(unitPrefixed(1073741825, true), '1 Gi');
+    for (const [input, output] of [[0,'0 '], [1023,'1,023 '], [1024,'1,024 '],
+        [1025,'1 Ki'], [1048576,'1,024 Ki'], [1073741824,'1,024 Mi'],
+        [1073741825,'1 Gi'], [7351042089,'6.85 Gi'],
+        [1099511627776,'1,024 Gi'], [1099511627777,'1 Ti']]) {
+        assert.equal(unitPrefixed(input,true),output);
+    }
 });
