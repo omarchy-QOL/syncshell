@@ -21,6 +21,7 @@ export function notices(state) {
     if (!state.configInSync) cards.push({id: 'restart', severity: 'warning', title: 'Restart Needed',
         paragraphs: ['The configuration has been saved but not activated. Syncthing must restart to activate the new configuration.'], actions: ['Restart']});
     for (const id of config.options?.unackedNotificationIDs || []) {
+        if (id === 'authenticationUserAndPassword' && authenticated) continue;
         if (notificationCards[id]) cards.push({id, ...notificationCards[id],
             params: {syncthingInotify: 'syncthing-inotify'}});
     }
@@ -55,7 +56,7 @@ export function notices(state) {
 }
 
 export async function noticeAction(session, card, action, open) {
-    if (action === 'Settings') { open({type: 'settings'}); return; }
+    if (action === 'Settings') { open({type: 'settings'}); if (card.id === 'channelNotification') await session.dismissNotification(card.id); return; }
     if (action === 'Restart') return session.systemAction('restart');
     if (action === 'Ignore') return session.ignorePending(card.device, card.folder, card.pending);
     if (action === 'Dismiss') return session.dismissPending(card.device, card.folder);

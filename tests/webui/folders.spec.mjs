@@ -24,7 +24,7 @@ test('accepted fields, compact values and icon-only help survive language change
     await expect(page.getByRole('img', {name: 'Folder Type', exact: true})).toBeVisible();
     await expect(page.getByLabel('/a/b', {exact: true})).toBeVisible();
     await expect(page.getByText('File Pull Order', {exact: true})).toBeVisible();
-    await page.locator('.navbar .dropdown-toggle').click();
+    await page.getByRole('link', {name: 'Language', exact: true}).click();
     await page.getByRole('link', {name: 'German', exact: true}).click();
     await expect(page.locator('html')).toHaveAttribute('lang', 'de');
     await expect(page.getByText('Dateiübertragungsreihenfolge', {exact: true})).toBeVisible();
