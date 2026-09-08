@@ -97,6 +97,7 @@ function App() {
                 {authenticated && <li class={`dropdown action-menu ${menu === 'actions' ? 'open' : ''}`}><a href="#actions" class="dropdown-toggle" aria-expanded={menu === 'actions'} onClick={event => { event.preventDefault(); setMenu(menu === 'actions' ? '' : 'actions'); }}><span class="fas fa-cog" /> {t('Actions')} <span class="caret" /></a>
                     <ul class="dropdown-menu">
                         <li><a href="#settings" onClick={event => { event.preventDefault(); openAction({type: 'settings'}); }}>{t('Settings')}</a></li>
+                        <li><a href="#advanced" onClick={event => { event.preventDefault(); openAction({type: 'advanced'}); }}>{t('Advanced')}</a></li>
                         <li><a href="#identification" onClick={event => { event.preventDefault(); openAction({type: 'identification', device: self}); }}>{t('Show ID')}</a></li>
                         <li><a href="rest/debug/support" target="_blank">{t('Support Bundle')}</a></li>
                         {(state.config.gui?.user || state.config.gui?.authMode === 'ldap') && <li><a href="#logout" onClick={async event => { event.preventDefault(); await api.post('noauth/auth/logout', {}); location.reload(); }}>{t('Log Out')}</a></li>}

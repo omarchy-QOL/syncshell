@@ -4,11 +4,12 @@ import {Dialog} from './Dialog.jsx';
 import {copy, getValue, setValue, editorFields, inputValue, changedValue, saveEditor, ignoreLines} from '../client/edit.mjs';
 import {deviceName} from '../client/devices.mjs';
 
-export function Editor({action, state, api, session, onClose}) {
+export function Editor({action, state, api, session, onClose, onSaved}) {
     const {t} = useContext(LocaleContext);
-    const kind = action.type.includes('device') ? 'device' : action.type.includes('folder') ? 'folder' : 'settings';
+    const kind = action.type.includes('device') ? 'device' : 'folder';
+    const defaults = !!action.defaults;
     const isNew = action.type.startsWith('add');
-    const [draft, setDraft] = useState(() => copy(kind === 'settings' ? state.config : action[kind]));
+    const [draft, setDraft] = useState(() => copy(action[kind]));
     const [tab, setTab] = useState(action.tab === 'sharing' ? 'Sharing' : action.tab === 'ignores' ? 'Ignore Patterns' : 'General');
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
@@ -23,11 +24,13 @@ export function Editor({action, state, api, session, onClose}) {
         const member = folder.devices.find(device => device.deviceID === draft.deviceID);
         return [folder.id, {selected: !!member, password: member?.encryptionPassword || ''}];
     })));
-    const tabs = kind === 'settings' ? ['General', 'GUI', 'Connections'] : kind === 'folder'
-        ? ['General', 'Sharing', 'File Versioning', 'Ignore Patterns', 'Advanced'] : ['General', 'Sharing', 'Advanced'];
-    const fields = editorFields(kind, tab, state.config, state.system.myID);
-    const title = kind === 'settings' ? 'Settings' : (isNew ? 'Add ' : 'Edit ') + (kind === 'folder' ? 'Folder' : 'Device');
+    const tabs = (kind === 'folder' ? ['General', 'Sharing', 'File Versioning', 'Ignore Patterns', 'Advanced'] : ['General', 'Sharing', 'Advanced']).filter(name => !defaults || name !== 'Sharing');
+    const fields = editorFields(kind, tab, state.config, state.system.myID).filter(field => !defaults || !['id', 'deviceID'].includes(field.path));
+    const title = defaults ? 'Edit ' + (kind === 'folder' ? 'Folder' : 'Device') + ' Defaults' : (isNew ? 'Add ' : 'Edit ') + (kind === 'folder' ? 'Folder' : 'Device');
     useEffect(() => {
+        if (defaults && kind === 'folder') {
+            originalIgnores.current = state.config.defaults.ignores.lines; setIgnores(originalIgnores.current.join('\n')); setLoadedIgnores(true); return;
+        }
         if (kind === 'folder' && !isNew && draft.type !== 'receiveencrypted') {
             api.get('db/ignores', {folder: draft.id}).then(data => {
                 originalIgnores.current = data.ignore || [];
@@ -47,14 +50,16 @@ export function Editor({action, state, api, session, onClose}) {
         if (!form.current.reportValidity()) return;
         setBusy(true); setError('');
         try {
-            if (stage === 'ignores') {
+            if (defaults) {
+                await saveEditor({session, api, state, kind, draft, isNew, shares, defaults, ignores: ignoreLines(ignores)});
+            } else if (stage === 'ignores') {
                 await api.post('db/ignores', {ignore: ignoreLines(ignores)}, {folder: draft.id});
                 await session.setPaused('folders', draft.id, !!draft.paused);
             } else if (kind === 'folder' && isNew && addIgnores && draft.type !== 'receiveencrypted') {
                 await saveEditor({session, api, state, kind, draft: {...copy(draft), paused: true}, isNew, shares});
                 setStage('ignores'); setTab('Ignore Patterns');
                 const data = await api.get('db/ignores', {folder: draft.id});
-                originalIgnores.current = data.ignore?.length ? data.ignore : state.config.defaults?.ignores?.lines || [];
+                originalIgnores.current = (data.ignore?.length || data.error) ? data.ignore || [] : state.config.defaults?.ignores?.lines || [];
                 setIgnores(originalIgnores.current.join('\n')); setLoadedIgnores(true);
                 if (data.error) setError(data.error);
                 return;
@@ -63,11 +68,12 @@ export function Editor({action, state, api, session, onClose}) {
                     await api.post('db/ignores', {ignore: ignoreLines(ignores)}, {folder: draft.id});
                 await saveEditor({session, api, state, kind, draft, isNew, shares});
             }
-            saved.current = true; onClose();
+            saved.current = true; onSaved?.(copy(draft), ignoreLines(ignores)); onClose();
         } catch (failure) { setError(failure.message); }
         finally { setBusy(false); }
     }
     async function cancel() {
+        if (busy) return;
         if (!saved.current && stage === 'ignores' && loadedIgnores) {
             saved.current = true;
             try {
@@ -109,8 +115,8 @@ export function Editor({action, state, api, session, onClose}) {
                             <label for={'editor-' + field.path}>{t(field.label)}</label>
                             {field.type === 'select' ? <select id={'editor-' + field.path} class="form-control" value={inputValue(draft, field)} onChange={event => update(field.path, event.currentTarget.value)}>
                                 {field.options.map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}</select> :
-                                <input id={'editor-' + field.path} class="form-control" type={field.type === 'list' ? 'text' : field.type} value={inputValue(draft, field)} readOnly={!isNew && ['id', 'path', 'deviceID'].includes(field.path)}
-                                    required={['id', 'path', 'deviceID'].includes(field.path)} min={field.type === 'number' ? 0 : undefined} onInput={event => update(field.path, changedValue(field, event.currentTarget))} />}
+                                <input id={'editor-' + field.path} class="form-control" type={field.type === 'list' ? 'text' : field.type} value={inputValue(draft, field)} readOnly={!isNew && !defaults && ['id', 'path', 'deviceID'].includes(field.path)}
+                                    required={!defaults && ['id', 'path', 'deviceID'].includes(field.path)} step={field.path.endsWith('.value') ? '0.01' : undefined} min={field.type === 'number' ? 0 : undefined} onInput={event => update(field.path, changedValue(field, event.currentTarget))} />}
                         </>}
                     </div>)}
                     {tab === 'File Versioning' && draft.versioning.type && (draft.versioning.type === 'simple' ? [['keep', 'Keep Versions'], ['cleanoutDays', 'Clean out after']] : draft.versioning.type === 'trashcan' ? [['cleanoutDays', 'Clean out after']] : draft.versioning.type === 'staggered' ? [['maxAge', 'Maximum Age (s)']] : [['command', 'External Versioning Command']]).map(([key, label]) =>
