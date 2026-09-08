@@ -27,6 +27,7 @@ a:focus,
   border-color: {{muted}} !important;
 }
 
+.nav-tabs > li:not(.active):not(.disabled) > a,
 .navbar-text,
 .navbar-link,
 .dropdown > a,
