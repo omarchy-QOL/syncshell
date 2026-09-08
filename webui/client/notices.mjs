@@ -33,9 +33,9 @@ export function notices(state) {
     }
     for (const [folder, pending] of Object.entries(state.pendingFolders)) {
         for (const [device, offered] of Object.entries(pending.offeredBy || {})) {
-            const existing = config.folders.some(item => item.id === folder);
+            const existing = config.folders.find(item => item.id === folder);
             cards.push({id: 'folder-' + folder + '-' + device, kind: 'folder', folder, device, pending: offered,
-                severity: 'warning', title: existing ? 'Share Folder' : 'New Folder', time: offered.time,
+                folderConfig: existing, severity: 'warning', title: existing ? 'Share Folder' : 'New Folder', time: offered.time,
                 paragraphs: [offered.label ? '{%device%} wants to share folder "{%folderlabel%}" ({%folder%}).'
                     : '{%device%} wants to share folder "{%folder%}".', existing ? 'Share this folder?' : 'Add new folder?'],
                 params: {device: deviceName(config.devices.find(item => item.deviceID === device)),
@@ -57,9 +57,14 @@ export function notices(state) {
 
 export async function noticeAction(session, card, action, open) {
     if (action === 'Settings') { open({type: 'settings'}); if (card.id === 'channelNotification') await session.dismissNotification(card.id); return; }
-    if (action === 'Restart') return session.systemAction('restart');
+    if (action === 'Restart') return open({type: 'restart'});
     if (action === 'Ignore') return session.ignorePending(card.device, card.folder, card.pending);
     if (action === 'Dismiss') return session.dismissPending(card.device, card.folder);
+    if (action === 'Share' && card.folderConfig?.type !== 'receiveencrypted' && card.pending.remoteEncrypted) {
+        const folder = JSON.parse(JSON.stringify(card.folderConfig));
+        if (!folder.devices.some(member => member.deviceID === card.device)) folder.devices.push({deviceID: card.device, encryptionPassword: ''});
+        return open({type: 'edit-folder', folder, tab: 'sharing'});
+    }
     if (action === 'Share') return session.changeConfig(config => {
         const folder = config.folders.find(item => item.id === card.folder);
         if (!folder.devices.some(item => item.deviceID === card.device)) folder.devices.push({deviceID: card.device});

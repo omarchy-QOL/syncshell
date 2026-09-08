@@ -74,7 +74,8 @@ export async function saveEditor({session, api, state, kind, draft, isNew, share
         const checked = await api.get('svc/deviceid', {id: value.deviceID});
         if (checked.error) throw new Error(checked.error);
         value.deviceID = checked.id || value.deviceID;
-        if (value.untrusted && state.config.folders.some(folder => folder.type !== 'receiveencrypted' &&
+        if (state.config.folders.some(folder => folder.type !== 'receiveencrypted' &&
+            (value.untrusted || state.pendingFolders?.[folder.id]?.offeredBy?.[value.deviceID]?.remoteEncrypted) &&
             shares[folder.id]?.selected && !shares[folder.id]?.password))
             throw new Error('Encryption Password is required for an untrusted device.');
         if (isNew && state.config.devices.some(item => item.deviceID === value.deviceID)) throw new Error('A device with that ID is already added.');
@@ -87,7 +88,7 @@ export async function saveEditor({session, api, state, kind, draft, isNew, share
         if (value.versioning.type === 'external' && !value.versioning.params?.command?.trim())
             throw new Error('External Versioning Command cannot be blank.');
         if (value.type !== 'receiveencrypted' && value.devices.some(member =>
-            state.config.devices.find(device => device.deviceID === member.deviceID)?.untrusted && !member.encryptionPassword))
+            (state.config.devices.find(device => device.deviceID === member.deviceID)?.untrusted || state.pendingFolders?.[value.id]?.offeredBy?.[member.deviceID]?.remoteEncrypted) && !member.encryptionPassword))
             throw new Error('Encryption Password is required for an untrusted device.');
     }
     return session.changeConfig(config => {
