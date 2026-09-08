@@ -20,7 +20,18 @@ func main() {
 	assets := flag.String("fixture-assets", "", "start disposable Syncthing peers serving these assets")
 	port := flag.Int("fixture-port", 18401, "primary fixture GUI port")
 	launcher := flag.String("launcher-core", "", "test launcher acceptance with this core binary")
+	plugin := flag.String("plugin-source", "", "test an exported plugin with real Omarchy QML")
+	qmlFile := flag.String("plugin-qml", "../plugin-acceptance.qml", "QML acceptance fixture")
+	omarchy := flag.String("omarchy-path", "/usr/share/omarchy", "installed Omarchy sources")
 	flag.Parse()
+	if *plugin != "" {
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		if err := runPlugin(ctx, *runtime, *plugin, *qmlFile, *omarchy, *port); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	if *launcher != "" {
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 		defer stop()

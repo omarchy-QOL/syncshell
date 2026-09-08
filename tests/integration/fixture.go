@@ -102,7 +102,11 @@ func copyTree(source, target string) error {
 		if err != nil {
 			return err
 		}
-		return os.WriteFile(dest, data, 0644)
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(dest, data, info.Mode().Perm())
 	})
 }
 

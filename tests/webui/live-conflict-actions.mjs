@@ -1,19 +1,23 @@
 import {chromium,expect} from '@playwright/test';
 import {access,mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';
-import {join} from 'node:path';
-const root='/home/iz/Work/syncshell-framework-ports';
-const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium'});
+import {join,resolve} from 'node:path';
+const root=resolve(process.env.SYNCSHELL_TEST_OUTPUT || 'test-results');
+const runtime=process.env.SYNCSHELL_TEST_RUNTIME;
+const url=process.env.SYNCSHELL_WEBUI_URL;
+if(!runtime || !url) throw new Error('Set SYNCSHELL_TEST_RUNTIME and SYNCSHELL_WEBUI_URL');
+await import('node:fs/promises').then(fs=>fs.mkdir(root,{recursive:true}));
+const browser=await chromium.launch({headless:true,...(process.env.SYNCSHELL_CHROMIUM?{executablePath:process.env.SYNCSHELL_CHROMIUM}:{})});
 const results=[];
 try{
- for(const[index,framework]of ['svelte','preact'].entries()){
-  const runtime=join(root,'runtime',framework);await access(join(runtime,'.syncshell-port-fixture'));
+ {
+  const framework='current';await access(join(runtime,'.syncshell-port-fixture'));
   const directory=await mkdtemp(join(runtime,'files','host-actions-'));
   const copy='report.sync-conflict-20260908-120000-ABCDEFG.txt',canonical='report.txt';
   await writeFile(join(directory,copy),'first conflict contents\n');
   const page=await browser.newPage({viewport:{width:1908,height:954},colorScheme:'dark'});
   const failures=[];page.on('pageerror',error=>{failures.push(error.message);console.error(framework,error.stack);});
   try{
-   await page.goto(`http://127.0.0.1:${18421+index}/`);
+   await page.goto(url);
    await page.getByRole('tab',{name:'Resolve sync conflicts',exact:true}).click();
    const panel=page.locator('.conflict-review');const all=panel.getByRole('button',{name:'Recheck all files',exact:true});
    await expect(all).toBeEnabled();await all.click();
