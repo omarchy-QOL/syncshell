@@ -61,3 +61,5 @@
 .port-version-group summary { font-size: 16px; overflow-wrap: anywhere; }
 .port-version-row { display: flex; flex-wrap: wrap; gap: 12px; padding: 6px 12px; align-items: center; font-size: 14px; }
 .port-version-row > * { flex: 1 1 220px; min-width: 0; }
+
+.port-items .folder-text { display: inline-block; max-width: calc(100% - 36px); vertical-align: middle; }

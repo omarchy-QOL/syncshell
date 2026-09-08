@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import {createEvents} from './events.mjs';
+import {transferProgress, endedTransfers} from './transfer.mjs';
 import {completionTotal, connectionRates} from './devices.mjs';
 
 export function initialState() {
@@ -9,7 +10,7 @@ export function initialState() {
         system: {}, version: {}, model: {}, scanProgress: {}, folderStats: {},
         deviceStats: {}, connections: {}, connectionsTotal: {}, completion: {},
         discoveryCache: {}, pendingDevices: {}, pendingFolders: {}, globalChanges: [],
-        errors: [], seenError: '', configInSync: true};
+        errors: [], seenError: '', configInSync: true, downloadProgress: {}, itemsRevision: {}, upgradeInfo: null};
 }
 
 export function folderEvent(state, event) {
@@ -133,6 +134,8 @@ export function createSession(api, {publish, onAuthExpired,
         await refreshModels(config);
         update({...state, ready: true});
         refreshGlobalChanges().catch(fail);
+        read('system/upgrade').then(upgradeInfo => update({...state, upgradeInfo: upgradeInfo || null}))
+            .catch(() => update({...state, upgradeInfo: null}));
     }
 
     const events = createEvents(api, {retryMs, onAuthExpired,
@@ -145,6 +148,14 @@ export function createSession(api, {publish, onAuthExpired,
         onEvent(event) {
             update(folderEvent(state, event));
             const data = event.data;
+            if (event.type === 'DownloadProgress') {
+                const progress = transferProgress(data), revision = {...state.itemsRevision};
+                for (const folder of endedTransfers(state.downloadProgress, progress)) revision[folder] = (revision[folder] || 0) + 1;
+                update({...state, downloadProgress: progress, itemsRevision: revision});
+            }
+            if (['LocalIndexUpdated', 'RemoteIndexUpdated', 'FolderErrors'].includes(event.type)) {
+                update({...state, itemsRevision: {...state.itemsRevision, [data.folder]: (state.itemsRevision[data.folder] || 0) + 1}});
+            }
             if (event.type === 'FolderCompletion') {
                 update({...state, completion: {...state.completion,
                     [data.device]: completionTotal({...state.completion[data.device], [data.folder]: data})}});
