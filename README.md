@@ -250,23 +250,31 @@ than create a separate identity. See Syncthing's
 
 See [CHANGELOG.md](CHANGELOG.md) for details.
 
-| Release | State     | Date       | What changed                                            |
-| ------- | --------- | ---------- | ------------------------------------------------------- |
-| 0.1.8   | candidate | TBD        | use one native core for the Omarchy panel               |
-|         |           |            | support healthy externally managed Syncthing instances  |
-|         |           |            | add the Preact Web UI and settings migration            |
-| 0.1.7   | shipped   | 2026-08-31 | fix persistent service-state reconciliation             |
-|         |           |            | UI/UX: clear semantics on buttons, harmonize font size  |
-| 0.1.6   | shipped   | 2026-08-22 | make live and indexed file activity accurate            |
-|         |           |            | refine folder lifecycle controls and pending offers     |
-|         |           |            | add versioned icon and live Web UI theme settings       |
-|         |           |            | refresh the preview and add four focused demo videos    |
-| 0.1.5   | shipped   | 2026-08-20 | add an optional theme-colored bar icon                  |
-| 0.1.4   | shipped   | 2026-08-16 | support TLS-enabled local Syncthing APIs                |
-| 0.1.3   | shipped   | 2026-08-15 | add a demo video and improve the documentation          |
-| 0.1.2   | shipped   | 2026-08-15 | manage Syncthing folders from the bar panel             |
-| 0.1.1   | shipped   | 2026-08-14 | monitor installs and show live synchronization activity |
-| 0.1.0   | shipped   | 2026-08-12 | first release                                           |
+| Release | Date       | What changed                                              |
+| ------- | ---------- | --------------------------------------------------------- |
+| 0.1.8   | TBD        | use one native core for the Omarchy panel                 |
+|         |            | support healthy externally managed Syncthing instances    |
+|         |            | add the Preact Web UI and settings migration              |
+|         |            | group Web UI details and separate notifications           |
+|         |            | add local conflict review and guarded renaming (beta)     |
+|         |            | show folder error details in More                         |
+|         |            | improve rescan feedback and connection recovery           |
+|         |            | report service failures and limit automatic core restarts |
+|         |            | reject overlapping folders, including tilde paths         |
+|         |            | fix icon contrast and scaling; add themed Web UI branding |
+|         |            | require a shell restart after plugin updates              |
+| 0.1.7   | 2026-08-31 | fix persistent service-state reconciliation               |
+|         |            | UI/UX: clear semantics on buttons, harmonize font size    |
+| 0.1.6   | 2026-08-22 | make live and indexed file activity accurate              |
+|         |            | refine folder lifecycle controls and pending offers       |
+|         |            | add versioned icon and live Web UI theme settings         |
+|         |            | refresh the preview and add four focused demo videos      |
+| 0.1.5   | 2026-08-20 | add an optional theme-colored bar icon                    |
+| 0.1.4   | 2026-08-16 | support TLS-enabled local Syncthing APIs                  |
+| 0.1.3   | 2026-08-15 | add a demo video and improve the documentation            |
+| 0.1.2   | 2026-08-15 | manage Syncthing folders from the bar panel               |
+| 0.1.1   | 2026-08-14 | monitor installs and show live synchronization activity   |
+| 0.1.0   | 2026-08-12 | first release                                             |
 
 ## Remove
 

@@ -22,3 +22,4 @@
 /webui/package.json export-ignore
 /webui/package-lock.json export-ignore
 /webui/.gitignore export-ignore
+/.markdownlint.json export-ignore
