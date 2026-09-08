@@ -79,6 +79,7 @@ jobs:
           test -f "$RUNNER_TEMP/browser-fixture/ready.json"
           cd tests/webui
           npx playwright test
+          SYNCSHELL_TEST_RUNTIME="$RUNNER_TEMP/browser-fixture/primary" node live-auth.mjs
       - name: Browser failure evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

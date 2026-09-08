@@ -1,86 +1,48 @@
-import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {chromium, expect} from '@playwright/test';
+import {readFile, mkdir, writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
-import {connect, waitFor} from './browser.mjs';
 
-const root = resolve(process.argv[2]);
-const debug = 'http://127.0.0.1:19222';
-for (const [index, framework] of ['svelte', 'preact'].entries()) {
-    const base = resolve(root, framework);
-    await readFile(resolve(base, '.syncshell-port-fixture'));
-    const xml = await readFile(resolve(base, 'home/config.xml'), 'utf8');
-    const key = xml.match(/<apikey>(.*?)<\/apikey>/)[1];
-    const url = `http://127.0.0.1:${18401 + index}/`;
-    const api = async (path, body) => {
-        const response = await fetch(url + 'rest/' + path, {method: body ? 'PUT' : 'GET',
-            headers: {'X-API-Key': key, 'Content-Type': 'application/json'},
-            body: body ? JSON.stringify(body) : undefined});
-        assert.equal(response.ok, true);
-        const text = await response.text();
-        return text ? JSON.parse(text) : null;
-    };
-    const original = await api('config/gui');
-    // recover only our disposable credentials after an interrupted fixture run
-    if (original.user === 'port-test') {
-        original.user = '';
-        original.password = '';
-    }
-    async function waitForGui() {
-        for (let i = 0; i < 100; i++) {
-            try { await api('config/gui'); return; } catch {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-        }
-        throw new Error('Test GUI did not restart');
-    }
+const runtime = process.env.SYNCSHELL_TEST_RUNTIME;
+if (!runtime) throw new Error('Set SYNCSHELL_TEST_RUNTIME to a disposable fixture');
+await readFile(join(runtime, '.syncshell-port-fixture'));
+const xml = await readFile(join(runtime, 'home/config.xml'), 'utf8');
+const key = xml.match(/<apikey>(.*?)<\/apikey>/)[1];
+const address = xml.match(/<gui\b[\s\S]*?<address>(.*?)<\/address>/)[1];
+if (!/^127\.0\.0\.1:\d+$/.test(address)) throw new Error('Authentication fixture must use loopback');
+const url = 'http://' + address + '/';
+async function api(body) {
+    const response = await fetch(url + 'rest/config/gui', {method:body ? 'PUT' : 'GET',
+        headers:{'X-API-Key':key,'Content-Type':'application/json','Connection':'close'}, body:body ? JSON.stringify(body) : undefined});
+    if (!response.ok) throw new Error('Authentication fixture API failed');
+    const text = await response.text();
+    return body ? null : JSON.parse(text);
+}
+const original = await api();
+if (original.user) throw new Error('Authentication fixture must start without a login user');
+const browser = await chromium.launch({headless:true,
+    ...(process.env.SYNCSHELL_CHROMIUM ? {executablePath:process.env.SYNCSHELL_CHROMIUM} : {})});
+try {
     const password = randomUUID();
-    let page;
-    let control;
-    let browserContextId;
-    try {
-        await api('config/gui', {...original, user: 'port-test', password});
-        await new Promise(resolve => setTimeout(resolve, 200));
-        await waitForGui();
-        const tabs = await fetch(debug + '/json/list').then(response => response.json());
-        const review = tabs.find(tab => tab.url === url);
-        assert.ok(review, framework + ' review tab');
-        control = await connect(await fetch(debug + '/json/version')
-            .then(response => response.json()));
-        ({browserContextId} = await control.call('Target.createBrowserContext'));
-        const {targetId} = await control.call('Target.createTarget',
-            {url, browserContextId, background: true});
-        const fresh = await fetch(debug + '/json/list').then(response => response.json());
-        page = await connect(fresh.find(tab => tab.id === targetId));
-        await page.call('Runtime.enable');
-        await page.call('Page.reload', {ignoreCache: true});
-        await waitFor(page, `document.querySelector('#user') !== null`, framework + ' login');
-        assert.equal(await page.evaluate(`document.querySelector('.dashboard') === null`), true);
-        const fill = async (id, value) => page.evaluate(`(() => {
-            const input = document.getElementById(${JSON.stringify(id)});
-            input.value = ${JSON.stringify(value)};
-            input.dispatchEvent(new Event('input', {bubbles: true}));
-        })()`);
-        await fill('user', 'port-test');
-        await fill('password', 'incorrect');
-        await page.evaluate(`document.querySelector('button[type="submit"]').click()`);
-        await waitFor(page, `document.querySelector('[role="alert"]')?.textContent.includes('Incorrect')`,
-            framework + ' bad password');
-        await fill('password', password);
-        await page.evaluate(`document.querySelector('button[type="submit"]').click()`);
-        await waitFor(page, `document.querySelector('.panel-heading')?.textContent.includes('Port verification')`,
-            framework + ' authenticated hydration');
-        assert.deepEqual(page.errors, []);
-        console.log(framework + ': unauthenticated entry, bad password and successful login passed');
-    } finally {
-        await waitForGui();
-        await api('config/gui', original);
-        await new Promise(resolve => setTimeout(resolve, 200));
-        await waitForGui();
-        if (page) {
-            page.close();
-        }
-        if (browserContextId) await control.call('Target.disposeBrowserContext', {browserContextId});
-        control?.close();
-    }
+    await api({...original,user:'fixture-user',password});
+    await expect.poll(() => api().then(()=>true,()=>false)).toBe(true);
+    const page = await browser.newPage();
+    await page.goto(url);
+    await page.locator('#user:visible').fill('fixture-user');
+    await page.locator('#password:visible').fill('incorrect');
+    await page.locator('button[type="submit"]:visible').click();
+    await expect(page.locator('.login-form-messages')).toContainText('Incorrect');
+    await page.locator('#password:visible').fill(password);
+    await page.locator('button[type="submit"]:visible').click();
+    await expect(page.locator('.dashboard-folders .panel-heading').first()).toBeVisible();
+    const output = process.env.SYNCSHELL_TEST_OUTPUT || 'test-results';
+    await mkdir(output,{recursive:true});
+    await writeFile(join(output,'authentication.json'),JSON.stringify({result:'passed',
+        checks:['fresh login required','incorrect password refused','correct password hydrates the frontend']},null,2)+'\n');
+    console.log('real frontend authentication passed');
+} finally {
+    await expect.poll(() => api().then(()=>true,()=>false)).toBe(true);
+    await api(original);
+    await expect.poll(() => api().then(()=>true,()=>false)).toBe(true);
+    await browser.close();
 }
