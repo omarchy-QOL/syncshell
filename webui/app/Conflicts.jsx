@@ -11,6 +11,7 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
     const locale = useContext(LocaleContext), t = conflictTranslator(locale);
     const [groups, setGroups] = useState([]), [search, setSearch] = useState('');
     const [selected, setSelected] = useState({}), [loading, setLoading] = useState(false);
+    const [scanning, setScanning] = useState(null);
     const [errors, setErrors] = useState([]), [message, setMessage] = useState(''), [rename, setRename] = useState(null);
     const controller = useRef();
     const folderKey = folders.map(folder => folder.id).join('|');
@@ -23,7 +24,7 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
     const visible = groups.filter(group => [group.folderName, group.path, ...group.copies.map(file => file.path)]
         .some(value => value.toLocaleLowerCase().includes(search.toLocaleLowerCase())));
     async function load(scan = false, group = null, request = controller.current) {
-        setLoading(true); setErrors([]); setMessage('');
+        setLoading(true); setScanning(scan ? group?.id || 'all' : null); setErrors([]); setMessage('');
         try {
             const result = scan ? await recheckConflicts(api, folders, group, request.signal)
                 : await listConflicts(api, folders, request.signal);
@@ -32,7 +33,7 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
             setErrors(result.errors);
             if (scan && !result.errors.length) setMessage('Syncthing scan finished; file list updated.');
         } catch (error) { if (!request.signal.aborted) setErrors([error.message]); }
-        finally { if (!request.signal.aborted) setLoading(false); }
+        finally { if (!request.signal.aborted) { setLoading(false); setScanning(null); } }
     }
     async function open(group, file) {
         try { await hostActions.open(group, file); } catch (error) { setErrors([error.message]); }
@@ -59,7 +60,7 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
             <h3>{t('Review in your file manager')}</h3>
             <div class="review-tools">
                 <input type="search" class="form-control input-sm review-search" placeholder={t('Search filenames or paths')} aria-label={t('Search filenames or paths')} value={search} onInput={event => setSearch(event.currentTarget.value)} />
-                <button class="btn btn-default review-recheck" disabled={loading} onClick={() => load(true)}><span aria-hidden="true" class="fas fa-refresh" /> {t('Recheck all files')}</button>
+                <button class="btn btn-default review-recheck" disabled={loading} aria-busy={scanning === 'all'} onClick={() => load(true)}><span class={scanning === 'all' ? 'text-warning' : ''}><span aria-hidden="true" class={`fas fa-refresh${scanning === 'all' ? ' fa-spin' : ''}`} /> {t('Recheck all files')}</span></button>
             </div>
             {loading && <p role="status">{t('Loading data...')}</p>}
             {message && <p class="review-message" role="status">{t(message)}</p>}
@@ -85,7 +86,7 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
                         </td>
                         <td class="review-actions">
                             <button class="btn btn-default" disabled={!hostActions || loading} title={!hostActions ? t(hostActionHelp) : undefined} onClick={() => open(group)}><span aria-hidden="true" class="fas fa-folder-open" /> {t('Open folder')}</button>
-                            <button class="btn btn-default" disabled={loading} onClick={() => load(true, group)}><span aria-hidden="true" class="fas fa-refresh" /> {t('Recheck files in folder')}</button>
+                            <button class="btn btn-default" disabled={loading} aria-busy={scanning === group.id} onClick={() => load(true, group)}><span class={scanning === group.id ? 'text-warning' : ''}><span aria-hidden="true" class={`fas fa-refresh${scanning === group.id ? ' fa-spin' : ''}`} /> {t('Recheck files in folder')}</span></button>
                         </td>
                     </tr>;
                 })}</tbody>
