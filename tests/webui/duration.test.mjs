@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {readFileSync} from 'node:fs';
+import {referenceSource} from './reference.mjs';
 import vm from 'node:vm';
 import {duration, timestamp} from '../../webui/client/format.mjs';
 
@@ -11,8 +11,7 @@ test('localized durations retain the shipped formatter across units and locales'
         angular: {module: () => ({filter: (_, fn) => { factory = fn; }})}});
     for (const path of ['vendor/HumanizeDuration.js/humanize-duration.js',
         'syncthing/core/durationFilter.js']) {
-        vm.runInContext(readFileSync(new URL('../../webui/modern/' + path,
-            import.meta.url), 'utf8'), context);
+        vm.runInContext(referenceSource(path), context);
     }
     const original = factory({use: () => language});
     for (language of [undefined, 'en', 'de', 'zh-HK']) {

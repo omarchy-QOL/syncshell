@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {readFileSync} from 'node:fs';
+import {referenceSource} from './reference.mjs';
 import vm from 'node:vm';
 import {createEvents} from '../../webui/client/events.mjs';
 
@@ -8,8 +8,7 @@ function reference(script) {
     let factory;
     const calls = [], seen = [], timers = [];
     let reloads = 0;
-    vm.runInNewContext(readFileSync(new URL(
-        '../../webui/modern/syncthing/core/eventService.js', import.meta.url), 'utf8'), {
+    vm.runInNewContext(referenceSource('syncthing/core/eventService.js'), {
         angular: {module: () => ({service: (_, args) => { factory = args.at(-1); }}),
             extend: Object.assign},
         urlbase: 'rest', location: {reload: () => reloads++}, console

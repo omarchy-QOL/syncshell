@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {readFileSync} from 'node:fs';
+import {referenceSource} from './reference.mjs';
 import vm from 'node:vm';
 import {folderStatus, folderClass, folderStateClass, folderStateDetails,
     syncPercentage} from '../../webui/client/folders.mjs';
 import {compactNumber, unitPrefixed} from '../../webui/client/format.mjs';
 
-const source = readFileSync(new URL(
-    '../../webui/modern/syncthing/core/syncthingController.js', import.meta.url), 'utf8');
+const source = referenceSource('syncthing/core/syncthingController.js');
 const scope = {model: {}, hasFailedFiles: id => scope.model[id]?.errors !== 0,
     hasReceiveOnlyChanged: folder => ['receiveonly', 'receiveencrypted']
         .includes(folder.type) && scope.model[folder.id]?.receiveOnlyTotalItems > 0};

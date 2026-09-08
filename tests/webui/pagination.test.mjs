@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {readFileSync} from 'node:fs';
+import {referenceSource} from './reference.mjs';
 import vm from 'node:vm';
 import {paginationPages} from '../../webui/client/pagination.mjs';
 
 test('page ranges retain first, last and ellipsis behavior from the existing UI', () => {
-    const source = readFileSync(new URL('../../webui/modern/vendor/angular/angular-dirPagination.js',
-        import.meta.url), 'utf8');
+    const source = referenceSource('vendor/angular/angular-dirPagination.js');
     const start = source.indexOf('        function generatePagesArray(');
     const context = vm.createContext({});
     vm.runInContext(source.slice(start, source.indexOf('\n    }\n\n    /**', start)), context);
