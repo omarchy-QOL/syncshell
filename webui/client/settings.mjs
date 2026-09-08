@@ -1,11 +1,12 @@
 import {copy, editorFields} from './edit.mjs';
+const isUnixAddress = address => address.startsWith('/') || address.startsWith('unix://') || address.startsWith('unixs://');
 export const settingsTabs = ['General', 'GUI', 'Connections', 'Ignored Devices', 'Ignored Folders'];
 export const upgradeMode = config => config.options.upgradeToPreReleases ? 'candidate'
     : config.options.autoUpgradeIntervalH > 0 ? 'stable' : 'none';
 export function settingsFields(tab, draft, myID, themes) {
     const fields = editorFields('settings', tab, draft, myID).map(field => field.type === 'number' ? {...field, min: 0, required: true} : field);
     if (tab === 'General') return fields.filter(field => field.path !== 'options.startBrowser');
-    if (tab === 'GUI') return fields.filter(field => field.path !== 'gui.unixSocketPermissions' || draft.gui.address.startsWith('/')).concat([
+    if (tab === 'GUI') return fields.filter(field => field.path !== 'gui.unixSocketPermissions' || isUnixAddress(draft.gui.address)).concat([
         {path: 'options.startBrowser', label: 'Start Browser', type: 'checkbox'},
         ...(themes.length > 1 ? [{path: 'gui.theme', label: 'GUI Theme', type: 'select', options: themes.map(theme => [theme, theme])}] : []),
     ]);
@@ -25,7 +26,7 @@ export function settingsConfig(draft, mode, system, version, supported) {
         if (!Number.isFinite(value) || value < 0) throw new Error('Enter a non-negative number.');
     }
     const address = config.gui.address;
-    if (!address.startsWith('/')) {
+    if (!isUnixAddress(address)) {
         const port = Number(address.slice(address.lastIndexOf(':') + 1));
         if (!address.includes(':') || !Number.isInteger(port) || port < 1024 || port > 65535)
             throw new Error('Enter a non-privileged port number (1024 - 65535).');
