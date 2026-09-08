@@ -60,7 +60,7 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
             <h3>{t('Review in your file manager')}</h3>
             <div class="review-tools">
                 <input type="search" class="form-control input-sm review-search" placeholder={t('Search filenames or paths')} aria-label={t('Search filenames or paths')} value={search} onInput={event => setSearch(event.currentTarget.value)} />
-                <button class="btn btn-default review-recheck" disabled={loading} aria-busy={scanning === 'all'} onClick={() => load(true)}><span class={scanning === 'all' ? 'text-warning' : ''}><span aria-hidden="true" class={`fas fa-refresh${scanning === 'all' ? ' fa-spin' : ''}`} /> {t('Recheck all files')}</span></button>
+                <button class="btn btn-default review-recheck" disabled={loading} aria-busy={scanning === 'all'} onClick={() => load(true)}><span class={scanning === 'all' ? 'text-warning review-rechecking' : ''}><span aria-hidden="true" class={`fas fa-refresh${scanning === 'all' ? ' fa-spin' : ''}`} /> {t('Recheck all files')}</span></button>
             </div>
             {loading && <p role="status">{t('Loading data...')}</p>}
             {message && <p class="review-message" role="status">{t(message)}</p>}
@@ -86,7 +86,7 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
                         </td>
                         <td class="review-actions">
                             <button class="btn btn-default" disabled={!hostActions || loading} title={!hostActions ? t(hostActionHelp) : undefined} onClick={() => open(group)}><span aria-hidden="true" class="fas fa-folder-open" /> {t('Open folder')}</button>
-                            <button class="btn btn-default" disabled={loading} aria-busy={scanning === group.id} onClick={() => load(true, group)}><span class={scanning === group.id ? 'text-warning' : ''}><span aria-hidden="true" class={`fas fa-refresh${scanning === group.id ? ' fa-spin' : ''}`} /> {t('Recheck files in folder')}</span></button>
+                            <button class="btn btn-default" disabled={loading} aria-busy={scanning === group.id} onClick={() => load(true, group)}><span class={scanning === group.id ? 'text-warning review-rechecking' : ''}><span aria-hidden="true" class={`fas fa-refresh${scanning === group.id ? ' fa-spin' : ''}`} /> {t('Recheck files in folder')}</span></button>
                         </td>
                     </tr>;
                 })}</tbody>

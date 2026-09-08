@@ -161,7 +161,8 @@ li.hidden-xs:hover,
   color: {{orange}} !important;
 }
 
-.folder-change-time {
+.folder-change-time,
+.review-rechecking {
   color: {{yellow}} !important;
 }
 
