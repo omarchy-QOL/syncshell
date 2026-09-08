@@ -7,12 +7,13 @@ export function RemoteFiles({api, folder, device, state, single}) {
     const {t} = useContext(LocaleContext);
     const [page, setPage] = useState(1), [perpage, setPerpage] = useState(10);
     const [files, setFiles] = useState([]), [error, setError] = useState('');
+    const revision = state.completion[device.deviceID]?.[folder.id]?.needItems + ':' + state.completion[device.deviceID]?.[folder.id]?.needBytes;
     useEffect(() => {
         const controller = new AbortController();
         api.get('db/remoteneed', {folder: folder.id, device: device.deviceID, page, perpage}, controller.signal)
             .then(data => setFiles(data.files || [])).catch(failure => { if (!controller.signal.aborted) setError(failure.message); });
         return () => controller.abort();
-    }, [api, folder.id, device.deviceID, page, perpage]);
+    }, [api, folder.id, device.deviceID, page, perpage, revision]);
     const friendly = id => deviceName(state.config.devices.find(item => item.deviceID.startsWith(id || '\0'))) || id || t('Unknown');
     return <details class="panel panel-default" open={single}>
         <summary class="panel-heading">{folder.label || folder.id}</summary>

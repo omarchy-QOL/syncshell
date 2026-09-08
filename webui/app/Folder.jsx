@@ -127,7 +127,7 @@ export function Folder({folder, info, stats, progress, api, rescan, state, sessi
                 </div>
             </div>}
         </div>
-        {itemsKind && <ItemsDialog api={api} folder={folder} kind={itemsKind}
+        {itemsKind && <ItemsDialog api={api} folder={folder} kind={itemsKind} revision={state.itemsRevision[folder.id] || 0} progress={state.downloadProgress[folder.id] || {}} progressEnabled={state.config.options.progressUpdateIntervalS > 0 && folder.type !== 'receiveencrypted'}
             total={itemsKind === 'need' ? info.needTotalItems : itemsKind === 'failed' ? info.pullErrors : info.receiveOnlyTotalItems}
             onClose={() => setItemsKind('')} />}
     </>;
