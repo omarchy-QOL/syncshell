@@ -111,6 +111,27 @@ test_installation_status() {
     and (.operationRunning | type) == "boolean"
   ' <<<"$output" >/dev/null \
     || fail "installation status omitted systemd service state"
+
+  # Isolate PATH so a host package cannot hide the Flatpak fallback.
+  local tool
+  for tool in bash readlink jq timeout; do
+    ln -s -- "$(command -v "$tool")" "$fake_bin/$tool"
+  done
+  printf '%s\n' '#!/bin/bash' \
+    '[[ $* == "info com.github.zocker_160.SyncThingy" ]]' \
+    >"$fake_bin/flatpak"
+  chmod 700 -- "$fake_bin/flatpak"
+  rm -- "$fake_bin/syncthing"
+  output=$(HOME="$sandbox/home" XDG_RUNTIME_DIR="$sandbox/runtime" \
+    PATH="$fake_bin" bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
+  jq -e '.state == "existing" and .executable == "com.github.zocker_160.SyncThingy (Flatpak)"' \
+    <<<"$output" >/dev/null || fail "SyncThingy-only installation was not detected"
+
+  printf '%s\n' '#!/bin/bash' 'exit 1' >"$fake_bin/flatpak"
+  output=$(HOME="$sandbox/home" XDG_RUNTIME_DIR="$sandbox/runtime" \
+    PATH="$fake_bin" bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
+  jq -e '.state == "missing"' <<<"$output" >/dev/null \
+    || fail "failed Flatpak lookup reported an installation"
 }
 
 test_modern_bundle() {

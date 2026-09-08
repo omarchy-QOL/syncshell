@@ -76,12 +76,17 @@ func Discover(ctx context.Context, options DiscoveryOptions) (Target, error) {
 	}
 
 	paths := existingConfigPaths(candidateConfigPaths(options))
+	native := true
 	if len(paths) != 1 {
 		if commandPath, err := syncthingConfigPath(ctx, options); err == nil {
 			if regularFile(commandPath) {
 				paths = []string{commandPath}
 			}
 		}
+	}
+	if len(paths) == 0 {
+		paths = existingConfigPaths(syncThingyConfigPaths(options.Home))
+		native = false
 	}
 	if len(paths) == 0 {
 		return Target{}, failure(ErrorConfig, "discover",
@@ -95,8 +100,20 @@ func Discover(ctx context.Context, options DiscoveryOptions) (Target, error) {
 	if err != nil {
 		return Target{}, err
 	}
-	target.Automatic = true
+	// Flatpak discovery must not authorize the default native user service.
+	target.Automatic = native
 	return target, nil
+}
+
+func syncThingyConfigPaths(home string) []string {
+	if home == "" {
+		home, _ = os.UserHomeDir()
+	}
+	root := filepath.Join(home, ".var", "app", "com.github.zocker_160.SyncThingy")
+	return []string{
+		filepath.Join(root, ".local", "state", "syncthing", "config.xml"),
+		filepath.Join(root, "config", "syncthing", "config.xml"),
+	}
 }
 
 func targetFromConfig(path, expectedDeviceID string) (Target, error) {
