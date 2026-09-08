@@ -58,6 +58,21 @@ func TestLifecycleActionsRequireAndRetainTargetAuthority(t *testing.T) {
 		t.Fatalf("unit-file state is %s", state)
 	}
 
+	script, err := os.ReadFile(command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	script = []byte(strings.Replace(string(script), "set -euo pipefail\n",
+		"set -euo pipefail\n[[ ${2:-} != start ]] || exit 1\n", 1))
+	if err := os.WriteFile(command, script, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	failed := coreSession.Act(context.Background(), "lifecycle.start",
+		ActionArguments{}, "failed-start", nil)
+	if failed.OK || failed.Error == nil || failed.Error.Code != "lifecycle_failed" {
+		t.Fatalf("service rejection was not returned: %#v", failed)
+	}
+
 	external, err := New(context.Background(), Config{
 		Discovery: syncthing.DiscoveryOptions{ConfigPath: configPath},
 	})

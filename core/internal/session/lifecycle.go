@@ -32,7 +32,9 @@ func (s *Session) waitForLifecycle(ctx context.Context, name string) ActionResul
 		if time.Now().After(deadline) {
 			return rejected("lifecycle_timeout", "user service did not reach the requested state")
 		}
-		_ = s.lifecycle.Apply(ctx, s.binding.Unit, systemduser.Action(name))
+		if err := s.lifecycle.Apply(ctx, s.binding.Unit, systemduser.Action(name)); err != nil {
+			return rejected("lifecycle_failed", err.Error())
+		}
 		if !waitContext(ctx, 200*time.Millisecond) {
 			return rejected("canceled", "lifecycle action was canceled")
 		}

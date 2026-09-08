@@ -105,7 +105,7 @@ Panel {
     return syncthing.folderMutationError
       || syncthing.packageError
       || syncthing.settingsError
-      || (quiet ? "" : syncthing.controlError)
+      || syncthing.controlError
       || (quiet ? "" : syncthing.lastError) || ""
   }
   readonly property string visibleNotice: syncthing
