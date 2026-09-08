@@ -1,3 +1,4 @@
+import {ShareStatus} from './ShareStatus.jsx';
 import {useContext, useEffect, useRef, useState} from 'preact/hooks';
 import {LocaleContext} from './locale-context.jsx';
 import {deviceName, sharedFolders, deviceStatus, deviceLabels, deviceIcons, deviceColor,
@@ -118,7 +119,7 @@ export function Device({device, state, session, local = false, metric, toggleUni
             <button class="btn btn-sm btn-default" onClick={() => openAction('identification')}><span class="fas fa-qrcode" />&nbsp;{t('Identification')}</button>
             {folders.length > 0 && <div class={`dropup folder-sharing remote-folders ${foldersOpen ? 'open' : ''}`}>
                 <button class="btn btn-sm btn-default dropdown-toggle" aria-expanded={foldersOpen} onClick={() => setFoldersOpen(!foldersOpen)}><span class="fas fa-folder" />&nbsp;{t('Folders')} <span class="caret" /></button>
-                <ul class="dropdown-menu">{folders.map(folder => <li key={folder.id}><a href="#folder-sharing" onClick={event => { event.preventDefault(); setFoldersOpen(false); onAction({type: 'edit-folder', folder, tab: 'sharing'}); }}>{folder.label || folder.id}</a></li>)}</ul>
+                <ul class="dropdown-menu">{folders.map(folder => <li key={folder.id}><a href="#folder-sharing" onClick={event => { event.preventDefault(); setFoldersOpen(false); onAction({type: 'edit-folder', folder, tab: 'sharing'}); }}>{folder.label || folder.id} <ShareStatus encrypted={folder.type === 'receiveencrypted' || !!folder.devices.find(member => member.deviceID === device.deviceID)?.encryptionPassword} remoteState={state.completion[device.deviceID]?.[folder.id]?.remoteState} /></a></li>)}</ul>
             </div>}
             <span class="pull-right">
                 {device.remoteGUIPort > 0 && <a class="btn btn-sm btn-default" href={gui || undefined} aria-disabled={!gui}><span class="fas fa-desktop" />&nbsp;{t('Remote GUI')}</a>}

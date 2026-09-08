@@ -1,3 +1,4 @@
+import {ShareStatus} from './ShareStatus.jsx';
 import {recoveryActions, managementActions} from '../client/management.mjs';
 import {useContext, useEffect, useRef, useState} from 'preact/hooks';
 import {LocaleContext} from './locale-context.jsx';
@@ -115,7 +116,7 @@ export function Folder({folder, info, stats, progress, api, rescan, state, sessi
                         <button class="btn btn-sm btn-default dropdown-toggle" aria-expanded={sharingOpen} disabled={!folder.devices.some(device => device.deviceID !== state.system.myID)} onClick={() => setSharingOpen(!sharingOpen)}><span class="fas fa-share-alt" /> {t('Shared')} <span class="caret" /></button>
                         <ul class="dropdown-menu">{folder.devices.filter(device => device.deviceID !== state.system.myID).map(member => {
                             const device = state.config.devices.find(item => item.deviceID === member.deviceID);
-                            return <li key={member.deviceID}><a href="#edit-device" onClick={event => { event.preventDefault(); setSharingOpen(false); if (device) onAction({type: 'edit-device', device}); }}>{device?.name || member.deviceID.slice(0, 7)}</a></li>;
+                            return <li key={member.deviceID}><a href="#edit-device" onClick={event => { event.preventDefault(); setSharingOpen(false); if (device) onAction({type: 'edit-device', device}); }}>{device?.name || member.deviceID.slice(0, 7)} <ShareStatus encrypted={folder.type === 'receiveencrypted' || !!member.encryptionPassword} remoteState={state.completion[member.deviceID]?.[folder.id]?.remoteState} /></a></li>;
                         })}</ul>
                     </div>
                     <button class="btn btn-sm btn-default" onClick={() => session.setPaused('folders', folder.id, !folder.paused).catch(() => {})}><span class={`fas fa-${folder.paused ? 'play' : 'pause'}`} /> {t(folder.paused ? 'Resume' : 'Pause')}</button>

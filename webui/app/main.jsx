@@ -6,6 +6,7 @@ import {createLocale, translator} from '../client/locale.mjs';
 import {grouped, deviceName} from '../client/devices.mjs';
 import {UsageReport} from './UsageReport.jsx';
 import {needsUsageConsent} from '../client/reports.mjs';
+import {updateEditor} from '../client/editor-behavior.mjs';
 import {notices} from '../client/notices.mjs';
 import {Folder} from './Folder.jsx';
 import {Device} from './Device.jsx';
@@ -61,7 +62,7 @@ function App() {
                 folder.id = typeof next.folder === 'string' ? next.folder : (random.slice(0, 5) + '-' + random.slice(5)).toLowerCase();
                 folder.label = next.pending?.label || '';
                 folder.devices = [{deviceID: state.system.myID}, ...(next.device ? [{deviceID: next.device}] : [])];
-                if (next.pending?.receiveEncrypted) folder.type = 'receiveencrypted';
+                if (Object.values(state.pendingFolders[folder.id]?.offeredBy || {}).some(offer => offer.receiveEncrypted)) Object.assign(folder, updateEditor(folder, 'type', 'receiveencrypted', {kind:'folder', isNew:true, config:state.config, system:state.system}));
                 next = {...next, folder};
             }
             if (next.type === 'changes') await session.refreshGlobalChanges();
