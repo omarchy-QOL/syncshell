@@ -77,8 +77,9 @@ export async function saveEditor({session, api, state, kind, draft, isNew, share
         config[list] = [...config[list].filter(item => item[key] !== value[key]), value];
         if (kind === 'device') for (const folder of config.folders) {
             const present = folder.devices.some(item => item.deviceID === value.deviceID);
-            if (shares[folder.id] && !present) folder.devices.push({deviceID: value.deviceID});
-            if (!shares[folder.id] && present) folder.devices = folder.devices.filter(item => item.deviceID !== value.deviceID);
+            if (shares[folder.id]?.selected && !present) folder.devices.push({deviceID: value.deviceID, encryptionPassword: shares[folder.id].password || ''});
+            if (shares[folder.id]?.selected && present) folder.devices.find(item => item.deviceID === value.deviceID).encryptionPassword = shares[folder.id].password || '';
+            if (!shares[folder.id]?.selected && present) folder.devices = folder.devices.filter(item => item.deviceID !== value.deviceID);
         }
     });
 }

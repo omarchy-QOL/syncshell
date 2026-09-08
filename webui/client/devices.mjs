@@ -30,8 +30,8 @@ export function completionTotal(folders = {}) {
 
 export function connectionRates(current, previous, elapsed) {
     const rate = (value = {}, old) => ({...value,
-        inbps: old && elapsed > 0 ? Math.max(0, (value.inBytesTotal - old.inBytesTotal) / elapsed) : 0,
-        outbps: old && elapsed > 0 ? Math.max(0, (value.outBytesTotal - old.outBytesTotal) / elapsed) : 0});
+        inbps: Number.isFinite(old?.inBytesTotal) && elapsed > 0 ? Math.max(0, (value.inBytesTotal - old.inBytesTotal) / elapsed) : 0,
+        outbps: Number.isFinite(old?.outBytesTotal) && elapsed > 0 ? Math.max(0, (value.outBytesTotal - old.outBytesTotal) / elapsed) : 0});
     return {connectionsTotal: rate(current.total, previous.connectionsTotal),
         connections: Object.fromEntries(Object.entries(current.connections || {}).map(([id, conn]) =>
             [id, rate(conn, previous.connections?.[id])]))};

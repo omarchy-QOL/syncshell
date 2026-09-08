@@ -259,6 +259,6 @@ export function createSession(api, {publish, onAuthExpired,
         catch (error) { fail(error); throw error; }
     }
 
-    return {start, stop, rescan, refresh, saveConfig, changeConfig, setPaused,
+    return {start, stop, rescan, refresh, refreshGlobalChanges, reportError: fail, saveConfig, changeConfig, setPaused,
         dismissNotification, clearErrors, dismissPending, ignorePending, systemAction};
 }
