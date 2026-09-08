@@ -1,18 +1,20 @@
 import {useContext, useEffect, useRef, useState} from 'preact/hooks';
 import {LocaleContext} from './locale-context.jsx';
-import {listConflicts, recheckConflicts, replaceDirectory, parentPath, missingHelp, hostActionHelp} from '../client/conflicts.mjs';
+import {listConflicts, recheckConflicts, replaceDirectory, parentPath, missingHelp} from '../client/conflicts.mjs';
 import {conflictTranslator} from '../client/conflict-words.mjs';
 import {unitPrefixed, timestamp} from '../client/format.mjs';
 import {Tooltip} from './Tooltip.jsx';
 import {Dialog} from './Dialog.jsx';
 import '../client/conflicts.css';
+import {desktopHelp} from '../client/desktop.mjs';
 
-export function Conflicts({api, folders, active, ready, hostActions = null}) {
+export function Conflicts({api, folders, active, ready, hostActions = null, device}) {
     const locale = useContext(LocaleContext), t = conflictTranslator(locale);
     const [groups, setGroups] = useState([]), [search, setSearch] = useState('');
     const [selected, setSelected] = useState({}), [loading, setLoading] = useState(false);
     const [scanning, setScanning] = useState(null);
     const [errors, setErrors] = useState([]), [message, setMessage] = useState(''), [rename, setRename] = useState(null);
+    const [access, setAccess] = useState({}), [desktopError, setDesktopError] = useState('');
     const controller = useRef();
     const folderKey = folders.map(folder => folder.id).join('|');
     useEffect(() => {
@@ -31,33 +33,52 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
             if (request.signal.aborted) return;
             setGroups(previous => group ? replaceDirectory(previous, group, result.groups) : result.groups);
             setErrors(result.errors);
+            if (hostActions?.status) {
+                try {
+                    await hostActions.status(device);
+                    setDesktopError('');
+                    const entries = await Promise.all(result.groups.flatMap(item =>
+                        [item.current, ...item.copies].filter(Boolean).map(async file => {
+                            try { return [JSON.stringify([item.id, file.path]), await hostActions.check(device, item, file)]; }
+                            catch (error) { return [JSON.stringify([item.id, file.path]), {reason: error.message}]; }
+                        })));
+                    if (!request.signal.aborted) setAccess(previous => ({...previous, ...Object.fromEntries(entries)}));
+                } catch (error) { setDesktopError(error.message); setAccess({}); }
+            }
             if (scan && !result.errors.length) setMessage('Syncthing scan finished; file list updated.');
         } catch (error) { if (!request.signal.aborted) setErrors([error.message]); }
         finally { if (!request.signal.aborted) { setLoading(false); setScanning(null); } }
     }
     async function open(group, file) {
-        try { await hostActions.open(group, file); } catch (error) { setErrors([error.message]); }
+        try { await hostActions.open(group, file, device); } catch (error) { setErrors([error.message]); }
     }
     async function restore() {
         setLoading(true); setErrors([]);
         try {
-            await hostActions.rename(rename.group, rename.file);
+            await hostActions.rename(rename.group, rename.file, device);
             const group = rename.group; setRename(null);
             await load(true, group);
         } catch (error) { setErrors([error.message]); }
         finally { setLoading(false); }
     }
+    function permission(group, file) {
+        if (!hostActions) return {reason: desktopHelp};
+        if (desktopError) return {reason: desktopError};
+        if (!hostActions.check) return {open: true, rename: true};
+        return access[JSON.stringify([group.id, file.path])] || {reason: 'Checking local file access...'};
+    }
     function fileLink(group, file) {
         if (!file) return <span class="text-warning"><Tooltip icon="fas fa-exclamation-triangle" label="Missing current file" text={t(missingHelp)} /> {t('Missing current file')}</span>;
         if (!file.available) return <span class="text-warning" title={t('Waiting for Syncthing to download this file')}>{file.name} · {t('Not available locally')}</span>;
         const contents = <><span aria-hidden="true" class="fas fa-fw fa-file" /><span class="review-filename">{file.name}</span></>;
-        return hostActions ? <a class="review-file" href="#open-file" title={group.root + '/' + file.path} onClick={event => { event.preventDefault(); open(group, file); }}>{contents}</a>
+        return permission(group, file).open ? <a class="review-file" href="#open-file" title={group.root + '/' + file.path} onClick={event => { event.preventDefault(); open(group, file); }}>{contents}</a>
             : <span class="review-file" title={group.root + '/' + file.path}>{contents}</span>;
     }
     const metadata = file => <>{unitPrefixed(file.bytes, true)}B · {timestamp(file.modified)}</>;
     return <>
         <section class="conflict-review" aria-label={t('Conflict files')}>
             <h3>{t('Review in your file manager')}</h3>
+            {(!hostActions || desktopError) && <p role="status">{t(desktopError || desktopHelp)}</p>}
             <div class="review-tools">
                 <input type="search" class="form-control input-sm review-search" placeholder={t('Search filenames or paths')} aria-label={t('Search filenames or paths')} value={search} onInput={event => setSearch(event.currentTarget.value)} />
                 <button class="btn btn-default review-recheck" disabled={loading} aria-busy={scanning === 'all'} onClick={() => load(true)}><span class={scanning === 'all' ? 'text-warning review-rechecking' : ''}><span aria-hidden="true" class={`fas fa-refresh${scanning === 'all' ? ' fa-spin' : ''}`} /> {t('Recheck all files')}</span></button>
@@ -81,11 +102,12 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
                             </select> : <span class="review-mobile-label">{t('Conflict files')}</span>}
                             {fileLink(group, file)}
                             <small class="review-file-meta review-conflict-meta">{metadata(file)}
-                                {!group.current && file.available && <button class="btn btn-default review-autoresolve" disabled={!hostActions || loading} title={!hostActions ? t(hostActionHelp) : undefined} onClick={() => setRename({group, file})}><span class="text-warning">{t('Autoresolve')}</span></button>}
+                                {!group.current && file.available && <button class="btn btn-default review-autoresolve" disabled={!permission(group, file).rename || loading} title={t(permission(group, file).reason || '')} onClick={() => setRename({group, file})}><span class="text-warning">{t('Autoresolve')}</span></button>}
                             </small>
+                            {hostActions && !desktopError && permission(group, file).reason && <small class="text-warning">{t(permission(group, file).reason)}</small>}
                         </td>
                         <td class="review-actions">
-                            <button class="btn btn-default" disabled={!hostActions || loading} title={!hostActions ? t(hostActionHelp) : undefined} onClick={() => open(group)}><span aria-hidden="true" class="fas fa-folder-open" /> {t('Open folder')}</button>
+                            <button class="btn btn-default" disabled={!permission(group, group.current || file).open || loading} title={t(permission(group, group.current || file).reason || '')} onClick={() => open(group)}><span aria-hidden="true" class="fas fa-folder-open" /> {t('Open folder')}</button>
                             <button class="btn btn-default" disabled={loading} aria-busy={scanning === group.id} onClick={() => load(true, group)}><span class={scanning === group.id ? 'text-warning review-rechecking' : ''}><span aria-hidden="true" class={`fas fa-refresh${scanning === group.id ? ' fa-spin' : ''}`} /> {t('Recheck files in folder')}</span></button>
                         </td>
                     </tr>;

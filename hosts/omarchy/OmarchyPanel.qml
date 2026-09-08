@@ -434,7 +434,7 @@ Panel {
   }
 
   function openWebUi() {
-    if (syncthing && syncthing.online) Qt.openUrlExternally(syncthing.baseUrl)
+    if (syncthing && syncthing.online) syncthing.openWebUi()
   }
 
   function openSettingsMenu() {

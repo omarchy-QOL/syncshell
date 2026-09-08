@@ -9,6 +9,7 @@ and settings live in the host adapter around the native core.
 | `core/internal/syncthing/`   | discovery, secrets, transport, wire data    |
 | `core/internal/session/`     | normalized state, events, retries, actions  |
 | `core/internal/systemduser/` | one trusted user lifecycle binding          |
+| `core/internal/desktop/`  | local browser grant and bounded user file actions |
 | `core/internal/protocol/`    | bounded JSONL for session public types      |
 | `shared/CoreProcess.qml`     | child process and serialization boundary    |
 | `hosts/omarchy/`             | Omarchy facade, settings, UI, and platform  |
@@ -50,6 +51,11 @@ released implementations remain available in Git history.
 
 The bundled browser frontend is served by Syncthing. Omarchy owns preparing
 its runtime profiles and generating the Omarchy palette; the modern source
-contains no Omarchy commands or QML dependencies.
+contains no Omarchy commands or QML dependencies. An Omarchy-hosted core also
+provides an ephemeral loopback endpoint for explicit local file actions. It
+uses the selected client, validates local process/configuration identity and
+requires the exact GUI origin and private tab grant. The endpoint exposes no
+general command execution, file inventory or credential API. It closes with
+the core and does not add a daemon or system service.
 
 The future host directories are README-only in 0.1.8 and make no support claim.

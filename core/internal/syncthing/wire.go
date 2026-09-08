@@ -79,6 +79,7 @@ type GUIConfig struct {
 // SystemPaths contains only paths required by current host workflows.
 type SystemPaths struct {
 	GUIAssets string `json:"guiAssets"`
+	Config    string `json:"config"`
 }
 
 // FolderErrors is the current bounded folder error response.

@@ -1,3 +1,4 @@
+import {desktopActions} from '../client/desktop.mjs';
 import {render} from 'preact';
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {createApi} from '../client/api.mjs';
@@ -20,6 +21,8 @@ import '../client/components.css';
 
 const tabs = [['overview', 'Overview'], ['conflicts', 'Resolve sync conflicts'], ['notifications', 'Notifications']];
 const helpLinks = [['Introduction','https://github.com/omarchy-QOL/syncshell#readme'], ['Home page','https://github.com/omarchy-QOL/syncshell'], ['Documentation','https://docs.syncthing.net/'], ['Support','https://github.com/omarchy-QOL/syncshell/issues'], ['Changelog','https://github.com/omarchy-QOL/syncshell/blob/main/CHANGELOG.md'], ['Statistics','https://data.syncthing.net/'], ['Bugs','https://github.com/omarchy-QOL/syncshell/issues'], ['Source Code','https://github.com/omarchy-QOL/syncshell']];
+const desktop = desktopActions();
+
 function App() {
     const [state, setState] = useState(initialState);
     const [api] = useState(() => createApi());
@@ -149,7 +152,7 @@ function App() {
                                 </div>
                             </section>
                         </div>
-                        <section id="dashboard-conflicts" class={`tab-pane ${activeTab === 'conflicts' ? 'active' : ''}`} role="tabpanel" aria-labelledby="conflicts-tab"><Conflicts api={api} hostActions={window.syncshellHostActions || null} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></section>
+                        <section id="dashboard-conflicts" class={`tab-pane ${activeTab === 'conflicts' ? 'active' : ''}`} role="tabpanel" aria-labelledby="conflicts-tab"><Conflicts api={api} hostActions={desktop || window.syncshellHostActions || null} device={state.system.myID} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></section>
                         <section id="dashboard-notifications" class={`tab-pane notifications ${activeTab === 'notifications' ? 'active' : ''}`} role="tabpanel" aria-labelledby="notifications-tab"><Notifications cards={cards} session={session} onAction={openAction} /></section>
                     </div>
                 </div>

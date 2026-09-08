@@ -185,6 +185,17 @@ QtObject {
     settings.setLegacyThemedIcon(enabled)
   }
 
+  function openWebUi() {
+    if (!online) return
+    if (webUi.theme !== "syncshell-modern" && webUi.theme !== "syncthing-omarchy") {
+      Qt.openUrlExternally(baseUrl)
+      return
+    }
+    core.action("webui.open", {}, function(ok) {
+      if (!ok) Qt.openUrlExternally(root.baseUrl)
+    })
+  }
+
   function refresh() {
     packageController.updateStatus()
     if (!core.protocolReady || refreshing) return

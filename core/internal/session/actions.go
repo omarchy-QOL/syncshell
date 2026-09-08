@@ -49,6 +49,8 @@ func (s *Session) Act(
 		result = s.suggestFolderID(ctx)
 	case "lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
 		result = s.lifecycleAction(ctx, strings.TrimPrefix(action, "lifecycle."))
+	case "webui.open":
+		result = s.openWebUI(ctx)
 	case "webui.set-theme":
 		result = s.setWebUITheme(ctx, arguments.Theme)
 	default:

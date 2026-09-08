@@ -220,6 +220,26 @@ and sharing.
 
 This candidate is tested with Syncthing v2.1.3. Older daemon versions have not
 been verified for this release. Use `default` for the UI shipped by your daemon.
+Open the bundled UI from the plugin's **Web UI** button to enable desktop
+file actions. Filename links and **Open folder** open the containing folder in
+your default file manager. **Autoresolve** restores a selected conflict file's
+original name only when that name is absent; it preserves its contents and
+then requests a Syncthing rescan.
+
+Desktop file actions require a local Syncthing process running as your desktop
+user, accessible folders and an ordinary desktop session. Containers, tunnels,
+other accounts, relative folder paths and symlinked paths are unsupported for
+these actions. Permission failures are reported without changing permissions.
+The core uses the BSD-licensed `golang.org/x/sys` for the guarded Linux
+rename; its license ships beside the artifact metadata. No sudo or polkit
+configuration is required. Discovery and rechecks remain
+available through Syncthing's API when desktop actions are unavailable.
+
+The existing core owns a loopback-only desktop connection. A private launch
+page grants access to the browser tab; the grant is not placed in shared GUI
+assets or public core snapshots. Reopen the Web UI from the plugin after the
+core restarts. Ordinary direct URLs remain usable without desktop file actions.
+
 The bundled UI uses Syncthing's API and retains upstream attribution; its
 source and build are documented in [webui/UPSTREAM.md](webui/UPSTREAM.md).
 

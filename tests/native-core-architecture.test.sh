@@ -8,7 +8,7 @@ fail() {
   exit 1
 }
 
-packages=(protocol session syncthing systemduser)
+packages=(desktop protocol session syncthing systemduser)
 for package in "${packages[@]}"; do
   [[ -d $root/core/internal/$package ]] \
     || fail "missing native-core package $package"
@@ -18,7 +18,7 @@ mapfile -t actual_packages < <(
   find "$root/core/internal" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
     | sort
 )
-[[ ${actual_packages[*]} == "protocol session syncthing systemduser" ]] \
+[[ ${actual_packages[*]} == "desktop protocol session syncthing systemduser" ]] \
   || fail "unexpected native-core package layout"
 
 grep -Fxq 'OmarchyPanel {}' "$root/Panel.qml" \
@@ -64,6 +64,7 @@ if rg -n -- '--api-key|APIKey string `json|apiKey.*json' "$root/core" \
 fi
 if rg -n -g '!**/*_test.go' \
     'net[.]Listen|ListenUnix|unixgram|socket activation' "$root/core" \
+    -g '!**/desktop/**' \
     >/dev/null; then
   fail "native core contains a daemon control socket path"
 fi
