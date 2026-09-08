@@ -1,6 +1,8 @@
-import {useContext, useState} from 'preact/hooks';
+import {useContext} from 'preact/hooks';
 import {LocaleContext} from './locale-context.jsx';
 import {Dialog} from './Dialog.jsx';
+import {About} from './About.jsx';
+import {IdentityControls} from './IdentityControls.jsx';
 import {ServiceDialog} from './ServiceDialog.jsx';
 import {Logs} from './Logs.jsx';
 import {Editor} from './Editor.jsx';
@@ -12,7 +14,6 @@ import {deviceName, sharedFolders, serviceHealth} from '../client/devices.mjs';
 import {timestamp} from '../client/format.mjs';
 export function ActionDialog({action, state, api, session, onClose}) {
     const {t} = useContext(LocaleContext);
-    const [copied, setCopied] = useState(false);
     const friendly = id => deviceName(state.config.devices.find(device => device.deviceID.startsWith(id || '\0'))) || id || t('Unknown');
     if (['restart', 'shutdown', 'upgrade'].includes(action.type)) return <ServiceDialog kind={action.type} state={state} session={session} onClose={onClose} />;
     if (action.type === 'logs') return <Logs api={api} onClose={onClose} />;
@@ -21,16 +22,11 @@ export function ActionDialog({action, state, api, session, onClose}) {
         return <Editor action={action} state={state} api={api} session={session} onClose={onClose} />;
     if (['override', 'revert'].includes(action.type)) return <ConfirmAction action={action} api={api} session={session} onClose={onClose} onDone={onClose} />;
     if (action.type === 'versions') return <RestoreVersions api={api} folder={action.folder} onClose={onClose} />;
-    if (action.type === 'about') return <Dialog title="About" icon="fas fa-info-circle" onClose={onClose}>
-        <h3>Syncshell Modern / Omarchy UI</h3>
-        <p>Based on Syncthing, by the Syncthing authors and community.</p>
-        <p>Syncthing {state.version.version}</p>
-        <p><a href="https://github.com/omarchy-QOL/syncshell" target="_blank" rel="noreferrer">Syncshell</a> · <a href="https://syncthing.net" target="_blank" rel="noreferrer">Syncthing</a> · <a href="LICENSE.syncthing" target="_blank">Mozilla Public License 2.0</a></p>
-    </Dialog>;
+    if (action.type === 'about') return <About api={api} version={state.version} onClose={onClose} />;
     if (action.type === 'identification') return <Dialog title={t('Device Identification') + ' - ' + deviceName(action.device)} large status="info" icon="fas fa-qrcode" onClose={onClose}>
         <div class="text-center"><div class="well well-sm text-monospace"><strong>{action.device.deviceID}</strong></div>
             <img class="img-thumbnail" src={'qr/?text=' + encodeURIComponent(action.device.deviceID)} height="328" width="328" alt={t('QR code')} />
-            <div class="btn-group-vertical"><button class="btn btn-default" onClick={async () => { await navigator.clipboard.writeText(action.device.deviceID); setCopied(true); }}><span class="fa fa-clone" /> {t(copied ? 'Copied!' : 'Copy')}</button></div>
+            <IdentityControls device={action.device} api={api} />
         </div>
     </Dialog>;
     if (action.type === 'listeners' || action.type === 'discovery') {

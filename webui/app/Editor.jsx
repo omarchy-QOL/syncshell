@@ -6,6 +6,7 @@ import {copy, getValue, setValue, editorFields, inputValue, changedValue, saveEd
 import {folderPath, updateEditor, editorFieldState, newXattrEntry, xattrDefault, xattrHint, overlappingPath} from '../client/editor-behavior.mjs';
 import {fieldHelp} from '../client/field-help.mjs';
 import {Tooltip} from './Tooltip.jsx';
+import {IdentityControls} from './IdentityControls.jsx';
 import {deviceName} from '../client/devices.mjs';
 
 export function Editor({action, state, api, session, onClose, onSaved}) {
@@ -145,6 +146,7 @@ export function Editor({action, state, api, session, onClose, onSaved}) {
                         <p>{t('Patterns are applied before the folder starts synchronizing.')}</p></> :
                         <textarea class="form-control" rows="12" aria-label={t('Ignore Patterns')} value={ignores} disabled={draft.type === 'receiveencrypted' || !loadedIgnores} onInput={event => setIgnores(event.currentTarget.value)} />}
                 </> : <>
+                    {kind === 'device' && tab === 'General' && !defaults && <IdentityControls device={draft} api={api} />}
                     {fields.map(field => <div class="form-group" key={field.path}>
                         {field.type === 'checkbox' ? <label><input type="checkbox" checked={field.checked ?? !!getValue(draft, field.path)} disabled={field.disabled} onChange={event => update(field.path, changedValue(field, event.currentTarget))} /> {t(field.label)}</label> : <>
                             <label for={'editor-' + field.path}>{t(field.label)}</label>
