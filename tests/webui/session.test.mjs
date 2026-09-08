@@ -33,7 +33,9 @@ test('session hydrates, scans only the selected directory and cancels on disposa
         if (events++ === 0) return [{id: 1, type: 'Starting'}];
         return new Promise((_, reject) => signal.addEventListener('abort',
             () => reject(new DOMException('Aborted', 'AbortError')), {once: true}));
-    }, async post(path, body, query) { calls.push({path, body, query, method: 'POST'}); }};
+    }, async post(path, body, query) { calls.push({path, body, query, method: 'POST'}); },
+        async put(path, body) { data[path] = body; },
+        async delete(path, query) { calls.push({path, query, method: 'DELETE'}); }};
     const session = createSession(api, {publish: state => { if (state.ready) ready(state); }});
     session.start();
     const state = await loaded;
@@ -42,5 +44,9 @@ test('session hydrates, scans only the selected directory and cancels on disposa
     await session.rescan('a', 'nested');
     assert.deepEqual(calls.at(-1), {path: 'db/scan', body: undefined,
         query: {folder: 'a', sub: 'nested'}, method: 'POST'});
+    await session.ignorePending('ignored-peer', undefined, {name: 'Ignored peer', address: '127.0.0.1:1'});
+    assert.equal(data.config.remoteIgnoredDevices[0].deviceID, 'ignored-peer');
+    assert.ok(data.config.remoteIgnoredDevices[0].time);
+    assert.equal(data.config.ignoredDevices, undefined);
     await session.stop();
 });

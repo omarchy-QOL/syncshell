@@ -247,8 +247,8 @@ export function createSession(api, {publish, onAuthExpired,
                 target.ignoredFolders = [...(target.ignoredFolders || []).filter(item => item.id !== folder),
                     {id: folder, label: pending.label, time: new Date().toISOString()}];
             } else {
-                config.ignoredDevices = [...(config.ignoredDevices || []).filter(item => item.deviceID !== device),
-                    {deviceID: device, name: pending.name, address: pending.address}];
+                config.remoteIgnoredDevices = [...(config.remoteIgnoredDevices || []).filter(item => item.deviceID !== device),
+                    {deviceID: device, name: pending.name, address: pending.address, time: new Date().toISOString()}];
             }
         });
         await dismissPending(device, folder);
