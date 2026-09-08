@@ -78,7 +78,7 @@ func TestDirectoryRejectsIntermediateSymlink(t *testing.T) {
 	root := t.TempDir()
 	outside := t.TempDir()
 	os.Symlink(outside, filepath.Join(root, "redirect"))
-	if _, err := directory(root, "redirect"); err == nil {
+	if _, err := openDirectory(root, "redirect"); err == nil {
 		t.Fatal("followed symlink outside folder")
 	}
 }
@@ -90,7 +90,7 @@ func TestConflictNames(t *testing.T) {
 		"notes.txt": "",
 		"a.sync-conflict-20260908-123456-ABCDEFG.sync-conflict-20260908-123456-ABCDEFG.txt": "",
 	} {
-		if got := original(input); got != want {
+		if got := originalPath(input); got != want {
 			t.Errorf("%s: %q, want %q", input, got, want)
 		}
 	}

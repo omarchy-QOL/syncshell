@@ -46,7 +46,8 @@ type request struct {
 // New binds an ephemeral loopback port; the token never enters public snapshots.
 func New(client *syncthing.Client) (*Bridge, error) {
 	endpoint, err := url.Parse(client.Endpoint())
-	if err != nil || !client.Target().Local || (endpoint.Scheme != "http" && endpoint.Scheme != "https") || os.Geteuid() == 0 {
+	if err != nil || !client.Target().Local || os.Geteuid() == 0 ||
+		(endpoint.Scheme != "http" && endpoint.Scheme != "https") {
 		return nil, errors.New("desktop file actions require a local user session")
 	}
 	if os.Getenv("DBUS_SESSION_BUS_ADDRESS") == "" {
@@ -61,14 +62,26 @@ func New(client *syncthing.Client) (*Bridge, error) {
 		listener.Close()
 		return nil, err
 	}
-	b := &Bridge{client: client, address: listener.Addr().String(),
-		origin: endpoint.Scheme + "://" + endpoint.Host, token: hex.EncodeToString(secret), launch: launch}
-	b.server = &http.Server{Handler: b, ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 10 * time.Second,
-		WriteTimeout: 30 * time.Second, IdleTimeout: 15 * time.Second, MaxHeaderBytes: 8192}
+	b := &Bridge{
+		client:  client,
+		address: listener.Addr().String(),
+		origin:  endpoint.Scheme + "://" + endpoint.Host,
+		token:   hex.EncodeToString(secret),
+		launch:  launch,
+	}
+	b.server = &http.Server{
+		Handler:           b,
+		ReadHeaderTimeout: 3 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       15 * time.Second,
+		MaxHeaderBytes:    8192,
+	}
 	go b.server.Serve(listener)
 	return b, nil
 }
 
+// Close stops the endpoint and removes its private launch page.
 func (b *Bridge) Close() {
 	b.server.Close()
 	if b.launchDir != "" {
@@ -92,7 +105,9 @@ func (b *Bridge) Open(ctx context.Context) error {
 	target, _ := json.Marshal(endpoint.String())
 	page := filepath.Join(b.launchDir, "open.html")
 	// Keep the grant out of process arguments and world-readable theme assets.
-	if err := os.WriteFile(page, []byte("<!doctype html><meta charset=utf-8><script>location.replace("+string(target)+")</script>"), 0600); err != nil {
+	contents := "<!doctype html><meta charset=utf-8><script>location.replace(" +
+		string(target) + ")</script>"
+	if err := os.WriteFile(page, []byte(contents), 0600); err != nil {
 		return errors.New("could not prepare the private browser launch")
 	}
 	return b.launch(ctx, (&url.URL{Scheme: "file", Path: page}).String())
@@ -137,15 +152,9 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "desktop authorization refused", http.StatusForbidden)
 		return
 	}
-	var body request
-	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 16<<10))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&body); err != nil {
-		http.Error(w, "invalid desktop request", 400)
-		return
-	}
-	if err := decoder.Decode(new(any)); err != io.EOF {
-		http.Error(w, "invalid desktop request", 400)
+	body, err := readRequest(w, r)
+	if err != nil {
+		http.Error(w, "invalid desktop request", http.StatusBadRequest)
 		return
 	}
 	b.mu.Lock()
@@ -160,4 +169,17 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(result)
+}
+
+func readRequest(w http.ResponseWriter, r *http.Request) (request, error) {
+	var body request
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 16<<10))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&body); err != nil {
+		return request{}, err
+	}
+	if err := decoder.Decode(new(any)); err != io.EOF {
+		return request{}, errors.New("invalid desktop request")
+	}
+	return body, nil
 }

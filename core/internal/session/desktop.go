@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+
 	"github.com/omarchy-QOL/syncshell/core/internal/desktop"
 )
 

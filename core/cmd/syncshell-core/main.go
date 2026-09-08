@@ -51,7 +51,8 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer) 
 	switch command {
 	case "stream":
 		if options.HostID == "omarchy" {
-			defer coreSession.EnableDesktop()()
+			closeDesktop := coreSession.EnableDesktop()
+			defer closeDesktop()
 		}
 		return protocol.Stream{Session: coreSession, Input: stdin, Output: stdout,
 			Build: protocol.Build{Version: buildVersion, Protocol: protocol.Version,
