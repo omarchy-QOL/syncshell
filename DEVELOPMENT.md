@@ -61,7 +61,7 @@ mise exec aqua:koalaman/shellcheck@0.11.0 -- \
     tests/*.sh tests/live/copy-*.sh
 qml6 --apptype core -f tests/run.qml
 bash tests/scripts.test.sh
-node tests/webui-counts.test.cjs
+node --test tests/webui/*.test.*
 bash tests/busy-button.test.sh
 bash tests/rescan-core-loss.test.sh
 bash tests/install-recovery.test.sh

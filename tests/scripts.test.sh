@@ -115,7 +115,7 @@ test_installation_status() {
 
 test_modern_bundle() {
   local sandbox="$test_root/modern"
-  local assets="$sandbox/gui" dependency relative before
+  local assets="$sandbox/gui" dependency relative before asset_before
   local helper="$root/hosts/omarchy/scripts/syncthing-theme.sh"
   mkdir -p -- "$sandbox/bin" "$assets/default"
   printf '%s\n' 'owner default' >"$assets/default/index.html"
@@ -126,10 +126,14 @@ test_modern_bundle() {
   PATH="$sandbox/bin:$PATH" bash "$helper" prepare modern "$assets" >/dev/null
   while IFS= read -r -d '' dependency; do
     relative=${dependency#"$root/webui/modern/"}
-    [[ $relative == assets/css/theme.css ]] && continue
+    [[ $relative == index.html || $relative == assets/css/theme.css ]] && continue
     cmp -s -- "$dependency" "$assets/syncshell-modern/$relative" \
       || fail "modern profile omitted or altered $relative"
   done < <(find "$root/webui/modern" -type f -print0)
+  cmp -s -- "$root/webui/modern/index.html" \
+    <(sed 's#assets/css/theme.css?v=[a-f0-9]*#assets/css/theme.css#g' \
+      "$assets/syncshell-modern/index.html") \
+    || fail "modern index changed beyond its stylesheet revision"
   for relative in dark light; do
     cmp -s -- "$root/webui/themes/$relative.css" \
       "$assets/syncshell-modern/assets/css/syncshell-$relative.css" \
@@ -141,10 +145,12 @@ test_modern_bundle() {
     || fail "modern preparation replaced default assets"
   [[ ! -e $assets/syncshell-modern/theme-version.txt ]] \
     || fail "modern preparation included the Omarchy palette updater"
-  before=$(stat -c '%i:%Y' "$assets/syncshell-modern/index.html")
+  before=$(sha256sum "$assets/syncshell-modern/index.html")
+  asset_before=$(stat -c '%i:%Y' "$assets/syncshell-modern/assets/img/favicon-default.png")
   bash "$helper" prepare modern "$assets" >/dev/null
-  [[ $(stat -c '%i:%Y' "$assets/syncshell-modern/index.html") == "$before" ]] \
-    || fail "unchanged modern bundle was recopied"
+  [[ $(sha256sum "$assets/syncshell-modern/index.html") == "$before"
+      && $(stat -c '%i:%Y' "$assets/syncshell-modern/assets/img/favicon-default.png") == "$asset_before" ]] \
+    || fail "unchanged modern bundle content changed or assets were recopied"
 
   local package="$sandbox/package"
   mkdir -p -- "$package/hosts/omarchy/scripts"
@@ -157,7 +163,7 @@ test_modern_bundle() {
   if bash "$helper" prepare modern "$assets" >/dev/null 2>&1; then
     fail "incomplete modern bundle was selected"
   fi
-  [[ $(stat -c '%i:%Y' "$assets/syncshell-modern/index.html") == "$before" ]] \
+  [[ $(sha256sum "$assets/syncshell-modern/index.html") == "$before" ]] \
     || fail "failed preparation replaced the working profile"
   cp -- "$root/webui/modern/index.html" "$package/webui/modern/index.html"
   bash "$helper" prepare modern "$assets" >/dev/null
@@ -236,12 +242,12 @@ test_themes() {
     cmp -s -- "$dependency" "$user_root/$relative" \
       || fail "Omarchy profile omitted or altered $relative"
   done < <(find "$root/webui/modern" -type f -print0)
-  local vendor_before
-  vendor_before=$(stat -c '%i:%Y' "$user_root/vendor/angular/angular.js")
+  local asset_before
+  asset_before=$(stat -c '%i:%Y' "$user_root/assets/img/favicon-default.png")
   bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
     "$test_root/themes/user" "$user_theme" >/dev/null
-  [[ $(stat -c '%i:%Y' "$user_root/vendor/angular/angular.js") == "$vendor_before" ]] \
-    || fail "palette refresh recopied the vendor bundle"
+  [[ $(stat -c '%i:%Y' "$user_root/assets/img/favicon-default.png") == "$asset_before" ]] \
+    || fail "palette refresh recopied static assets"
   [[ $(<"$user_root/theme-version.txt") != "$version" ]] \
     || fail "palette refresh did not advance its generation"
 
