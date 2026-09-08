@@ -10,8 +10,11 @@ test('browser language prefix matching preserves region boundaries', () => {
 });
 
 test('translation falls back per key and keeps substituted values literal', () => {
-    const t = translator({Folders: 'Ordner'}, {'Remove {%name%}': 'Remove {{name}}'});
+    const t = translator({Folders: 'Ordner', theme: {name: {dark: 'Dark'}}}, {'Remove {%name%}': 'Remove {{name}}'});
     assert.equal(t('Folders'), 'Ordner');
+    assert.equal(t('theme.name.dark'), 'Dark');
+    assert.equal(t('theme'), 'theme');
+    assert.equal(t('constructor'), 'constructor');
     assert.equal(t('Remove {%name%}', {name: '<script>&"'}), 'Remove <script>&"');
     assert.equal(t('Unknown field'), 'Unknown field');
     assert.equal(t('Remove {%name%}'), 'Remove ');

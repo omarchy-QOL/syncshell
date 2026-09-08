@@ -16,7 +16,13 @@ export function preferredLocale(requested, available) {
 
 export function translator(messages, fallback = {}) {
     return (key, values = {}) => {
-        const text = messages[key] ?? fallback[key] ?? key ?? '';
+        const lookup = source => {
+            if (Object.hasOwn(source, key) && typeof source[key] === 'string') return source[key];
+            const value = String(key).split('.').reduce((value, part) =>
+                value && Object.hasOwn(value, part) ? value[part] : undefined, source);
+            return typeof value === 'string' ? value : undefined;
+        };
+        const text = lookup(messages) ?? lookup(fallback) ?? key ?? '';
         return text.replace(/{{\s*(\w+)\s*}}/g, (_, name) => values[name] ?? '');
     };
 }
