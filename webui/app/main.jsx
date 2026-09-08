@@ -149,7 +149,7 @@ function App() {
                                 </div>
                             </section>
                         </div>
-                        <section id="dashboard-conflicts" class={`tab-pane ${activeTab === 'conflicts' ? 'active' : ''}`} role="tabpanel" aria-labelledby="conflicts-tab"><Conflicts api={api} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></section>
+                        <section id="dashboard-conflicts" class={`tab-pane ${activeTab === 'conflicts' ? 'active' : ''}`} role="tabpanel" aria-labelledby="conflicts-tab"><Conflicts api={api} hostActions={window.syncshellHostActions || null} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></section>
                         <section id="dashboard-notifications" class={`tab-pane notifications ${activeTab === 'notifications' ? 'active' : ''}`} role="tabpanel" aria-labelledby="notifications-tab"><Notifications cards={cards} session={session} onAction={openAction} /></section>
                     </div>
                 </div>

@@ -93,7 +93,7 @@ export function Conflicts({api, folders, active, ready, hostActions = null}) {
             {!loading && !visible.length && !errors.length && <p class="text-success">{t(groups.length ? 'No matches' : 'No conflict files remain')}</p>}
         </section>
         {rename && <Dialog title={t('Restore original name')} onClose={() => setRename(null)} onCancel={() => { if (!loading) setRename(null); }} footer={<>
-            <button class="btn btn-default" disabled={loading} onClick={() => setRename(null)}>{t('Cancel')}</button><button class="btn btn-default text-warning" disabled={loading} onClick={restore}>{t('Rename')}</button>
+            <button class="btn btn-default" disabled={loading} onClick={() => setRename(null)}>{t('Cancel')}</button><button class="btn btn-default" disabled={loading} onClick={restore}><span class="text-warning">{t('Rename')}</span></button>
         </>}>
             <p>{t('Rename the selected conflict file to the original name. Other conflict files remain. An existing file will never be overwritten.')}</p>
             <strong>{t('From')}:</strong><p class="review-confirm-path">{rename.group.root}/{rename.file.path}</p>
