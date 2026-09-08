@@ -20,7 +20,7 @@ async function record(api, folder, path, signal) {
     catch (error) { if (error.status === 404) return null; throw error; }
     if (!usable(info.global)) return null;
     const available = usable(info.local), file = available ? info.local : info.global;
-    return {path, name: basename(path), bytes: file.size, modified: file.modified, available};
+    return {path, name: basename(path), bytes: file.size, modified: file.modified, available, digest: available ? file.blocksHash ?? null : null};
 }
 function* filenames(nodes, parent = '') {
     for (const node of nodes) {
