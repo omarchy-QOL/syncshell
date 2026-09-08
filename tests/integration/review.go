@@ -327,6 +327,10 @@ func (s *reviewServer) action(route string, body reviewRequest) (any, error) {
 		result := map[string]any{"renamed": group.Path}
 		if err := s.scan(group.Path); err != nil {
 			result["warning"] = "Renamed successfully, but the Syncthing recheck failed. Recheck again."
+		} else if groups, err := s.inventory(group.Path); err != nil {
+			result["warning"] = "Renamed successfully, but the Syncthing recheck failed. Recheck again."
+		} else {
+			result["groups"] = groups
 		}
 		return result, nil
 	}
