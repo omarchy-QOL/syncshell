@@ -1,45 +1,35 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {createLocale, preferredLocale, translator} from '../../webui/client/locale.mjs';
+import {loadEnglish, translator} from '../../webui/client/locale.mjs';
 
-test('browser language prefix matching preserves region boundaries', () => {
-    const available = ['en', 'en-GB', 'zh-CN', 'zh-TW'];
-    assert.equal(preferredLocale(['x', 'zh-tw', 'en'], available), 'zh-TW');
-    assert.equal(preferredLocale(['zh', 'en'], available), 'zh-CN');
-    assert.equal(preferredLocale(['e', 'en-us'], available), 'en');
-});
-
-test('translation falls back per key and keeps substituted values literal', () => {
-    const t = translator({Folders: 'Ordner', theme: {name: {dark: 'Dark'}}}, {'Remove {%name%}': 'Remove {{name}}'});
-    assert.equal(t('Folders'), 'Ordner');
+test('English text resolves nested keys and keeps substituted values literal', () => {
+    const t = translator({Folders: 'Folders', theme: {name: {dark: 'Dark'}},
+        'Remove {%name%}': 'Remove {{name}}'});
+    assert.equal(t('Folders'), 'Folders');
     assert.equal(t('theme.name.dark'), 'Dark');
     assert.equal(t('theme'), 'theme');
     assert.equal(t('constructor'), 'constructor');
     assert.equal(t('Remove {%name%}', {name: '<script>&"'}), 'Remove <script>&"');
     assert.equal(t('Unknown field'), 'Unknown field');
     assert.equal(t('Remove {%name%}'), 'Remove ');
+    assert.equal(translator({})('Remove {%name%}', {name: 'folder'}), 'Remove folder');
 });
 
-test('URL language wins over storage and browser negotiation, and is persisted', async () => {
-    const writes = [];
-    let browserCalls = 0;
-    const locale = createLocale({async get() { browserCalls++; return ['fr']; }}, {
-        available: ['en', 'de', 'fr'], pageUrl: 'https://localhost/sync/?lang=de',
-        storage: () => ({getItem: () => 'fr', setItem: (...args) => writes.push(args)}),
-        fetch: async url => new Response(JSON.stringify(url.pathname.endsWith('de.json')
-            ? {Folders: 'Ordner'} : {Folders: 'Folders'}))});
-    const selected = await locale.auto();
-    assert.equal(selected.language, 'de');
-    assert.equal(selected.t('Folders'), 'Ordner');
-    assert.equal(browserCalls, 0);
-    assert.deepEqual(writes, [['SYN_LANG', 'de']]);
+test('the interface loads only the English catalog', async () => {
+    const requests = [];
+    const locale = await loadEnglish({pageUrl: 'https://localhost/sync/?lang=de',
+        fetch: async url => {
+            requests.push(url.href);
+            return new Response('{"Folders":"Folders"}');
+        }});
+    assert.equal(locale.language, 'en');
+    assert.equal(locale.t('Folders'), 'Folders');
+    assert.deepEqual(requests,
+        ['https://localhost/sync/assets/lang/lang-en.json']);
 });
 
-test('blocked storage and missing translation files preserve a usable fallback', async () => {
-    const locale = createLocale({async get() { return ['de']; }}, {
-        available: ['en', 'de'], pageUrl: 'https://localhost/',
-        storage: () => { throw new Error('disabled'); },
-        fetch: async url => url.pathname.endsWith('en.json')
-            ? new Response('{"Folders":"Folders"}') : new Response('', {status: 404})});
-    assert.equal((await locale.auto()).t('Folders'), 'Folders');
+test('a missing English catalog reports a clear loading error', async () => {
+    await assert.rejects(loadEnglish({pageUrl: 'https://localhost/',
+        fetch: async () => new Response('', {status: 404})}),
+    /Could not load English interface text/);
 });

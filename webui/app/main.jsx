@@ -1,10 +1,10 @@
 import syncshellMark from '../../assets/mono/status-default.svg?url';
 import {desktopActions} from '../client/desktop.mjs';
 import {render} from 'preact';
-import {useEffect, useRef, useState} from 'preact/hooks';
+import {useEffect, useState} from 'preact/hooks';
 import {createApi} from '../client/api.mjs';
 import {createSession, initialState} from '../client/session.mjs';
-import {createLocale, translator} from '../client/locale.mjs';
+import {loadEnglish, translator} from '../client/locale.mjs';
 import {grouped, deviceName} from '../client/devices.mjs';
 import {UsageReport} from './UsageReport.jsx';
 import {needsUsageConsent} from '../client/reports.mjs';
@@ -13,7 +13,6 @@ import {notices} from '../client/notices.mjs';
 import {Folder} from './Folder.jsx';
 import {Device} from './Device.jsx';
 import {Login} from './Login.jsx';
-import {LanguageMenu} from './LanguageMenu.jsx';
 import {Notifications} from './Notifications.jsx';
 import {ActionDialog} from './ActionDialog.jsx';
 import {Conflicts} from './Conflicts.jsx';
@@ -27,12 +26,10 @@ const desktop = desktopActions();
 function App() {
     const [state, setState] = useState(initialState);
     const [api] = useState(() => createApi());
-    const [languages] = useState(() => createLocale(api));
     const [locale, setLocale] = useState({language: 'en', t: translator({})});
     const [session] = useState(() => createSession(api, {publish: setState, onAuthExpired: () => location.reload()}));
     const [activeTab, setActiveTab] = useState('overview'), [menu, setMenu] = useState('');
     const [action, setAction] = useState(null), [metric, setMetric] = useState(false);
-    const languageVersion = useRef(0);
     const authenticated = Boolean(window.metadata?.authenticated);
     const self = state.config.devices.find(device => device.deviceID === state.system.myID);
     const others = state.config.devices.filter(device => device.deviceID !== state.system.myID);
@@ -42,12 +39,6 @@ function App() {
     const name = deviceName(self) || 'Syncthing';
     const {t} = locale;
     const perform = promise => promise.catch(() => {});
-    async function selectLanguage(code) {
-        const version = ++languageVersion.current;
-        const selected = await (code ? languages.use(code, true) : languages.auto());
-        if (version !== languageVersion.current) return;
-        setLocale(selected); document.documentElement.lang = selected.language;
-    }
     function toggleUnits() {
         setMetric(value => { try { localStorage.setItem('metricRates', String(!value)); } catch {} return !value; });
     }
@@ -84,7 +75,7 @@ function App() {
         event.currentTarget.querySelectorAll('[role="tab"]')[index].focus();
     }
     useEffect(() => {
-        selectLanguage().catch(error => session.reportError(error));
+        loadEnglish().then(setLocale).catch(error => session.reportError(error));
         try { setMetric(localStorage.getItem('metricRates') === 'true'); } catch {}
         function outside(event) { if (!event.target.closest('.action-menu')) setMenu(''); }
         document.addEventListener('pointerdown', outside);
@@ -92,11 +83,11 @@ function App() {
         return () => { session.stop(); document.removeEventListener('pointerdown', outside); };
     }, [session, authenticated]);
     useEffect(() => { document.title = name + ' | Syncshell'; }, [name]);
-    return <LocaleContext.Provider value={{...locale, select: selectLanguage}}>
+    return <LocaleContext.Provider value={locale}>
         <nav class="navbar navbar-top navbar-default" aria-label="Main"><div class="container">
             <span class="navbar-brand syncshell-brand"><span class="syncshell-mark" aria-hidden="true" style={{'--syncshell-mark': `url("${syncshellMark}")`}} /><span class="text-success">Syncshell</span></span>
             {authenticated && <p class="navbar-text hidden-xs">{name}</p>}
-            <ul class="nav navbar-nav navbar-right"><LanguageMenu />
+            <ul class="nav navbar-nav navbar-right">
                 <li class={`dropdown action-menu ${menu === 'help' ? 'open' : ''}`}><a href="#help" class="dropdown-toggle" aria-expanded={menu === 'help'} onClick={event => { event.preventDefault(); setMenu(menu === 'help' ? '' : 'help'); }}><span class="fa fa-question-circle" /> {t('Help')} <span class="caret" /></a>
                     <ul class="dropdown-menu">{helpLinks.map(([label, url]) => <li key={label}><a href={url} target="_blank" rel="noreferrer">{t(label)}</a></li>)}
                         <li><a href="#about" onClick={event => { event.preventDefault(); openAction({type: 'about'}); }}>{t('About')}</a></li>

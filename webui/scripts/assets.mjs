@@ -5,9 +5,18 @@ import {createHash} from 'node:crypto';
 const root = resolve(import.meta.dirname, '..');
 const output = resolve(root, 'dist');
 const shipped = resolve(root, 'modern');
+const shippedAssets = resolve(shipped, 'assets');
+const retainedLanguageAssets = new Set(['lang', 'lang/README.txt',
+    'lang/lang-en.json']);
+function includeAsset(source) {
+    const path = relative(shippedAssets, source);
+    if (path === 'compiled' || path.startsWith('compiled/')) return false;
+    return !path.startsWith('lang') || retainedLanguageAssets.has(path);
+}
 for (const path of ['assets', 'vendor/bootstrap/css', 'vendor/bootstrap/fonts', 'vendor/bootstrap/LICENSE', 'vendor/fork-awesome',
     'vendor/HumanizeDuration.js/humanize-duration.js', 'vendor/HumanizeDuration.js/LICENSE.txt']) {
-    await cp(resolve(shipped, path), resolve(output, path), {recursive: true, filter: source => source !== resolve(shipped, 'assets/compiled')});
+    await cp(resolve(shipped, path), resolve(output, path), {recursive: true,
+        filter: path === 'assets' ? includeAsset : undefined});
 }
 await cp(resolve(root, 'LICENSE.syncthing'), resolve(output, 'LICENSE.syncthing'));
 await cp(resolve(root, 'licenses'), resolve(output, 'licenses'), {recursive: true});

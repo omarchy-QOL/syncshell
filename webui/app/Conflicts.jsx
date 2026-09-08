@@ -2,14 +2,12 @@ import { ConflictRow } from './ConflictRow.jsx';
 import { useContext, useEffect, useRef, useState } from 'preact/hooks';
 import { LocaleContext } from './locale-context.jsx';
 import { listConflicts, recheckConflicts, replaceDirectory } from '../client/conflicts.mjs';
-import { conflictTranslator } from '../client/conflict-words.mjs';
 import { Dialog } from './Dialog.jsx';
 import '../client/conflicts.css';
 import { desktopHelp } from '../client/desktop.mjs';
 
 export function Conflicts({ api, folders, active, ready, hostActions = null, device }) {
-    const locale = useContext(LocaleContext),
-        t = conflictTranslator(locale);
+    const { t } = useContext(LocaleContext);
     const [groups, setGroups] = useState([]),
         [search, setSearch] = useState('');
     const [selected, setSelected] = useState({}),

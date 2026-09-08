@@ -1,6 +1,5 @@
 import { useContext } from 'preact/hooks';
 import { LocaleContext } from './locale-context.jsx';
-import { conflictTranslator } from '../client/conflict-words.mjs';
 import { parentPath, missingHelp } from '../client/conflicts.mjs';
 import { unitPrefixed, timestamp } from '../client/format.mjs';
 import { Tooltip } from './Tooltip.jsx';
@@ -17,8 +16,7 @@ export function ConflictRow({
     onRename,
     onRecheck
 }) {
-    const locale = useContext(LocaleContext);
-    const t = conflictTranslator(locale);
+    const { t } = useContext(LocaleContext);
     const file = group.copies.find((copy) => copy.path === selected) || group.copies[0];
     const fileAccess = permission(group, file);
     const folderAccess = permission(group, group.current || file);

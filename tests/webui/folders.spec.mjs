@@ -7,9 +7,9 @@ async function openFolder(page, query = '') {
     await expect(page.locator('.folder-state-summary')).toBeVisible();
 }
 
-test('accepted fields, compact values and icon-only help survive language changes', async ({page}, testInfo) => {
+test('accepted fields, compact values and icon-only help stay readable in English', async ({page}, testInfo) => {
     await folderFixture(page);
-    await openFolder(page);
+    await openFolder(page, '?lang=de');
     const summary = page.locator('.folder-state-summary');
     await expect(summary).toContainText('109.2k');
     await expect(summary).toContainText('6.85 GiB');
@@ -24,13 +24,12 @@ test('accepted fields, compact values and icon-only help survive language change
     await expect(page.getByRole('img', {name: 'Folder Type', exact: true})).toBeVisible();
     await expect(page.getByLabel('/a/b', {exact: true})).toBeVisible();
     await expect(page.getByText('File Pull Order', {exact: true})).toBeVisible();
-    await page.getByRole('link', {name: 'Language', exact: true}).click();
-    await page.getByRole('link', {name: 'German', exact: true}).click();
-    await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-    await expect(page.getByText('Dateiübertragungsreihenfolge', {exact: true})).toBeVisible();
+    await expect(page.getByRole('link', {name: 'Language', exact: true})).toHaveCount(0);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page.getByText('File Pull Order', {exact: true})).toBeVisible();
     await expect(page).toHaveTitle(/Syncshell/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.screenshot({path: testInfo.outputPath('german-folder.png')});
+    await page.screenshot({path: testInfo.outputPath('english-folder.png')});
 });
 
 test('divergence exposes compact child rows and a working paged error dialog', async ({page}, testInfo) => {
