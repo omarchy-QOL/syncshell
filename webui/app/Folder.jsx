@@ -1,3 +1,4 @@
+import {recoveryActions, managementActions} from '../client/management.mjs';
 import {useContext, useEffect, useRef, useState} from 'preact/hooks';
 import {LocaleContext} from './locale-context.jsx';
 import {folderStatus, folderClass, folderStateClass, folderStateDetails, syncPercentage, progressPercentage}
@@ -109,6 +110,7 @@ export function Folder({folder, info, stats, progress, api, rescan, state, sessi
                 </details>
             </div>
                 <div class="panel-footer folder-actions">
+                    {recoveryActions(folder, info, status).map(type => <button key={type} class="btn btn-danger btn-sm" onClick={() => onAction({type, folder})}>{t(managementActions[type].title)}</button>)}
                     <div class={`dropdown folder-sharing pull-left ${sharingOpen ? 'open' : ''}`}>
                         <button class="btn btn-sm btn-default dropdown-toggle" aria-expanded={sharingOpen} disabled={!folder.devices.some(device => device.deviceID !== state.system.myID)} onClick={() => setSharingOpen(!sharingOpen)}><span class="fas fa-share-alt" /> {t('Shared')} <span class="caret" /></button>
                         <ul class="dropdown-menu">{folder.devices.filter(device => device.deviceID !== state.system.myID).map(member => {

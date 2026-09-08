@@ -1,6 +1,7 @@
 import {useContext, useEffect, useRef, useState} from 'preact/hooks';
 import {LocaleContext} from './locale-context.jsx';
 import {Dialog} from './Dialog.jsx';
+import {ConfirmAction} from './ConfirmAction.jsx';
 import {copy, getValue, setValue, editorFields, inputValue, changedValue, saveEditor, ignoreLines} from '../client/edit.mjs';
 import {deviceName} from '../client/devices.mjs';
 
@@ -11,6 +12,7 @@ export function Editor({action, state, api, session, onClose, onSaved}) {
     const isNew = action.type.startsWith('add');
     const [draft, setDraft] = useState(() => copy(action[kind]));
     const [tab, setTab] = useState(action.tab === 'sharing' ? 'Sharing' : action.tab === 'ignores' ? 'Ignore Patterns' : 'General');
+    const [removing, setRemoving] = useState(false);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
     const [addIgnores, setAddIgnores] = useState(true);
@@ -84,10 +86,11 @@ export function Editor({action, state, api, session, onClose, onSaved}) {
         onClose();
     }
     const footer = <>
+        {!defaults && !isNew && stage === 'edit' && draft.deviceID !== state.system.myID && <button class="btn btn-warning btn-sm pull-left" disabled={busy} onClick={() => setRemoving(true)}>{t('Remove')}</button>}
         <button class="btn btn-primary btn-sm" disabled={busy || (stage === 'ignores' && !loadedIgnores)} onClick={save}><span class="fas fa-check" />&nbsp;{t('Save')}</button>
         <button class="btn btn-default btn-sm" disabled={busy} onClick={cancel}><span class="fas fa-times" />&nbsp;{t('Cancel')}</button>
     </>;
-    return <Dialog title={title} large icon="fas fa-cog" footer={footer} onClose={cancel} onCancel={cancel}>
+    return <><Dialog title={title} large icon="fas fa-cog" footer={footer} onClose={cancel} onCancel={cancel}>
         <form ref={form} onSubmit={event => { event.preventDefault(); save(); }}>
             <ul class="nav nav-tabs">{tabs.map(name => <li key={name} class={tab === name ? 'active' : stage === 'ignores' && name !== 'Ignore Patterns' ? 'disabled' : ''}>
                 <a href={`#editor-${name}`} onClick={event => { event.preventDefault(); if (stage !== 'ignores' || name === 'Ignore Patterns') setTab(name); }}>{t(name)}</a>
@@ -124,5 +127,5 @@ export function Editor({action, state, api, session, onClose, onSaved}) {
                 </>}
             </div>
         </form>
-    </Dialog>;
+    </Dialog>{removing && <ConfirmAction action={{type: 'remove-' + kind, [kind]: draft}} api={api} session={session} devices={state.config.devices} onClose={() => setRemoving(false)} onDone={onClose} />}</>;
 }
