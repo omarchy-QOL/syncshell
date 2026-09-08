@@ -36,6 +36,7 @@ QtObject {
 
   function start() {
     if (!executableReady || incompatible) return false
+    restartAttempts = 0
     _expectedStop = false
     desiredRunning = true
     return true
@@ -50,6 +51,7 @@ QtObject {
 
   function restart() {
     if (!executableReady) return false
+    restartAttempts = 0
     _restartRequested = true
     _expectedStop = true
     if (coreProcess.running) {
@@ -142,7 +144,6 @@ QtObject {
       return
     }
     protocolReady = true
-    restartAttempts = 0
     incompatible = false
     unavailable = false
     lastError = ""
@@ -232,6 +233,8 @@ QtObject {
       restartTimer.interval = Math.min(4000, 250 * Math.pow(2,
         restartAttempts - 1))
       restartTimer.restart()
+    } else {
+      desiredRunning = false
     }
   }
 

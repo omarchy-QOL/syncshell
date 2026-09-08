@@ -73,7 +73,8 @@ Panel {
   readonly property bool hasProblems: syncthing
     ? syncthing.folderProblemCount > 0 : false
   readonly property string iconVariant: {
-    if (!syncthing || !syncthing.canUseRuntime) return "notify"
+    if (!syncthing || !syncthing.canUseRuntime
+        || syncthing.phase.indexOf("core-") === 0) return "notify"
     if (syncthing.serviceAvailable && !syncthing.serviceActive) return "pause"
     if (syncthing.phase === "error" || hasProblems) return "notify"
     if (busy) return "sync"
@@ -101,7 +102,8 @@ Panel {
   readonly property string visibleError: {
     if (folderPickerError) return folderPickerError
     if (!syncthing) return ""
-    var quiet = managedStop || syncthing.serviceActionRunning
+    var quiet = (managedStop || syncthing.serviceActionRunning)
+      && syncthing.phase.indexOf("core-") !== 0
     return syncthing.folderMutationError
       || syncthing.packageError
       || syncthing.settingsError

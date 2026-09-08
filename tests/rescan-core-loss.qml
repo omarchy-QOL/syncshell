@@ -23,7 +23,7 @@ ShellRoot {
     repeat: true
     running: true
     onTriggered: {
-      if (!root.armed && service.core.running) {
+      if (!root.armed && service.core.running && service.core.protocolReady) {
         if (!root.apiLossChecked) {
           service.core.snapshot = {
             connection: { online: true },
@@ -52,6 +52,10 @@ ShellRoot {
         return
       }
       if (!root.armed || service.folderMutationBusy) return
+      if (service.online || service.canControlService) {
+        root.fail("core loss retained available actions")
+        return
+      }
       if (service.folderMutationAction !== ""
           || service.folderMutationId !== "") {
         root.fail("core loss retained optimistic rescan state")

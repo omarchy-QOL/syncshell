@@ -21,7 +21,7 @@ QtObject {
   readonly property string processError: core.lastError
   readonly property int revision: core.revision
   readonly property var snapshot: core.snapshot
-  readonly property bool online: snapshot.connection
+  readonly property bool online: protocolReady && snapshot.connection
     ? snapshot.connection.online === true : false
   readonly property string deviceId: snapshot.identity
     ? String(snapshot.identity.deviceId || "") : ""
