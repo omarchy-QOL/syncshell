@@ -1,0 +1,50 @@
+name: test
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: core/go.mod
+          cache-dependency-path: tests/integration/go.sum
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+      - name: Core and launcher contracts
+        run: go -C core test -race ./...
+      - name: Review server contracts
+        run: go -C tests/integration test -race ./...
+      - name: Browser API contracts
+        run: node --test tests/webui/*.test.mjs
+      - name: Build frontend
+        if: hashFiles('webui/package.json') != ''
+        working-directory: webui
+        run: |
+          npm ci
+          npm run build
+          git diff --exit-code -- modern SHA256SUMS
+      - name: Verify bundled assets
+        run: |
+          sha256sum --check packaging/bundled/SHA256SUMS
+          cd webui
+          sha256sum --quiet --check SHA256SUMS
+      - name: Export runtime files
+        run: bash packaging/bundled/archive.sh "$RUNNER_TEMP/syncshell-runtime.tar.gz"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: syncshell-runtime
+          path: ${{ runner.temp }}/syncshell-runtime.tar.gz
+          if-no-files-found: error
