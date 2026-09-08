@@ -23,6 +23,7 @@ func main() {
 	plugin := flag.String("plugin-source", "", "test an exported plugin with real Omarchy QML")
 	qmlFile := flag.String("plugin-qml", "../plugin-acceptance.qml", "QML acceptance fixture")
 	omarchy := flag.String("omarchy-path", "/usr/share/omarchy", "installed Omarchy sources")
+	themeHelper := flag.String("theme-helper", "", "keep the disposable review palette aligned with this desktop")
 	flag.Parse()
 	if *plugin != "" {
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -58,6 +59,11 @@ func main() {
 	}
 	if err := os.MkdirAll(filepath.Join(*runtime, "evidence"), 0700); err != nil {
 		log.Fatal(err)
+	}
+	if *themeHelper != "" {
+		if err := followReviewTheme(*themeHelper, filepath.Join(*runtime, "gui")); err != nil {
+			log.Fatal(err)
+		}
 	}
 	server := &http.Server{Addr: *listen, Handler: s.handler(data), ReadHeaderTimeout: 5 * time.Second}
 	log.Fatal(server.ListenAndServe())
