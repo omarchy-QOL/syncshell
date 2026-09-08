@@ -2,10 +2,16 @@
 
 ## Branches
 
-`dev` is the integration branch for the 0.1.8 native-core work and descends
-directly from released 0.1.7. Verified phase checkpoints may be pushed to
-`origin/dev`. Promotion to `main`, tags, releases, and marketplace changes are
-separate owner-controlled actions.
+Preact is the release frontend. `dev` integrates release work before promotion
+of the verified candidate to `main`. The cleaned comparison snapshots are:
+
+- `dev-preact-webUI-upgrade`: Preact release snapshot
+- `dev-svelte-webUI-upgrade`: Svelte alternative
+- `dev-native-webUI-upgrade`: updated AngularJS alternative
+
+Each branch contains one frontend and prepares its own Modern and adaptive
+Omarchy profiles. Alternative branches are comparison snapshots, not parallel
+products. Tags, releases and marketplace publication remain separate actions.
 
 The following branches are read-only historical source and evidence:
 

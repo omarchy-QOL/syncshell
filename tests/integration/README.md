@@ -56,3 +56,13 @@ custom-config selection. The account and its systemd units are removed at
 the end; result files remain in the selected test directory. No owner's
 configuration is used. This covers the launcher behavior, not rendered QML
 popup appearance; graphical acceptance remains a separate host check.
+
+The graphical host check uses plugin-acceptance.mjs with an exported plugin
+copy. It loads the real Omarchy service at the normal per-user plugin path,
+delivers theme colors through the shell's applyTheme IPC contract, verifies
+live browser refresh, and rescans after removing the frontend files. It uses
+a disposable account and leaves the owner's desktop untouched.
+
+A persistent developer review can pass -theme-helper with its branch's
+syncthing-theme.sh. This keeps the isolated review palette aligned with the
+owner's desktop theme; it is test infrastructure, not a production watcher.
