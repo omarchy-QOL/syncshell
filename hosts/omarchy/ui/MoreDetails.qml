@@ -128,7 +128,10 @@ Column {
       options: root.controller.folderOptions()
       foreground: root.foreground
       fontFamily: root.fontFamily
-      onChanged: function(value) { root.controller.selectedFolderId = value }
+      onChanged: function(value) {
+        root.controller.selectedFolderId = value
+        folderSelector.value = Qt.binding(function() { return root.controller.selectedFolderId })
+      }
     }
 
     Button {
@@ -193,6 +196,7 @@ Column {
       fontFamily: root.fontFamily
       onChanged: function(value) {
         root.controller.selectedPendingOffer = value
+        pendingOfferSelector.value = Qt.binding(function() { return root.controller.selectedPendingOffer })
       }
     }
 
