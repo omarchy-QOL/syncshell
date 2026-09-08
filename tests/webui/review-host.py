@@ -26,7 +26,7 @@ review.API_PORT = args.api_port
 config = ET.parse(args.runtime / 'home/config.xml')
 if config.findtext('gui/address') != f'127.0.0.1:{args.api_port}':
     raise SystemExit('GUI port does not match the marked runtime')
-if Path(config.findtext("folder[@id='port-verification']/path", '')).resolve() != review.FILES.resolve():
+if Path(config.find("folder[@id='port-verification']").get('path', '')).resolve() != review.FILES.resolve():
     raise SystemExit('Folder path does not match the marked runtime')
 review.API_KEY = config.findtext('gui/apikey')
 (args.runtime / 'evidence').mkdir(exist_ok=True)
