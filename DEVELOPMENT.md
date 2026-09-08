@@ -2,8 +2,9 @@
 
 ## Branches
 
-Preact is the release frontend. `dev` integrates release work before promotion
-of the verified candidate to `main`. The cleaned comparison snapshots are:
+Preact is the release frontend. `dev` is the integration branch for release
+work before promotion of the verified candidate to `main`. The cleaned
+comparison snapshots are:
 
 - `dev-preact-webUI-upgrade`: Preact release snapshot
 - `dev-svelte-webUI-upgrade`: Svelte alternative

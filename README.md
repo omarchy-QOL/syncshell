@@ -3,8 +3,8 @@
 Syncshell (**Sync**thing + quick**shell**) is a plugin to show Syncthing file
 activity from the Omarchy bar. The plugin can manage local folders, open
 Syncthing's Web UI, control the user service, and many more. Version 0.1.8 uses
-one bundled native core while retaining Omarchy as the supported host. Other
-shell adapters remain future work.
+one bundled native core written in Go to prepare, besides Omarchy as the distro,
+future shell adapter work.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -48,10 +48,10 @@ omarchy plugin update io.github.ilyazar.syncthing
 omarchy-restart-shell
 ```
 
-A shell restart is required after updating. Until then, Omarchy may retain
-the previous service and plugin actions may fail. Plugin settings and bar
-placement survive the ordinary update and restart. Syncshell does not restart
-the shell automatically.
+A shell restart is required after updating. Until then, Omarchy may retain the
+previous service and plugin actions may fail. Plugin settings and bar placement
+survive the ordinary update and restart. Syncshell does not restart the shell
+automatically.
 
 ## Keybindings
 
@@ -70,18 +70,18 @@ As shown in the footer at the bottom of the main plugin menu
 
 The settings menu opens `~/.config/omarchy/ilyazar.syncthing/settings.toml` in
 the default editor. A new file is created only when first opened; saves apply
-after validation. Schema version `2` accepts only the documented sections,
-keys, value types, and choices. A rejected edit leaves the session's last
-valid values in memory and shows a settings error.
+after validation. Schema version `2` accepts only the documented sections, keys,
+value types, and choices. A rejected edit leaves the session's last valid values
+in memory and shows a settings error.
 
 Recognized version 1 and unversioned files offer **Auto-port**, **Manual port**,
 and **Cancel**. Auto-port previews retained values and missing defaults,
-preserves comments, and keeps an exact backup beside the original. It refuses
-a changed source and preserves managed symlinks and file permissions. Unknown
+preserves comments, and keeps an exact backup beside the original. It refuses a
+changed source and preserves managed symlinks and file permissions. Unknown
 content, invalid values, and newer schemas require manual review.
 
-Manual port opens the actual settings file and a temporary shipped template
-in the default editor. Only saves to the actual file affect Syncshell. Cancel
+Manual port opens the actual settings file and a temporary shipped template in
+the default editor. Only saves to the actual file affect Syncshell. Cancel
 leaves the file untouched and keeps a warning; open settings to return to the
 dialog. An incompatible file at startup does not apply service or Web UI
 preferences. Syncthing status remains available when its API is reachable.
@@ -89,13 +89,14 @@ preferences. Syncthing status remains available when its API is reachable.
 - `style.icon_style = "branded"` uses the classic Syncthing bar icon. Use
   `themed` for an icon colored by the active Omarchy theme.
 - `style.web_ui_theme = "default"` uses Syncthing's own Web UI.
-- `style.web_ui_theme = "modern"` uses the bundled Preact-based Syncshell Web UI.
-- `style.web_ui_theme = "omarchy"` applies the complete Omarchy palette to
-  that same bundled UI. This is the default plugin preference.
+- `style.web_ui_theme = "modern"` uses the bundled Preact-based Syncshell Web
+  UI.
+- `style.web_ui_theme = "omarchy"` applies the complete Omarchy palette to that
+  same bundled UI. This is the default plugin preference.
 
-In `omarchy` mode, changing the desktop theme regenerates the Web UI palette.
-An open themed Web UI applies the new colors without a page reload. `modern`
-keeps its own appearance. Both generated profiles are separate from Syncthing's
+In `omarchy` mode, changing the desktop theme regenerates the Web UI palette. An
+open themed Web UI applies the new colors without a page reload. `modern` keeps
+its own appearance. Both generated profiles are separate from Syncthing's
 default assets and unrelated user themes. Reload an already-open page when
 switching between profiles to load its HTML and scripts.
 
@@ -220,33 +221,32 @@ and sharing.
 
 This candidate is tested with Syncthing v2.1.3. Older daemon versions have not
 been verified for this release. Use `default` for the UI shipped by your daemon.
-Open the bundled UI from the plugin's **Web UI** button to enable desktop
-file actions in **Resolve sync conflicts (beta)**. Filename links and
-**Open folder** open the containing folder in
-your default file manager. **Autoresolve** restores a selected conflict file's
-original name only when that name is absent; it preserves its contents and
-then requests a Syncthing rescan.
+Open the bundled UI from the plugin's **Web UI** button to enable desktop file
+actions in **Resolve sync conflicts (beta)**. Filename links and **Open folder**
+open the containing folder in your default file manager. **Autoresolve**
+restores a selected conflict file's original name only when that name is absent;
+it preserves its contents and then requests a Syncthing rescan.
 
 Desktop file actions require a local Syncthing process running as your desktop
 user, accessible folders and an ordinary desktop session. Containers, tunnels,
 other accounts, relative folder paths and symlinked paths are unsupported for
 these actions. Permission failures are reported without changing permissions.
-The core uses the BSD-licensed `golang.org/x/sys` for the guarded Linux
-rename; its license ships beside the artifact metadata. No sudo or polkit
-configuration is required. Discovery and rechecks remain
-available through Syncthing's API when desktop actions are unavailable.
+The core uses the BSD-licensed `golang.org/x/sys` for the guarded Linux rename;
+its license ships beside the artifact metadata. No sudo or polkit configuration
+is required. Discovery and rechecks remain available through Syncthing's API
+when desktop actions are unavailable.
 
-The existing core owns a loopback-only desktop connection. A private launch
-page grants access to the browser tab; the grant is not placed in shared GUI
-assets or public core snapshots. Reopen the Web UI from the plugin after the
-core restarts. Ordinary direct URLs remain usable without desktop file actions.
+The existing core owns a loopback-only desktop connection. A private launch page
+grants access to the browser tab; the grant is not placed in shared GUI assets
+or public core snapshots. Reopen the Web UI from the plugin after the core
+restarts. Ordinary direct URLs remain usable without desktop file actions.
 
-The bundled UI uses Syncthing's API and retains upstream attribution; its
-source and build are documented in [webui/UPSTREAM.md](webui/UPSTREAM.md).
+The bundled UI uses Syncthing's API and retains upstream attribution; its source
+and build are documented in [webui/UPSTREAM.md](webui/UPSTREAM.md).
 
 The conflict tab lists indexed conflict files and can request folder rescans.
-Resolve files with your normal tools: opening and renaming local files from
-the browser are not part of the shipped integration.
+Resolve files with your normal tools: opening and renaming local files from the
+browser are not part of the shipped integration.
 
 ## Roadmap and prior releases
 
@@ -257,7 +257,7 @@ Planned work stays at the top. Shipped entries come from
 | ------- | --------- | ---------- | ------------------------------------------------------- |
 | 0.1.8   | candidate | TBD        | use one native core for the Omarchy panel               |
 |         |           |            | support healthy externally managed Syncthing instances  |
-|         |           |            | add the Preact Web UI and settings migration             |
+|         |           |            | add the Preact Web UI and settings migration            |
 | 0.1.7   | shipped   | 2026-08-31 | fix persistent service-state reconciliation             |
 |         |           |            | UI/UX: clear semantics on buttons, harmonize font size  |
 | 0.1.6   | shipped   | 2026-08-22 | make live and indexed file activity accurate            |
@@ -301,7 +301,7 @@ checkout contains the regular executable at `bin/x86_64/syncshell-core`, that
 its mode is `0755`, and that the machine architecture is `x86_64`.
 `packaging/bundled/verify.sh` checks the complete artifact contract.
 
-Plugin code is MIT licensed. The bundled Web UI retains its upstream MPL-2.0
-and vendor licenses; see [its provenance](webui/UPSTREAM.md).
-Adapted Syncthing status icons are MPL-2.0; their
-source and attribution are documented in `assets/README.md`.
+Plugin code is MIT licensed. The bundled Web UI retains its upstream MPL-2.0 and
+vendor licenses; see [its provenance](webui/UPSTREAM.md). Adapted Syncthing
+status icons are MPL-2.0; their source and attribution are documented in
+`assets/README.md`.
