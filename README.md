@@ -89,8 +89,7 @@ preferences. Syncthing status remains available when its API is reachable.
 - `style.icon_style = "branded"` uses the classic Syncthing bar icon. Use
   `themed` for an icon colored by the active Omarchy theme.
 - `style.web_ui_theme = "default"` uses Syncthing's own Web UI.
-- `style.web_ui_theme = "modern"` uses the complete bundled Syncshell Web UI,
-  initially an unchanged copy of Syncthing v2.1.3.
+- `style.web_ui_theme = "modern"` uses the bundled Preact-based Syncshell Web UI.
 - `style.web_ui_theme = "omarchy"` applies the complete Omarchy palette to
   that same bundled UI. This is the default plugin preference.
 
@@ -219,14 +218,14 @@ See Syncthing's
 and [folder guide](https://docs.syncthing.net/intro/gui.html) for device pairing
 and sharing.
 
-Folder management and Web UI theming use Syncthing's granular configuration and
-system-path APIs and require Syncthing 1.21.0 or later.
+This candidate is tested with Syncthing v2.1.3. Older daemon versions have not
+been verified for this release. Use `default` for the UI shipped by your daemon.
+The bundled UI uses Syncthing's API and retains upstream attribution; its
+source and build are documented in [webui/UPSTREAM.md](webui/UPSTREAM.md).
 
-The bundled Web UI is pinned to Syncthing v2.1.3. Its daemon compatibility is
-validated separately from the plugin's minimum API version; use `default` for
-the UI shipped by your daemon. The portable bundle and its provenance are
-documented in [webui/UPSTREAM.md](webui/UPSTREAM.md). Layout redesign and browser
-conflict resolution are later work; the current bundle retains upstream's UI.
+The conflict tab lists indexed conflict files and can request folder rescans.
+Resolve files with your normal tools: opening and renaming local files from
+the browser are not part of the shipped integration.
 
 ## Roadmap and prior releases
 
@@ -235,8 +234,9 @@ Planned work stays at the top. Shipped entries come from
 
 | Release | State     | Date       | What changed                                            |
 | ------- | --------- | ---------- | ------------------------------------------------------- |
-| 0.1.8   | candidate | TBD        | use one native core without changing the Omarchy panel  |
+| 0.1.8   | candidate | TBD        | use one native core for the Omarchy panel               |
 |         |           |            | support healthy externally managed Syncthing instances  |
+|         |           |            | add the Preact Web UI and settings migration             |
 | 0.1.7   | shipped   | 2026-08-31 | fix persistent service-state reconciliation             |
 |         |           |            | UI/UX: clear semantics on buttons, harmonize font size  |
 | 0.1.6   | shipped   | 2026-08-22 | make live and indexed file activity accurate            |

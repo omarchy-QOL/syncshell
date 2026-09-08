@@ -4,16 +4,26 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 ## Unreleased
 
+- add a Preact Web UI with grouped folders/devices, notifications and
+  API-based conflict discovery and rescans
+- migrate older plugin settings with a preview and an exact backup while
+  preserving valid preferences, comments, permissions and managed symlinks
+- show folder error details and theme the selected Web UI address
+- stop the rescan wait with an error when Syncthing becomes unavailable
+- report rejected service actions immediately and keep their errors visible
+- enforce the core crash-retry limit without blocking initial installation
+  recovery, and disable unavailable actions after the core stops
+- check existing tilde folder paths for overlap using Syncthing's own home
+  directory; require absolute paths when their location cannot be determined
 - resume file activity when Syncthing's event sequence resets on reconnect
   while preserving unread events from a surviving daemon
 - match Syncthing home and config directory options consistently so service
   controls cannot target another instance through short option spellings
-- replace the QML Syncthing engine with one parent-bound native Go core while
-  preserving the complete Omarchy panel and settings workflow
+- replace the QML Syncthing engine with one parent-bound native Go core
 - fix issue 45 by treating healthy external Syncthing instances as online
   without exposing controls for an unrelated inactive user service
 - bundle one reproducible static Linux x86_64 executable with a public JSONL
-  protocol and keep credentials, REST, events, lifecycle, and mutations in Go
+  protocol and keep the panel's credentials, REST, events and lifecycle in Go
 - make accepted single and global rescans visible immediately with rotating,
   inert controls and explicit optimistic folder state
 - keep long-running accepted rescans from surfacing a false request timeout

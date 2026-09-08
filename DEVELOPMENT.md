@@ -90,6 +90,10 @@ guest afterward.
 
 ## Native core development
 
+For byte-identical reproduction, use the compiler recorded by
+`go version -m bin/x86_64/syncshell-core` (currently Go 1.27.0). The module's
+minimum Go version is a source-compatibility floor, not the bundle's compiler.
+
 Build and verify the exact production artifact before running the native
 checks:
 
