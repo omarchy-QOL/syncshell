@@ -46,13 +46,13 @@ export function createSession(api, {publish, onAuthExpired,
     let previousConnectionTime = 0;
 
     function update(next) {
-        if (controller.signal.aborted) return;
+        if (controller?.signal.aborted) return;
         state = next;
         publish(state);
     }
 
     function fail(error) {
-        if (controller.signal.aborted) return;
+        if (controller?.signal.aborted) return;
         if (error.status === 403) onAuthExpired?.();
         update({...state, error});
     }

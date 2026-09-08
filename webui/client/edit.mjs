@@ -5,6 +5,14 @@ export function setValue(object, path, value) {
     let target = result;
     for (const key of keys.slice(0, -1)) target = target[key] ||= {};
     target[keys.at(-1)] = value;
+    if (path === 'versioning.type' && value) {
+        const defaults = value === 'simple' ? {keep: '5', cleanoutDays: '0'}
+            : value === 'trashcan' ? {cleanoutDays: '0'}
+            : value === 'staggered' ? {maxAge: String(365 * 86400)} : {command: ''};
+        result.versioning.params = {...defaults, ...result.versioning.params};
+        result.versioning.cleanupIntervalS ??= 3600;
+        result.versioning.fsPath ??= '';
+    }
     return result;
 }
 const field = (path, label, type = 'text', options) => ({path, label, type, options});
@@ -63,6 +71,9 @@ export async function saveEditor({session, api, state, kind, draft, isNew, share
         const checked = await api.get('svc/deviceid', {id: value.deviceID});
         if (checked.error) throw new Error(checked.error);
         value.deviceID = checked.id || value.deviceID;
+        if (value.untrusted && state.config.folders.some(folder => folder.type !== 'receiveencrypted' &&
+            shares[folder.id]?.selected && !shares[folder.id]?.password))
+            throw new Error('Encryption Password is required for an untrusted device.');
         if (isNew && state.config.devices.some(item => item.deviceID === value.deviceID)) throw new Error('A device with that ID is already added.');
     } else {
         if (!value.id.trim()) throw new Error('The folder ID cannot be blank.');
@@ -70,6 +81,11 @@ export async function saveEditor({session, api, state, kind, draft, isNew, share
         if (isNew && state.config.folders.some(item => item.id === value.id)) throw new Error('The folder ID must be unique.');
         if (!value.devices.some(item => item.deviceID === state.system.myID)) value.devices.push({deviceID: state.system.myID});
         if (!value.versioning?.type) value.versioning = {type: ''};
+        if (value.versioning.type === 'external' && !value.versioning.params?.command?.trim())
+            throw new Error('External Versioning Command cannot be blank.');
+        if (value.type !== 'receiveencrypted' && value.devices.some(member =>
+            state.config.devices.find(device => device.deviceID === member.deviceID)?.untrusted && !member.encryptionPassword))
+            throw new Error('Encryption Password is required for an untrusted device.');
     }
     return session.changeConfig(config => {
         const list = kind === 'device' ? 'devices' : 'folders';
