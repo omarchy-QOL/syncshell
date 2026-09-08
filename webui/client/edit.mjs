@@ -65,7 +65,7 @@ export function changedValue(field, input) {
 export function ignoreLines(text) { return text === '' ? [] : text.split('\n'); }
 
 export async function saveEditor({session, api, state, kind, draft, isNew, shares, defaults = false, ignores = []}) {
-    const value = copy(draft);
+    const value = normalizeEditor(draft, kind);
     if (defaults) return session.changeConfig(config => {
         config.defaults[kind] = value;
         if (kind === 'folder') config.defaults.ignores.lines = ignores;
@@ -101,4 +101,18 @@ export async function saveEditor({session, api, state, kind, draft, isNew, share
             if (!shares[folder.id]?.selected && present) folder.devices = folder.devices.filter(item => item.deviceID !== value.deviceID);
         }
     });
+}
+
+export function normalizeEditor(draft, kind) {
+    const value = JSON.parse(JSON.stringify(draft));
+    if (kind === 'folder') {
+        if (value.xattrFilter) value.xattrFilter.entries = (value.xattrFilter.entries || []).filter(entry => entry.match !== '');
+        const versioning = value.versioning || {};
+        for (const key of versioning.type === 'simple' ? ['keep', 'cleanoutDays'] : versioning.type === 'trashcan' ? ['cleanoutDays'] : versioning.type === 'staggered' ? ['maxAge'] : []) {
+            const number = Number(versioning.params?.[key]);
+            if (!Number.isFinite(number) || number < (key === 'keep' ? 1 : 0) || versioning.params[key] === '')
+                throw new Error(key === 'keep' ? 'You must keep at least one version.' : 'A negative number of days does not make sense.');
+        }
+    }
+    return value;
 }

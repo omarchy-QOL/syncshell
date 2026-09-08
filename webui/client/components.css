@@ -63,3 +63,6 @@
 .port-version-row > * { flex: 1 1 220px; min-width: 0; }
 
 .port-items .folder-text { display: inline-block; max-width: calc(100% - 36px); vertical-align: middle; }
+
+.port-xattr-rule { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.port-xattr-rule .form-control { min-width: 0; }
