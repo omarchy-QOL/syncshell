@@ -59,3 +59,21 @@ general command execution, file inventory or credential API. It closes with
 the core and does not add a daemon or system service.
 
 The future host directories are README-only in 0.1.8 and make no support claim.
+
+## SyncThingy discovery
+
+When native configuration discovery finds nothing, the core checks
+SyncThingy's two documented config locations under
+`~/.var/app/com.github.zocker_160.SyncThingy/`: `config/syncthing/` and
+`.local/state/syncthing/`. It reuses the config parser, configured API address
+and TLS certificate validation. Multiple Flatpak configs require explicit
+selection through the core's `--config` option.
+
+The host checks `flatpak info` only when no native binary is available, so an
+installed but stopped SyncThingy is not offered a duplicate package install.
+Start SyncThingy through its own launcher. Discovering it does not authorize
+the default native user service, and desktop file actions keep their existing
+container restrictions. No Flatpak permissions are changed.
+
+Configuration locations and launcher behavior are documented in
+[SyncThingy's source](https://github.com/zocker-160/SyncThingy/tree/e74c695d011f9e6174d7dab5fd6c9d5ab653e7dc).

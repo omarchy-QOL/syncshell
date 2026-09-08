@@ -4,6 +4,10 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 ## Unreleased
 
+- detect SyncThingy Flatpak installations, adapted to the Go core from
+  [@whelanh](https://github.com/whelanh)'s contribution in
+  [#48](https://github.com/omarchy-QOL/syncshell/pull/48); preserve native
+  discovery precedence, validate config/TLS, and guard native service controls
 - fix themed bar icon contrast and rendering at the host size, contributed by
   [@baranskyi](https://github.com/baranskyi) in
   [#47](https://github.com/omarchy-QOL/syncshell/pull/47)
@@ -44,13 +48,6 @@ Notable changes to Syncthing for Omarchy are documented here.
   rescan
 - require a shell restart after updating to load the current plugin while
   preserving settings and bar placement
-
-### Contribution in progress
-
-- [@whelanh](https://github.com/whelanh) proposed SyncThingy Flatpak detection in
-  [#48](https://github.com/omarchy-QOL/syncshell/pull/48). The PR targets the
-  earlier QML implementation; adaptation and verification for the Go core are
-  pending. This candidate does not yet include that support.
 
 ## 0.1.7 - 2026-08-31
 
