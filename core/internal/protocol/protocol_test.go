@@ -37,7 +37,7 @@ func TestStreamShutdownContract(t *testing.T) {
 	}
 }
 
-func TestStreamConfigureRefreshAndRescan(t *testing.T) {
+func TestStreamConfigureRefreshAndRescanWithoutWebAssets(t *testing.T) {
 	coreSession, rescans := newProtocolSession(t, false)
 	input := strings.NewReader(
 		`{"v":1,"type":"configure","id":"1","config":{"probeIntervalSeconds":2,"refreshIntervalSeconds":90}}` + "\n" +
@@ -263,6 +263,11 @@ func newProtocolSession(t *testing.T, unauthorized bool) (*session.Session, *ato
 	t.Helper()
 	var rescans atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if !strings.HasPrefix(request.URL.Path, "/rest/") {
+			t.Errorf("core requested a frontend asset: %s", request.URL.Path)
+			http.NotFound(writer, request)
+			return
+		}
 		if request.URL.Path != "/rest/noauth/health" && unauthorized {
 			http.Error(writer, "secret "+protocolTestKey, http.StatusUnauthorized)
 			return
