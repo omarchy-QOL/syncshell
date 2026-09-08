@@ -176,12 +176,23 @@ interface:
   and refusing to replace an existing file.
 - **Notifications:** a separate tab shows pending messages. Its dot follows
   the highest severity and disappears when all messages are resolved.
-- **Smaller frontend:** Preact replaces
-  [AngularJS, whose support ended in 2022](https://angularjs.org/). The 0.1.8
-  frontend has about **4,800 lines of application code**, compared with about
-  **9,300** in our earlier AngularJS-based version. Counts exclude blank lines,
-  comments, libraries, translations and generated bundles; they cover JSX,
-  JavaScript, HTML and CSS.
+- **Smaller frontend:** The low-overhead and minimalist
+  [Preact](https://github.com/preactjs/preact) replaces
+  [AngularJS, whose support ended in 2022](https://angularjs.org/) and removes
+  most of the old JavaScript widget libraries.
+
+Compared with the default Web UI shipped with
+[Syncthing v2.1.3](https://github.com/syncthing/syncthing/releases/tag/v2.1.3):
+
+| Measure                        | Syncthing v2.1.3 | Syncshell | Reduction |
+| ------------------------------ | ---------------- | --------- | --------- |
+| Application source (LOC)       | 8,296            | 4,824     | 42%       |
+| Readable source + vendor (LOC) | 53,096           | 14,479    | 73%       |
+| HTML/CSS/JS assets             | 2.79 MB          | 0.43 MB   | 84%       |
+| Whole Web UI assets            | 6.58 MB          | 4.22 MB   | 36%       |
+
+LOC counts readable source; sizes count uncompressed assets, including built
+bundles. The whole Web UI includes translations, fonts and images.
 
 Three Syncshell views in Nord, followed by Syncthing's default UI.
 Click an image for the full size.
