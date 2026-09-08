@@ -1,0 +1,14 @@
+version = 2
+
+[style]
+# "themed": Omarchy colors; "branded": classic Syncthing icons
+icon_style = "themed"
+# "default": Syncthing's own UI; "modern": the bundled Syncshell UI
+# "omarchy": the bundled UI following the active Omarchy theme
+web_ui_theme = "omarchy"
+
+[service]
+# Persistent Syncthing user-service state, independent of the runtime toggle
+service_state = "enabled"
+# Seconds between probes for external systemd state changes
+probe_interval_seconds = 15

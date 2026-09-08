@@ -18,7 +18,7 @@ MP4 has a matching PNG thumbnail:
 - `04_syncthing_icon_change_and_other_settings`
 
 The ignored capture harness, upstream reference, and byte-identical release
-backups live in `../tests/interactive/syncthing-demo/`. The ignored project
+backups live in `../docs/interactive/syncthing-demo/`. The ignored project
 skill at `../.agents/skills/syncthing-demo-video/` documents the reproduction
 workflow.
 

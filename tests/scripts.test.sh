@@ -12,9 +12,9 @@ fail() {
 
 test_settings() {
   local target="$test_root/settings/config/settings.toml"
-  bash "$root/scripts/syncthing-settings.sh" ensure \
-    "$root/config/settings.toml" "$target" themed >/dev/null
-  grep -q '^version = 1$' "$target" \
+  bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" ensure \
+    "$root/hosts/omarchy/config/settings.toml" "$target" themed >/dev/null
+  grep -q '^version = 2$' "$target" \
     || fail "settings version was not seeded"
   grep -q '^\[style\]$' "$target" \
     || fail "style section was not seeded"
@@ -25,22 +25,31 @@ test_settings() {
   grep -Eq '^probe_interval_seconds[[:space:]]*=[[:space:]]*15$' "$target" \
     || fail "service probe interval was not seeded"
 
-  bash "$root/scripts/syncthing-settings.sh" set-service-state \
-    "$root/config/settings.toml" "$target" themed disabled >/dev/null
+  printf '%s\n' '' '# retained owner comment' '[future]' \
+    'retained_value = "untouched"' >>"$target"
+
+  bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" set-service-state \
+    "$root/hosts/omarchy/config/settings.toml" "$target" themed disabled \
+    >/dev/null
   grep -Eq '^service_state[[:space:]]*=[[:space:]]*"disabled"' "$target" \
     || fail "service state was not updated"
   [[ $(grep -c '^service_state[[:space:]]*=' "$target") == 1 ]] \
     || fail "service state update created a duplicate"
   grep -Eq '^icon_style[[:space:]]*=[[:space:]]*"themed"' "$target" \
     || fail "service state update changed icon style"
+  grep -Fxq '# retained owner comment' "$target" \
+    || fail "service state update removed an owner comment"
+  grep -Fxq 'retained_value = "untouched"' "$target" \
+    || fail "service state update removed an additive field"
 
   local legacy="$test_root/settings/config/legacy.toml"
   printf '%s\n' \
     'icon_style = "branded"' \
     'web_ui_theme = "default"' \
     >"$legacy"
-  bash "$root/scripts/syncthing-settings.sh" set-service-state \
-    "$root/config/settings.toml" "$legacy" branded disabled >/dev/null
+  bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" set-service-state \
+    "$root/hosts/omarchy/config/settings.toml" "$legacy" branded disabled \
+    >/dev/null
   grep -Fxq '[service]' "$legacy" \
     || fail "legacy settings did not receive a service section"
   grep -Eq '^service_state[[:space:]]*=[[:space:]]*"disabled"' "$legacy" \
@@ -58,8 +67,9 @@ test_settings() {
     'service_state = "disabled"' \
     >"$invalid"
   invalid_before=$(<"$invalid")
-  if bash "$root/scripts/syncthing-settings.sh" set-service-state \
-      "$root/config/settings.toml" "$invalid" branded enabled \
+  if bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" \
+      set-service-state "$root/hosts/omarchy/config/settings.toml" \
+      "$invalid" branded enabled \
       >/dev/null 2>&1; then
     fail "invalid service settings update succeeded"
   fi
@@ -67,8 +77,8 @@ test_settings() {
     || fail "failed service settings update changed the file"
 
   printf '%s\n' '# user-owned' >"$target"
-  bash "$root/scripts/syncthing-settings.sh" ensure \
-    "$root/config/settings.toml" "$target" branded >/dev/null
+  bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" ensure \
+    "$root/hosts/omarchy/config/settings.toml" "$target" branded >/dev/null
   [[ $(<"$target") == "# user-owned" ]] \
     || fail "existing settings were overwritten"
 }
@@ -94,37 +104,87 @@ test_installation_status() {
   output=$(HOME="$sandbox/home" \
     XDG_RUNTIME_DIR="$sandbox/runtime" \
     PATH="$fake_bin:$PATH" \
-    bash "$root/scripts/syncthing-install.sh" status)
+    bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
   jq -e '
     .state == "existing"
-    and .serviceAvailable == true
-    and .serviceRunning == false
-    and .serviceActiveState == "inactive"
-    and .unitFileState == "disabled"
+    and .executable != ""
+    and (.operationRunning | type) == "boolean"
   ' <<<"$output" >/dev/null \
     || fail "installation status omitted systemd service state"
 }
 
+test_modern_bundle() {
+  local sandbox="$test_root/modern"
+  local assets="$sandbox/gui" dependency relative before asset_before
+  local helper="$root/hosts/omarchy/scripts/syncthing-theme.sh"
+  mkdir -p -- "$sandbox/bin" "$assets/default"
+  printf '%s\n' 'owner default' >"$assets/default/index.html"
+  printf '%s\n' '#!/bin/bash' 'exit 1' >"$sandbox/bin/omarchy-theme-color"
+  cp -- "$sandbox/bin/omarchy-theme-color" "$sandbox/bin/curl"
+  chmod 700 -- "$sandbox/bin/"*
+
+  PATH="$sandbox/bin:$PATH" bash "$helper" prepare modern "$assets" >/dev/null
+  while IFS= read -r -d '' dependency; do
+    relative=${dependency#"$root/webui/modern/"}
+    [[ $relative == index.html || $relative == assets/css/theme.css ]] && continue
+    cmp -s -- "$dependency" "$assets/syncshell-modern/$relative" \
+      || fail "modern profile omitted or altered $relative"
+  done < <(find "$root/webui/modern" -type f -print0)
+  cmp -s -- "$root/webui/modern/index.html" \
+    <(sed 's#assets/css/theme.css?v=[a-f0-9]*#assets/css/theme.css#g' \
+      "$assets/syncshell-modern/index.html") \
+    || fail "modern index changed beyond its stylesheet revision"
+  for relative in dark light; do
+    cmp -s -- "$root/webui/themes/$relative.css" \
+      "$assets/syncshell-modern/assets/css/syncshell-$relative.css" \
+      || fail "modern profile omitted the bundled $relative stylesheet"
+  done
+  ! grep -q 'theme-assets/' "$assets/syncshell-modern/assets/css/theme.css" \
+    || fail "modern base still depends on daemon theme assets"
+  [[ $(<"$assets/default/index.html") == 'owner default' ]] \
+    || fail "modern preparation replaced default assets"
+  [[ ! -e $assets/syncshell-modern/theme-version.txt ]] \
+    || fail "modern preparation included the Omarchy palette updater"
+  before=$(sha256sum "$assets/syncshell-modern/index.html")
+  asset_before=$(stat -c '%i:%Y' "$assets/syncshell-modern/assets/img/favicon-default.png")
+  bash "$helper" prepare modern "$assets" >/dev/null
+  [[ $(sha256sum "$assets/syncshell-modern/index.html") == "$before"
+      && $(stat -c '%i:%Y' "$assets/syncshell-modern/assets/img/favicon-default.png") == "$asset_before" ]] \
+    || fail "unchanged modern bundle content changed or assets were recopied"
+
+  local package="$sandbox/package"
+  mkdir -p -- "$package/hosts/omarchy/scripts"
+  cp -a -- "$root/webui" "$package/"
+  cp -- "$helper" "$package/hosts/omarchy/scripts/"
+  helper="$package/hosts/omarchy/scripts/syncthing-theme.sh"
+  printf '%s\n' 'old bundle' >"$assets/syncshell-modern/.syncshell-bundle"
+  printf '%s\n' 'obsolete' >"$assets/syncshell-modern/obsolete.js"
+  rm -- "$package/webui/modern/index.html"
+  if bash "$helper" prepare modern "$assets" >/dev/null 2>&1; then
+    fail "incomplete modern bundle was selected"
+  fi
+  [[ $(sha256sum "$assets/syncshell-modern/index.html") == "$before" ]] \
+    || fail "failed preparation replaced the working profile"
+  cp -- "$root/webui/modern/index.html" "$package/webui/modern/index.html"
+  bash "$helper" prepare modern "$assets" >/dev/null
+  [[ ! -e $assets/syncshell-modern/obsolete.js ]] \
+    || fail "bundle update retained obsolete assets"
+  [[ -z $(find "$assets" -maxdepth 1 -name '.syncshell-modern.*' -print -quit) ]] \
+    || fail "bundle preparation left a staging directory"
+}
+
 test_themes() {
   local theme colors version
-  local themes_root="$HOME/.local/share/omarchy/themes"
-  local default_gui="$test_root/default-gui"
-  local default_index="$default_gui/theme-assets/default/index.html"
-  mkdir -p -- "$(dirname -- "$default_index")"
-  printf '%s\n' \
-    '<!doctype html>' \
-    '<html><head><title>Syncthing</title></head><body></body></html>' \
-    >"$default_index"
+  local themes_root="${OMARCHY_PATH:-/usr/share/omarchy}/themes"
   if [[ -d $themes_root ]]; then
     while IFS= read -r colors; do
       theme=$(basename -- "$(dirname -- "$colors")")
-      SYNCTHING_GUI_URL="file://$default_gui" \
-        bash "$root/scripts/syncthing-theme.sh" generate \
-          "$test_root/themes/$theme" "$colors" >/dev/null
-      grep -Fxq '@import "/theme-assets/default/assets/css/theme.css";' \
+      bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
+        "$test_root/themes/$theme" "$colors" >/dev/null
+      grep -Fxq '@import "syncshell_base.css";' \
         "$test_root/themes/$theme/syncthing-omarchy/assets/css/theme.css" \
-        || fail "$theme did not inherit the Syncthing default theme"
-      ! grep -R -q '{{' "$test_root/themes/$theme" \
+        || fail "$theme did not inherit the bundled base theme"
+      ! grep -q '{{' "$test_root/themes/$theme/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
         || fail "$theme left unresolved palette values"
     done < <(find "$themes_root" -mindepth 2 -maxdepth 2 \
       -type f -name colors.toml -print | sort)
@@ -144,13 +204,12 @@ test_themes() {
     'color5 = "#c792ea"' \
     'color6 = "#89ddff"' \
     >"$user_theme"
-  SYNCTHING_GUI_URL="file://$default_gui" \
-    bash "$root/scripts/syncthing-theme.sh" generate \
-      "$test_root/themes/user" "$user_theme" >/dev/null
-  grep -Fxq '@import "/theme-assets/default/assets/css/theme.css";' \
+  bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
+    "$test_root/themes/user" "$user_theme" >/dev/null
+  grep -Fxq '@import "syncshell_base.css";' \
     "$test_root/themes/user/syncthing-omarchy/assets/css/theme.css" \
-    || fail "user theme did not inherit the Syncthing default theme"
-  ! grep -R -q '{{' "$test_root/themes/user" \
+    || fail "user theme did not inherit the bundled base theme"
+  ! grep -q '{{' "$user_palette" \
     || fail "user theme left unresolved palette values"
   for color in '#120f18' '#e8dff2' '#ff7ab2' '#ff5370' '#c3e88d' \
       '#ffcb6b' '#82aaff' '#c792ea' '#89ddff'; do
@@ -170,12 +229,28 @@ test_themes() {
   grep -Fq 'src="assets/js/omarchy_theme_refresh.js"' \
     "$user_root/index.html" \
     || fail "Web UI did not load the theme refresh helper"
-  cmp -s -- "$root/webui/omarchy_theme_refresh.js" \
+  cmp -s -- "$root/hosts/omarchy/webui/omarchy_theme_refresh.js" \
     "$user_root/assets/js/omarchy_theme_refresh.js" \
     || fail "generated theme refresh helper differs from its source"
-  [[ -z $(find "$user_root" -maxdepth 1 -type f \
-    -name '.default-index.html.*' -print -quit) ]] \
-    || fail "generated theme retained its default index source"
+  cmp -s -- "$test_root/modern/gui/syncshell-modern/assets/css/theme.css" \
+    "$user_root/assets/css/syncshell_base.css" \
+    || fail "Omarchy base differs from bundled modern CSS"
+  local dependency
+  while IFS= read -r -d '' dependency; do
+    local relative=${dependency#"$root/webui/modern/"}
+    [[ $relative == index.html || $relative == assets/css/theme.css ]] && continue
+    cmp -s -- "$dependency" "$user_root/$relative" \
+      || fail "Omarchy profile omitted or altered $relative"
+  done < <(find "$root/webui/modern" -type f -print0)
+  local asset_before
+  asset_before=$(stat -c '%i:%Y' "$user_root/assets/img/favicon-default.png")
+  bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
+    "$test_root/themes/user" "$user_theme" >/dev/null
+  [[ $(stat -c '%i:%Y' "$user_root/assets/img/favicon-default.png") == "$asset_before" ]] \
+    || fail "palette refresh recopied static assets"
+  [[ $(<"$user_root/theme-version.txt") != "$version" ]] \
+    || fail "palette refresh did not advance its generation"
+
 }
 
 install_fake_plugin() {
@@ -207,10 +282,13 @@ test_removal_mode() {
   [[ $install_kind == link ]] || source=$installed
   install_fake_plugin "$source" "$installed" "$install_kind"
   mkdir -p -- "$plugin_config" \
-    "$gui_assets/syncthing-omarchy/assets/css" "$fake_bin"
+    "$gui_assets/syncthing-omarchy/assets/css" \
+    "$gui_assets/syncshell-modern" "$gui_assets/owner-theme" "$fake_bin"
   printf '%s\n' 'icon_style = "themed"' >"$plugin_config/settings.toml"
   printf '%s\n' 'generated' \
     >"$gui_assets/syncthing-omarchy/assets/css/theme.css"
+  printf '%s\n' 'modern' >"$gui_assets/syncshell-modern/index.html"
+  printf '%s\n' 'owner' >"$gui_assets/owner-theme/index.html"
   # Fake variables expand only when the generated command runs.
   # shellcheck disable=SC2016
   printf '%s\n' '#!/bin/bash' \
@@ -232,7 +310,7 @@ test_removal_mode() {
     XDG_RUNTIME_DIR="$sandbox/runtime" \
     FAKE_PLUGIN_TARGET="$installed" \
     PATH="$fake_bin:$PATH" \
-    bash "$root/scripts/syncthing-remove.sh" _worker \
+    bash "$root/hosts/omarchy/scripts/syncthing-remove.sh" _worker \
       "$source" "$gui_assets" "$mode"
 
   if [[ $install_kind == link ]]; then
@@ -246,6 +324,10 @@ test_removal_mode() {
     || fail "$mode removal left the installed link"
   [[ ! -e $gui_assets/syncthing-omarchy ]] \
     || fail "$mode removal left generated theme assets"
+  [[ ! -e $gui_assets/syncshell-modern ]] \
+    || fail "$mode removal left the modern profile"
+  [[ $(<"$gui_assets/owner-theme/index.html") == owner ]] \
+    || fail "$mode removal changed an unrelated theme"
   if [[ $mode == preserve ]]; then
     [[ -f $plugin_config/settings.toml ]] \
       || fail "preserve removal deleted plugin settings"
@@ -257,6 +339,7 @@ test_removal_mode() {
 
 test_settings
 test_installation_status
+test_modern_bundle
 test_themes
 test_removal_mode preserve link
 test_removal_mode purge link

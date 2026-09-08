@@ -1,10 +1,8 @@
 # Syncthing for Omarchy
 
-Syncshell (**Sync**thing + quick**shell**) is a plugin to show Syncthing file
-activity from the Omarchy bar. The plugin can manage local folders, open
-Syncthing's Web UI, control the user service, and many more. While originally
-developed for Omarchy its next release will refactor the plugin to be usable on
-any Linux quickshell build.
+Syncshell (**Sync**thing + quick**shell**) shows Syncthing activity in the
+Omarchy bar, manages local folders and opens a redesigned Web UI. Version
+0.1.8 uses a bundled Go core. Other shell adapters remain future work.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -13,51 +11,67 @@ any Linux quickshell build.
 - select the switch/toggle in the top right to start or stop the user service
 - select a folder card to open its directory
 - select **+** to configure an existing local directory
-- select **RESCAN** on a folder or **Rescan all directories** for every folder
-- select **Open Web UI** for device setup and advanced folder options
+- select **RESCAN** on a folder or **Rescan all folders** for linked folders
+- select **Web UI** for device setup and advanced folder options
 - select the gear or press `s` for appearance settings and clean removal
 
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/ilyaZar/syncshell.git --enable
+omarchy plugin add https://github.com/omarchy-QOL/syncshell.git --enable
 ```
 
 Open the widget and expand **More**. If Syncthing is missing, select **Install
-Syncthing**. The plugin runs `omarchy pkg add syncthing`, then enables and
-starts `syncthing.service`. If Syncthing is already installed, the plugin should
-auto-detect this.
+Syncthing** to install the package and start the user service. Existing
+installations are detected automatically.
+
+Version 0.1.8 supports Linux x86_64 Omarchy systems. Other host directories are
+placeholders; other shells, ARM and daemon mode remain future work.
+
+## Upgrade
+
+Update through Omarchy, then restart the shell to load the updated plugin:
+
+```bash
+omarchy plugin update io.github.ilyazar.syncthing
+omarchy-restart-shell
+```
+
+Restart the shell after updating; the retained old service may otherwise fail.
+Syncshell does not restart it automatically.
 
 ## Keybindings
 
-As shown in the footer at the bottom of the main plugin menu
+Also shown in the panel footer.
 
-| Key   | Action                    |
-| ----- | ------------------------- |
-| `r`   | rescan all folders        |
-| `w`   | open the Web UI           |
-| `p`   | start or stop the service |
-| `s`   | open plugin settings      |
-| `q`   | close the panel           |
-| `esc` | close the panel           |
+| Key     | Action                    |
+| ------- | ------------------------- |
+| `r`     | rescan all folders        |
+| `w`     | open the Web UI           |
+| `p`     | start or stop the service |
+| `s`     | open plugin settings      |
+| `q/esc` | close the panel           |
 
 ## Settings
 
-The settings menu opens `~/.config/omarchy/ilyazar.syncthing/settings.toml` in
-the default editor. The file is created only when it is first opened, and
-changes apply when saved. New files use configuration version `1`, with
-appearance options grouped under the `[style]` section. Existing files are never
-overwritten.
+Settings opens `~/.config/omarchy/ilyazar.syncthing/settings.toml` in your
+editor. Saves are validated; invalid edits show an error and leave the
+session's last valid settings active.
 
-- `style.icon_style = "branded"` uses the classic Syncthing bar icon. Use
-  `themed` for an icon colored by the active Omarchy theme.
-- `style.web_ui_theme = "omarchy"` applies the complete Omarchy palette to
-  Syncthing's Web UI. Use `default` for Syncthing's own styling.
+Older settings offer **Auto-port**, **Manual port** and **Cancel**. Auto-port
+previews the migration to schema `2`, preserves valid preferences and comments,
+and keeps an exact backup beside the original. Unrecognized or invalid
+settings need manual correction.
 
-Changing the Omarchy theme regenerates the Web UI palette immediately. An open
-Web UI applies the new colors without a page reload. The generated Omarchy theme
-is separate from Syncthing's default theme assets, so selecting `default` keeps
-Syncthing's styling and any user customization intact.
+- `style.icon_style = "themed"` follows the bar foreground. Use `"branded"`
+  for the classic Syncthing icon.
+- `style.web_ui_theme = "default"` uses Syncthing's own Web UI.
+- `style.web_ui_theme = "modern"` uses the bundled Syncshell Web UI.
+- `style.web_ui_theme = "omarchy"` applies the Omarchy palette to that same
+  UI. This is the default.
+
+Omarchy theme changes apply live. Reload the page when switching Web UI
+profiles; `modern` keeps its own appearance.
 
 ## Demo videos
 
@@ -73,7 +87,7 @@ activity, folder management, Web UI theming, and plugin settings.
   <tr>
     <td width="50%" valign="top">
       <a
-        href="https://ilyazar.github.io/syncshell/assets/published/01_syncthing_file_activity.mp4"
+        href="https://omarchy-qol.github.io/syncshell/assets/published/01_syncthing_file_activity.mp4"
       >
         <img
           src="assets/published/01_syncthing_file_activity.png"
@@ -88,7 +102,7 @@ activity, folder management, Web UI theming, and plugin settings.
     </td>
     <td width="50%" valign="top">
       <a
-        href="https://ilyazar.github.io/syncshell/assets/published/02_syncthing_folder_lifecycle.mp4"
+        href="https://omarchy-qol.github.io/syncshell/assets/published/02_syncthing_folder_lifecycle.mp4"
       >
         <img
           src="assets/published/02_syncthing_folder_lifecycle.png"
@@ -104,7 +118,7 @@ activity, folder management, Web UI theming, and plugin settings.
   <tr>
     <td width="50%" valign="top">
       <a
-        href="https://ilyazar.github.io/syncshell/assets/published/03_syncthing_theme_aware_webUI.mp4"
+        href="https://omarchy-qol.github.io/syncshell/assets/published/03_syncthing_theme_aware_webUI.mp4"
       >
         <img
           src="assets/published/03_syncthing_theme_aware_webUI.png"
@@ -118,7 +132,7 @@ activity, folder management, Web UI theming, and plugin settings.
     </td>
     <td width="50%" valign="top">
       <a
-        href="https://ilyazar.github.io/syncshell/assets/published/04_syncthing_icon_change_and_other_settings.mp4"
+        href="https://omarchy-qol.github.io/syncshell/assets/published/04_syncthing_icon_change_and_other_settings.mp4"
       >
         <img
           src="assets/published/04_syncthing_icon_change_and_other_settings.png"
@@ -146,82 +160,152 @@ Syncthing does not expose a reliable source-to-destination relationship for a
 rename or move, so the plugin does not guess one from nearby additions and
 deletions.
 
-## Manage folders
+## New Web UI
 
-**UNLINK** pauses the selected folder and **LINK** resumes it. Both actions use
-Syncthing's reversible `paused` setting; they do not create filesystem links or
-change device sharing.
+The bundled UI keeps Syncthing's API and adds a few changes over the classical
+interface:
 
-**FORGET** is available for an unlinked folder. It removes that folder from the
-local Syncthing configuration without deleting its directory or data. Its Folder
-ID, settings, and device list are no longer retained by the plugin.
+- **Clearer layout:** folders, this device and remote devices sit alongside
+  each other on wide screens and stack on smaller ones. Current activity stays
+  visible; configuration and identification details fold away. Compact counts
+  and icon tooltips keep the cards readable.
+- **Resolve sync conflicts (beta):** the second tab lists conflict files from
+  Syncthing's index, with folder and global rechecks. File links open the
+  containing folder in your default file manager. Autoresolve restores a
+  conflict file's original name when that name is absent, preserving contents
+  and refusing to replace an existing file.
+- **Notifications:** a separate tab shows pending messages. Its dot follows
+  the highest severity and disappears when all messages are resolved.
+- **Smaller frontend:** The low-overhead and minimalist
+  [Preact](https://github.com/preactjs/preact) replaces
+  [AngularJS, whose support ended in 2022](https://angularjs.org/) and removes
+  most of the old JavaScript widget libraries.
 
-Adding a folder requires an existing directory and a unique Folder ID. The path
-is canonicalized, and paths that duplicate, contain, or sit inside another
-configured folder are rejected. A new folder is local-only unless remote devices
-are explicitly selected.
+Compared with the default Web UI shipped with
+[Syncthing v2.1.3](https://github.com/syncthing/syncthing/releases/tag/v2.1.3):
 
-Pending unencrypted folder offers can prefill the Folder ID, label, and offering
-device. Encrypted offers and sharing with untrusted devices must be configured
-in the Web UI.
+| Measure                        | Syncthing v2.1.3 | Syncshell | Reduction |
+| ------------------------------ | ---------------- | --------- | --------- |
+| Application source (LOC)       | 8,296            | 4,824     | 42%       |
+| Readable source + vendor (LOC) | 53,096           | 14,479    | 73%       |
+| HTML/CSS/JS assets             | 2.79 MB          | 0.43 MB   | 84%       |
+| Whole Web UI assets            | 6.58 MB          | 4.22 MB   | 36%       |
 
-A shared folder must use the same Folder ID on every device. Labels and paths
-may differ. Create the folder on one device, share it, and accept the offer on
-the other devices rather than creating unrelated folder identities.
+LOC counts readable source; sizes count uncompressed assets, including built
+bundles. The whole Web UI includes translations, fonts and images.
 
-See Syncthing's
-[Getting Started guide](https://docs.syncthing.net/intro/getting-started.html)
-and [folder guide](https://docs.syncthing.net/intro/gui.html) for device pairing
-and sharing.
+Three Syncshell views in Nord, followed by Syncthing's default UI.
+Click an image for the full size.
 
-Folder management and Web UI theming use Syncthing's granular configuration and
-system-path APIs and require Syncthing 1.21.0 or later.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h4>Overview (Nord)</h4>
+      <a href="assets/webui-nord-overview.png">
+        <img src="assets/webui-nord-overview.png" width="100%"
+          alt="Syncshell folders and devices in three columns under Nord">
+      </a>
+    </td>
+    <td width="50%" valign="top">
+      <h4>Notifications (Nord)</h4>
+      <a href="assets/webui-nord-notifications.png">
+        <img src="assets/webui-nord-notifications.png" width="100%"
+          alt="Syncshell notifications in their own tab under Nord">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h4>Conflict review examples (Nord, beta)</h4>
+      <a href="assets/webui-nord-conflicts.png">
+        <img src="assets/webui-nord-conflicts.png" width="100%"
+          alt="Example current and conflict files with recheck and rename actions">
+      </a>
+    </td>
+    <td width="50%" valign="top">
+      <h4>Default Syncthing UI</h4>
+      <a href="assets/webui-syncthing-default.png">
+        <img src="assets/webui-syncthing-default.png" width="100%"
+          alt="Syncthing's original layout with expanded folder details">
+      </a>
+    </td>
+  </tr>
+</table>
+
+Open the UI through the plugin's **Web UI** button to enable local file
+opening and renaming. These actions require Syncthing and the desktop to run
+as the same user. Containers, tunnels, relative paths and symlinked paths are
+unsupported for file actions; permission errors leave files unchanged.
+Discovery and rechecks remain available without desktop access. Reopen through
+the plugin after its core restarts.
+
+Tested with Syncthing v2.1.3. Syncthing attribution and licenses are retained;
+see [Web UI source and build details](webui/UPSTREAM.md).
+
+## Manage folders from the panel
+
+- **UNLINK / LINK** pause and resume a folder; they do not change its path or
+  sharing.
+- **FORGET** removes an unlinked folder from Syncthing's configuration while
+  keeping its files.
+- **Add** requires an existing directory and a unique Folder ID. Overlapping
+  paths are rejected. Select remote devices explicitly to share the folder.
+
+Incoming unencrypted folder offers can prefill the setup form. Use the Web UI
+for encrypted sharing, untrusted devices and details beyond the panel's limits.
+Shared folders need the same Folder ID on each device; accept an offer rather
+than create a separate identity. See Syncthing's
+[folder guide](https://docs.syncthing.net/intro/gui.html).
 
 ## Roadmap and prior releases
 
-Planned work stays at the top. Shipped entries come from
-[CHANGELOG.md](CHANGELOG.md), newest first.
+See [CHANGELOG.md](CHANGELOG.md) for details.
 
-| Release | State   | Date       | What changed                                            |
-| ------- | ------- | ---------- | ------------------------------------------------------- |
-| 0.1.8   | planned | TBD        | improve and expand Syncthing Web UI customization       |
-|         |         |            | prepare broader Quickshell compatibility                |
-| 0.1.7   | shipped | 2026-08-31 | fix persistent service-state reconciliation             |
-|         |         |            | UI/UX: clear semantics on buttons, harmonize font size  |
-| 0.1.6   | shipped | 2026-08-22 | make live and indexed file activity accurate            |
-|         |         |            | refine folder lifecycle controls and pending offers     |
-|         |         |            | add versioned icon and live Web UI theme settings       |
-|         |         |            | refresh the preview and add four focused demo videos    |
-| 0.1.5   | shipped | 2026-08-20 | add an optional theme-colored bar icon                  |
-| 0.1.4   | shipped | 2026-08-16 | support TLS-enabled local Syncthing APIs                |
-| 0.1.3   | shipped | 2026-08-15 | add a demo video and improve the documentation          |
-| 0.1.2   | shipped | 2026-08-15 | manage Syncthing folders from the bar panel             |
-| 0.1.1   | shipped | 2026-08-14 | monitor installs and show live synchronization activity |
-| 0.1.0   | shipped | 2026-08-12 | first release                                           |
+| Release | Date       | What changed                                            |
+| ------- | ---------- | ------------------------------------------------------- |
+| 0.1.8   | TBD        | use one native core for the Omarchy panel               |
+|         |            | support healthy externally managed Syncthing instances  |
+|         |            | add the Preact Web UI and settings migration            |
+|         |            | add conflict review (beta) and guarded file renaming    |
+|         |            | improve error details, rescan feedback and recovery     |
+|         |            | fix themed icon contrast, scaling and Web UI branding   |
+| 0.1.7   | 2026-08-31 | fix persistent service-state reconciliation             |
+|         |            | UI/UX: clear semantics on buttons, harmonize font size  |
+| 0.1.6   | 2026-08-22 | make live and indexed file activity accurate            |
+|         |            | refine folder lifecycle controls and pending offers     |
+|         |            | add versioned icon and live Web UI theme settings       |
+|         |            | refresh the preview and add four focused demo videos    |
+| 0.1.5   | 2026-08-20 | add an optional theme-colored bar icon                  |
+| 0.1.4   | 2026-08-16 | support TLS-enabled local Syncthing APIs                |
+| 0.1.3   | 2026-08-15 | add a demo video and improve the documentation          |
+| 0.1.2   | 2026-08-15 | manage Syncthing folders from the bar panel             |
+| 0.1.1   | 2026-08-14 | monitor installs and show live synchronization activity |
+| 0.1.0   | 2026-08-12 | first release                                           |
 
 ## Remove
 
-Open the plugin settings and select **Cleanly remove Syncthing plugin**. The
-confirmation can preserve or delete the plugin settings. Both choices restore
-Syncthing's default Web UI when the Omarchy theme is active, remove the
-generated Omarchy theme, and then use Omarchy's native plugin removal.
+Select **Cleanly remove Syncthing plugin** in settings. You can keep or delete
+plugin settings; both choices remove the custom Web UI profiles and restore
+Syncthing's default UI. Syncthing itself, its configuration and synced files
+remain intact.
 
-Clean plugin removal never uninstalls Syncthing or removes its configuration,
-folders, devices, or synchronized data. Uninstall Syncthing separately only when
-that is intended:
+To uninstall Syncthing separately:
 
 ```bash
 systemctl --user disable --now syncthing.service
 omarchy pkg drop syncthing
 ```
 
-These commands do not remove Syncthing configuration or synchronized files.
+These commands leave Syncthing configuration and synchronized files intact.
 
 ## Security and license
 
-The plugin talks only to Syncthing's local API. It keeps the API key in memory
-and does not persist or log it. Like other Omarchy shell plugins, it runs
-unsandboxed, and the API key permits Syncthing configuration changes.
+The plugin runs as unsandboxed code under your desktop user. The Go core keeps
+the Syncthing API key out of QML and plugin settings; that key permits changes
+to Syncthing's configuration. File actions use your existing permissions.
 
-Plugin code is MIT licensed. Adapted Syncthing status icons are MPL-2.0; their
-source and attribution are documented in `assets/README.md`.
+Plugin code is MIT licensed. The Web UI and adapted icons retain Syncthing's
+MPL-2.0 attribution and vendor licenses; see
+[Web UI provenance](webui/UPSTREAM.md) and [icon sources](assets/README.md).
+The Go runtime and system-call dependency use the
+[BSD license](packaging/bundled/LICENSE.golang).

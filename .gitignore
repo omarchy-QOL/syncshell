@@ -1,4 +1,7 @@
 # Local capture harness, archives, and project-only Codex workflow.
-/tests/interactive/
-/.agents/skills/syncthing-demo-video/
+/docs/interactive/
+/tests/live/*
+!/tests/live/*.sh
+/.agents/skills/
 /assets/backups/
+/TODO/

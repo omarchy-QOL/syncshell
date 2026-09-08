@@ -1,14 +1,10 @@
 import QtQuick
-import "../core"
-import "../models/FolderModel.js" as FolderModel
-import "../models/PanelModel.js" as PanelModel
-import "../models/ServiceStateModel.js" as ServiceStateModel
-import "../models/SettingsModel.js" as SettingsModel
+import "../hosts/omarchy/models/PanelModel.js" as PanelModel
+import "../hosts/omarchy/models/SettingsModel.js" as SettingsModel
+import "../hosts/omarchy/models/FacadeModel.js" as FacadeModel
 
 QtObject {
   id: root
-
-  property ActivityTracker tracker: ActivityTracker {}
 
   function compare(actual, expected, name) {
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -17,366 +13,226 @@ QtObject {
     }
   }
 
-  function testActivityStates() {
-    tracker.stop()
-    tracker.processIndexedChanges("folder", [{
-      path: "nested/file.txt", deleted: false
-    }])
-    compare(tracker.dots, ".  ", "first aligned dot frame")
-    tracker._dotIndex = 1
-    compare(tracker.dots, ".. ", "second aligned dot frame")
-    tracker._dotIndex = 2
-    compare(tracker.dots, "...", "third aligned dot frame")
-
-    tracker.processIndexedChanges("second-folder", [{
-      path: "second.txt", deleted: false
-    }])
-    tracker.advanceFile()
-    compare(tracker.folderId, "second-folder", "file cycle folder")
-    compare(tracker.detail, "second.txt", "file cycle detail")
-
-    tracker.stop()
-    tracker.processEvent({
-      type: "RemoteDownloadProgress",
-      data: {
-        device: "device",
-        folder: "folder",
-        state: { "video.mp4": { bytesDone: 1, bytesTotal: 2 } }
-      }
-    })
-    compare(tracker.action, "upload", "upload action")
-    compare(tracker.detail, "Upload video.mp4", "upload detail")
-  }
-
-  function testNestedIndexedState() {
-    var scans = []
-    var fileInfo = {
-      name: "new-directory",
-      type: "FILE_INFO_TYPE_DIRECTORY",
-      deleted: false
-    }
-    tracker.stop()
-    tracker.requestApi = function(name, options, onSuccess, onError) {
-      if (name === "getFileInfo") {
-        onSuccess({ local: fileInfo })
-      } else if (name === "scanFolder") {
-        scans.push(options.query)
-        onSuccess({})
-      } else {
-        onError({})
-      }
-      return { abort: function() {} }
-    }
-    tracker.processLocalIndexUpdate({
-      data: { folder: "folder", filenames: ["new-directory"] }
-    })
-    compare(scans, [{ folder: "folder", sub: "new-directory" }],
-      "new directory scan")
-
-    fileInfo = {
-      name: "new-directory/file.txt",
-      type: "FILE_INFO_TYPE_FILE",
-      deleted: false
-    }
-    tracker.processLocalIndexUpdate({
-      data: { folder: "folder", filenames: [fileInfo.name] }
-    })
-    compare(tracker.action, "syncing", "nested addition action")
-    compare(tracker.detail, "file.txt", "nested addition detail")
-
-    fileInfo.deleted = true
-    tracker.processLocalIndexUpdate({
-      data: { folder: "folder", filenames: [fileInfo.name] }
-    })
-    compare(tracker.action, "removing", "nested removal action")
-    compare(tracker.detail, "Removing file.txt", "nested removal detail")
-  }
-
-  function testModels() {
-    var rows = PanelModel.buildFolderRows({
+  function testPanelModel() {
+    var service = {
       localDeviceId: "local",
       folders: [{
-        id: "folder", label: "Configured label", path: "/tmp/truthful-folder",
+        id: "folder",
+        label: "Configured label",
+        path: "/tmp/truthful-folder",
         devices: [{ deviceID: "local" }]
       }],
       folderStatuses: {
         folder: { state: "idle", globalFiles: 3, globalBytes: 12 }
       }
-    }, "/home/test")
-    var folder = rows[0]
-    compare(folder.label, "truthful-folder", "folder display label")
-    compare(PanelModel.folderMeta(folder),
+    }
+    var rows = PanelModel.buildFolderRows(service, "/home/test")
+    compare(rows[0].label, "truthful-folder", "folder display label")
+    compare(PanelModel.folderMeta(rows[0]),
       "3 files · local only · Configured label", "folder metadata")
-    compare(PanelModel.folderState(folder, ""), "SYNCED", "folder state")
-    compare(PanelModel.folderState(folder, "", true), "SYNCING",
+    compare(PanelModel.folderState(rows[0], ""), "SYNCED", "folder state")
+    compare(PanelModel.folderState(rows[0], "", true), "SYNCING",
       "active folder state")
-    compare(PanelModel.folderState({ paused: true }, "", true), "UNLINKED",
-      "paused folder state")
-    compare(PanelModel.folderState({ problem: true }, "", true), "ERROR",
-      "problem folder state")
-
-    var config = FolderModel.buildConfig({}, {
-      id: "folder",
-      label: "Folder",
-      path: "/tmp/folder",
-      selectedDeviceIds: ["remote"]
-    }, "local", function(path) { return path })
-    compare(config.devices.map(function(device) { return device.deviceID }),
-      ["local", "remote"], "configured devices")
-
-    compare(PanelModel.localDeviceName({
-      localDeviceId: "local",
-      devices: [{ deviceID: "local", name: "optiplex" }]
-    }, "fallback"), "optiplex", "configured local device name")
+    compare(PanelModel.folderMeta(rows[0], true),
+      "Scanning local changes · Configured label", "rescan folder metadata")
+    compare(PanelModel.folderState(rows[0], "", false, true),
+      "SCANNING", "optimistic rescan state")
+    compare(PanelModel.folderState(rows[0], "", true, true),
+      "SCAN+SYNC", "rescan with activity")
+    rows[0].scanning = true
+    compare(PanelModel.folderState(rows[0], ""), "SYNCED",
+      "background scan is not a user rescan")
+    compare(PanelModel.folderMeta(rows[0]),
+      "3 files · local only · Configured label", "background scan metadata")
     compare(PanelModel.localDeviceName({
       displayDeviceName: "optiplex-sff",
       localDeviceId: "",
       devices: []
     }, "fallback"), "optiplex-sff", "remembered local device name")
-    compare(PanelModel.localDeviceName(null, "optiplex-sff"),
-      "optiplex-sff", "host name fallback")
   }
 
-  function testPendingFolderOffers() {
-    var offer = {
-      localDeviceId: "local",
-      devices: [{ deviceID: "remote", name: "pixel" }],
-      pendingFolders: {
-        "shared-folder": {
-          offeredBy: {
-            remote: { label: "Shared folder" }
-          }
-        }
-      }
+  function testFolderErrorDetails() {
+    var details = [
+      { path: "repo", error: "delete dir: contains ignored files" },
+      { path: "repo/child", error: "delete dir: contains ignored files" },
+      { path: "other", error: "permission denied" }
+    ]
+    var service = {
+      folders: [{ id: "failed", path: "/tmp/failed", label: "Named folder" },
+        { id: "healthy", path: "/tmp/healthy" }],
+      folderStatuses: FacadeModel.folderStatuses([
+        { id: "failed", status: { state: "idle", pullErrors: 19,
+            errors: details } },
+        { id: "healthy", status: { state: "idle", errors: [] } }
+      ])
     }
-    compare(PanelModel.pendingOfferOptions(offer), [{
-      value: JSON.stringify(["shared-folder", "remote"]),
-      label: "Shared folder from pixel"
-    }], "pending folder option")
-    compare(FolderModel.offerSnapshotError({
-      id: "shared-folder", pendingDeviceId: "remote"
-    }, offer.pendingFolders), "", "current folder offer")
-    compare(FolderModel.offerSnapshotError({
-      id: "shared-folder", pendingDeviceId: "missing"
-    }, offer.pendingFolders),
-      "The selected remote folder offer is no longer available",
-      "stale folder offer")
-
-    offer.pendingFolders["shared-folder"].offeredBy.remote.receiveEncrypted = true
-    compare(PanelModel.pendingOfferOptions(offer), [],
-      "encrypted folder offer hidden")
-    compare(FolderModel.offerSnapshotError({
-      id: "shared-folder", pendingDeviceId: "remote"
-    }, offer.pendingFolders),
-      "Encrypted folder offers must be accepted in the Syncthing Web UI",
-      "encrypted folder offer rejected")
+    var rows = PanelModel.buildFolderRows(service, "/home/test")
+    var failed = PanelModel.folderById(rows, "failed")
+    compare(failed.errorDetails, details, "per-file errors reach the panel")
+    compare(PanelModel.folderMeta(failed), details[0].error + " · Named folder",
+      "card uses the available reason")
+    compare(PanelModel.folderErrorText(failed),
+      "delete dir: contains ignored files\n\nrepo\nrepo/child\n\n"
+        + "permission denied\n\nother", "identical reasons share paths")
+    compare(PanelModel.folderErrorText(PanelModel.folderById(rows, "healthy")),
+      "", "healthy selection has no errors")
+    failed.error = "folder unavailable"
+    compare(PanelModel.folderMeta(failed), "folder unavailable · Named folder",
+      "folder summary takes precedence")
+    service.folderStatuses.failed = FacadeModel.folderStatus({
+      state: "idle", pullErrors: 0, errors: []
+    })
+    failed = PanelModel.folderById(
+      PanelModel.buildFolderRows(service, "/home/test"), "failed")
+    compare(failed.problem, false, "fresh healthy status clears the problem")
+    compare(PanelModel.folderErrorText(failed), "",
+      "fresh healthy status clears old details")
+    compare(PanelModel.folderErrorText({ problem: true, errorDetails: [
+      { path: "<file>", error: "__proto__" }
+    ] }), "__proto__\n\n<file>", "error text remains data")
   }
 
-  function testSettings() {
-    var parsed = SettingsModel.parse([
-      "# Syncthing plugin preferences",
-      "version = 1",
-      "",
-      "[style]",
-      "icon_style   = \"themed\" # follows the Omarchy palette",
-      "web_ui_theme = 'default' # keep the Syncthing Web UI"
-    ].join("\n"))
-    compare(parsed, {
-      error: "",
-      iconStyle: "themed",
-      webUiTheme: "default",
-      serviceState: "enabled",
-      probeIntervalSeconds: 15
-    }, "versioned settings")
-    compare(SettingsModel.parse([
-      "icon_style = \"branded\"",
-      "web_ui_theme = \"omarchy\""
-    ].join("\n")), {
-      error: "",
-      iconStyle: "branded",
-      webUiTheme: "omarchy",
-      serviceState: "enabled",
-      probeIntervalSeconds: 15
-    }, "legacy flat settings")
-    compare(SettingsModel.defaults(true), {
-      iconStyle: "themed",
-      webUiTheme: "omarchy",
-      serviceState: "enabled",
-      probeIntervalSeconds: 15
-    }, "legacy themed icon migration")
+  function testSettingsModel() {
+    var current = 'version = 2\n[style]\nicon_style = "themed"\n'
+      + 'web_ui_theme = "default"\n[service]\nservice_state = "disabled"\n'
+      + 'probe_interval_seconds = 27\n'
+    var expected = {
+      error: "", version: 2, iconStyle: "themed", webUiTheme: "default",
+      serviceState: "disabled", probeIntervalSeconds: 27
+    }
+    compare(SettingsModel.parse(current), expected, "current settings")
     compare(SettingsModel.defaults(false), {
-      iconStyle: "branded",
-      webUiTheme: "omarchy",
-      serviceState: "enabled",
+      iconStyle: "themed", webUiTheme: "omarchy", serviceState: "enabled",
       probeIntervalSeconds: 15
     }, "implicit defaults")
-    compare(SettingsModel.parse([
-      "version = 1",
-      "",
-      "[style]",
-      "icon_style = \"branded\"",
-      "web_ui_theme = \"omarchy\"",
-      "",
-      "[service]",
-      "service_state = \"disabled\"",
-      "probe_interval_seconds = 27"
-    ].join("\n")), {
-      error: "",
-      iconStyle: "branded",
-      webUiTheme: "omarchy",
-      serviceState: "disabled",
-      probeIntervalSeconds: 27
-    }, "service settings")
-    compare(SettingsModel.parse([
-      "icon_style = \"themed\"",
-      "web_ui_theme = \"default\"",
-      "",
-      "[service]",
-      "service_state = \"disabled\""
-    ].join("\n")), {
-      error: "",
-      iconStyle: "themed",
-      webUiTheme: "default",
-      serviceState: "disabled",
-      probeIntervalSeconds: 15
-    }, "legacy settings with service section")
-    compare(SettingsModel.parse([
-      "icon_style = \"branded\"",
-      "web_ui_theme = \"unknown\""
-    ].join("\n")).error,
-      "web_ui_theme must be default or omarchy", "invalid Web UI theme")
-    compare(SettingsModel.parse([
-      "icon_style = \"branded\"",
-      "icon_style = \"themed\"",
-      "web_ui_theme = \"omarchy\""
-    ].join("\n")).error,
-      "Duplicate setting icon_style on line 2", "duplicate setting")
-    compare(SettingsModel.parse([
-      "version = 2",
-      "",
-      "[style]",
-      "icon_style = \"branded\"",
-      "web_ui_theme = \"omarchy\""
-    ].join("\n")).error,
-      "Unsupported settings version 2", "unsupported settings version")
-    compare(SettingsModel.parse([
-      "version = 1",
-      "icon_style = \"branded\"",
-      "",
-      "[style]",
-      "web_ui_theme = \"omarchy\""
-    ].join("\n")).error,
-      "Style settings must be inside [style]", "unscoped style setting")
-    compare(SettingsModel.parse([
-      "icon_style = \"branded\"",
-      "web_ui_theme = \"omarchy\"",
-      "[service]",
-      "service_state = \"automatic\""
-    ].join("\n")).error,
-      "service_state must be enabled or disabled", "invalid service state")
-    compare(SettingsModel.parse([
-      "icon_style = \"branded\"",
-      "web_ui_theme = \"omarchy\"",
-      "[service]",
-      "probe_interval_seconds = 0"
-    ].join("\n")).error,
-      "probe_interval_seconds must be an integer between 1 and 3600",
-      "invalid probe interval")
+    ;["default", "modern", "omarchy"].forEach(function(theme) {
+      compare(SettingsModel.parse(current.replace('"default"', '"' + theme
+        + '"')).webUiTheme, theme, "valid Web UI " + theme)
+    })
+    var invalid = [
+      current.replace('"default"', '"oomarchy"'),
+      current.replace('"default"', '"dfault"'),
+      current.replace('"themed"', '"theme"'),
+      current.replace('"disabled"', '"disable"'),
+      current.replace('[service]', '[servcie]'),
+      current + '[future]\nvalue = [1,,]\n',
+      current.replace('icon_style', 'icon_stlye'),
+      current.replace('"default"', 'default'),
+      current.replace('27', '"27"'), current.replace('27', '0'),
+      current.replace('27', '3601'), current.replace('27', '1.5'),
+      current + 'service_state = "enabled"\n', current + '[style]\n',
+      current.replace('version = 2', 'version = "2"'),
+      current.replace('version = 2', 'version = 3'),
+      current.replace('web_ui_theme = "default"\n', ''),
+      current.replace('version = 2', 'version = 2\nversion = 2')
+    ]
+    invalid.forEach(function(raw, index) {
+      compare(!!SettingsModel.parse(raw).error, true, "invalid settings " + index)
+      compare(!!SettingsModel.migrate(raw).error, true, "unsafe migration " + index)
+    })
+    var older = current.replace('version = 2', 'version = 1 # owner comment')
+    compare(!!SettingsModel.parse(older).error, true, "old runtime format refused")
+    var migrated = SettingsModel.migrate(older)
+    compare(migrated.values, expected, "old preferences survive")
+    compare(migrated.text, current.replace('version = 2',
+      'version = 2 # owner comment'), "comments survive")
+    compare(migrated.additions, [], "no redundant defaults")
+    var legacy = '# owner comment\nicon_style = "branded"\n'
+      + 'web_ui_theme = "omarchy"\n'
+    migrated = SettingsModel.migrate(legacy)
+    compare(migrated.values, {
+      error: "", version: 2, iconStyle: "branded", webUiTheme: "omarchy",
+      serviceState: "enabled", probeIntervalSeconds: 15
+    }, "unversioned migration keeps old defaults")
+    compare(migrated.additions.length, 2, "missing defaults are listed")
+    compare(migrated.text.indexOf('# owner comment') >= 0, true,
+      "legacy comment survives")
+    var serviceFirst = 'version = 1\n[service]\nservice_state = "disabled"\n'
+      + '[style]\nicon_style = "themed"\nweb_ui_theme = "modern"\n'
+    migrated = SettingsModel.migrate(serviceFirst.replace(/\n/g, "\r\n"))
+    compare(migrated.values.probeIntervalSeconds, 15, "service before style")
+    compare(migrated.values.serviceState, "disabled", "partial service preserved")
+    compare(migrated.text.replace(/\r\n/g, "").indexOf("\n"), -1,
+      "CRLF preserved")
   }
 
-  function actionSummary(action) {
-    return {
-      side: action.side,
-      value: action.value,
-      preferred: action.preferred,
-      label: action.label
-    }
-  }
-
-  function testServiceStateModel() {
-    var runtimeStates = ["active", "inactive"]
-    var configuredStates = ["enabled", "disabled"]
-    for (var runtimeIndex = 0; runtimeIndex < runtimeStates.length;
-        runtimeIndex++) {
-      for (var configIndex = 0; configIndex < configuredStates.length;
-          configIndex++) {
-        var aligned = ServiceStateModel.decision(
-          configuredStates[configIndex], configuredStates[configIndex],
-          runtimeStates[runtimeIndex])
-        compare(aligned.status, "aligned", "aligned service state")
-      }
-    }
-
-    var cases = [{
-      runtime: "active", config: "enabled", unit: "disabled",
-      message: "Syncthing config (enabled) differs from its systemd "
-        + "autostart setting (disabled).\n\nPlease choose:",
-      first: ["system", "enabled",
-        "Enable systemd autostart (preferred)"],
-      second: ["config", "disabled", "Set Syncthing config to disabled"]
+  function testFacadeProjection() {
+    var sourceDevices = [{
+      id: "local", name: "desktop", untrusted: false, connected: true
     }, {
-      runtime: "active", config: "disabled", unit: "enabled",
-      message: "Syncthing config (disabled) differs from its systemd "
-        + "autostart setting (enabled).\n\nPlease choose:",
-      first: ["config", "enabled",
-        "Set Syncthing config to enabled (preferred)"],
-      second: ["system", "disabled", "Disable systemd autostart"]
-    }, {
-      runtime: "inactive", config: "disabled", unit: "enabled",
-      message: "Syncthing config (disabled) differs from its systemd "
-        + "autostart setting (enabled).\n\nPlease choose:",
-      first: ["system", "disabled",
-        "Disable systemd autostart (preferred)"],
-      second: ["config", "enabled", "Set Syncthing config to enabled"]
-    }, {
-      runtime: "inactive", config: "enabled", unit: "disabled",
-      message: "Syncthing config (enabled) differs from its systemd "
-        + "autostart setting (disabled).\n\nPlease choose:",
-      first: ["config", "disabled",
-        "Set Syncthing config to disabled (preferred)"],
-      second: ["system", "enabled", "Enable systemd autostart"]
+      id: "remote", name: "phone", untrusted: true, connected: false
     }]
-    for (var i = 0; i < cases.length; i++) {
-      var current = cases[i]
-      var decision = ServiceStateModel.decision(
-        current.config, current.unit, current.runtime)
-      compare(decision.status, "drift", "divergent service state")
-      compare(decision.message, current.message, "service state message")
-      compare(actionSummary(decision.first), {
-        side: current.first[0], value: current.first[1], preferred: true,
-        label: current.first[2]
-      }, "preferred service action")
-      compare(actionSummary(decision.second), {
-        side: current.second[0], value: current.second[1], preferred: false,
-        label: current.second[2]
-      }, "alternate service action")
-    }
+    compare(FacadeModel.devices(sourceDevices), [{
+      deviceID: "local", name: "desktop", untrusted: false
+    }, {
+      deviceID: "remote", name: "phone", untrusted: true
+    }], "device projection")
+    compare(FacadeModel.folderStatuses([{
+      id: "folder",
+      status: {
+        state: "error",
+        errors: [{ path: "file", error: "denied" }],
+        pullErrors: 2
+      }
+    }]).folder.errors, 1, "folder error projection")
+    compare(FacadeModel.truncationWarning({}), "", "complete state warning")
+    compare(FacadeModel.truncationWarning({ folderErrors: 1 }), "",
+      "folder detail limits are reported with the errors")
+    compare(FacadeModel.truncationWarning({ folders: 1 }),
+      "Some Syncthing items exceed panel limits; use the Web UI for the "
+        + "hidden entries", "truncated state warning")
+  }
 
-    compare(ServiceStateModel.decision(
-      "enabled", "masked", "inactive").status,
-      "unsupported", "masked unit state")
-    compare(ServiceStateModel.decision(
-      "enabled", "disabled", "activating").status,
-      "unsupported", "transitional runtime state")
-    compare(ServiceStateModel.persistenceCommand("enabled"), [
-      "systemctl", "--user", "enable", "syncthing.service"
-    ], "enable persistence command")
-    compare(ServiceStateModel.persistenceCommand("disabled"), [
-      "systemctl", "--user", "disable", "syncthing.service"
-    ], "disable persistence command")
-    compare(ServiceStateModel.persistenceCommand("masked"), [],
-      "unsupported persistence command")
+  function testDriftPresentation() {
+    compare(FacadeModel.lifecyclePresentation({
+      available: true,
+      targetMatch: false,
+      canControl: false,
+      canStart: false
+    }), {
+      available: false,
+      controllable: false
+    }, "external lifecycle hidden")
+    compare(FacadeModel.lifecyclePresentation({
+      available: true,
+      targetMatch: true,
+      classification: "external",
+      canControl: false,
+      canStart: false
+    }), {
+      available: false,
+      controllable: false
+    }, "online inactive unit hidden")
+    compare(FacadeModel.lifecyclePresentation({
+      available: true,
+      targetMatch: true,
+      canControl: true,
+      canStart: false
+    }), {
+      available: true,
+      controllable: true
+    }, "trusted lifecycle shown")
+    var decision = FacadeModel.driftDecision("enabled", {
+      unitFileState: "disabled",
+      activeState: "inactive"
+    })
+    compare(decision.status, "drift", "drift status")
+    compare(decision.first.side, "config", "inactive preferred side")
+    compare(decision.second.side, "system", "inactive alternate side")
+    compare(FacadeModel.driftDecision("enabled", {
+      unitFileState: "enabled",
+      activeState: "active"
+    }).status, "aligned", "aligned state")
   }
 
   Component.onCompleted: {
     try {
-      testActivityStates()
-      testNestedIndexedState()
-      testModels()
-      testPendingFolderOffers()
-      testSettings()
-      testServiceStateModel()
-      console.log("all tests passed")
+      testPanelModel()
+    testFolderErrorDetails()
+      testSettingsModel()
+      testFacadeProjection()
+      testDriftPresentation()
+      console.log("all QML model tests passed")
       Qt.exit(0)
     } catch (error) {
       console.error(error)

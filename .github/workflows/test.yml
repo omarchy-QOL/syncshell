@@ -1,0 +1,100 @@
+name: test
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: core/go.mod
+          cache-dependency-path: tests/integration/go.sum
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+      - name: Core and launcher contracts
+        run: go -C core test -race ./...
+      - name: Review server contracts
+        run: go -C tests/integration test -race ./...
+      - name: Browser API contracts
+        run: node --test tests/webui/*.test.*
+      - name: Build frontend
+        if: hashFiles('webui/package.json') != ''
+        working-directory: webui
+        run: |
+          npm ci
+          npm run build
+          git diff --exit-code -- modern SHA256SUMS
+      - name: Verify bundled assets
+        run: |
+          sha256sum --check packaging/bundled/SHA256SUMS
+          cd webui
+          sha256sum --quiet --check SHA256SUMS
+      - name: Install pinned Syncthing
+        run: |
+          curl --fail --location --silent --show-error \
+            https://github.com/syncthing/syncthing/releases/download/v2.1.3/syncthing-linux-amd64-v2.1.3.tar.gz \
+            --output "$RUNNER_TEMP/syncthing.tar.gz"
+          echo "f929eb8e5b72a85543eeeefb2c38f34a68e0c530e70758a2905b78840c76602c  $RUNNER_TEMP/syncthing.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/syncthing.tar.gz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/syncthing-linux-amd64-v2.1.3" >> "$GITHUB_PATH"
+      - name: Install browser test tools
+        working-directory: tests/webui
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Real launcher acceptance
+        run: |
+          go -C tests/integration build -o "$RUNNER_TEMP/syncshell-test" .
+          sudo env PATH="$PATH" "$RUNNER_TEMP/syncshell-test" \
+            -launcher-core "$GITHUB_WORKSPACE/bin/x86_64/syncshell-core" \
+            -fixture-port 18601 \
+            -runtime "/var/tmp/syncshell-launcher-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+      - name: Browser workflows against disposable Syncthing
+        run: |
+          bash hosts/omarchy/scripts/syncthing-theme.sh prepare modern "$RUNNER_TEMP/gui"
+          go -C tests/integration build -o "$RUNNER_TEMP/syncshell-test" .
+          "$RUNNER_TEMP/syncshell-test" \
+            -fixture-assets "$RUNNER_TEMP/gui/syncshell-modern" \
+            -runtime "$RUNNER_TEMP/browser-fixture" > "$RUNNER_TEMP/fixture.log" 2>&1 &
+          fixture_pid=$!
+          trap 'kill "$fixture_pid"; wait "$fixture_pid" || true' EXIT
+          for _ in {1..150}; do
+            test ! -f "$RUNNER_TEMP/browser-fixture/ready.json" || break
+            kill -0 "$fixture_pid"
+            sleep 0.1
+          done
+          test -f "$RUNNER_TEMP/browser-fixture/ready.json"
+          cd tests/webui
+          npx playwright test
+          SYNCSHELL_TEST_RUNTIME="$RUNNER_TEMP/browser-fixture/primary" node live-auth.mjs
+          SYNCSHELL_TEST_RUNTIME="$RUNNER_TEMP/browser-fixture/primary" \
+            SYNCSHELL_TEST_PEER="$RUNNER_TEMP/browser-fixture/peer" node live-versions.mjs
+      - name: Browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: browser-failure-evidence
+          path: |
+            tests/webui/test-results
+            ${{ runner.temp }}/fixture.log
+            /var/tmp/syncshell-launcher-${{ github.run_id }}-${{ github.run_attempt }}/results.json
+      - name: Export runtime files
+        run: bash packaging/bundled/archive.sh "$RUNNER_TEMP/syncshell-runtime.tar.gz"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: syncshell-runtime
+          path: ${{ runner.temp }}/syncshell-runtime.tar.gz
+          if-no-files-found: error

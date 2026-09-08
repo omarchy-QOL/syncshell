@@ -4,8 +4,53 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 ## Unreleased
 
-- detect Syncthing installed through the SyncThingy Flatpak and read its local
-  API key, in addition to the conventional package installation
+- fix themed bar icon contrast and rendering at the host size, contributed by
+  [@baranskyi](https://github.com/baranskyi) in
+  [#47](https://github.com/omarchy-QOL/syncshell/pull/47)
+
+- connect local conflict folder opening and guarded renaming to the desktop
+  user, without changing permissions or replacing an existing destination
+- label conflict resolution as beta and use a themed Syncshell header
+
+- add a Preact Web UI with grouped folders/devices, notifications and
+  API-based conflict discovery and rescans
+- migrate older plugin settings with a preview and an exact backup while
+  preserving valid preferences, comments, permissions and managed symlinks
+- show folder error details and theme the selected Web UI address
+- stop the rescan wait with an error when Syncthing becomes unavailable
+- report rejected service actions immediately and keep their errors visible
+- enforce the core crash-retry limit without blocking initial installation
+  recovery, and disable unavailable actions after the core stops
+- check existing tilde folder paths for overlap using Syncthing's own home
+  directory; require absolute paths when their location cannot be determined
+- resume file activity when Syncthing's event sequence resets on reconnect
+  while preserving unread events from a surviving daemon
+- match Syncthing home and config directory options consistently so service
+  controls cannot target another instance through short option spellings
+- replace the QML Syncthing engine with one parent-bound native Go core
+- fix issue 45 by treating healthy external Syncthing instances as online
+  without exposing controls for an unrelated inactive user service
+- bundle one reproducible static Linux x86_64 executable with a public JSONL
+  protocol and keep the panel's credentials, REST, events and lifecycle in Go
+- make accepted single and global rescans visible immediately with rotating,
+  inert controls and explicit optimistic folder state
+- keep long-running accepted rescans from surfacing a false request timeout
+- wait until targeted folders leave scanning before reporting rescan
+  completion, so notices and the all-folders control follow the last folder
+  rather than the HTTP accept
+- show the bar sync overlay as soon as a plugin rescan is busy, not only
+  after snapshot scanning arrives
+- distinguish plain `SCANNING` from concurrent `SCAN+SYNC` during an accepted
+  rescan
+- require a shell restart after updating to load the current plugin while
+  preserving settings and bar placement
+
+### Contribution in progress
+
+- [@whelanh](https://github.com/whelanh) proposed SyncThingy Flatpak detection in
+  [#48](https://github.com/omarchy-QOL/syncshell/pull/48). The PR targets the
+  earlier QML implementation; adaptation and verification for the Go core are
+  pending. This candidate does not yet include that support.
 
 ## 0.1.7 - 2026-08-31
 
