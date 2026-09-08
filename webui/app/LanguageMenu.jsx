@@ -25,7 +25,7 @@ export function LanguageMenu() {
         }
     }
     return <li ref={root} class={`dropdown ${open ? 'open' : ''}`} >
-        <a href="#language" class="dropdown-toggle" onKeyDown={key} aria-expanded={open} aria-haspopup="true"
+        <a href="#language" class="dropdown-toggle" aria-label="Language" onKeyDown={key} aria-expanded={open} aria-haspopup="true"
             onClick={event => { event.preventDefault(); setOpen(!open); }}>
             <span class="fas fa-globe" /><span class="hidden-xs">&nbsp;{window.langPrettyprint[locale.language] || 'English'}</span> <span class="caret" />
         </a>

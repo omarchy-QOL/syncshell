@@ -13,11 +13,12 @@ import {Field} from './Field.jsx';
 import {Versioning} from './Versioning.jsx';
 import {ItemsDialog} from './ItemsDialog.jsx';
 
-export function Folder({folder, info, stats, progress, api, rescan}) {
+export function Folder({folder, info, stats, progress, api, rescan, state, session, onAction}) {
     const {t, language} = useContext(LocaleContext);
     const [open, setOpen] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [itemsKind, setItemsKind] = useState('');
+    const [sharingOpen, setSharingOpen] = useState(false);
     const panel = useRef();
     useEffect(() => { if (open) return stripeSections(panel.current); }, [open]);
     const status = folderStatus(folder, info);
@@ -55,7 +56,9 @@ export function Folder({folder, info, stats, progress, api, rescan}) {
                     <table class="table table-condensed table-auto"><tbody>
                         {!folder.paused && info?.state && <tr class="folder-state-summary">
                             <th><Tooltip icon={`fa fa-fw fa-circle text-${folderStateClass(status)}`}
-                                label="Global/local State" prefix={label} text={fieldHelp['Global/local State'].help} />&nbsp;<span>{t('Global/local State')}</span></th>
+                                label="Global/local State" prefix={label} text={fieldHelp['Global/local State'].help} />&nbsp;<span>{t('Global/local State')}</span>
+                                {info.ignorePatterns && <a href="#ignores" title={t('Reduced by ignore patterns')} onClick={event => { event.preventDefault(); onAction({type: 'edit-folder', folder, tab: 'ignores'}); }}><span class="fas fa-info-circle" /></a>}
+                            </th>
                             <td class="text-right"><Counts info={info} /></td>
                         </tr>}
                         {summaries.map(prefix => <Field key={prefix} label={prefix === 'global' ? 'Global State' : 'Local State'} rowClass="folder-state-detail">
@@ -106,9 +109,18 @@ export function Folder({folder, info, stats, progress, api, rescan}) {
                 </details>
             </div>
                 <div class="panel-footer folder-actions">
+                    <div class={`dropdown folder-sharing pull-left ${sharingOpen ? 'open' : ''}`}>
+                        <button class="btn btn-sm btn-default dropdown-toggle" aria-expanded={sharingOpen} disabled={!folder.devices.some(device => device.deviceID !== state.system.myID)} onClick={() => setSharingOpen(!sharingOpen)}><span class="fas fa-share-alt" /> {t('Shared')} <span class="caret" /></button>
+                        <ul class="dropdown-menu">{folder.devices.filter(device => device.deviceID !== state.system.myID).map(member => {
+                            const device = state.config.devices.find(item => item.deviceID === member.deviceID);
+                            return <li key={member.deviceID}><a href="#edit-device" onClick={event => { event.preventDefault(); setSharingOpen(false); if (device) onAction({type: 'edit-device', device}); }}>{device?.name || member.deviceID.slice(0, 7)}</a></li>;
+                        })}</ul>
+                    </div>
+                    <button class="btn btn-sm btn-default" onClick={() => session.setPaused('folders', folder.id, !folder.paused).catch(() => {})}><span class={`fas fa-${folder.paused ? 'play' : 'pause'}`} /> {t(folder.paused ? 'Resume' : 'Pause')}</button>
                     <button class="btn btn-sm btn-default" disabled={scanning || !['idle', 'stopped', 'unshared', 'outofsync', 'faileditems', 'localadditions'].includes(status)} onClick={scan}>
                         <span class="fas fa-fw fa-refresh" aria-hidden="true" /> {t('Rescan')}
                     </button>
+                    <button class="btn btn-sm btn-default" onClick={() => onAction({type: 'edit-folder', folder})}><span class="fas fa-pencil-alt" /> {t('Edit')}</button>
                 </div>
             </div>}
         </div>
