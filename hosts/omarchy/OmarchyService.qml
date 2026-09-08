@@ -459,6 +459,12 @@ QtObject {
   onLocalDeviceIdChanged: rememberLocalIdentity()
   onDevicesChanged: rememberLocalIdentity()
   onFolderStatusesChanged: settlePendingRescan()
+  onOnlineChanged: {
+    if (!online && folderMutationBusy && pendingRescanResultReady) {
+      failFolderAction(null,
+        "Could not confirm rescan completion because Syncthing became unavailable")
+    }
+  }
 
   property CoreProcess core: CoreProcess {
     pluginRoot: root.pluginRoot

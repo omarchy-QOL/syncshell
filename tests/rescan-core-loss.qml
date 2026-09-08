@@ -6,6 +6,7 @@ ShellRoot {
   id: root
 
   property bool armed: false
+  property bool apiLossChecked: false
 
   function fail(message) {
     console.error(message)
@@ -23,6 +24,26 @@ ShellRoot {
     running: true
     onTriggered: {
       if (!root.armed && service.core.running) {
+        if (!root.apiLossChecked) {
+          service.core.snapshot = {
+            connection: { online: true },
+            folders: [{ id: "folder", status: { state: "scanning" } }]
+          }
+          service.folderMutationBusy = true
+          service.folderMutationAction = "rescan"
+          service.folderMutationId = "folder"
+          service.pendingRescanResultReady = true
+          service.core.snapshot = Object.assign({}, service.core.snapshot, {
+            connection: { online: false }
+          })
+          if (service.folderMutationBusy || service.pendingRescanResultReady
+              || service.folderMutationError === ""
+              || service.folderMutationNotice !== "") {
+            root.fail("API loss retained an accepted rescan or reported success")
+            return
+          }
+          root.apiLossChecked = true
+        }
         root.armed = true
         service.folderMutationBusy = true
         service.folderMutationAction = "rescan"
