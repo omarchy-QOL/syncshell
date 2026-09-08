@@ -1,6 +1,8 @@
 import {useContext, useState} from 'preact/hooks';
 import {LocaleContext} from './locale-context.jsx';
 import {Dialog} from './Dialog.jsx';
+import {ServiceDialog} from './ServiceDialog.jsx';
+import {Logs} from './Logs.jsx';
 import {Editor} from './Editor.jsx';
 import {Settings} from './Settings.jsx';
 import {ConfirmAction} from './ConfirmAction.jsx';
@@ -12,6 +14,8 @@ export function ActionDialog({action, state, api, session, onClose}) {
     const {t} = useContext(LocaleContext);
     const [copied, setCopied] = useState(false);
     const friendly = id => deviceName(state.config.devices.find(device => device.deviceID.startsWith(id || '\0'))) || id || t('Unknown');
+    if (['restart', 'shutdown', 'upgrade'].includes(action.type)) return <ServiceDialog kind={action.type} state={state} session={session} onClose={onClose} />;
+    if (action.type === 'logs') return <Logs api={api} onClose={onClose} />;
     if (action.type === 'settings' || action.type === 'advanced') return <Settings state={state} api={api} session={session} onClose={onClose} advanced={action.type === 'advanced'} />;
     if (action.type.startsWith('edit-') || action.type.startsWith('add-'))
         return <Editor action={action} state={state} api={api} session={session} onClose={onClose} />;

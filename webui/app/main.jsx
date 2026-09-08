@@ -99,17 +99,20 @@ function App() {
                         <li><a href="#settings" onClick={event => { event.preventDefault(); openAction({type: 'settings'}); }}>{t('Settings')}</a></li>
                         <li><a href="#advanced" onClick={event => { event.preventDefault(); openAction({type: 'advanced'}); }}>{t('Advanced')}</a></li>
                         <li><a href="#identification" onClick={event => { event.preventDefault(); openAction({type: 'identification', device: self}); }}>{t('Show ID')}</a></li>
+                        <li><a href="#logs" onClick={event => { event.preventDefault(); openAction({type: 'logs'}); }}>{t('Logs')}</a></li>
+                        {state.upgradeInfo?.newer && <li><a href="#upgrade" onClick={event => { event.preventDefault(); openAction({type: 'upgrade'}); }}>{t('Upgrade')} {state.upgradeInfo.latest}</a></li>}
                         <li><a href="rest/debug/support" target="_blank">{t('Support Bundle')}</a></li>
                         {(state.config.gui?.user || state.config.gui?.authMode === 'ldap') && <li><a href="#logout" onClick={async event => { event.preventDefault(); await api.post('noauth/auth/logout', {}); location.reload(); }}>{t('Log Out')}</a></li>}
-                        <li><a href="#restart" onClick={event => { event.preventDefault(); setMenu(''); perform(session.systemAction('restart')); }}>{t('Restart')}</a></li>
-                        <li><a href="#shutdown" onClick={event => { event.preventDefault(); setMenu(''); perform(session.systemAction('shutdown')); }}>{t('Shut Down')}</a></li>
+                        <li><a href="#restart" onClick={event => { event.preventDefault(); openAction({type: 'restart'}); }}>{t('Restart')}</a></li>
+                        <li><a href="#shutdown" onClick={event => { event.preventDefault(); openAction({type: 'shutdown'}); }}>{t('Shut Down')}</a></li>
                     </ul>
                 </li>}
             </ul>
         </div></nav>
         <main class="container content">
             {!authenticated ? <Login /> : <>
-                {state.error && <div class="alert alert-danger" role="alert">{state.error.message}</div>}
+                {state.error && !['restart', 'shutdown', 'upgrade'].includes(action?.type) && <div class="alert alert-danger" role="alert">{state.error.message}</div>}
+                {!state.configInSync && <div class="alert alert-warning">{t('Restart Needed')} <button class="btn btn-default btn-sm" onClick={() => openAction({type: 'restart'})}>{t('Restart')}</button></div>}
                 {!state.ready && <p role="status">{t('Loading data...')}</p>}
                 <div class="dashboard">
                     <ul class="nav nav-tabs dashboard-tabs" role="tablist" onKeyDown={tabKey}>{tabs.map(([id, label]) =>
