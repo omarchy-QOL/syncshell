@@ -66,7 +66,8 @@ try {
         const response = page.waitForResponse(response=>new URL(response.url()).pathname==='/open');
         await control.click();
         const result=await response;
-        assert.ok(result.ok()); assert.equal((await result.json()).opened,true);
+        const payload=await result.json();
+        assert.ok(result.ok(), payload.error); assert.equal(payload.opened,true);
     }
     await auto.click();
     await page.getByRole('dialog').screenshot({path:join(evidence,'rename-before.png')});

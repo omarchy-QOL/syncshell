@@ -99,11 +99,21 @@ func (b *Bridge) Open(ctx context.Context) error {
 }
 
 func launch(ctx context.Context, target string) error {
-	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
-	defer cancel()
-	// Argument passing preserves literal filenames; no command string is evaluated.
-	if err := exec.CommandContext(ctx, "xdg-open", target).Run(); err != nil {
-		return errors.New("the default desktop application could not be opened")
+	// Some default applications keep xdg-open alive until their window closes.
+	command := exec.Command("xdg-open", target)
+	if err := command.Start(); err != nil {
+		return errors.New("the default desktop application could not be started")
+	}
+	done := make(chan error, 1)
+	go func() { done <- command.Wait() }()
+	select {
+	case err := <-done:
+		if err != nil {
+			return errors.New("the default desktop application refused the request")
+		}
+	case <-time.After(300 * time.Millisecond):
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 	return nil
 }
