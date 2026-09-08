@@ -4,6 +4,8 @@ import {createApi} from '../client/api.mjs';
 import {createSession, initialState} from '../client/session.mjs';
 import {createLocale, translator} from '../client/locale.mjs';
 import {grouped, deviceName} from '../client/devices.mjs';
+import {UsageReport} from './UsageReport.jsx';
+import {needsUsageConsent} from '../client/reports.mjs';
 import {notices} from '../client/notices.mjs';
 import {Folder} from './Folder.jsx';
 import {Device} from './Device.jsx';
@@ -101,7 +103,7 @@ function App() {
                         <li><a href="#advanced" onClick={event => { event.preventDefault(); openAction({type: 'advanced'}); }}>{t('Advanced')}</a></li>
                         <li><a href="#identification" onClick={event => { event.preventDefault(); openAction({type: 'identification', device: self}); }}>{t('Show ID')}</a></li>
                         <li><a href="#logs" onClick={event => { event.preventDefault(); openAction({type: 'logs'}); }}>{t('Logs')}</a></li>
-                        {state.upgradeInfo?.newer && <li><a href="#upgrade" onClick={event => { event.preventDefault(); openAction({type: 'upgrade'}); }}>{t('Upgrade')} {state.upgradeInfo.latest}</a></li>}
+                        {(state.upgradeInfo?.newer || state.upgradeInfo?.majorNewer) && <li><a href="#upgrade" onClick={event => { event.preventDefault(); openAction({type: 'upgrade'}); }}>{t('Upgrade')} {state.upgradeInfo.latest}</a></li>}
                         <li><a href="rest/debug/support" target="_blank">{t('Support Bundle')}</a></li>
                         {(state.config.gui?.user || state.config.gui?.authMode === 'ldap') && <li><a href="#logout" onClick={async event => { event.preventDefault(); await api.post('noauth/auth/logout', {}); location.reload(); }}>{t('Log Out')}</a></li>}
                         <li><a href="#restart" onClick={event => { event.preventDefault(); openAction({type: 'restart'}); }}>{t('Restart')}</a></li>
@@ -153,6 +155,7 @@ function App() {
             </>}
         </main>
         {action && <ActionDialog key={action.type + (action.device?.deviceID || action.folder?.id || '')} action={action} state={state} api={api} session={session} onClose={() => setAction(null)} />}
+        {needsUsageConsent(state) && <UsageReport api={api} session={session} state={state} consent onClose={() => {}} />}
     </LocaleContext.Provider>;
 }
 render(<App />, document.getElementById('app'));

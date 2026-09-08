@@ -1,6 +1,7 @@
 import {useContext, useEffect, useRef, useState} from 'preact/hooks';
 import {LocaleContext} from './locale-context.jsx';
 import {Dialog} from './Dialog.jsx';
+import {UsageReport} from './UsageReport.jsx';
 import {Editor} from './Editor.jsx';
 import {FormFields} from './FormFields.jsx';
 import {copy, setValue} from '../client/edit.mjs';
@@ -44,10 +45,7 @@ export function Settings({state, api, session, onClose, advanced = false}) {
         try { update('gui.apiKey', (await api.get('svc/random/string', {length: 32})).random); }
         catch (value) { setError(value.message); }
     }
-    async function preview() {
-        try { setReport(await api.get('svc/report', {version: draft.options.urAccepted > 0 ? draft.options.urAccepted : state.system.urVersionMax})); }
-        catch (value) { setError(value.message); }
-    }
+    function preview() { setReport(true); }
     return <>
         <Dialog title={advanced ? 'Advanced Configuration' : 'Settings'} status={advanced ? 'danger' : 'default'} icon="fas fa-cog" large onClose={onClose} onCancel={close} footer={<>
             <button class="btn btn-primary btn-sm" disabled={busy} onClick={save}>{t('Save')}</button><button class="btn btn-default btn-sm" disabled={busy} onClick={close}>{t('Close')}</button>
@@ -91,7 +89,7 @@ export function Settings({state, api, session, onClose, advanced = false}) {
         {nested && <Editor action={nested} state={state} api={api} session={session} onSaved={(value, lines) => {
             setDraft(previous => { const next = setValue(previous, 'defaults.' + (nested.folder ? 'folder' : 'device'), value); if (nested.folder) next.defaults.ignores.lines = lines; return next; });
         }} onClose={() => setNested(null)} />}
-        {report && <Dialog title="Anonymous Usage Reporting" large onClose={() => setReport(null)}><pre>{JSON.stringify(report, null, 2)}</pre></Dialog>}
+        {report && <UsageReport api={api} session={session} state={state} onClose={() => setReport(null)} />}
         {discard && <Dialog title="Discard Changes" onClose={() => setDiscard(false)} footer={<><button class="btn btn-warning" onClick={onClose}>{t('Discard Changes')}</button><button class="btn btn-default" onClick={() => setDiscard(false)}>{t('Cancel')}</button></>}><p>{t('Discard unsaved changes?')}</p></Dialog>}
     </>;
 }

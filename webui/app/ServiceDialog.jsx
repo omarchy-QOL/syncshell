@@ -4,7 +4,8 @@ import {Dialog} from './Dialog.jsx';
 export function ServiceDialog({kind, state, session, onClose}) {
     const {t} = useContext(LocaleContext), [started] = useState(state.system.startTime);
     const [phase, setPhase] = useState('confirm'), [error, setError] = useState('');
-    const title = error ? 'Error' : phase === 'confirm' ? 'Upgrade' : kind === 'shutdown' ? 'Shutdown Complete' : 'Restarting';
+    const major = state.upgradeInfo?.majorNewer;
+    const title = error ? 'Error' : phase === 'confirm' ? major ? 'Major Upgrade' : 'Upgrade' : kind === 'shutdown' ? 'Shutdown Complete' : 'Restarting';
     useEffect(() => { if (kind !== 'upgrade') apply(); }, []);
     useEffect(() => {
         if (phase !== 'confirm' && started && state.online && state.system.startTime !== started) onClose();
@@ -16,10 +17,10 @@ export function ServiceDialog({kind, state, session, onClose}) {
             if (kind !== 'shutdown' && state.config.gui.useTLS !== (location.protocol === 'https:')) location.protocol = state.config.gui.useTLS ? 'https:' : 'http:';
         } catch (value) { setError(value.message); }
     }
-    return <Dialog title={title} status={error ? 'danger' : phase === 'confirm' ? 'warning' : kind === 'shutdown' ? 'success' : 'info'} icon={kind === 'shutdown' && phase === 'waiting' ? 'fas fa-power-off' : 'fas fa-hourglass-half'} onClose={onClose} onCancel={() => { if (phase === 'confirm' || error) onClose(); }} footer={<>
+    return <Dialog title={title} status={error ? 'danger' : phase === 'confirm' ? major ? 'danger' : 'warning' : kind === 'shutdown' ? 'success' : 'info'} icon={kind === 'shutdown' && phase === 'waiting' ? 'fas fa-power-off' : 'fas fa-hourglass-half'} onClose={onClose} onCancel={() => { if (phase === 'confirm' || error) onClose(); }} footer={<>
         {error ? <button class="btn btn-default" onClick={onClose}>{t('Close')}</button> : phase === 'confirm' && <><button class="btn btn-primary" onClick={apply}>{t('Upgrade')}</button><button class="btn btn-default" onClick={onClose}>{t('Close')}</button></>}
     </>}>
-        {error ? <p role="alert">{error}</p> : phase === 'confirm' ? <><p>{t('Are you sure you want to upgrade?')}</p><p><a href={'https://github.com/syncthing/syncthing/releases/tag/' + encodeURIComponent(state.upgradeInfo?.latest || '')} target="_blank" rel="noreferrer">{t('Release Notes')}</a></p></>
+        {error ? <p role="alert">{error}</p> : phase === 'confirm' ? <>{major ? <p>{t('This is a major version upgrade.')} {t('A new major version may not be compatible with previous versions.')} {t('Please consult the release notes before performing a major upgrade.')}</p> : <p>{t('Are you sure you want to upgrade?')}</p>}<p><a href={'https://github.com/syncthing/syncthing/releases/tag/' + encodeURIComponent(state.upgradeInfo?.latest || '')} target="_blank" rel="noreferrer">{t('Release Notes')}</a></p></>
             : kind === 'shutdown' ? <p role="status">{t(phase === 'working' ? 'Please wait' : 'Syncthing has been shut down.')}</p> : <p role="status">{t('Syncthing is restarting.')} {t('Please wait')}...</p>}
     </Dialog>;
 }
