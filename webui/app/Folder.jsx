@@ -65,7 +65,7 @@ export function Folder({folder, info, stats, progress, api, rescan, state, sessi
                         {summaries.map(prefix => <Field key={prefix} label={prefix === 'global' ? 'Global State' : 'Local State'} rowClass="folder-state-detail">
                             <Counts info={info} prefix={prefix} />
                         </Field>)}
-                        {info?.needTotalItems > 0 && <Field label="Out of Sync Items"><a href="#needed" onClick={showItems('need')}>
+                        {info?.needTotalItems > 0 && <Field label="Out of Sync Items" icon="fas fa-fw fa-cloud-download-alt" help="Items this device still needs to synchronize with other devices. The size counts whole files; reusing existing data can reduce the amount actually downloaded. Click the value to see the items."><a href="#needed" onClick={showItems('need')}>
                             {compactNumber(info.needTotalItems)} {t('items')}, ~{unitPrefixed(info.needBytes, true)}B</a></Field>}
                         {!folder.paused && info?.state && folder.ignoreDelete &&
                             <tr><td colSpan="2" class="text-right"><i class="small">{t('Altered by ignoring deletes.')} <a href="https://docs.syncthing.net/advanced/folder-ignoredelete.html" target="_blank" rel="noreferrer">{t('Help')}</a></i></td></tr>}
