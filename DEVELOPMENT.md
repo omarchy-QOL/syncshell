@@ -137,3 +137,21 @@ The interval before restart has no cross-version usability guarantee. Do not
 retain old helpers, aliases, fallback runtimes, or version bridges for it.
 The service-contract fixture describes the current host interface; its
 members may evolve together with the panel.
+
+## Automated acceptance and runtime archives
+
+The test workflow runs on main/dev pushes and pull requests. It checks the
+core, the Go review tools, browser API contracts, generated frontend assets,
+and browser workflows against a disposable Syncthing pair. Real launcher
+acceptance creates an isolated account on the CI host and checks system,
+manual, managed-user and custom-config scenarios through the core protocol.
+See tests/integration/README.md for the same local commands. Graphical QML
+acceptance is a separate host check; a protocol test is not a popup screenshot.
+
+The workflow exports a runtime archive using packaging/bundled/archive.sh.
+.gitattributes omits test/build source and demonstration media from that
+archive while retaining the core executable, QML, icons and built Web UI.
+Normal Omarchy installation still performs a Git clone and receives tracked
+source and tests. export-ignore does not change clone or pull behavior, and
+this project does not delete files from installed checkouts or silently
+configure sparse checkout. The archive is a separate distribution artifact.
