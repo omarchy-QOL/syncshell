@@ -178,7 +178,11 @@ func (s *Session) addExistingFolder(ctx context.Context, arguments ActionArgumen
 	if err != nil {
 		return ActionResult{Error: publicError(err)}
 	}
-	if result := validateUnusedFolder(folderID, canonicalPath, folders); result != nil {
+	status, err := s.client.Status(ctx)
+	if err != nil {
+		return ActionResult{Error: publicError(err)}
+	}
+	if result := validateUnusedFolder(folderID, canonicalPath, folders, status.Tilde); result != nil {
 		return *result
 	}
 	devices, err := s.client.Devices(ctx)
@@ -369,15 +373,20 @@ func canonicalDirectory(path string) (string, *ActionResult) {
 	return resolved, nil
 }
 
-func validateUnusedFolder(folderID, path string, folders []syncthing.Folder) *ActionResult {
+func validateUnusedFolder(folderID, path string, folders []syncthing.Folder, home string) *ActionResult {
 	for _, folder := range folders {
 		if folder.ID == folderID {
 			result := rejected("folder_exists", "folder ID is already configured")
 			return &result
 		}
 		configured := filepath.Clean(folder.Path)
+		if (configured == "~" || strings.HasPrefix(configured, "~/")) && filepath.IsAbs(home) {
+			configured = filepath.Join(home, strings.TrimPrefix(configured, "~"))
+		}
 		if !filepath.IsAbs(configured) {
-			continue
+			result := rejected("path_unresolved",
+				"cannot check folder overlap; set existing relative folder paths to absolute paths in Syncthing")
+			return &result
 		}
 		if resolved, err := filepath.EvalSymlinks(configured); err == nil {
 			configured = resolved
