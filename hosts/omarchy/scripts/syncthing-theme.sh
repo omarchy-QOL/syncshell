@@ -61,6 +61,15 @@ if [[ ! -f $theme_root/.syncshell-bundle
   output_root=$staging
 fi
 
+if [[ $style == modern ]]; then
+  index_tmp=$(mktemp --tmpdir="$output_root" .index.html.XXXXXX)
+  temporary_files=("$index_tmp")
+  sed "s#href=\"assets/css/theme.css\"#href=\"assets/css/theme.css?v=$revision\"#" \
+    "$bundle_root/modern/index.html" >"$index_tmp"
+  chmod 644 -- "$index_tmp"
+  mv -- "$index_tmp" "$output_root/index.html"
+fi
+
 if [[ $style == omarchy ]]; then
   declare -A colors=()
   if [[ -n $colors_file ]]; then
@@ -130,7 +139,8 @@ if [[ $style == omarchy ]]; then
   }
 
   sed \
-    "s#</head>#  <script defer src=\"assets/js/omarchy_theme_refresh.js\" data-theme-version=\"$generation\"></script>\n</head>#" \
+    -e "s#href=\"assets/css/theme.css\"#href=\"assets/css/theme.css?v=$generation\"#" \
+    -e "s#</head>#  <script defer src=\"assets/js/omarchy_theme_refresh.js\" data-theme-version=\"$generation\"></script>\n</head>#" \
     "$bundle_root/modern/index.html" >"$index_tmp"
   cp -- "$script_dir/../webui/omarchy_theme_refresh.js" "$refresh_tmp"
   base_stylesheet >"$theme_dir/syncshell_base.css"

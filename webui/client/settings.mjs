@@ -8,7 +8,7 @@ export function settingsFields(tab, draft, myID, themes) {
     if (tab === 'General') return fields.filter(field => field.path !== 'options.startBrowser');
     if (tab === 'GUI') return fields.filter(field => field.path !== 'gui.unixSocketPermissions' || isUnixAddress(draft.gui.address)).concat([
         {path: 'options.startBrowser', label: 'Start Browser', type: 'checkbox'},
-        ...(themes.length > 1 ? [{path: 'gui.theme', label: 'GUI Theme', type: 'select', options: themes.map(theme => [theme, theme])}] : []),
+        ...(themes.length > 1 ? [{path: 'gui.theme', label: 'GUI Theme', type: 'select', options: [...new Set([...themes, draft.gui.theme])].filter(Boolean).map(theme => [theme, theme])}] : []),
     ]);
     return fields;
 }
