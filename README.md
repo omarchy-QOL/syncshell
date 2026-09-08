@@ -1,8 +1,8 @@
 # Syncthing for Omarchy
 
 Syncshell (**Sync**thing + quick**shell**) shows Syncthing activity in the
-Omarchy bar, manages local folders and opens a redesigned Web UI. Version
-0.1.8 uses a bundled Go core. Other shell adapters remain future work.
+Omarchy bar, manages local folders and opens a redesigned Web UI. Version 0.1.8
+uses a bundled Go core. Other shell adapters remain future work.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -28,18 +28,6 @@ installations are detected automatically.
 Version 0.1.8 supports Linux x86_64 Omarchy systems. Other host directories are
 placeholders; other shells, ARM and daemon mode remain future work.
 
-## Upgrade
-
-Update through Omarchy, then restart the shell to load the updated plugin:
-
-```bash
-omarchy plugin update io.github.ilyazar.syncthing
-omarchy-restart-shell
-```
-
-Restart the shell after updating; the retained old service may otherwise fail.
-Syncshell does not restart it automatically.
-
 ## Keybindings
 
 Also shown in the panel footer.
@@ -55,20 +43,20 @@ Also shown in the panel footer.
 ## Settings
 
 Settings opens `~/.config/omarchy/ilyazar.syncthing/settings.toml` in your
-editor. Saves are validated; invalid edits show an error and leave the
-session's last valid settings active.
+editor. Saves are validated; invalid edits show an error and leave the session's
+last valid settings active.
 
 Older settings offer **Auto-port**, **Manual port** and **Cancel**. Auto-port
 previews the migration to schema `2`, preserves valid preferences and comments,
-and keeps an exact backup beside the original. Unrecognized or invalid
-settings need manual correction.
+and keeps an exact backup beside the original. Unrecognized or invalid settings
+need manual correction.
 
-- `style.icon_style = "themed"` follows the bar foreground. Use `"branded"`
-  for the classic Syncthing icon.
+- `style.icon_style = "themed"` follows the bar foreground. Use `"branded"` for
+  the classic Syncthing icon.
 - `style.web_ui_theme = "default"` uses Syncthing's own Web UI.
 - `style.web_ui_theme = "modern"` uses the bundled Syncshell Web UI.
-- `style.web_ui_theme = "omarchy"` applies the Omarchy palette to that same
-  UI. This is the default.
+- `style.web_ui_theme = "omarchy"` applies the Omarchy palette to that same UI.
+  This is the default.
 
 Omarchy theme changes apply live. Reload the page when switching Web UI
 profiles; `modern` keeps its own appearance.
@@ -165,17 +153,16 @@ deletions.
 The bundled UI keeps Syncthing's API and adds a few changes over the classical
 interface:
 
-- **Clearer layout:** folders, this device and remote devices sit alongside
-  each other on wide screens and stack on smaller ones. Current activity stays
+- **Clearer layout:** folders, this device and remote devices sit alongside each
+  other on wide screens and stack on smaller ones. Current activity stays
   visible; configuration and identification details fold away. Compact counts
   and icon tooltips keep the cards readable.
 - **Resolve sync conflicts (beta):** the second tab lists conflict files from
   Syncthing's index, with folder and global rechecks. File links open the
   containing folder in your default file manager. Autoresolve restores a
-  conflict file's original name when that name is absent, preserving contents
-  and refusing to replace an existing file.
-- **Notifications:** a separate tab shows pending messages. Its dot follows
-  the highest severity and disappears when all messages are resolved.
+  conflict file's original name when that name is absent, preserving contents.
+- **Notifications:** a separate tab shows pending messages. Its dot follows the
+  highest severity and disappears when all messages are resolved.
 - **Smaller frontend:** The low-overhead and minimalist
   [Preact](https://github.com/preactjs/preact) replaces
   [AngularJS, whose support ended in 2022](https://angularjs.org/) and removes
@@ -191,23 +178,20 @@ Compared with the default Web UI shipped with
 | HTML/CSS/JS assets             | 2.79 MB          | 0.43 MB   | 84%       |
 | Whole Web UI assets            | 6.58 MB          | 4.22 MB   | 36%       |
 
-LOC counts readable source; sizes count uncompressed assets, including built
-bundles. The whole Web UI includes translations, fonts and images.
-
-Three Syncshell views in Nord, followed by Syncthing's default UI.
-Click an image for the full size.
+Three Syncshell views in Nord, followed by Syncthing's default UI. The file
+review is in beta, but should work more or less.
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <h4>Overview (Nord)</h4>
+      <h4>Overview (Nord theme)</h4>
       <a href="assets/webui-nord-overview.png">
         <img src="assets/webui-nord-overview.png" width="100%"
           alt="Syncshell folders and devices in three columns under Nord">
       </a>
     </td>
     <td width="50%" valign="top">
-      <h4>Notifications (Nord)</h4>
+      <h4>Notifications (Nord theme)</h4>
       <a href="assets/webui-nord-notifications.png">
         <img src="assets/webui-nord-notifications.png" width="100%"
           alt="Syncshell notifications in their own tab under Nord">
@@ -216,7 +200,7 @@ Click an image for the full size.
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <h4>Conflict review examples (Nord, beta)</h4>
+      <h4>Conflict review (Nord theme)</h4>
       <a href="assets/webui-nord-conflicts.png">
         <img src="assets/webui-nord-conflicts.png" width="100%"
           alt="Example current and conflict files with recheck and rename actions">
@@ -232,12 +216,12 @@ Click an image for the full size.
   </tr>
 </table>
 
-Open the UI through the plugin's **Web UI** button to enable local file
-opening and renaming. These actions require Syncthing and the desktop to run
-as the same user. Containers, tunnels, relative paths and symlinked paths are
-unsupported for file actions; permission errors leave files unchanged.
-Discovery and rechecks remain available without desktop access. Reopen through
-the plugin after its core restarts.
+Open the UI through the plugin's **Web UI** button to enable local file opening
+and renaming. These actions require Syncthing and the desktop to run as the same
+user. Containers, tunnels, relative paths and symlinked paths are unsupported
+for file actions; permission errors leave files unchanged. Discovery and
+rechecks remain available without desktop access. Reopen through the plugin
+after its core restarts.
 
 Tested with Syncthing v2.1.3. Syncthing attribution and licenses are retained;
 see [Web UI source and build details](webui/UPSTREAM.md).
@@ -282,6 +266,18 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 | 0.1.1   | 2026-08-14 | monitor installs and show live synchronization activity |
 | 0.1.0   | 2026-08-12 | first release                                           |
 
+## Upgrade
+
+Update through Omarchy, then restart the shell to load the updated plugin:
+
+```bash
+omarchy plugin update io.github.ilyazar.syncthing
+omarchy-restart-shell
+```
+
+Restart the shell after updating; the retained old service may otherwise fail.
+Syncshell does not restart it automatically.
+
 ## Remove
 
 Select **Cleanly remove Syncthing plugin** in settings. You can keep or delete
@@ -306,6 +302,6 @@ to Syncthing's configuration. File actions use your existing permissions.
 
 Plugin code is MIT licensed. The Web UI and adapted icons retain Syncthing's
 MPL-2.0 attribution and vendor licenses; see
-[Web UI provenance](webui/UPSTREAM.md) and [icon sources](assets/README.md).
-The Go runtime and system-call dependency use the
+[Web UI provenance](webui/UPSTREAM.md) and [icon sources](assets/README.md). The
+Go runtime and system-call dependency use the
 [BSD license](packaging/bundled/LICENSE.golang).
