@@ -1,5 +1,8 @@
 export const conflictWords = {
     "de": {
+        "Local file actions are unavailable. Open this UI from Syncshell on the desktop running Syncthing, under the same user.": "Lokale Dateiaktionen sind nicht verfügbar. Öffnen Sie diese Oberfläche über Syncshell auf dem Desktop, auf dem Syncthing unter demselben Benutzer läuft.",
+        "This desktop user cannot rename files in this folder.": "Dieser Desktop-Benutzer kann in diesem Ordner keine Dateien umbenennen.",
+        "Checking local file access...": "Lokaler Dateizugriff wird geprüft...",
         "Location": "Speicherort",
         "Actions": "Aktionen",
         "Conflict files": "Konfliktdateien",
@@ -14,7 +17,8 @@ export const conflictWords = {
         "Cancel": "Abbrechen",
         "From": "Von",
         "To": "Nach",
-        "Rename the selected conflict file to the original name. Other conflict files remain. An existing file will never be overwritten.": "Die ausgewählte Konfliktdatei erhält den ursprünglichen Namen. Andere Konfliktdateien bleiben erhalten. Eine vorhandene Datei wird niemals überschrieben.",
+        "The selected file keeps its contents and takes the original name shown below. Its conflict filename disappears; other conflict files remain.": "Der Inhalt der ausgewählten Datei bleibt erhalten. Sie erhält den unten angezeigten ursprünglichen Namen. Ihr Konfliktdateiname verschwindet; andere Konfliktdateien bleiben erhalten.",
+        "If a file already exists at the destination, nothing is renamed or replaced.": "Wenn am Ziel bereits eine Datei existiert, wird nichts umbenannt oder ersetzt.",
         "File renamed; Syncthing status refreshed.": "Datei umbenannt; Syncthing-Status aktualisiert.",
         "Open folder": "Ordner anzeigen",
         "No matches": "Keine Treffer",

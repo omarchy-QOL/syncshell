@@ -4,6 +4,10 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 ## Unreleased
 
+- connect local conflict folder opening and guarded renaming to the desktop
+  user, without changing permissions or replacing an existing destination
+- label conflict resolution as beta and use a themed Syncshell header
+
 - add a Preact Web UI with grouped folders/devices, notifications and
   API-based conflict discovery and rescans
 - migrate older plugin settings with a preview and an exact backup while

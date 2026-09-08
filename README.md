@@ -221,7 +221,8 @@ and sharing.
 This candidate is tested with Syncthing v2.1.3. Older daemon versions have not
 been verified for this release. Use `default` for the UI shipped by your daemon.
 Open the bundled UI from the plugin's **Web UI** button to enable desktop
-file actions. Filename links and **Open folder** open the containing folder in
+file actions in **Resolve sync conflicts (beta)**. Filename links and
+**Open folder** open the containing folder in
 your default file manager. **Autoresolve** restores a selected conflict file's
 original name only when that name is absent; it preserves its contents and
 then requests a Syncthing rescan.
