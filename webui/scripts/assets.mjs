@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 const root = resolve(import.meta.dirname, '..');
 const output = resolve(root, 'dist');
 const shipped = resolve(root, 'modern');
-for (const path of ['assets', 'vendor/bootstrap/css', 'vendor/bootstrap/fonts', 'vendor/fork-awesome',
+for (const path of ['assets', 'vendor/bootstrap/css', 'vendor/bootstrap/fonts', 'vendor/bootstrap/LICENSE', 'vendor/fork-awesome',
     'vendor/HumanizeDuration.js/humanize-duration.js', 'vendor/HumanizeDuration.js/LICENSE.txt']) {
     await cp(resolve(shipped, path), resolve(output, path), {recursive: true});
 }
