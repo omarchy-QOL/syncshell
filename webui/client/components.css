@@ -38,3 +38,18 @@
         max-height: calc(100vh - 20px);
     }
 }
+
+@media (min-width: 1400px) {
+    .dashboard-primary.active {
+        max-width: 1395px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        column-gap: 24px;
+    }
+    .dashboard-devices {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: 24px;
+        align-items: start;
+    }
+    .dashboard-devices > h3 { grid-column: 1 / -1; }
+}

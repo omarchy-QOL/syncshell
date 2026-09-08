@@ -16,7 +16,7 @@ export function preferredLocale(requested, available) {
 
 export function translator(messages, fallback = {}) {
     return (key, values = {}) => {
-        const text = messages[key] ?? fallback[key] ?? key;
+        const text = messages[key] ?? fallback[key] ?? key ?? '';
         return text.replace(/{{\s*(\w+)\s*}}/g, (_, name) => values[name] ?? '');
     };
 }
