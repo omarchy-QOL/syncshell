@@ -17,6 +17,7 @@
 }
 
 .port-dialog {
+    color: inherit;
     position: fixed;
     inset: 30px 0 auto;
     margin: 0 auto;
@@ -53,3 +54,10 @@
     }
     .dashboard-devices > h3 { grid-column: 1 / -1; }
 }
+
+.port-version-filters { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.port-version-filters label { flex: 1 1 180px; min-width: 0; }
+.port-version-group { margin-top: 12px; }
+.port-version-group summary { font-size: 16px; overflow-wrap: anywhere; }
+.port-version-row { display: flex; flex-wrap: wrap; gap: 12px; padding: 6px 12px; align-items: center; font-size: 14px; }
+.port-version-row > * { flex: 1 1 220px; min-width: 0; }
