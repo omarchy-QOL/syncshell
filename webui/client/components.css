@@ -17,6 +17,7 @@
 }
 
 .port-dialog {
+    text-align: start;
     color: inherit;
     position: fixed;
     inset: 30px 0 auto;
@@ -66,3 +67,7 @@
 
 .port-xattr-rule { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .port-xattr-rule .form-control { min-width: 0; }
+
+.port-share-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.port-about-paths code { white-space: normal; overflow-wrap: anywhere; }
