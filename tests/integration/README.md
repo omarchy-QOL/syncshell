@@ -1,45 +1,35 @@
 # Disposable integration tools
 
-These Go tools are development infrastructure, never a production service.
-Run on Linux. The review server uses Syncthing's index for discovery and
-rechecks; local filesystem operations are limited to explicit open/rename
-actions. The x/sys dependency supplies atomic no-replace rename semantics.
+These Go tools exercise the plugin against isolated Syncthing instances on
+Linux. They use only the Go standard library. No review server, injected
+browser API, or alternate desktop bridge is involved.
+
+From the plugin root:
 
 ```sh
-go test -race ./...
-go run . -runtime /absolute/marked/runtime -listen 127.0.0.1:18421 \
-  -host-script ../webui/review-host-actions.js
+go -C core test -race ./...
+go -C tests/integration test -race ./...
+npm ci --prefix tests/webui
+bash scripts/test-webui-integration.sh
 ```
 
-The runtime must contain `.syncshell-port-fixture`, `home/config.xml` and
-`files/`. The configuration must identify that files directory as the selected
-test folder and use a loopback GUI address. Its credentials stay on the host.
-The default folder ID is `port-verification`; use `-folder` to select another
-marked fixture. Do not point the tool at a user's active synchronization root.
+The consumer check installs the imported bundle, verifies Modern and Omarchy
+profiles, and exercises the production desktop bridge in a private D-Bus
+session. It creates one disposable Syncthing instance and stops it on exit.
+The Web repository owns the full frontend suite and paired synchronization
+fixtures. `SYNCSHELL_CHROMIUM` selects an existing browser; otherwise
+Playwright uses its installed browser.
 
-The browser test capability is injected into the served page. Syncthing serves
-the actual frontend and REST operations. The review server requires its exact
-Host and Origin and a fresh per-process token for filesystem actions.
-Renaming refuses stale index metadata, symlinks and existing destinations.
-File-manager actions use the session's FileManager1 interface.
-
-The real browser action check is `../webui/live-conflict-actions.mjs`. It
-creates tiny disposable conflicts, verifies reveal/rename/refusal behavior,
-and removes its files afterward. Unit tests can run without a desktop or
-Syncthing process.
-
-For a browser suite on a fresh pair, prepare the branch's Modern profile,
-then start the fixture process. It exits and stops both daemons on SIGINT or
-SIGTERM. The new runtime directory must not already exist.
+A fixture can also be started explicitly from this directory:
 
 ```sh
 bash ../../hosts/omarchy/scripts/syncthing-theme.sh prepare modern /tmp/gui
 go run . -fixture-assets /tmp/gui/syncshell-modern -runtime /tmp/browser-test
 ```
 
-In a second terminal, run the branch's browser tests. The URL and Chromium
-executable can be selected using SYNCSHELL_WEBUI_URL and SYNCSHELL_CHROMIUM.
-Without the latter, Playwright uses its installed browser.
+The new runtime directory must not exist. The fixture disables discovery,
+relays and upgrades and stops on SIGINT or SIGTERM. Never point test tools
+at the owner's running configuration or synchronized files.
 
 The launcher acceptance command needs root and a running systemd/logind host:
 
@@ -62,7 +52,3 @@ copy. It loads the real Omarchy service at the normal per-user plugin path,
 delivers theme colors through the shell's applyTheme IPC contract, verifies
 live browser refresh, and rescans after removing the frontend files. It uses
 a disposable account and leaves the owner's desktop untouched.
-
-A persistent developer review can pass -theme-helper with its branch's
-syncthing-theme.sh. This keeps the isolated review palette aligned with the
-owner's desktop theme; it is test infrastructure, not a production watcher.

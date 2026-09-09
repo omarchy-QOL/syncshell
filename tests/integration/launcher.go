@@ -149,7 +149,7 @@ func (a *launcherAccount) prepare(ctx context.Context, port int) (*testDaemon, e
 		return nil, err
 	}
 	address := "127.0.0.1:" + strconv.Itoa(port)
-	data, err = fixtureConfig(data, address, "tcp://127.0.0.1:0")
+	data, err = fixtureConfig(data, address, "tcp://127.0.0.1:0", "default")
 	if err != nil {
 		return nil, err
 	}

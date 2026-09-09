@@ -11,6 +11,7 @@
 /hosts/dankmaterialshell export-ignore
 /hosts/illogical-impulse export-ignore
 /tests export-ignore
+/scripts export-ignore
 /packaging/bundled/build.sh export-ignore
 /packaging/bundled/archive.sh export-ignore
 /packaging/bundled/verify.sh export-ignore
