@@ -173,10 +173,10 @@ Compared with the default Web UI shipped with
 
 | Measure                        | Syncthing v2.1.3 | Syncshell | Reduction |
 | ------------------------------ | ---------------- | --------- | --------- |
-| Application source (LOC)       | 8,296            | 4,824     | 42%       |
-| Readable source + vendor (LOC) | 53,096           | 14,479    | 73%       |
-| HTML/CSS/JS assets             | 2.79 MB          | 0.43 MB   | 84%       |
-| Whole Web UI assets            | 6.58 MB          | 4.22 MB   | 36%       |
+| Application source (LOC)       | 8,296            | 4,299     | 48%       |
+| Readable source + vendor (LOC) | 53,096           | 9,885     | 81%       |
+| HTML/CSS/JS assets             | 2.79 MB          | 0.33 MB   | 88%       |
+| Whole Web UI assets            | 6.58 MB          | 0.48 MB   | 93%       |
 
 Three Syncshell views in Nord, followed by Syncthing's default UI. The file
 review is in beta, but should work more or less.
