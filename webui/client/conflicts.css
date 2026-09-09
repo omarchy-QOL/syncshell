@@ -10,7 +10,7 @@ html:lang(de) .conflict-review { --review-action-width: 300px; }
 .review-column-headings, .review-table > tbody > .review-row { display: grid; grid-template-columns: minmax(130px, .85fr) minmax(180px, 1.1fr) minmax(210px, 1.3fr) var(--review-action-width); align-items: start; }
 .review-table > tbody > tr > td { min-width: 0; padding: 6px 12px; border-top: 0; font-size: 14px; }
 .review-path { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
-.review-cell-label, .review-picker-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: normal; }
+.review-cell-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: normal; }
 .review-file { display: flex; align-items: baseline; gap: 5px; max-width: 100%; min-width: 0; }
 .review-file .fa-fw { flex: 0 0 1.25em; }
 .review-filename { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -44,16 +44,9 @@ html:lang(de) .conflict-review { --review-action-width: 300px; }
 }
 
 .review-design-03 .review-version { margin-top: 0; }
-
-.review-missing-help { cursor: default; }
 .review-missing-hint { overflow-wrap: anywhere; }
-.review-missing-tooltip .tooltip-inner { max-width: 320px; text-align: left; }
 .review-missing-hint .review-filename { display: inline-block; max-width: 100%; vertical-align: bottom; }
 
 .review-conflict-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .conflict-review .review-autoresolve { padding: 1px 5px; }
-.review-confirm { position: fixed; inset: 0; margin: auto; padding: 0; width: min(620px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow-y: auto; color: inherit; }
-.review-confirm h4 { font-size: 16px; }
-.review-confirm p { font-size: 14px; }
 .review-confirm-path { overflow-wrap: anywhere; }
-.review-confirm-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }

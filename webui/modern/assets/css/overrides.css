@@ -12,7 +12,7 @@ body {
     overflow-y: scroll;
 }
 
-h1, h2, h3, h4, h5 {
+ h2, h3, h4, h5 {
     font-family: "Raleway", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     line-height: 1.25;
 }
@@ -37,14 +37,8 @@ ul+h5 {
     margin-top: 0px;
 }
 
-.checkbox input[type="checkbox"], .radio input[type="radio"] {
+.checkbox input[type="checkbox"] {
     float: none; /* issue #1197 */
-}
-
-#advancedAccordion input.form-control[type="checkbox"] {
-    box-shadow: none;
-    margin: 0;
-    width: auto;
 }
 
 .popover {
@@ -60,37 +54,8 @@ ul+h5 {
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
-.table-condensed>thead>tr>th, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>td {
+.table-condensed>thead>tr>th, .table-condensed>tbody>tr>th, .table-condensed>thead>tr>td, .table-condensed>tbody>tr>td {
     border-top: none;
-}
-
-.logo {
-    margin: 0;
-    padding: 0;
-    top: -5px;
-    position: relative;
-}
-
-.list-no-bullet {
-    list-style-type: none;
-}
-
-.li-column {
-    display: inline-block;
-    min-width: 7em;
-    margin-right: 1em;
-    padding: 1px 4px;
-    margin: 2px 2px;
-}
-.li-column span.data {
-    margin-left: 0.5em;
-    min-width: 10em;
-    text-align: right;
-    display: inline-block;
-}
-
-.ng-cloak {
-    display: none !important;
 }
 
 .table th {
@@ -115,20 +80,11 @@ table.table-condensed {
     table-layout: fixed;
 }
 
-table.table-dynamic {
-    word-wrap: break-word;
-    word-break: break-all;
-}
-
 table.table-condensed td,
 table.table-condensed th {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-table.table-condensed td.no-overflow-ellipse {
-    white-space: normal;
 }
 
 table.table-auto {
@@ -144,9 +100,6 @@ table.table-auto td {
 }
 
 /* Tag name is needed for selector to be specific enough to override Bootstrap style */
-input[type="checkbox"].extended-attributes-filter-rule-checkbox {
-    margin-top: 13px;
-}
 
 /* Remote Devices connection-quality indicator */
 .reception-0 {
@@ -190,40 +143,6 @@ input[type="checkbox"].extended-attributes-filter-rule-checkbox {
 }
 
 /* Break up long words in paragraphs only if necessary to prevent text overflow. */
-.overflow-break-word {
-    overflow-wrap: break-word;
-    /* Legacy name alias */
-    word-wrap: break-word;
-}
-
-.folder-advanced {
-    padding: 1rem;
-    margin-bottom: 15px;
-}
-
-.folder-advanced-toggle {
-    cursor: pointer;
-}
-.folder-advanced-toggle .collapse,
-.folder-advanced-toggle.collapsed .expand {
-    display: inline-block;
-}
-
-.folder-advanced-toggle.collapsed .collapse,
-.folder-advanced-toggle .expand{
-    display: none;
-}
-
-li[language-select] > .dropdown-menu {
-    column-count: 2;
-    column-gap: 0;
-    width: 450px;
-}
-
-li[language-select] > .dropdown-menu > li > a {
-    white-space: normal;
-    overflow-wrap: break-word;
-}
 
 .nav>li{
     float: left;
@@ -236,14 +155,6 @@ li[language-select] > .dropdown-menu > li > a {
 
 .panel-body .table-condensed {
     margin-bottom: 0;
-}
-
-.dl-horizontal.dl-narrow dt {
-    width: 40px;
-}
-
-.dl-horizontal.dl-narrow dd {
-    margin-left: 60px;
 }
 
 /**
@@ -296,14 +207,6 @@ identicon {
     shape-rendering: crispEdges;
 }
 
-a.toggler {
-    color: inherit;
-}
-a.toggler:hover {
-    border-bottom: 1px dashed;
-    text-decoration: none;
-}
-
 .panel-body.less-padding {
     padding: 5px;
 }
@@ -324,82 +227,21 @@ a.toggler:hover {
     width: 100%;
 }
 
-.three-columns {
-    -webkit-column-count: 3;
-    -moz-column-count: 3;
-    column-count: 3;
-}
-
-.two-columns {
-    -webkit-column-count: 2;
-    -moz-column-count: 2;
-    column-count: 2;
-}
-
-ul.three-columns li, ul.two-columns li {
-    padding-left: 0.5em;
-    text-indent: -0.5em;
-}
-
-.navbar-fixed-bottom {
-    z-index: 980;
-}
-
 /*
  * Restore Versions tweaks
  */
 
-#restoreTree-container {
-    overflow-y: scroll;
-    resize: vertical;
-    /* Limit height to prevent vertical screen overflow. */
-    max-height: calc(100vh - 390px);
-    /* Always fit at least one folder with dropdown open. */
-    min-height: 136px;
-}
-@media (min-width: 768px) {
-    #restoreTree-container {
-        max-height: calc(100vh - 401px);
-    }
-}
-@media (min-width: 992px) {
-    #restoreTree-container {
-        max-height: calc(100vh - 333px);
-    }
-}
-
 /* Ignore fixed height when manually resized. */
-#restoreTree-container[style*="height"] {
-    max-height: none;
-}
 
 /* Remove table outline as rows have own focus style already. */
-#restoreTree:focus {
-    outline: 0;
-}
 
 /* Align dropdown with title first line. */
-#restoreTree td + td {
-    padding-top: 4px;
-    vertical-align: top;
-}
 
 /* Reduce space between toggle and menu on mobile. */
-#restoreTree .dropdown-toggle {
-    margin-bottom: 0;
-}
 
 /* Change direction to remain on screen on mobile. */
-#restoreTree .dropdown-menu {
-    left: auto;
-    right: 0;
-}
 
 /* Ensure maximum space for filtering and date range. */
-#restoreVersions .form-group,
-#restoreVersions .form-control {
-    width: 100%;
-}
 
 @media (max-width: 768px) {
     /* Layout after the normal contents, as this is when the footer switches
@@ -423,27 +265,6 @@ ul.three-columns li, ul.two-columns li {
         -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
         border-radius: 2px;
-    }
-
-    li[language-select] {
-        position: static !important;
-    }
-
-    li[language-select] > .dropdown-menu {
-        column-count: auto;
-        margin-left: 15px;
-        margin-right: 15px;
-        margin-top: -12px !important;
-        max-width: 450px;
-        overflow-y: scroll;
-        /* height of 5.5 elements + negative margin-top */
-        height: 276px;
-    }
-
-    .two-columns {
-        -webkit-column-count: 1;
-        -moz-column-count: 1;
-        column-count: 1;
     }
       /* All buttons, except panel headings, get bottom margin, as they
        won't fit beside each other anymore. Reduce footer padding to
@@ -501,21 +322,10 @@ ul.three-columns li, ul.two-columns li {
     }
 
     /* Move share buttons below device ID on small screens. */
-    #shareDeviceIdButtons {
-        display: inline-block;
-    }
 }
 
 .tab-content {
     padding-top: 10px;
-}
-
-.form-horizontal .form-group {
-    margin-bottom: 5px;
-}
-
-.form-horizontal {
-    margin-bottom: 10px;
 }
 
 /* Use the same style as Bootstrap uses for disabled <select>. */
@@ -543,13 +353,6 @@ ul.three-columns li, ul.two-columns li {
 }
 
 /* CJK languages don't use italic at all, hence don't force it on them. */
-html[lang|="zh"] i,
-html[lang="ja"] i,
-html[lang|="ko"] i {
+html[lang|="zh"] i {
     font-style: normal;
-}
-
-.select-on-click {
-    -webkit-user-select: all;
-    user-select: all;
 }

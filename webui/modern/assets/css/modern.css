@@ -114,11 +114,6 @@
     gap: 0.4em;
 }
 
-.notifications .panel-title > [translate] {
-    flex: 1;
-    min-width: 0;
-}
-
 .notifications .panel-title > .panel-icon,
 .notifications .panel-title > .fas {
     flex-shrink: 0;

@@ -12,10 +12,6 @@
     display: none;
 }
 
-.port-tooltip-anchor {
-    display: inline;
-}
-
 .port-dialog {
     text-align: start;
     color: inherit;
