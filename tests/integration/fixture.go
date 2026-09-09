@@ -196,7 +196,7 @@ func startTestDaemon(ctx context.Context, root, assets string, port int) (*testD
 	}
 	d.key = config.GUI.Key
 	if assets != "" {
-		if err := copyTree(assets, filepath.Join(root, "gui/default")); err != nil {
+		if err := copyTree(assets, filepath.Join(root, "gui", filepath.Base(assets))); err != nil {
 			return nil, err
 		}
 		env = append(env, "STGUIASSETS="+filepath.Join(root, "gui"))
@@ -219,6 +219,12 @@ func startTestDaemon(ctx context.Context, root, assets string, port int) (*testD
 		var status struct{ MyID string }
 		if err := d.api(deadline, "GET", "system/status", nil, &status); err == nil {
 			d.id = status.MyID
+			if assets != "" {
+				if err := d.api(deadline, "PATCH", "config/gui", map[string]string{"theme": filepath.Base(assets)}, nil); err != nil {
+					d.stop()
+					return nil, err
+				}
+			}
 			return d, nil
 		}
 		select {

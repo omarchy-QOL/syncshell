@@ -1,5 +1,5 @@
 // Exercise the shipped core and browser connection against a disposable daemon.
-import { chromium } from 'playwright';
+import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { readFile, writeFile, mkdir, mkdtemp, rm, stat, chmod } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -62,7 +62,7 @@ async function waitUntil(check) {
 }
 const browser = await chromium.launch({
     headless: true,
-    executablePath: process.env.SYNCSHELL_CHROMIUM || '/usr/bin/chromium'
+    ...(process.env.SYNCSHELL_CHROMIUM ? {executablePath: process.env.SYNCSHELL_CHROMIUM} : {})
 });
 const page = await browser.newPage({ viewport: { width: 1908, height: 954 } });
 let folder, directory;

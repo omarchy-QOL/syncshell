@@ -1,0 +1,88 @@
+name: update webui
+
+on:
+  repository_dispatch:
+    types: [webui-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact Web UI version without v
+        required: true
+        type: string
+      sha256:
+        description: Expected archive SHA-256
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: webui-import
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
+        id: app
+        with:
+          app-id: ${{ vars.SYNCSHELL_APP_ID }}
+          private-key: ${{ secrets.SYNCSHELL_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: dev
+          token: ${{ steps.app.outputs.token }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: core/go.mod
+          cache-dependency-path: tests/integration/go.sum
+      - name: Import exact release
+        env:
+          VERSION: ${{ inputs.version || github.event.client_payload.version }}
+          CHECKSUM: ${{ inputs.sha256 || github.event.client_payload.sha256 }}
+        run: python3 scripts/import-webui.py --version "$VERSION" --sha256 "$CHECKSUM"
+      - name: Install integration tools
+        run: |
+          npm ci --prefix tests/webui
+          cd tests/webui
+          npx playwright install --with-deps chromium
+      - name: Install tested Syncthing
+        run: |
+          curl -fsSL https://github.com/syncthing/syncthing/releases/download/v2.1.3/syncthing-linux-amd64-v2.1.3.tar.gz -o "$RUNNER_TEMP/syncthing.tar.gz"
+          echo "f929eb8e5b72a85543eeeefb2c38f34a68e0c530e70758a2905b78840c76602c  $RUNNER_TEMP/syncthing.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/syncthing.tar.gz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/syncthing-linux-amd64-v2.1.3" >> "$GITHUB_PATH"
+      - name: Verify plugin integration
+        run: bash scripts/test-webui-integration.sh
+      - name: Open update pull request
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          VERSION: ${{ inputs.version || github.event.client_payload.version }}
+        run: |
+          if git diff --quiet -- webui; then exit 0; fi
+          branch="build-webui-$VERSION"
+          git switch -c "$branch"
+          git config user.name 'syncshell-release[bot]'
+          git config user.email 'syncshell-release[bot]@users.noreply.github.com'
+          git add webui
+          git commit -m "build(webui): import $VERSION"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            git fetch origin "$branch"
+            if ! git diff --quiet FETCH_HEAD HEAD -- webui; then
+              echo 'An update branch with different assets already exists' >&2
+              exit 1
+            fi
+          else
+            git push origin "HEAD:refs/heads/$branch"
+          fi
+          if ! gh pr view "$branch" >/dev/null 2>&1; then
+            gh pr create --base dev --head "$branch" \
+              --title "build(webui): import $VERSION" \
+              --body 'imports the verified web ui release after plugin installation theme refresh and desktop bridge checks pass'
+          fi

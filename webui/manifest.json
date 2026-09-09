@@ -1,0 +1,9 @@
+{
+  "name": "syncshell-webui",
+  "version": "0.1.0",
+  "source": "71a4e2390ca8beff92092721f27113b1c3b26f3f",
+  "testedSyncthing": [
+    "2.1.3"
+  ],
+  "integrationFormat": 1
+}

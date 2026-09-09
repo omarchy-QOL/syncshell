@@ -41,8 +41,7 @@ cleanup() {
 trap cleanup EXIT
 
 base_stylesheet() {
-  sed 's#../../theme-assets/\(dark\|light\)/assets/css/theme.css#syncshell-\1.css#g' \
-    "$bundle_root/modern/assets/css/theme.css"
+  cat -- "$bundle_root/gui/syncshell-modern/assets/css/theme.css"
 }
 
 output_root=$theme_root
@@ -51,13 +50,7 @@ if [[ ! -f $theme_root/.syncshell-bundle
   (cd -- "$bundle_root" && sha256sum --quiet --check SHA256SUMS)
   mkdir -p -- "$assets_root"
   staging=$(mktemp -d -- "$assets_root/.$theme_name.XXXXXX")
-  cp -a -- "$bundle_root/modern/." "$staging/"
-  for theme in dark light; do
-    cp -- "$bundle_root/themes/$theme.css" "$staging/assets/css/syncshell-$theme.css"
-  done
-  base_stylesheet >"$staging/assets/css/theme.css"
-  cp -- "$bundle_root/LICENSE.syncthing" "$staging/"
-  cp -a -- "$bundle_root/licenses" "$staging/"
+  cp -a -- "$bundle_root/gui/syncshell-modern/." "$staging/"
   output_root=$staging
 fi
 
@@ -65,7 +58,7 @@ if [[ $style == modern ]]; then
   index_tmp=$(mktemp --tmpdir="$output_root" .index.html.XXXXXX)
   temporary_files=("$index_tmp")
   sed "s#href=\"assets/css/theme.css\"#href=\"assets/css/theme.css?v=$revision\"#" \
-    "$bundle_root/modern/index.html" >"$index_tmp"
+    "$bundle_root/gui/syncshell-modern/index.html" >"$index_tmp"
   chmod 644 -- "$index_tmp"
   mv -- "$index_tmp" "$output_root/index.html"
 fi
@@ -130,7 +123,7 @@ if [[ $style == omarchy ]]; then
     -e "s/{{blue}}/${colors[blue]}/g" \
     -e "s/{{magenta}}/${colors[magenta]}/g" \
     -e "s/{{orange}}/${colors[orange]}/g" \
-    "$(dirname -- "$0")/../webui/omarchy_syncthing_theme.css" \
+    "$bundle_root/integration/omarchy-theme.css.in" \
     >"$palette_tmp"
 
   grep -q '{{' "$palette_tmp" && {
@@ -141,8 +134,8 @@ if [[ $style == omarchy ]]; then
   sed \
     -e "s#href=\"assets/css/theme.css\"#href=\"assets/css/theme.css?v=$generation\"#" \
     -e "s#</head>#  <script defer src=\"assets/js/omarchy_theme_refresh.js\" data-theme-version=\"$generation\"></script>\n</head>#" \
-    "$bundle_root/modern/index.html" >"$index_tmp"
-  cp -- "$script_dir/../webui/omarchy_theme_refresh.js" "$refresh_tmp"
+    "$bundle_root/gui/syncshell-modern/index.html" >"$index_tmp"
+  cp -- "$bundle_root/integration/omarchy-theme-refresh.js" "$refresh_tmp"
   base_stylesheet >"$theme_dir/syncshell_base.css"
   printf '%s\n' "$generation" >"$version_tmp"
   chmod 644 -- "${temporary_files[@]}"

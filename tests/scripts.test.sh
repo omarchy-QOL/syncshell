@@ -146,17 +146,17 @@ test_modern_bundle() {
 
   PATH="$sandbox/bin:$PATH" bash "$helper" prepare modern "$assets" >/dev/null
   while IFS= read -r -d '' dependency; do
-    relative=${dependency#"$root/webui/modern/"}
+    relative=${dependency#"$root/webui/gui/syncshell-modern/"}
     [[ $relative == index.html || $relative == assets/css/theme.css ]] && continue
     cmp -s -- "$dependency" "$assets/syncshell-modern/$relative" \
       || fail "modern profile omitted or altered $relative"
-  done < <(find "$root/webui/modern" -type f -print0)
-  cmp -s -- "$root/webui/modern/index.html" \
+  done < <(find "$root/webui/gui/syncshell-modern" -type f -print0)
+  cmp -s -- "$root/webui/gui/syncshell-modern/index.html" \
     <(sed 's#assets/css/theme.css?v=[a-f0-9]*#assets/css/theme.css#g' \
       "$assets/syncshell-modern/index.html") \
     || fail "modern index changed beyond its stylesheet revision"
   for relative in dark light; do
-    cmp -s -- "$root/webui/themes/$relative.css" \
+    cmp -s -- "$root/webui/gui/syncshell-modern/assets/css/syncshell-$relative.css" \
       "$assets/syncshell-modern/assets/css/syncshell-$relative.css" \
       || fail "modern profile omitted the bundled $relative stylesheet"
   done
@@ -180,13 +180,13 @@ test_modern_bundle() {
   helper="$package/hosts/omarchy/scripts/syncthing-theme.sh"
   printf '%s\n' 'old bundle' >"$assets/syncshell-modern/.syncshell-bundle"
   printf '%s\n' 'obsolete' >"$assets/syncshell-modern/obsolete.js"
-  rm -- "$package/webui/modern/index.html"
+  rm -- "$package/webui/gui/syncshell-modern/index.html"
   if bash "$helper" prepare modern "$assets" >/dev/null 2>&1; then
     fail "incomplete modern bundle was selected"
   fi
   [[ $(sha256sum "$assets/syncshell-modern/index.html") == "$before" ]] \
     || fail "failed preparation replaced the working profile"
-  cp -- "$root/webui/modern/index.html" "$package/webui/modern/index.html"
+  cp -- "$root/webui/gui/syncshell-modern/index.html" "$package/webui/gui/syncshell-modern/index.html"
   bash "$helper" prepare modern "$assets" >/dev/null
   [[ ! -e $assets/syncshell-modern/obsolete.js ]] \
     || fail "bundle update retained obsolete assets"
@@ -250,7 +250,7 @@ test_themes() {
   grep -Fq 'src="assets/js/omarchy_theme_refresh.js"' \
     "$user_root/index.html" \
     || fail "Web UI did not load the theme refresh helper"
-  cmp -s -- "$root/hosts/omarchy/webui/omarchy_theme_refresh.js" \
+  cmp -s -- "$root/webui/integration/omarchy-theme-refresh.js" \
     "$user_root/assets/js/omarchy_theme_refresh.js" \
     || fail "generated theme refresh helper differs from its source"
   cmp -s -- "$test_root/modern/gui/syncshell-modern/assets/css/theme.css" \
@@ -258,11 +258,11 @@ test_themes() {
     || fail "Omarchy base differs from bundled modern CSS"
   local dependency
   while IFS= read -r -d '' dependency; do
-    local relative=${dependency#"$root/webui/modern/"}
+    local relative=${dependency#"$root/webui/gui/syncshell-modern/"}
     [[ $relative == index.html || $relative == assets/css/theme.css ]] && continue
     cmp -s -- "$dependency" "$user_root/$relative" \
       || fail "Omarchy profile omitted or altered $relative"
-  done < <(find "$root/webui/modern" -type f -print0)
+  done < <(find "$root/webui/gui/syncshell-modern" -type f -print0)
   local asset_before
   asset_before=$(stat -c '%i:%Y' "$user_root/assets/img/favicon-default.png")
   bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
@@ -361,6 +361,12 @@ test_removal_mode() {
 if [[ ${1:-} == --installation-only ]]; then
   test_installation_status
   printf 'installation script tests passed\n'
+  exit 0
+fi
+
+if [[ ${1:-} == --webui-only ]]; then
+  test_modern_bundle
+  printf 'webui installation tests passed\n'
   exit 0
 fi
 

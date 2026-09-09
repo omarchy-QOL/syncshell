@@ -1,10 +1,9 @@
 {
-  "name": "syncshell-webui-tests",
+  "name": "syncshell-plugin-browser-tests",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test *.test.mjs",
-    "browser": "playwright test"
+    "test": "bash ../../scripts/test-webui-integration.sh"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"

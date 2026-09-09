@@ -30,15 +30,6 @@ jobs:
         run: bash tests/scripts.test.sh --installation-only
       - name: Review server contracts
         run: go -C tests/integration test -race ./...
-      - name: Browser API contracts
-        run: node --test tests/webui/*.test.*
-      - name: Build frontend
-        if: hashFiles('webui/package.json') != ''
-        working-directory: webui
-        run: |
-          npm ci
-          npm run build
-          git diff --exit-code -- modern SHA256SUMS
       - name: Verify bundled assets
         run: |
           sha256sum --check packaging/bundled/SHA256SUMS
@@ -64,26 +55,8 @@ jobs:
             -launcher-core "$GITHUB_WORKSPACE/bin/x86_64/syncshell-core" \
             -fixture-port 18601 \
             -runtime "/var/tmp/syncshell-launcher-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-      - name: Browser workflows against disposable Syncthing
-        run: |
-          bash hosts/omarchy/scripts/syncthing-theme.sh prepare modern "$RUNNER_TEMP/gui"
-          go -C tests/integration build -o "$RUNNER_TEMP/syncshell-test" .
-          "$RUNNER_TEMP/syncshell-test" \
-            -fixture-assets "$RUNNER_TEMP/gui/syncshell-modern" \
-            -runtime "$RUNNER_TEMP/browser-fixture" > "$RUNNER_TEMP/fixture.log" 2>&1 &
-          fixture_pid=$!
-          trap 'kill "$fixture_pid"; wait "$fixture_pid" || true' EXIT
-          for _ in {1..150}; do
-            test ! -f "$RUNNER_TEMP/browser-fixture/ready.json" || break
-            kill -0 "$fixture_pid"
-            sleep 0.1
-          done
-          test -f "$RUNNER_TEMP/browser-fixture/ready.json"
-          cd tests/webui
-          npx playwright test
-          SYNCSHELL_TEST_RUNTIME="$RUNNER_TEMP/browser-fixture/primary" node live-auth.mjs
-          SYNCSHELL_TEST_RUNTIME="$RUNNER_TEMP/browser-fixture/primary" \
-            SYNCSHELL_TEST_PEER="$RUNNER_TEMP/browser-fixture/peer" node live-versions.mjs
+      - name: Imported Web UI integration
+        run: bash scripts/test-webui-integration.sh
       - name: Browser failure evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

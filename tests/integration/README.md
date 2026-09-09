@@ -37,9 +37,11 @@ bash ../../hosts/omarchy/scripts/syncthing-theme.sh prepare modern /tmp/gui
 go run . -fixture-assets /tmp/gui/syncshell-modern -runtime /tmp/browser-test
 ```
 
-In a second terminal, run the branch's browser tests. The URL and Chromium
-executable can be selected using SYNCSHELL_WEBUI_URL and SYNCSHELL_CHROMIUM.
-Without the latter, Playwright uses its installed browser.
+The full frontend suite now lives in `syncshell-webui`. This checkout keeps
+consumer checks for installing an imported release, Omarchy palette refresh,
+and the production desktop bridge. Run `bash scripts/test-webui-integration.sh`
+from the plugin root. `SYNCSHELL_CHROMIUM` selects an existing browser;
+otherwise Playwright uses its installed browser.
 
 The launcher acceptance command needs root and a running systemd/logind host:
 
