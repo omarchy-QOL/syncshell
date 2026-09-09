@@ -25,8 +25,8 @@ Open the widget and expand **More**. If Syncthing is missing, select **Install
 Syncthing** to install the package and start the user service. Existing
 installations are detected automatically.
 
-Version 0.1.8 supports Linux Omarchy systems. Other host directories are
-placeholders; other shells, ARM and daemon mode remain future work.
+Version 0.1.8 supports Omarchy on Linux x86_64 systems. Other host directories
+are placeholders; other shells, ARM and daemon mode remain future work.
 
 ## Keybindings
 
