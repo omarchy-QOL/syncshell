@@ -41,12 +41,12 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         with:
           go-version-file: core/go.mod
-          cache-dependency-path: tests/integration/go.sum
+          cache-dependency-path: core/go.sum
       - name: Import exact release
         env:
           VERSION: ${{ inputs.version || github.event.client_payload.version }}
           CHECKSUM: ${{ inputs.sha256 || github.event.client_payload.sha256 }}
-        run: python3 scripts/import-webui.py --version "$VERSION" --sha256 "$CHECKSUM"
+        run: go -C core run ./cmd/import-webui --version "$VERSION" --sha256 "$CHECKSUM"
       - name: Install integration tools
         run: |
           npm ci --prefix tests/webui
