@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import qs.Commons
 import "../../shared"
 import "controllers"
 import "models/FacadeModel.js" as FacadeModel
