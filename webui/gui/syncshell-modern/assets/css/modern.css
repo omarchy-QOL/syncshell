@@ -115,7 +115,7 @@
 }
 
 .notifications .panel-title > .panel-icon,
-.notifications .panel-title > .fas {
+.notifications .panel-title > .syncshell-icon {
     flex-shrink: 0;
 }
 

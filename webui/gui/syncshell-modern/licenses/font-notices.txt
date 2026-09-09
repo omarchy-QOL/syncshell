@@ -5,14 +5,8 @@ Pablo Impallari (impallari@gmail.com), Rodrigo Fuenzalida
 (hello@rfuenzalida.com), with Reserved Font Name "Raleway".
 Raleway is a trademark of Matt McInerney.
 
-The unmodified font in modern/assets/font/raleway-500.woff contains this
+The unmodified font in `assets/font/raleway-500.woff` contains this
 copyright and identifies SIL Open Font License 1.1 as its license.
 
-Fork Awesome
-
-Copyright 2018 Dave Gandy & Fork Awesome.
-The unmodified font is licensed under SIL Open Font License 1.1, as
-recorded in modern/vendor/fork-awesome/fonts/LICENSE.txt.
-
 The full SIL Open Font License 1.1 is included in OFL-1.1.txt.
-Other vendor licenses remain beside their original files in modern/vendor/.
+Other vendor licenses remain beside their original files in `vendor/`.
