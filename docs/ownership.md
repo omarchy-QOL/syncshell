@@ -3,19 +3,19 @@
 This is the ownership map for the 0.1.8 architecture. Omarchy presentation
 and settings live in the host adapter around the native core.
 
-| Path                         | Sole responsibility                        |
-| ---------------------------- | ------------------------------------------ |
-| `core/`                      | Go native core                             |
-| `core/internal/syncthing/`    | discovery, secrets, transport, wire data    |
-| `core/internal/session/`      | normalized state, events, retries, actions  |
-| `core/internal/systemduser/`  | one trusted user lifecycle binding         |
-| `core/internal/desktop/`      | browser grants and bounded file actions    |
-| `core/internal/protocol/`     | bounded JSONL for session public types      |
-| `shared/CoreProcess.qml`      | child process and serialization boundary   |
-| `hosts/omarchy/`              | Omarchy facade, settings, UI, and platform  |
-| `hosts/standalone/`           | maintained contract harness                |
-| `packaging/bundled/`          | reproducible x86_64 artifact tooling        |
-| `webui/gui/syncshell-modern/` | imported compiled browser frontend         |
+| Path                            | Sole responsibility                          |
+| ------------------------------- | -------------------------------------------- |
+| `core/`                         | Go native core                               |
+| `core/internal/syncthing/`      | discovery, secrets, transport, wire data     |
+| `core/internal/session/`        | normalized state, events, retries, actions   |
+| `core/internal/systemduser/`    | one trusted user lifecycle binding           |
+| `core/internal/desktop/`        | browser grants and bounded file actions      |
+| `core/internal/protocol/`       | bounded JSONL for session public types       |
+| `shared/CoreProcess.qml`        | child process and serialization boundary     |
+| `hosts/omarchy/`                | Omarchy facade, settings, UI, and platform   |
+| `hosts/standalone/`             | maintained contract harness                  |
+| `packaging/bundled/`            | reproducible x86_64 artifact tooling         |
+| `webui/gui/syncshell-modern/`   | imported compiled browser frontend           |
 
 The root `Panel.qml`, `Service.qml`, and `manifest.json` remain regular-file
 Omarchy entry points. They are boundaries, not additional owners.
@@ -50,9 +50,11 @@ helpers or runtime compatibility paths are not retained for that interval;
 released implementations remain available in Git history.
 
 The bundled browser frontend is served by Syncthing. Its source and complete
-frontend tests live in `syncshell/syncshell-webui`; this repository imports a
-pinned compiled release. Omarchy owns preparing its runtime profiles and
-supplying colors to the release's template. See [webui.md](webui.md).
+frontend tests live in the standalone
+[syncshell-webui](https://github.com/syncshell/syncshell-webui) repository;
+this repository imports a pinned compiled release. Omarchy owns preparing its
+runtime profiles and supplying colors to the release's template. See
+[webui.md](webui.md).
 An Omarchy-hosted core also
 provides an ephemeral loopback endpoint for explicit local file actions. It
 uses the selected client, validates local process/configuration identity and

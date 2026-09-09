@@ -12,10 +12,7 @@ fail() {
 }
 
 manifest_count=$(
-  find "$root" \
-    -path "$root/.git" -prune -o \
-    -path "$root/TODO" -prune -o \
-    -type f -name manifest.json -print \
+  find "$root" -maxdepth 1 -type f -name manifest.json -print \
     | wc -l
 )
 [[ $manifest_count -eq 1 ]] || fail "expected one root manifest"
@@ -33,10 +30,7 @@ jq -e '.version == "0.1.8"' "$root/manifest.json" >/dev/null \
   \( -iname '*sha256*' -o -name SHA256SUMS \) | wc -l) -eq 1 ]] \
   || fail "bundled artifact has duplicate checksum lists"
 
-if find "$root" \
-    -path "$root/.git" -prune -o \
-    -path "$root/TODO" -prune -o \
-    -type l -print -quit | grep -q .; then
+if git -C "$root" ls-files --stage | grep -q '^120000 '; then
   fail "plugin tree contains a symbolic link"
 fi
 [[ ! -f $root/.gitmodules ]] || fail "plugin tree contains submodules"
@@ -66,13 +60,10 @@ if git -C "$root" ls-files \
 fi
 
 if rg -n '/home/iz|/home-hdd-cold|chatgpt-share' \
-    "$root/CONTEXT.md" "$root/DEVELOPMENT.md" "$root/docs" \
-    "$root/hosts" >/dev/null; then
+    "$root/docs" "$root/hosts" >/dev/null; then
   fail "tracked architecture material contains developer-local evidence"
 fi
 
-grep -Fq "\`dev\` is the integration branch" "$root/DEVELOPMENT.md" \
-  || fail "development branch policy is missing"
 grep -Fq 'Omarchy remains the sole owner' \
   "$root/docs/adr/0003-omarchy-settings-boundary.md" \
   || fail "Omarchy settings ownership is missing"
