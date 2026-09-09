@@ -7,12 +7,13 @@ The frontend source and complete browser suite live in
 Import a release during plugin development:
 
 ```sh
-python3 scripts/import-webui.py --version 0.1.0 --sha256 EXPECTED_SHA256
+go -C core run ./cmd/import-webui --version 0.1.2 --sha256 EXPECTED_SHA256
 ```
 
 For a local release, additionally pass `--archive /absolute/release.tar.gz`.
 The importer validates the exact archive checksum, paths, asset inventory and
-integration format before replacing `webui/`. `webui/import.json` records the
+integration format before atomically replacing `webui/` on Linux. It uses the
+existing Go module. `webui/import.json` records the
 version, source commit and archive checksum. Never edit imported assets here;
 change the Web repository and import a new release.
 

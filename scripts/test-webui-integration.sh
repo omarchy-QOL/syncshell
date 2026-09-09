@@ -12,7 +12,7 @@ cleanup() {
 }
 trap cleanup EXIT
 cd -- "$root"
-python3 -m unittest discover -s tests -p import_webui_test.py
+go -C core test ./cmd/import-webui
 bash tests/scripts.test.sh --webui-only
 go -C tests/integration build -o "$runtime/fixture" .
 go -C core build -o "$runtime/syncshell-core" ./cmd/syncshell-core
