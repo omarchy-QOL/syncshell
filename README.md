@@ -2,7 +2,7 @@
 
 Syncshell (**Sync**thing + quick**shell**) shows Syncthing activity in the
 Omarchy bar, manages local folders and opens a redesigned Web UI. Version 0.1.8
-uses a bundled Go core. Other shell adapters remain future work.
+uses a bundled Go core. Other Linux shell adapters are planned.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -25,7 +25,7 @@ Open the widget and expand **More**. If Syncthing is missing, select **Install
 Syncthing** to install the package and start the user service. Existing
 installations are detected automatically.
 
-Version 0.1.8 supports Linux x86_64 Omarchy systems. Other host directories are
+Version 0.1.8 supports Linux Omarchy systems. Other host directories are
 placeholders; other shells, ARM and daemon mode remain future work.
 
 ## Keybindings
@@ -223,8 +223,8 @@ for file actions; permission errors leave files unchanged. Discovery and
 rechecks remain available without desktop access. Reopen through the plugin
 after its core restarts.
 
-Tested with Syncthing v2.1.3. Syncthing attribution and licenses are retained;
-see [Web UI source and build details](webui/UPSTREAM.md).
+Tested with Syncthing v2.1.3. Source history and licensing details are recorded
+in [Syncshell Web provenance][webui-provenance].
 
 ## Manage folders from the panel
 
@@ -247,6 +247,8 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
+| 0.1.9   | TBD        | syncshell-tui, syncshell-gui, check parity across UIs   |
+|         |            | compatibility w/ caelestia, end4 illogical impulse, ... |
 | 0.1.8   | TBD        | use one native core for the Omarchy panel               |
 |         |            | support healthy externally managed Syncthing instances  |
 |         |            | add the Preact Web UI and settings migration            |
@@ -301,7 +303,10 @@ the Syncthing API key out of QML and plugin settings; that key permits changes
 to Syncthing's configuration. File actions use your existing permissions.
 
 Plugin code is MIT licensed. The Web UI and adapted icons retain Syncthing's
-MPL-2.0 attribution and vendor licenses; see
-[Web UI provenance](webui/UPSTREAM.md) and [icon sources](assets/README.md). The
-Go runtime and system-call dependency use the
+MPL-2.0 attribution and vendor licenses; see [Web UI
+provenance][webui-provenance] and [icon sources](assets/README.md). The Go
+runtime and system-call dependency use the
 [BSD license](packaging/bundled/LICENSE.golang).
+
+[webui-provenance]:
+  https://github.com/syncshell/syncshell-webui/blob/main/UPSTREAM.md

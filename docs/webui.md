@@ -1,8 +1,9 @@
 # Bundled Web UI
 
-The frontend source and complete browser suite live in
-`syncshell/syncshell-webui`. This repository carries its compiled release in
-`webui/`, so ordinary plugin installation needs neither Node nor a download.
+The frontend source and complete browser suite live in the standalone
+[syncshell-webui](https://github.com/syncshell/syncshell-webui) repository.
+This repository carries its compiled release in `webui/`, so ordinary plugin
+installation needs neither Node nor a download.
 
 Import a release during plugin development:
 
