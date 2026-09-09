@@ -31,12 +31,10 @@ const temporary = await mkdtemp(join(runtime, 'desktop-'));
 const launchFile = join(temporary, 'launch');
 const opener = `#!/usr/bin/env node
 const fs = require('node:fs');
-const {spawnSync} = require('node:child_process');
-if (process.argv[2].startsWith('file:')) {
+if (process.argv[2].startsWith('file:') || process.argv[2].startsWith('/')) {
     fs.writeFileSync(${JSON.stringify(launchFile)}, process.argv[2], {mode: 0o600});
 } else {
-    const result = spawnSync('/usr/bin/xdg-open', process.argv.slice(2));
-    process.exit(result.status ?? 1);
+    process.exit(1);
 }
 `;
 await writeFile(join(temporary, 'xdg-open'), opener, { mode: 0o700 });
@@ -122,6 +120,7 @@ try {
         const payload = await result.json();
         assert.ok(result.ok(), payload.error);
         assert.equal(payload.opened, true);
+        assert.equal(await readFile(launchFile, 'utf8'), directory);
     }
     await auto.click();
     await page.getByRole('dialog').screenshot({ path: join(evidence, 'rename-before.png') });

@@ -43,7 +43,7 @@ for style in modern omarchy; do
   export SYNCSHELL_TEST_STYLE="$style"
   node tests/webui/plugin-smoke.mjs
   if [[ $style == modern ]]; then
-    SYNCSHELL_CORE="$runtime/syncshell-core" node tests/webui/live-desktop.mjs
+    SYNCSHELL_CORE="$runtime/syncshell-core" dbus-run-session -- node tests/webui/live-desktop.mjs
   fi
   kill -TERM "$fixture_pid"
   wait "$fixture_pid"
