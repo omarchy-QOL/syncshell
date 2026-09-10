@@ -5,13 +5,18 @@ on:
     types: [webui-release]
   workflow_dispatch:
     inputs:
+      verify_only:
+        description: Verify the GitHub App credentials without importing
+        required: false
+        default: false
+        type: boolean
       version:
-        description: Exact Web UI version without v
-        required: true
+        description: Exact Web UI version without v unless verifying only
+        required: false
         type: string
       sha256:
-        description: Expected archive SHA-256
-        required: true
+        description: Expected archive SHA-256 unless verifying only
+        required: false
         type: string
 
 permissions:
@@ -22,7 +27,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  credentials:
+    if: inputs.verify_only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create update token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
+        id: app
+        with:
+          app-id: ${{ vars.SYNCSHELL_APP_ID }}
+          private-key: ${{ secrets.SYNCSHELL_APP_PRIVATE_KEY }}
+          owner: omarchy-QOL
+          repositories: syncshell
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Verify repository access
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: test "$(gh api repos/omarchy-QOL/syncshell --jq .full_name)" = "omarchy-QOL/syncshell"
+
   update:
+    if: github.event_name == 'repository_dispatch' || !inputs.verify_only
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,6 +56,10 @@ jobs:
         with:
           app-id: ${{ vars.SYNCSHELL_APP_ID }}
           private-key: ${{ secrets.SYNCSHELL_APP_PRIVATE_KEY }}
+          owner: omarchy-QOL
+          repositories: syncshell
+          permission-contents: write
+          permission-pull-requests: write
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: dev
@@ -64,9 +93,11 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           VERSION: ${{ inputs.version || github.event.client_payload.version }}
+          CHECKSUM: ${{ inputs.sha256 || github.event.client_payload.sha256 }}
         run: |
           if git diff --quiet -- webui; then exit 0; fi
           branch="build-webui-$VERSION"
+          source=$(jq -r .source webui/import.json)
           git switch -c "$branch"
           git config user.name 'syncshell-release[bot]'
           git config user.email 'syncshell-release[bot]@users.noreply.github.com'
@@ -82,7 +113,26 @@ jobs:
             git push origin "HEAD:refs/heads/$branch"
           fi
           if ! gh pr view "$branch" >/dev/null 2>&1; then
+            body="$RUNNER_TEMP/webui-update.md"
+            printf '%s\n' \
+              "Automated import of [syncshell-webui v$VERSION][release]." \
+              '' \
+              "- source commit: [$source][source]" \
+              "- archive SHA-256: \`$CHECKSUM\`" \
+              "- target branch: \`dev\`" \
+              '' \
+              'The importer verified the archive and asset checksums before' \
+              'running installation, theme refresh, real API, and desktop' \
+              'bridge checks. The regular pull-request workflow performs the' \
+              'complete repository validation.' \
+              '' \
+              'This pull request remains open for review and is never merged' \
+              'or released automatically.' \
+              '' \
+              "[release]: https://github.com/syncshell/syncshell-webui/releases/tag/v$VERSION" \
+              "[source]: https://github.com/syncshell/syncshell-webui/commit/$source" \
+              >"$body"
             gh pr create --base dev --head "$branch" \
               --title "build(webui): import $VERSION" \
-              --body 'imports the verified web ui release after plugin installation theme refresh and desktop bridge checks pass'
+              --body-file "$body"
           fi
