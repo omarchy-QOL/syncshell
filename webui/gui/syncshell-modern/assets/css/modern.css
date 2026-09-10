@@ -99,7 +99,15 @@
 }
 
 .device-title .panel-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     order: 1;
+}
+
+.device-title .panel-status .reception {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .notifications {
@@ -240,6 +248,10 @@
     display: none;
 }
 
+.folder-state-summary th > a {
+    margin-left: 0.4em;
+}
+
 :is(.folder-details, .device-details) > table td {
     flex: 1;
     min-width: 0;
@@ -305,25 +317,25 @@
     font-size: 14px;
 }
 
-.remote-actions {
+.device-actions {
     position: relative;
     justify-content: flex-start;
 }
 
-.remote-actions > .pull-right > .btn:first-child {
+.device-actions > .pull-right > .btn:first-child {
     margin-left: auto;
 }
 
-.remote-actions [aria-disabled="true"] {
+.device-actions [aria-disabled="true"] {
     opacity: 0.65;
     cursor: default;
 }
 
-.remote-folders {
+.device-folders {
     position: static;
 }
 
-.remote-folders .dropdown-menu {
+.device-folders .dropdown-menu {
     left: 10px;
     right: 10px;
     min-width: 0;
@@ -332,14 +344,14 @@
     font-size: 14px;
 }
 
-.remote-folders .dropdown-menu a {
+.device-folders .dropdown-menu a {
     display: flex;
     align-items: center;
     gap: 6px;
     padding: 5px 10px;
 }
 
-.remote-folders .folder-text {
+.device-folders .folder-text {
     flex: 1;
     min-width: 0;
 }
@@ -351,6 +363,11 @@
   gap: 8px;
   font-size: 24px;
   font-weight: 600;
+}
+
+.navbar-default .syncshell-brand:hover,
+.navbar-default .syncshell-brand:focus {
+  color: inherit;
 }
 .syncshell-mark {
   width: 28px;
