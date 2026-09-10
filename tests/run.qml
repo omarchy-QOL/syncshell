@@ -69,6 +69,7 @@ QtObject {
     var rows = PanelModel.buildFolderRows(service, "/home/test")
     var failed = PanelModel.folderById(rows, "failed")
     compare(failed.errorDetails, details, "per-file errors reach the panel")
+    compare(failed.errorCount, 19, "complete error count reaches the panel")
     compare(PanelModel.folderMeta(failed), details[0].error + " · Named folder",
       "card uses the available reason")
     compare(PanelModel.folderErrorText(failed),
@@ -85,6 +86,7 @@ QtObject {
     failed = PanelModel.folderById(
       PanelModel.buildFolderRows(service, "/home/test"), "failed")
     compare(failed.problem, false, "fresh healthy status clears the problem")
+    compare(failed.errorCount, 0, "fresh healthy status clears the error count")
     compare(PanelModel.folderErrorText(failed), "",
       "fresh healthy status clears old details")
     compare(PanelModel.folderErrorText({ problem: true, errorDetails: [

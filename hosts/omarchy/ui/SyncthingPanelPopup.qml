@@ -47,8 +47,8 @@ KeyboardPanel {
         ? fittedContentHeight(Style.space(520), Style.space(560))
         : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
         Style.space(root.controller.moreOpen
-            && root.controller.selectedFolder()
-            && root.controller.selectedFolder().problem ? 760 : 560))
+            && root.controller.selectedFolderRow
+            && root.controller.selectedFolderRow.problem ? 760 : 560))
 
     PanelKeyCatcher {
         id: keyCatcher
@@ -392,7 +392,7 @@ KeyboardPanel {
         opened: root.controller.forgetConfirmOpen
         z: 10
         message: {
-            var folder = root.controller.selectedFolder();
+            var folder = root.controller.selectedFolderRow;
             return folder ? "Forget " + folder.label + " (" + folder.id + ")?\n\n" + "This removes only its Syncthing configuration. The " + "directory and data files will not be deleted. " + (folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal " + ".stfolder marker. " : "") + "Rejoining the same remote folder requires this exact Folder ID." : "Forget this unlinked folder?";
         }
         confirmText: "Forget"

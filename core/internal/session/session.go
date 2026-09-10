@@ -142,7 +142,8 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 		Truncation: previous.Truncation,
 		Capabilities: []string{
 			"configure", "folder.add-existing", "folder.forget", "folder.pause",
-			"folder.rescan", "folder.rescan-all", "folder.resume", "folder.suggest-id",
+			"folder.recheck-errors", "folder.rescan", "folder.rescan-all",
+			"folder.resume", "folder.suggest-id",
 			"lifecycle.disable", "lifecycle.enable", "lifecycle.start", "lifecycle.stop",
 			"refresh", "webui.set-theme",
 		},

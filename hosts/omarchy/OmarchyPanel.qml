@@ -42,6 +42,7 @@ Panel {
   property string displayedNotice: ""
   property bool noticeShown: false
   readonly property var folderRows: buildFolderRows()
+  readonly property var selectedFolderRow: folderById(selectedFolderId)
   readonly property bool compactFolders: folderRows.length >= 5
   readonly property string displayedFolderId: compactFolders
     && visibleSyncActivity !== "" && syncthing
@@ -240,7 +241,7 @@ Panel {
   }
 
   function selectedFolder() {
-    return folderById(selectedFolderId)
+    return selectedFolderRow
   }
 
   function folderById(folderId) {

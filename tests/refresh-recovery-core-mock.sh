@@ -18,7 +18,15 @@ while IFS= read -r line; do
       printf '{"v":1,"type":"result","id":"%s","ok":false,"revision":%s,"error":{"message":"API unavailable"}}\n' "$id" "$revision"
       continue
     fi
-    printf '{"v":1,"type":"snapshot","revision":%s,"state":{"connection":{"phase":"ready","online":true,"fresh":true},"webUi":{"theme":"default","guiAssets":"/tmp/test-gui"},"folders":[],"counts":{}}}\n' "$revision"
+    if ((refreshes == 3)); then
+      printf '{"v":1,"type":"snapshot","revision":%s,"state":{"connection":{"phase":"ready","online":true,"fresh":true},"webUi":{"theme":"default","guiAssets":"/tmp/test-gui"},"folders":[{"id":"folder","label":"Folder","path":"/tmp/folder","paused":false,"status":{"state":"idle","pullErrors":1,"needTotalItems":1,"errors":[{"path":"old","error":"blocked"}]} }],"counts":{"folders":1,"folderProblems":1,"syncingFolders":1}}}\n' "$revision"
+    else
+      printf '{"v":1,"type":"snapshot","revision":%s,"state":{"connection":{"phase":"ready","online":true,"fresh":true},"webUi":{"theme":"default","guiAssets":"/tmp/test-gui"},"folders":[],"counts":{}}}\n' "$revision"
+    fi
+  elif [[ $type == action ]] &&
+      [[ $(jq -er '.action' <<<"$line") == folder.recheck-errors ]]; then
+    ((revision += 1))
+    printf '{"v":1,"type":"snapshot","revision":%s,"state":{"connection":{"phase":"ready","online":true,"fresh":true},"webUi":{"theme":"default","guiAssets":"/tmp/test-gui"},"folders":[{"id":"folder","label":"Folder","path":"/tmp/folder","paused":false,"status":{"state":"idle","pullErrors":0,"needTotalItems":0,"errors":[]}}],"counts":{"folders":1,"folderProblems":0,"syncingFolders":0}}}\n' "$revision"
   fi
   printf '{"v":1,"type":"result","id":"%s","ok":true,"revision":%s}\n' "$id" "$revision"
   [[ $type != shutdown ]] || exit 0

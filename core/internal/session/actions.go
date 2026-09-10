@@ -41,6 +41,8 @@ func (s *Session) Act(
 		result = s.rescanFolder(ctx, arguments.FolderID)
 	case "folder.rescan-all":
 		result = s.rescanAll(ctx)
+	case "folder.recheck-errors":
+		result = s.recheckFolderErrors(ctx)
 	case "folder.forget":
 		result = s.forgetFolder(ctx, arguments.FolderID)
 	case "folder.add-existing":
@@ -70,7 +72,7 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 	switch action {
 	case "folder.pause", "folder.resume", "folder.rescan", "folder.forget":
 		valid = folderOnly
-	case "folder.rescan-all", "folder.suggest-id",
+	case "folder.recheck-errors", "folder.rescan-all", "folder.suggest-id",
 		"lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
 		valid = empty
 	case "folder.add-existing":
@@ -148,6 +150,31 @@ func (s *Session) rescanAll(ctx context.Context) ActionResult {
 		return ActionResult{Error: publicError(err)}
 	}
 	return s.refreshAfterMutation(ctx)
+}
+
+func (s *Session) recheckFolderErrors(ctx context.Context) ActionResult {
+	if result := s.requireOnline(); result != nil {
+		return *result
+	}
+	var firstErr error
+	for _, folder := range s.Current().State.Folders {
+		status := folder.Status
+		if folder.Paused || status.Error == "" && status.PullErrors == 0 &&
+			len(status.Errors) == 0 {
+			continue
+		}
+		if err := s.client.Rescan(ctx, folder.ID); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	published, refreshErr := s.Refresh(ctx)
+	if refreshErr != nil {
+		return ActionResult{Revision: published.Revision, Error: publicError(refreshErr)}
+	}
+	if firstErr != nil {
+		return ActionResult{Revision: published.Revision, Error: publicError(firstErr)}
+	}
+	return ActionResult{OK: true, Revision: published.Revision}
 }
 
 func (s *Session) forgetFolder(ctx context.Context, folderID string) ActionResult {

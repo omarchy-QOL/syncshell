@@ -55,8 +55,15 @@ func normalizeFolder(
 		devices = append(devices, FolderDevice{ID: boundedIdentifier(device.DeviceID)})
 	}
 	sort.Slice(devices, func(i, j int) bool { return devices[i].ID < devices[j].ID })
-	errors := make([]FolderError, 0, min(len(errorsResponse.Errors), maxFolderErrors))
-	for _, folderError := range errorsResponse.Errors[:min(len(errorsResponse.Errors), maxFolderErrors)] {
+	currentErrors := append([]syncthing.FolderError(nil), errorsResponse.Errors...)
+	sort.Slice(currentErrors, func(i, j int) bool {
+		if currentErrors[i].Path == currentErrors[j].Path {
+			return currentErrors[i].Error < currentErrors[j].Error
+		}
+		return currentErrors[i].Path < currentErrors[j].Path
+	})
+	errors := make([]FolderError, 0, min(len(currentErrors), maxFolderErrors))
+	for _, folderError := range currentErrors[:min(len(currentErrors), maxFolderErrors)] {
 		errors = append(errors, FolderError{Path: boundedLabel(folderError.Path),
 			Error: boundedError(folderError.Error)})
 	}
@@ -68,7 +75,7 @@ func normalizeFolder(
 			PullErrors: status.PullErrors, NeedTotalItems: status.NeedTotalItems,
 			NeedBytes: status.NeedBytes, GlobalFiles: status.GlobalFiles,
 			GlobalBytes: status.GlobalBytes, Errors: errors},
-	}, max(0, len(errorsResponse.Errors)-maxFolderErrors)
+	}, max(0, max(status.PullErrors, len(currentErrors))-maxFolderErrors)
 }
 
 func normalizePendingFolders(pending syncthing.PendingFolders) map[string]PendingFolder {

@@ -14,7 +14,11 @@ Column {
   property color urgent: Color.urgent
   property color success: "#a3be8c"
   property string fontFamily: Style.font.family
-  readonly property var selectedFolder: root.controller.selectedFolder()
+  readonly property var selectedFolder: root.controller.selectedFolderRow
+  readonly property int shownErrorCount: selectedFolder
+    ? (selectedFolder.errorDetails || []).length : 0
+  readonly property int totalErrorCount: selectedFolder
+    ? Math.max(shownErrorCount, Number(selectedFolder.errorCount || 0)) : 0
   readonly property bool folderPopupOpen: folderSelector.popupOpen
   readonly property bool pendingPopupOpen: pendingOfferSelector.popupOpen
 
@@ -72,9 +76,11 @@ Column {
 
     Text {
       width: parent.width
-      text: "Showing " + (root.selectedFolder
-        ? (root.selectedFolder.errorDetails || []).length : 0)
-        + " file errors. Open Web UI for the full list."
+      text: root.shownErrorCount < root.totalErrorCount
+        ? "Showing " + root.shownErrorCount + " of " + root.totalErrorCount
+          + " current errors. Open Web UI for the full list."
+        : "Showing " + root.shownErrorCount + " current error"
+          + (root.shownErrorCount === 1 ? "." : "s.")
       textFormat: Text.PlainText
       color: root.dim
       font.family: root.fontFamily
@@ -85,25 +91,25 @@ Column {
 
   Button {
     iconText: "󰑐"
-    text: "Refresh Syncthing status"
-    tooltipText: "Request latest Syncthing state\nimmediately without rescan."
+    text: root.syncthing && root.syncthing.refreshing
+      ? "Rechecking Syncthing" : "Refresh Syncthing status"
+    tooltipText: "Request latest Syncthing state. Active folders with current "
+      + "errors are rescanned so Syncthing can retry them."
     enabled: root.syncthing && root.syncthing.canRefresh
     foreground: refreshFeedback.running
       ? root.controller.warning : root.foreground
     fontFamily: root.fontFamily
     fontSize: Style.font.caption
     bordered: true
-    onClicked: {
-      refreshFeedback.restart()
-      root.syncthing.refresh()
-    }
+    onClicked: root.syncthing.refresh(true)
 
     NumberAnimation on iconRotation {
       id: refreshFeedback
       from: 0
       to: 360
-      duration: 300
-      running: false
+      duration: 600
+      loops: Animation.Infinite
+      running: root.syncthing && root.syncthing.refreshing
     }
   }
 

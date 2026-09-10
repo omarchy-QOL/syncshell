@@ -41,14 +41,26 @@ Column {
         && (!root.syncthing.serviceAvailable || root.syncthing.serviceActive)
         ? 1.0 : 0.5
       iconComponent: Component {
-        Image {
+        Item {
           width: hero.iconSize
           height: width
-          source: root.controller.syncthingIconSource
-          sourceSize.width: 64
-          sourceSize.height: 64
-          fillMode: Image.PreserveAspectFit
-          smooth: true
+
+          MonoIcon {
+            anchors.fill: parent
+            source: root.controller.themedIconSource
+            tint: root.foreground
+            visible: root.controller.themedIcon
+          }
+
+          Image {
+            anchors.fill: parent
+            source: root.controller.syncthingIconSource
+            sourceSize.width: width
+            sourceSize.height: height
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            visible: !root.controller.themedIcon
+          }
         }
       }
       trailingControl: Component {

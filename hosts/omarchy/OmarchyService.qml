@@ -195,13 +195,23 @@ QtObject {
     })
   }
 
-  function refresh() {
+  function refresh(recheckErrors) {
     packageController.updateStatus()
-    if (!core.protocolReady || refreshing) return
+    if (!core.protocolReady || refreshing) return false
     refreshing = true
-    if (!core.refresh(function() {
+    if (recheckErrors === true) folderMutationError = ""
+    var callback = function(ok, revision, data, error) {
       root.refreshing = false
-    })) refreshing = false
+      if (!ok && recheckErrors === true) {
+        root.folderMutationError = root.actionError(error,
+          "Could not recheck Syncthing errors")
+      }
+    }
+    var request = recheckErrors === true && folderProblemCount > 0
+      ? core.action("folder.recheck-errors", {}, callback)
+      : core.refresh(callback)
+    if (!request) refreshing = false
+    return !!request
   }
 
   function recoverCoreIfNeeded() {

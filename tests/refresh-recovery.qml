@@ -41,9 +41,18 @@ ShellRoot {
         service.controlError = "service start failed"
         root.step = 3
         service.refresh()
-      } else {
+      } else if (root.step === 3) {
+        if (service.folderProblemCount !== 1) return
         root.check(service.controlError === "service start failed",
           "refresh must not erase an unrelated lifecycle error")
+        root.check(service.folderStatuses.folder.errors === 1,
+          "current folder errors did not reach QML")
+        root.step = 4
+        root.check(service.refresh(true), "error recheck was not started")
+      } else {
+        if (service.folderProblemCount !== 0) return
+        root.check(service.folderStatuses.folder.errors === 0,
+          "successful recheck must replace old folder errors")
         service.core.terminate()
         console.log("refresh recovery tests passed")
         Qt.quit()

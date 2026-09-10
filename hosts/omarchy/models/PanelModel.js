@@ -35,7 +35,8 @@ function buildFolderRows(syncthing, homePath) {
     var id = String(folder.id || "")
     var status = statuses[id] || ({})
     var state = String(status.state || "unknown")
-    var errors = Number(status.errors || 0) + Number(status.pullErrors || 0)
+    var errorCount = Math.max(Number(status.errors || 0),
+      Number(status.pullErrors || 0))
     var needItems = Number(status.needTotalItems || 0)
     var configuredLabel = String(folder.label || "")
     var folderDevices = folder.devices || []
@@ -56,7 +57,8 @@ function buildFolderRows(syncthing, homePath) {
       state: state,
       error: String(status.error || ""),
       errorDetails: status.errorDetails || [],
-      problem: state === "error" || !!status.error || errors > 0,
+      errorCount: errorCount,
+      problem: state === "error" || !!status.error || errorCount > 0,
       syncing: needItems > 0 || state.indexOf("sync") === 0,
       scanning: state.indexOf("scan") === 0,
       paused: !!folder.paused,

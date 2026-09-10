@@ -147,7 +147,9 @@ not inferred.
 
 ## Methods
 
-- `refresh()` refreshes installation and API state.
+- `refresh(recheckErrors)` refreshes installation and API state. The explicit
+  error-recheck form rescans only active folders with reported problems before
+  publishing the latest Syncthing state.
 - `setRefreshInterval(seconds)` clamps native reconciliation to 60-3600
   seconds.
 - `setLegacyThemedIcon(enabled)` seeds the implicit icon preference only.

@@ -334,6 +334,70 @@ func TestEventLoopRecoversCursor(t *testing.T) {
 	}
 }
 
+func TestStateChangeAfterFolderErrorPublishesRecoveredState(t *testing.T) {
+	base := &actionAPI{
+		folders: map[string]syncthing.Folder{"folder": {
+			ID: "folder", Label: "Folder", Path: t.TempDir(),
+		}},
+		devices: []syncthing.Device{{DeviceID: "LOCAL"}},
+		pending: syncthing.PendingFolders{}, theme: "default",
+		status: syncthing.FolderStatus{State: "idle", PullErrors: 1,
+			NeedTotalItems: 1},
+		errors: []syncthing.FolderError{{Path: "blocked", Error: "ignored file"}},
+	}
+	api := &folderErrorEventAPI{actionAPI: base}
+	coreSession := newEventSession(t, api)
+	initial, err := coreSession.Refresh(context.Background())
+	if err != nil || initial.State.Counts.FolderProblems != 1 {
+		t.Fatalf("initial folder error missing: %#v %v", initial, err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	updates := coreSession.Updates(ctx)
+	defer cancelEventUpdates(t, cancel, updates)
+	deadline := time.After(2 * time.Second)
+	for {
+		select {
+		case update := <-updates:
+			if update.State.Counts.FolderProblems == 0 &&
+				len(update.State.Folders[0].Status.Errors) == 0 {
+				return
+			}
+		case <-deadline:
+			t.Fatal("FolderErrors event did not publish recovered state")
+		}
+	}
+}
+
+type folderErrorEventAPI struct {
+	actionAPI *actionAPI
+	mu        sync.Mutex
+	calls     int
+}
+
+func (a *folderErrorEventAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	if request.URL.Path != "/rest/events" {
+		a.actionAPI.ServeHTTP(writer, request)
+		return
+	}
+	a.mu.Lock()
+	a.calls++
+	call := a.calls
+	a.mu.Unlock()
+	switch call {
+	case 1:
+		writeSessionJSON(writer, `[{"id":10,"type":"StartupComplete","data":{}}]`)
+	case 2:
+		a.actionAPI.mu.Lock()
+		a.actionAPI.status.PullErrors = 0
+		a.actionAPI.status.NeedTotalItems = 0
+		a.actionAPI.errors = nil
+		a.actionAPI.mu.Unlock()
+		writeSessionJSON(writer, `[{"id":11,"type":"StateChanged","data":{}}]`)
+	default:
+		<-request.Context().Done()
+	}
+}
+
 type eventAPI struct {
 	mu          sync.Mutex
 	eventCalls  int

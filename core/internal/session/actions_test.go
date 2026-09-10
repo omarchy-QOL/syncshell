@@ -24,10 +24,48 @@ type actionAPI struct {
 	pending           syncthing.PendingFolders
 	theme             string
 	rescans           int
+	status            syncthing.FolderStatus
+	errors            []syncthing.FolderError
+	clearOnRescan     bool
 	lastAdd           syncthing.FolderConfig
 	dropThemeResponse bool
 	rescanStarted     chan struct{}
 	rescanRelease     chan struct{}
+}
+
+func TestRecheckFolderErrorsPublishesLatestState(t *testing.T) {
+	api := &actionAPI{
+		folders: map[string]syncthing.Folder{"folder": {
+			ID: "folder", Label: "Folder", Path: t.TempDir(),
+		}},
+		devices:       []syncthing.Device{{DeviceID: "LOCAL"}},
+		pending:       syncthing.PendingFolders{},
+		theme:         "default",
+		status:        syncthing.FolderStatus{State: "idle", PullErrors: 2, NeedTotalItems: 2},
+		errors:        []syncthing.FolderError{{Path: "old", Error: "blocked"}, {Path: "new", Error: "blocked"}},
+		clearOnRescan: true,
+	}
+	coreSession := newActionSession(t, api)
+	initial, err := coreSession.Refresh(context.Background())
+	if err != nil || initial.State.Counts.FolderProblems != 1 {
+		t.Fatalf("initial folder errors missing: %#v %v", initial, err)
+	}
+	var published []PublishedSnapshot
+	result := coreSession.Act(context.Background(), "folder.recheck-errors",
+		ActionArguments{}, "recheck", func(snapshot PublishedSnapshot) {
+			published = append(published, snapshot)
+		})
+	latest := coreSession.Current()
+	if !result.OK || api.rescanCount() != 1 || latest.State.Counts.FolderProblems != 0 ||
+		latest.State.Folders[0].Status.PullErrors != 0 ||
+		len(latest.State.Folders[0].Status.Errors) != 0 {
+		t.Fatalf("recheck did not publish the latest state: result=%#v state=%#v",
+			result, latest.State)
+	}
+	if len(published) < 2 || !published[0].State.Mutation.Busy ||
+		published[len(published)-1].State.Mutation.Busy {
+		t.Fatalf("recheck publication sequence is incomplete: %#v", published)
+	}
 }
 
 func TestRescanPublishesBusyBeforeSlowRequestCompletes(t *testing.T) {
@@ -376,9 +414,13 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 	case request.URL.Path == "/rest/system/connections":
 		a.write(writer, `{"connections":{}}`)
 	case request.URL.Path == "/rest/db/status":
-		a.write(writer, `{"state":"idle"}`)
+		status := a.status
+		if status.State == "" {
+			status.State = "idle"
+		}
+		a.writeValue(writer, status)
 	case request.URL.Path == "/rest/folder/errors":
-		a.write(writer, `{"errors":[]}`)
+		a.writeValue(writer, syncthing.FolderErrors{Errors: a.errors})
 	case request.URL.Path == "/rest/cluster/pending/folders":
 		a.writeValue(writer, a.pending)
 	case request.URL.Path == "/rest/config/gui" && request.Method == http.MethodGet:
@@ -412,6 +454,11 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		}
 		if a.rescanRelease != nil {
 			<-a.rescanRelease
+		}
+		if a.clearOnRescan {
+			a.status.PullErrors = 0
+			a.status.NeedTotalItems = 0
+			a.errors = nil
 		}
 		writer.WriteHeader(http.StatusOK)
 	case request.URL.Path == "/rest/db/file":
