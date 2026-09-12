@@ -31,6 +31,12 @@ QtObject {
     compare(PanelModel.folderMeta(rows[0]),
       "3 files · local only · Configured label", "folder metadata")
     compare(PanelModel.folderState(rows[0], ""), "SYNCED", "folder state")
+    service.folderStatuses.folder.state = "sync-preparing"
+    compare(PanelModel.buildFolderRows(service, "/home/test")[0].syncing,
+      false, "preparing state without work is not syncing")
+    service.folderStatuses.folder.needTotalItems = 1
+    compare(PanelModel.buildFolderRows(service, "/home/test")[0].syncing,
+      true, "pending items are syncing")
     compare(PanelModel.folderState(rows[0], "", true), "SYNCING",
       "active folder state")
     compare(PanelModel.folderMeta(rows[0], true),

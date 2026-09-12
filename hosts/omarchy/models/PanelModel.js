@@ -59,7 +59,7 @@ function buildFolderRows(syncthing, homePath) {
       errorDetails: status.errorDetails || [],
       errorCount: errorCount,
       problem: state === "error" || !!status.error || errorCount > 0,
-      syncing: needItems > 0 || state.indexOf("sync") === 0,
+      syncing: needItems > 0 || state === "syncing",
       scanning: state.indexOf("scan") === 0,
       paused: !!folder.paused,
       sharedDeviceCount: sharedDeviceCount,
