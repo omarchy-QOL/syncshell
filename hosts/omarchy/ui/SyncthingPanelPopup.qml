@@ -358,9 +358,9 @@ KeyboardPanel {
                 iconText: "\uf21e"
                 text: "Refresh Sync. status"
                 busyText: "Rechecking Syncthing"
-                tooltipText: "Request latest Syncthing state. Active folders "
-                    + "with current errors are rescanned so Syncthing can "
-                    + "retry them."
+                tooltipText: "Request latest Syncthing state.\n"
+                    + "Active folders with current errors\n"
+                    + "rescanned and errors rechecked."
                 bordered: true
                 foreground: root.controller.foreground
                 busyForeground: root.controller.warning
