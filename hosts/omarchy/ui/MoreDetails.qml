@@ -89,30 +89,6 @@ Column {
     }
   }
 
-  Button {
-    iconText: "󰑐"
-    text: root.syncthing && root.syncthing.refreshing
-      ? "Rechecking Syncthing" : "Refresh Syncthing status"
-    tooltipText: "Request latest Syncthing state. Active folders with current "
-      + "errors are rescanned so Syncthing can retry them."
-    enabled: root.syncthing && root.syncthing.canRefresh
-    foreground: refreshFeedback.running
-      ? root.controller.warning : root.foreground
-    fontFamily: root.fontFamily
-    fontSize: Style.font.caption
-    bordered: true
-    onClicked: root.syncthing.refresh(true)
-
-    NumberAnimation on iconRotation {
-      id: refreshFeedback
-      from: 0
-      to: 360
-      duration: 600
-      loops: Animation.Infinite
-      running: root.syncthing && root.syncthing.refreshing
-    }
-  }
-
   PanelSectionHeader {
     text: "FOLDERS"
     foreground: root.foreground

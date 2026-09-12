@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as Controls
 import qs.Commons
 import qs.Ui
 
@@ -16,6 +17,9 @@ Item {
   property color foreground: Color.foreground
   property color busyForeground: foreground
   property color disabledForeground: Qt.darker(foreground, 1.6)
+  property color tooltipBackground: Color.tooltip.background
+  property color tooltipForeground: Color.tooltip.text
+  property color tooltipBorder: Color.tooltip.border
   property string fontFamily: Style.font.family
   property real fontSize: Style.font.body
   property real iconSize: Style.font.icon
@@ -33,6 +37,9 @@ Item {
     inertIcon.implicitWidth + inertLabel.implicitWidth
       + (iconText !== "" && inertText !== ""
           ? Style.spacing.controlGap : 0)
+  readonly property var _tooltipBorderSpec: Border.localOrSurfaceSpec(
+    "tooltip", "border", tooltipBorder, Color.tooltip.border,
+    Math.max(1, Style.normalBorderWidth))
 
   signal clicked
 
@@ -77,7 +84,35 @@ Item {
       : Border.none()
 
     HoverHandler {
+      id: inertHover
       cursorShape: Qt.ArrowCursor
+    }
+
+    Controls.ToolTip {
+      visible: root.tooltipText !== "" && inertHover.hovered
+      text: root.tooltipText
+      delay: 400
+      padding: 0
+      background: BorderSurface {
+        color: root.tooltipBackground
+        borderSpec: root._tooltipBorderSpec
+        radius: 0
+      }
+      contentItem: Text {
+        textFormat: Text.PlainText
+        text: root.tooltipText
+        color: root.tooltipForeground
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.bodySmall
+        leftPadding: Border.left(root._tooltipBorderSpec)
+          + Style.spacing.controlPaddingX
+        rightPadding: Border.right(root._tooltipBorderSpec)
+          + Style.spacing.controlPaddingX
+        topPadding: Border.top(root._tooltipBorderSpec)
+          + Style.spacing.controlPaddingY
+        bottomPadding: Border.bottom(root._tooltipBorderSpec)
+          + Style.spacing.controlPaddingY
+      }
     }
 
     Row {

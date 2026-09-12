@@ -288,12 +288,44 @@ KeyboardPanel {
         anchors.left: parent.left
         spacing: Style.space(12)
 
-        PanelSeparator {
-            foreground: root.controller.foreground
+        Row {
+            visible: root.controller.moreOpen
+            spacing: Style.space(6)
+
+            Button {
+                text: "Web UI"
+                bordered: true
+                foreground: root.controller.foreground
+                fontFamily: root.controller.fontFamily
+                fontSize: Style.font.bodySmall
+                horizontalPadding: Style.space(6)
+                verticalPadding: Style.space(4)
+                enabled: root.controller.syncthing !== null
+                    && root.controller.syncthing.online
+                onClicked: root.controller.openWebUi()
+            }
+
+            Repeater {
+                model: ["TUI", "GUI"]
+
+                BusyButton {
+                    required property string modelData
+                    text: modelData
+                    tooltipText: "To be added soon."
+                    canActivate: false
+                    bordered: true
+                    foreground: root.controller.foreground
+                    disabledForeground: root.controller.dim
+                    fontFamily: root.controller.fontFamily
+                    fontSize: Style.font.bodySmall
+                    horizontalPadding: Style.space(6)
+                    verticalPadding: Style.space(4)
+                }
+            }
         }
 
         Row {
-            spacing: Style.space(8)
+            spacing: Style.spacing.sm
 
             BusyButton {
                 id: rescanAllButton
@@ -307,7 +339,10 @@ KeyboardPanel {
                 foreground: root.controller.foreground
                 busyForeground: root.controller.warning
                 fontFamily: root.controller.fontFamily
+                fontSize: Style.font.bodySmall
                 iconSize: Style.font.body
+                horizontalPadding: Style.spacing.sm
+                verticalPadding: Style.space(4)
                 canActivate: root.controller.syncthing
                     && root.controller.syncthing.online
                     && root.controller.rescannableFolderCount > 0
@@ -316,13 +351,26 @@ KeyboardPanel {
                 onClicked: root.controller.syncthing.rescanAllFolders()
             }
 
-            Button {
-                text: "Web UI"
+            BusyButton {
+                iconText: "\uf21e"
+                text: "Refresh Sync. status"
+                busyText: "Rechecking Syncthing"
+                tooltipText: "Request latest Syncthing state. Active folders "
+                    + "with current errors are rescanned so Syncthing can "
+                    + "retry them."
                 bordered: true
                 foreground: root.controller.foreground
+                busyForeground: root.controller.warning
                 fontFamily: root.controller.fontFamily
-                enabled: root.controller.syncthing !== null && root.controller.syncthing.online
-                onClicked: root.controller.openWebUi()
+                fontSize: Style.font.bodySmall
+                iconSize: Style.font.body
+                horizontalPadding: Style.spacing.sm
+                verticalPadding: Style.space(4)
+                busy: root.controller.syncthing
+                    && root.controller.syncthing.refreshing
+                canActivate: root.controller.syncthing
+                    && root.controller.syncthing.canRefresh
+                onClicked: root.controller.syncthing.refresh(true)
             }
 
             Button {
@@ -337,6 +385,10 @@ KeyboardPanel {
                 enabled: root.controller.syncthing !== null
                 onClicked: root.controller.openSettingsMenu()
             }
+        }
+
+        PanelSeparator {
+            foreground: root.controller.foreground
         }
     }
 
