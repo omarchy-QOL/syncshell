@@ -156,6 +156,8 @@ KeyboardPanel {
         parent: keyCatcher
         anchors.top: parent.top
         anchors.right: parent.right
+        anchors.rightMargin: interactive
+            ? scrollBar.implicitWidth + Style.spacing.sm : 0
         anchors.bottom: fixedActions.top
         anchors.bottomMargin: Style.space(12)
         anchors.left: parent.left
@@ -166,12 +168,19 @@ KeyboardPanel {
         flickableDirection: Flickable.VerticalFlick
         interactive: contentHeight > height
         ScrollBar.vertical: ScrollBar {
+            id: scrollBar
+            parent: keyCatcher
+            anchors.top: panelFlick.top
+            anchors.left: panelFlick.right
+            anchors.leftMargin: Style.spacing.sm
+            anchors.bottom: panelFlick.bottom
             policy: ScrollBar.AsNeeded
         }
 
         Column {
             id: content
-            width: panelFlick.width
+            x: Style.spacing.hairline
+            width: panelFlick.width - x
             spacing: Style.space(12)
 
             PanelStatus {
