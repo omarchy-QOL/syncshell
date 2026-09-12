@@ -47,9 +47,8 @@ KeyboardPanel {
         ? fittedContentHeight(Style.space(520), Style.space(560))
         : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
         Style.space(root.controller.moreOpen
-            ? (root.controller.selectedFolderRow
-                && root.controller.selectedFolderRow.problem ? 760 : 600)
-            : 560))
+            && root.controller.selectedFolderRow
+            && root.controller.selectedFolderRow.problem ? 760 : 560))
 
     PanelKeyCatcher {
         id: keyCatcher
@@ -289,6 +288,45 @@ KeyboardPanel {
         anchors.left: parent.left
         spacing: Style.space(12)
 
+        PanelSeparator {
+            foreground: root.controller.foreground
+        }
+
+        Row {
+            spacing: Style.space(6)
+
+            Button {
+                text: "Web UI"
+                bordered: true
+                foreground: root.controller.foreground
+                fontFamily: root.controller.fontFamily
+                fontSize: Style.font.bodySmall
+                horizontalPadding: Style.space(6)
+                verticalPadding: Style.space(4)
+                enabled: root.controller.syncthing !== null
+                    && root.controller.syncthing.online
+                onClicked: root.controller.openWebUi()
+            }
+
+            Repeater {
+                model: ["TUI", "GUI"]
+
+                BusyButton {
+                    required property string modelData
+                    text: modelData
+                    tooltipText: "To be added soon."
+                    canActivate: false
+                    bordered: true
+                    foreground: root.controller.foreground
+                    disabledForeground: root.controller.dim
+                    fontFamily: root.controller.fontFamily
+                    fontSize: Style.font.bodySmall
+                    horizontalPadding: Style.space(6)
+                    verticalPadding: Style.space(4)
+                }
+            }
+        }
+
         Row {
             spacing: Style.spacing.sm
 
@@ -352,9 +390,6 @@ KeyboardPanel {
             }
         }
 
-        PanelSeparator {
-            foreground: root.controller.foreground
-        }
     }
 
     Text {
