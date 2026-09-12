@@ -302,4 +302,42 @@ Column {
     enabled: root.syncthing && root.syncthing.canInstall
     onClicked: root.controller.installationAction()
   }
+
+  PanelSeparator {
+    foreground: root.foreground
+  }
+
+  Row {
+    spacing: Style.space(6)
+
+    Button {
+      text: "Web UI"
+      bordered: true
+      foreground: root.foreground
+      fontFamily: root.fontFamily
+      fontSize: Style.font.bodySmall
+      horizontalPadding: Style.space(6)
+      verticalPadding: Style.space(4)
+      enabled: root.syncthing && root.syncthing.online
+      onClicked: root.controller.openWebUi()
+    }
+
+    Repeater {
+      model: ["TUI", "GUI"]
+
+      BusyButton {
+        required property string modelData
+        text: modelData
+        tooltipText: "To be added soon."
+        canActivate: false
+        bordered: true
+        foreground: root.foreground
+        disabledForeground: root.dim
+        fontFamily: root.fontFamily
+        fontSize: Style.font.bodySmall
+        horizontalPadding: Style.space(6)
+        verticalPadding: Style.space(4)
+      }
+    }
+  }
 }
