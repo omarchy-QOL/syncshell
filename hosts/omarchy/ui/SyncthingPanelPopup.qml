@@ -300,7 +300,7 @@ KeyboardPanel {
                 bordered: true
                 foreground: root.controller.foreground
                 fontFamily: root.controller.fontFamily
-                fontSize: Style.font.bodySmall
+                fontSize: Style.font.body
                 horizontalPadding: Style.space(6)
                 verticalPadding: Style.space(4)
                 enabled: root.controller.syncthing !== null
@@ -320,7 +320,7 @@ KeyboardPanel {
                     foreground: root.controller.foreground
                     disabledForeground: root.controller.dim
                     fontFamily: root.controller.fontFamily
-                    fontSize: Style.font.bodySmall
+                    fontSize: Style.font.body
                     horizontalPadding: Style.space(6)
                     verticalPadding: Style.space(4)
                 }
@@ -342,7 +342,7 @@ KeyboardPanel {
                 foreground: root.controller.foreground
                 busyForeground: root.controller.warning
                 fontFamily: root.controller.fontFamily
-                fontSize: Style.font.bodySmall
+                fontSize: Style.font.body
                 iconSize: Style.font.body
                 horizontalPadding: Style.spacing.sm
                 verticalPadding: Style.space(4)
@@ -365,7 +365,7 @@ KeyboardPanel {
                 foreground: root.controller.foreground
                 busyForeground: root.controller.warning
                 fontFamily: root.controller.fontFamily
-                fontSize: Style.font.bodySmall
+                fontSize: Style.font.body
                 iconSize: Style.font.body
                 horizontalPadding: Style.spacing.sm
                 verticalPadding: Style.space(4)

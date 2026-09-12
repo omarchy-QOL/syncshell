@@ -151,7 +151,7 @@ Column {
       bordered: true
       foreground: root.foreground
       fontFamily: root.fontFamily
-      fontSize: Style.font.caption
+      fontSize: Style.font.body
       horizontalPadding: Style.space(6)
       verticalPadding: Style.space(4)
       enabled: targetFolder && root.syncthing && root.syncthing.online
