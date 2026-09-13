@@ -258,7 +258,7 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 | ------- | ---------- | ------------------------------------------------------- |
 | 0.1.9   | TBD        | syncshell-tui, syncshell-gui, check parity across UIs   |
 |         |            | compatibility w/ caelestia, end4 illogical impulse, ... |
-| 0.1.8   | TBD        | use one native core for the Omarchy panel               |
+| 0.1.8   | 2026-09-13 | use one native core for the Omarchy panel               |
 |         |            | support healthy externally managed Syncthing instances  |
 |         |            | add the Preact Web UI and settings migration            |
 |         |            | add conflict review (beta) and guarded file renaming    |

@@ -2,7 +2,7 @@
 
 Notable changes to Syncthing for Omarchy are documented here.
 
-## Unreleased
+## 0.1.8 - 2026-09-13
 
 - detect SyncThingy Flatpak installations, adapted to the Go core from
   [@whelanh](https://github.com/whelanh)'s contribution in
@@ -21,6 +21,8 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 - add a Preact Web UI with grouped folders/devices, notifications and
   API-based conflict discovery and rescans
+- refine the 400-pixel panel action area, keep current and planned interface
+  entries visible, standardize tooltips and acknowledge status refreshes
 - migrate older plugin settings with a preview and an exact backup while
   preserving valid preferences, comments, permissions and managed symlinks
 - show folder error details and theme the selected Web UI address

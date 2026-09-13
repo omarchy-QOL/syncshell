@@ -1,4 +1,4 @@
-# 0.1.8 release notes (draft)
+# 0.1.8 release notes
 
 - A native Go core for Syncthing monitoring and service controls.
 - A Preact Web UI with grouped details, notifications and Omarchy theme support.
@@ -6,6 +6,8 @@
 - Settings migration with validation, a preview and an exact backup.
 - SyncThingy Flatpak detection alongside native Syncthing installations.
 - Stable folder status through zero-work Syncthing preparation transitions.
+- A refined 400-pixel panel with fixed interface actions, consistent tooltips
+  and visible status-refresh feedback.
 
 ## Thanks
 
@@ -22,9 +24,3 @@ own startup; desktop file actions remain unsupported inside Flatpak.
 Thanks to [@dawez](https://github.com/dawez) for removing transient
 `sync-preparing` status flicker in
 [#101](https://github.com/omarchy-QOL/syncshell/pull/101).
-
-## Before publication
-
-- Preserve contributor commits when merging dev into main; do not squash away
-  their authorship.
-- Publish these notes with the final release.
