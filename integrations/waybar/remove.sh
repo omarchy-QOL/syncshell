@@ -26,6 +26,7 @@ for path in \
     "$install_root/status.sh" \
     "$install_root/waybar-config.py" \
     "$install_root/remove.sh" \
+    "$install_root/position" \
     "$waybar_root/syncshell.css"; do
   [[ ! -e $path ]] || unlink "$path"
 done

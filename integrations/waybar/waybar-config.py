@@ -70,6 +70,8 @@ def install_config(path: pathlib.Path, root: pathlib.Path) -> None:
         text = '{\n  "layer": "top",\n  "position": "top",\n' \
             '  "height": 34,\n  "modules-left": ["hyprland/workspaces"],\n' \
             '  "modules-right": []\n}\n'
+    position_match = re.search(r'"position"\s*:\s*"(top|bottom)"', text)
+    position = position_match.group(1) if position_match else "top"
     text = strip_marked(text, MODULE_START, MODULE_END)
     text = strip_marked(text, PLACEMENT_START, PLACEMENT_END)
     opening = text.find("{")
@@ -96,6 +98,7 @@ def install_config(path: pathlib.Path, root: pathlib.Path) -> None:
         opening = text.find("{")
         text = text[: opening + 1] + addition + text[opening + 1 :]
     atomic_write(path, text)
+    atomic_write(root / "position", position + "\n")
 
 
 def remove_config(path: pathlib.Path) -> None:

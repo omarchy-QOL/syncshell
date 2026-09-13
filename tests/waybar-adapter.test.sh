@@ -19,6 +19,7 @@ mkdir -p -- "$work/waybar"
 config="$work/waybar/config.jsonc"
 style="$work/waybar/style.css"
 printf '%s\n' '{' '  // unrelated setting' \
+  '  "position": "bottom",' \
   '  "modules-left": ["clock"],' \
   '  "modules-right": ["tray"],' \
   '  "clock": {"format": "{:%H:%M}"}' '}' >"$config"
@@ -35,6 +36,7 @@ rg -Uq 'syncshell placement end\n[[:space:]]*"tray"' "$config"
 rg -q 'unrelated setting' "$config"
 rg -q '"tray"' "$config"
 rg -q '#clock' "$style"
+[[ $(<"$work/bundle/position") == bottom ]]
 
 empty_config="$work/waybar/empty.jsonc"
 printf '%s\n' '{"modules-right": []}' >"$empty_config"

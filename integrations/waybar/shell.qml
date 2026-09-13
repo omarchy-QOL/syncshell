@@ -18,6 +18,8 @@ ShellRoot {
   property string pendingForgetId: ""
   property string pendingForgetLabel: ""
   property string lastStatus: ""
+  property string barPosition: "top"
+  readonly property string pluginRoot: localPath(Qt.resolvedUrl("."))
 
   onPopupOpenChanged: {
     if (popupOpen) Qt.callLater(function() { background.forceActiveFocus() })
@@ -68,8 +70,17 @@ ShellRoot {
 
   AdapterService {
     id: service
-    pluginRoot: root.localPath(Qt.resolvedUrl("."))
+    pluginRoot: root.pluginRoot
     hostId: "waybar"
+  }
+
+  FileView {
+    id: positionFile
+    path: root.pluginRoot + "/position"
+    watchChanges: true
+    printErrors: false
+    onLoaded: root.barPosition = text().trim() === "bottom" ? "bottom" : "top"
+    onFileChanged: reload()
   }
 
   FileView {
@@ -113,9 +124,11 @@ ShellRoot {
     color: "transparent"
     implicitWidth: 480
     implicitHeight: Math.min(700, popupContent.implicitHeight + 28)
-    anchors.top: true
+    anchors.top: root.barPosition === "top"
+    anchors.bottom: root.barPosition === "bottom"
     anchors.right: true
-    margins.top: 42
+    margins.top: root.barPosition === "top" ? 42 : 0
+    margins.bottom: root.barPosition === "bottom" ? 42 : 0
     margins.right: 10
     exclusiveZone: 0
     exclusionMode: ExclusionMode.Ignore
