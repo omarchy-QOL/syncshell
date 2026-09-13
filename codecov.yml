@@ -1,0 +1,19 @@
+comment: false
+
+coverage:
+  status:
+    project:
+      default: off
+      core:
+        flags:
+          - core
+        target: auto
+        threshold: 1%
+    patch:
+      default: off
+
+flags:
+  core:
+    paths:
+      - core/
+    carryforward: true

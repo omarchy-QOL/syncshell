@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   contracts:
@@ -25,7 +26,21 @@ jobs:
         with:
           node-version: '24'
       - name: Core and launcher contracts
-        run: go -C core test -race ./...
+        run: >-
+          go -C core test -race -covermode=atomic
+          -coverprofile="$RUNNER_TEMP/core-coverage.out" ./...
+      - name: Upload core coverage
+        if: >-
+          github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: ${{ runner.temp }}/core-coverage.out
+          flags: core
+          name: core
+          use_oidc: true
       - name: Installation script contracts
         run: bash tests/scripts.test.sh --installation-only
       - name: Integration fixture contracts
