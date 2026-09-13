@@ -10,8 +10,8 @@
 </p>
 
 Syncshell shows [Syncthing](https://github.com/syncthing/syncthing) activity in
-the Omarchy bar, manages local folders and opens a redesigned Web UI. Version
-0.1.8 uses a bundled Go core since other Linux shell adapters are planned.
+Linux bars, manages local folders and opens a redesigned Web UI. Version 0.1.8
+uses one bundled Go core per live adapter.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -34,8 +34,9 @@ Open the widget and expand **More**. If Syncthing is missing, select **Install
 Syncthing** to install the package and start the user service. Existing
 installations are detected automatically.
 
-Version 0.1.8 supports Omarchy on Linux x86_64 systems. Other host directories
-are placeholders; other shells, ARM and daemon mode remain future work.
+Version 0.1.8 supports Omarchy, DankMaterialShell, Illogical Impulse,
+Caelestia, and Waybar on Linux x86_64. The four Arch and Hyprland adapter
+workflows are documented in [Arch shell adapters](docs/arch-adapters.md).
 
 ## Keybindings
 
@@ -256,9 +257,9 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
-| 0.1.9   | TBD        | syncshell-tui, syncshell-gui, check parity across UIs   |
-|         |            | compatibility w/ caelestia, end4 illogical impulse, ... |
+| 0.1.9   | TBD        | syncshell-tui and syncshell-gui                         |
 | 0.1.8   | 2026-09-13 | use one native core for the Omarchy panel               |
+|         |            | add Arch adapters for DMS, II, Caelestia, and Waybar    |
 |         |            | support healthy externally managed Syncthing instances  |
 |         |            | add the Preact Web UI and settings migration            |
 |         |            | add conflict review (beta) and guarded file renaming    |

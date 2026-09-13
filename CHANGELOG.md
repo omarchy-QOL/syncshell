@@ -4,6 +4,12 @@ Notable changes to Syncthing for Omarchy are documented here.
 
 ## 0.1.8 - 2026-09-13
 
+- add native Arch and Hyprland adapters for DankMaterialShell, Illogical
+  Impulse, Caelestia, and Waybar without changing the Omarchy adapter
+- align folder controls with the Omarchy hierarchy, guard forget with a
+  confirmation, and preserve each shell's placement preferences
+- keep one bundled core per adapter across popups and additional outputs
+
 - detect SyncThingy Flatpak installations, adapted to the Go core from
   [@whelanh](https://github.com/whelanh)'s contribution in
   [#48](https://github.com/omarchy-QOL/syncshell/pull/48); preserve native
