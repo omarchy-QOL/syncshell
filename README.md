@@ -1,4 +1,4 @@
-<h1 align="center">Syncshell = <strong>Sync</strong>thing + quick<strong>shell</strong></h1>
+<p align="center">Syncshell = <strong>Sync</strong>thing + quick<strong>shell</strong></p>
 
 <p align="center">
   <a href="https://github.com/omarchy-QOL/syncshell/actions/workflows/test.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/omarchy-QOL/syncshell/test.yml?branch=main&amp;style=flat-square&amp;logo=github&amp;logoColor=white&amp;label=CI&amp;labelColor=2e3440"></a>
