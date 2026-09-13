@@ -43,7 +43,7 @@ trap 'rm -f -- "$temporary"' EXIT
   printf '%s\n' 'Restart=on-failure'
   printf '%s\n' 'RestartSec=2'
   printf '\n%s\n' '[Install]'
-  printf '%s\n' 'WantedBy=graphical-session.target'
+  printf '%s\n' 'WantedBy=default.target'
 } >"$temporary"
 chmod 0644 -- "$temporary"
 mv -- "$temporary" "$service_root/syncshell-waybar.service"

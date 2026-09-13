@@ -12,6 +12,7 @@ test -x "$work/bundle/status.sh"
 rg -q 'AdapterService' "$work/bundle/shell.qml"
 rg -q 'IpcHandler' "$work/bundle/shell.qml"
 rg -q 'HyprlandFocusGrab' "$work/bundle/shell.qml"
+rg -q 'WantedBy=default.target' "$work/bundle/install.sh"
 rg -q 'pendingForgetId' "$work/bundle/shell.qml"
 rg -q 'root.moreOpen.*"Less".*"More"' "$work/bundle/shell.qml"
 
