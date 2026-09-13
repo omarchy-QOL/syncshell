@@ -112,7 +112,7 @@ ShellRoot {
     screen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
     color: "transparent"
     implicitWidth: 480
-    implicitHeight: 700
+    implicitHeight: Math.min(700, popupContent.implicitHeight + 28)
     anchors.top: true
     anchors.right: true
     margins.top: 42
@@ -144,6 +144,7 @@ ShellRoot {
       }
 
       ColumnLayout {
+        id: popupContent
         anchors.fill: parent
         anchors.margins: 14
         spacing: 10
@@ -180,7 +181,9 @@ ShellRoot {
         Flickable {
           id: folderView
           Layout.fillWidth: true
-          Layout.preferredHeight: root.addOpen ? 150 : 300
+          Layout.preferredHeight: service.folders.length === 0 ? 70
+            : root.addOpen ? 130
+            : Math.min(280, Math.max(90, folderColumn.implicitHeight))
           clip: true
           contentWidth: width
           contentHeight: folderColumn.implicitHeight
