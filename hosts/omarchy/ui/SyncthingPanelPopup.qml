@@ -356,7 +356,7 @@ KeyboardPanel {
 
             BusyButton {
                 iconText: "\uf21e"
-                text: "Refresh Sync. status"
+                text: "Refresh Sync.status"
                 busyText: "Rechecking Syncthing"
                 tooltipText: "Request latest Syncthing state.\n"
                     + "Active folders with current errors\n"
