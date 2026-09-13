@@ -23,5 +23,6 @@ install -m 0644 -- "$repo_root/shared/CoreProcess.qml" \
   "$repo_root/shared/AdapterService.qml" "$target/shared/"
 install -m 0755 -- "$repo_root/bin/x86_64/syncshell-core" \
   "$target/bin/x86_64/syncshell-core"
-"$repo_root/packaging/bundled/verify.sh" >/dev/null
+(cd -- "$repo_root" && \
+  sha256sum --check packaging/bundled/SHA256SUMS >/dev/null)
 printf '[ok] assembled DMS adapter\n'
