@@ -1,4 +1,4 @@
-<p align="center">Syncshell = <strong>Sync</strong>thing + quick<strong>shell</strong></p>
+<h1 align="center">Syncshell = <strong>Sync</strong>thing + quick<strong>shell</strong></h1>
 
 <p align="center">
   <a href="https://github.com/omarchy-QOL/syncshell/actions/workflows/test.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/omarchy-QOL/syncshell/test.yml?branch=main&amp;style=flat-square&amp;logo=github&amp;logoColor=white&amp;label=CI&amp;labelColor=2e3440"></a>
@@ -11,7 +11,7 @@
 
 Syncshell shows [Syncthing](https://github.com/syncthing/syncthing) activity in
 the Omarchy bar, manages local folders and opens a redesigned Web UI. Version
-0.1.8 uses a bundled Go core. Other Linux shell adapters are planned.
+0.1.8 uses a bundled Go core since other Linux shell adapters are planned.
 
 ![Syncthing status and installation controls](preview.png)
 
