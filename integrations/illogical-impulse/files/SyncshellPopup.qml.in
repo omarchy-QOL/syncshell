@@ -1,0 +1,234 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Effects
+import QtQuick.Layouts
+import qs.modules.common
+import qs.modules.common.widgets
+import qs.services
+import Quickshell
+import Quickshell.Wayland
+
+LazyLoader {
+  id: root
+  property bool pinned: false
+  active: pinned
+
+  component: PanelWindow {
+    id: popupWindow
+    color: "transparent"
+    screen: root.QsWindow.window?.screen
+    implicitWidth: popupBackground.implicitWidth
+      + Appearance.sizes.elevationMargin * 2
+    implicitHeight: popupBackground.implicitHeight
+      + Appearance.sizes.elevationMargin * 2
+    anchors.right: true
+    anchors.top: !Config.options.bar.bottom
+    anchors.bottom: Config.options.bar.bottom
+    margins.right: Appearance.rounding.screenRounding
+    margins.top: Config.options.bar.bottom ? 0 : Appearance.sizes.barHeight
+    margins.bottom: Config.options.bar.bottom ? Appearance.sizes.barHeight : 0
+    exclusionMode: ExclusionMode.Ignore
+    exclusiveZone: 0
+    WlrLayershell.namespace: "quickshell:syncshell"
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    onActiveChanged: if (!active) root.pinned = false
+
+    mask: Region { item: popupBackground }
+    Keys.onEscapePressed: root.pinned = false
+
+    StyledRectangularShadow { target: popupBackground }
+
+    Rectangle {
+      id: popupBackground
+      anchors.fill: parent
+      anchors.margins: Appearance.sizes.elevationMargin
+      implicitWidth: 440
+      implicitHeight: content.implicitHeight + 20
+      color: Appearance.m3colors.m3surfaceContainer
+      radius: Appearance.rounding.small
+      border.width: 1
+      border.color: Appearance.colors.colLayer0Border
+
+      ColumnLayout {
+        id: content
+        anchors.fill: parent
+        anchors.margins: 10
+        spacing: 8
+
+        StyledPopupHeaderRow {
+          icon: "sync_alt"
+          label: Translation.tr("Syncshell")
+        }
+
+        StyledText {
+          Layout.fillWidth: true
+          text: Syncshell.summaryText
+          color: Appearance.colors.colOnSurfaceVariant
+        }
+
+        StyledText {
+          Layout.fillWidth: true
+          visible: text.length > 0
+          text: Syncshell.lastError || Syncshell.actionNotice
+          color: Syncshell.lastError ? Appearance.m3colors.m3error
+            : Appearance.m3colors.m3primary
+          wrapMode: Text.Wrap
+        }
+
+        RowLayout {
+          DialogButton {
+            buttonText: Translation.tr("Refresh")
+            enabled: !Syncshell.busy && !Syncshell.refreshing
+            onClicked: Syncshell.refresh()
+          }
+          DialogButton {
+            buttonText: Translation.tr("Rescan all")
+            enabled: Syncshell.online && !Syncshell.busy
+              && Syncshell.folderCount > 0
+            onClicked: Syncshell.rescanAllFolders()
+          }
+          DialogButton {
+            buttonText: Translation.tr("Web UI")
+            enabled: Syncshell.online
+            onClicked: Syncshell.openWebUi()
+          }
+        }
+
+        Flickable {
+          id: folderView
+          Layout.fillWidth: true
+          Layout.preferredHeight: Math.min(300,
+            Math.max(70, folderColumn.implicitHeight))
+          clip: true
+          contentWidth: width
+          contentHeight: folderColumn.implicitHeight
+          boundsBehavior: Flickable.StopAtBounds
+
+          Column {
+            id: folderColumn
+            width: folderView.width
+            spacing: 6
+
+            StyledText {
+              width: parent.width
+              visible: Syncshell.folders.length === 0
+              text: Syncshell.summaryText
+              color: Appearance.colors.colOnSurfaceVariant
+              horizontalAlignment: Text.AlignHCenter
+            }
+
+            Repeater {
+              model: Syncshell.folders
+              delegate: Rectangle {
+                id: folderCard
+                required property var modelData
+                width: folderColumn.width
+                height: folderDetails.implicitHeight + 16
+                color: Appearance.colors.colLayer2
+                radius: Appearance.rounding.small
+
+                ColumnLayout {
+                  id: folderDetails
+                  anchors.fill: parent
+                  anchors.margins: 8
+                  spacing: 4
+                  StyledText {
+                    Layout.fillWidth: true
+                    text: String(folderCard.modelData.label
+                      || folderCard.modelData.id)
+                    font.pixelSize: Appearance.font.pixelSize.normal
+                  }
+                  StyledText {
+                    Layout.fillWidth: true
+                    text: String(folderCard.modelData.path || "")
+                    color: Appearance.colors.colOnSurfaceVariant
+                    elide: Text.ElideMiddle
+                  }
+                  StyledText {
+                    Layout.fillWidth: true
+                    text: String(folderCard.modelData.status
+                      && (folderCard.modelData.status.error
+                        || folderCard.modelData.status.state) || "unknown")
+                    color: folderCard.modelData.status
+                      && folderCard.modelData.status.error
+                      ? Appearance.m3colors.m3error
+                      : Appearance.colors.colOnSurfaceVariant
+                    elide: Text.ElideRight
+                  }
+                  RowLayout {
+                    DialogButton {
+                      buttonText: folderCard.modelData.paused
+                        ? Translation.tr("Resume") : Translation.tr("Pause")
+                      enabled: Syncshell.online && !Syncshell.busy
+                      onClicked: Syncshell.setFolderPaused(
+                        folderCard.modelData.id, !folderCard.modelData.paused)
+                    }
+                    DialogButton {
+                      buttonText: Translation.tr("Rescan")
+                      enabled: Syncshell.online && !Syncshell.busy
+                        && !folderCard.modelData.paused
+                      onClicked: Syncshell.rescanFolder(folderCard.modelData.id)
+                    }
+                    DialogButton {
+                      buttonText: Translation.tr("Forget")
+                      enabled: Syncshell.online && !Syncshell.busy
+                        && folderCard.modelData.paused
+                      onClicked: Syncshell.forgetFolder(folderCard.modelData.id)
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        MaterialTextField {
+          id: pathField
+          Layout.fillWidth: true
+          placeholderText: Translation.tr("Existing directory path")
+        }
+        RowLayout {
+          Layout.fillWidth: true
+          MaterialTextField {
+            id: labelField
+            Layout.fillWidth: true
+            placeholderText: Translation.tr("Label")
+          }
+          MaterialTextField {
+            id: idField
+            Layout.fillWidth: true
+            placeholderText: Translation.tr("Folder ID")
+          }
+          DialogButton {
+            buttonText: Translation.tr("Suggest ID")
+            enabled: Syncshell.online && !Syncshell.busy
+            onClicked: Syncshell.requestFolderIdSuggestion()
+          }
+        }
+        DialogButton {
+          Layout.fillWidth: true
+          buttonText: Syncshell.busy ? Translation.tr("Working")
+            : Translation.tr("Add existing directory")
+          enabled: Syncshell.online && !Syncshell.busy
+            && pathField.text.length > 0 && idField.text.length > 0
+          onClicked: Syncshell.addFolder({
+            path: pathField.text,
+            label: labelField.text,
+            folderId: idField.text,
+            deviceIds: []
+          })
+        }
+      }
+
+      Connections {
+        target: Syncshell
+        function onFolderIdSuggestionChanged() {
+          if (!idField.activeFocus && Syncshell.folderIdSuggestion)
+            idField.text = Syncshell.folderIdSuggestion
+        }
+      }
+    }
+  }
+}
