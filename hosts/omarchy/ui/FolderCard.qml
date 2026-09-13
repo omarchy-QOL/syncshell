@@ -51,7 +51,7 @@ BorderSurface {
     anchors.top: parent.top
     spacing: Style.space(2)
 
-    Button {
+    TooltipButton {
       id: openFolderButton
       width: Math.min(implicitWidth, Math.max(Style.space(48),
         root.width - stateBadge.width - copyIdButton.width
@@ -59,7 +59,7 @@ BorderSurface {
       clip: true
       iconText: "\uf07b"
       text: String(root.folder.label || "Unnamed folder")
-      tooltipText: root.canOpen
+      helpText: root.canOpen
         ? "Open " + String(root.folder.path || "") : "Folder unavailable"
       bordered: true
       leftAlign: true
@@ -73,11 +73,11 @@ BorderSurface {
       onClicked: root.openRequested()
     }
 
-    PanelActionButton {
+    TooltipPanelActionButton {
       id: copyIdButton
       size: openFolderButton.implicitHeight
       iconText: "󰆏"
-      tooltipText: "Copy folder ID"
+      helpText: "Copy folder ID"
       bordered: true
       foreground: root.foreground
       fontFamily: root.fontFamily

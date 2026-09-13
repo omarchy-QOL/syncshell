@@ -44,6 +44,17 @@ ShellRoot {
           foreground: "#cdd6f4"
           busyForeground: "#ebcb8b"
         }
+
+        BusyButton {
+          id: pulseButton
+          text: "Refresh Sync.status"
+          busyText: "Rechecking Syncthing"
+          iconText: "\uf21e"
+          busy: button.busy
+          pulseBusyIcon: true
+          foreground: "#cdd6f4"
+          busyForeground: "#ebcb8b"
+        }
       }
     }
   }
@@ -73,6 +84,10 @@ ShellRoot {
     compare(button.busyIconRotation > 0, true, "busy icon rotates")
     compare(allButton.busyIconRotation > 0, true,
       "global busy icon rotates")
+    compare(pulseButton.busyIconRotation, 0,
+      "pulse icon does not rotate")
+    compare(pulseButton.busyIconScale > 1, true,
+      "pulse icon grows")
     compare(button.activate(), false, "busy activation rejected")
     compare(activations, 1, "busy activation not emitted")
 

@@ -130,9 +130,9 @@ BorderSurface {
         foreground: root.foreground
       }
 
-      Button {
+      TooltipButton {
         text: "BROWSE"
-        tooltipText: "Choose an existing local directory"
+        helpText: "Choose an existing local directory"
         bordered: true
         foreground: root.foreground
         fontFamily: root.fontFamily
@@ -186,9 +186,9 @@ BorderSurface {
         onAccepted: root.controller.submitAddFolder()
       }
 
-      Button {
+      TooltipButton {
         text: "NEW ID"
-        tooltipText: "Generate a new Syncthing folder ID"
+        helpText: "Generate a new Syncthing folder ID"
         bordered: true
         foreground: root.foreground
         fontFamily: root.fontFamily

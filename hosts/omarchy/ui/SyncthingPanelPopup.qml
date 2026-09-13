@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Commons
 import qs.Ui
+import "UiConstants.js" as UiConstants
 
 KeyboardPanel {
     id: root
@@ -12,6 +13,9 @@ KeyboardPanel {
     property alias addIdText: addForm.idText
     property alias selectedDeviceIds: addForm.selectedDeviceIds
     property alias pendingFolderValue: addForm.pendingFolderValue
+    property Timer refreshFeedbackTimer: Timer {
+        interval: UiConstants.REFRESH_FEEDBACK_MIN_MS
+    }
 
     function resetAddForm() {
         addForm.reset();
@@ -335,6 +339,7 @@ KeyboardPanel {
                 iconText: "󰑐"
                 text: "Rescan all folders"
                 busyText: "Rescanning..."
+                tooltipText: "Rescan all folders for local changes."
                 busy: root.controller.syncthing
                     && root.controller.syncthing.folderMutationAction
                         === "rescan-all"
@@ -344,7 +349,7 @@ KeyboardPanel {
                 fontFamily: root.controller.fontFamily
                 fontSize: Style.font.body
                 iconSize: Style.font.body
-                horizontalPadding: Style.spacing.sm
+                horizontalPadding: Style.space(5)
                 verticalPadding: Style.space(4)
                 canActivate: root.controller.syncthing
                     && root.controller.syncthing.online
@@ -358,6 +363,7 @@ KeyboardPanel {
                 iconText: "\uf21e"
                 text: "Refresh Sync.status"
                 busyText: "Rechecking Syncthing"
+                pulseBusyIcon: true
                 tooltipText: "Request latest Syncthing state.\n"
                     + "Active folders with current errors\n"
                     + "rescanned and errors rechecked."
@@ -367,26 +373,40 @@ KeyboardPanel {
                 fontFamily: root.controller.fontFamily
                 fontSize: Style.font.body
                 iconSize: Style.font.body
-                horizontalPadding: Style.spacing.sm
+                horizontalPadding: Style.space(5)
                 verticalPadding: Style.space(4)
-                busy: root.controller.syncthing
-                    && root.controller.syncthing.refreshing
+                busy: refreshFeedbackTimer.running
+                    || (root.controller.syncthing
+                        && root.controller.syncthing.refreshing)
                 canActivate: root.controller.syncthing
                     && root.controller.syncthing.canRefresh
-                onClicked: root.controller.syncthing.refresh(true)
+                    && !refreshFeedbackTimer.running
+                onClicked: {
+                    if (root.controller.syncthing.refresh(true))
+                        refreshFeedbackTimer.restart();
+                }
             }
 
-            Button {
+            TooltipButton {
+                id: settingsButton
                 width: rescanAllButton.height
                 height: rescanAllButton.height
-                iconText: "\uf013"
-                iconSize: Style.font.body
-                tooltipText: "Settings"
+                helpText: "Settings"
                 bordered: true
                 foreground: root.controller.foreground
                 fontFamily: root.controller.fontFamily
                 enabled: root.controller.syncthing !== null
                 onClicked: root.controller.openSettingsMenu()
+
+                Text {
+                    anchors.centerIn: parent
+                    anchors.horizontalCenterOffset: 0.5
+                    text: "\uf013"
+                    textFormat: Text.PlainText
+                    color: settingsButton.foreground
+                    font.family: settingsButton.fontFamily
+                    font.pixelSize: Style.font.body
+                }
             }
         }
 

@@ -4,6 +4,7 @@ import Quickshell.Io
 import qs.Commons
 import qs.Ui
 import "ui"
+import "ui/UiConstants.js" as UiConstants
 import "models/PanelModel.js" as PanelModel
 
 Panel {
@@ -200,6 +201,15 @@ Panel {
     selectedFolderId = folderId
     moreOpen = true
     Qt.callLater(function() { popup.scrollToMore() })
+  }
+
+  function showBarTooltip() {
+    if (!bar || !button.tooltipHovered || tooltip === "") return
+    bar.clearTooltip()
+    bar.tooltipRequest += 1
+    bar.tooltipTarget = button
+    bar.tooltipText = tooltip
+    bar.tooltipShown = true
   }
 
   function folderMeta(folder) {
@@ -635,6 +645,12 @@ Panel {
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
 
+  Timer {
+    id: barTooltipTimer
+    interval: UiConstants.TOOLTIP_DELAY_MS
+    onTriggered: root.showBarTooltip()
+  }
+
   BarIconButton {
     id: button
     anchors.fill: parent
@@ -662,7 +678,14 @@ Panel {
       }
     }
     active: root.hasProblems
-    tooltipText: root.tooltip
+    tooltipText: ""
+    onTooltipHoveredChanged: {
+      if (tooltipHovered) barTooltipTimer.restart()
+      else {
+        barTooltipTimer.stop()
+        if (root.bar) root.bar.hideTooltip(button)
+      }
+    }
     onPressed: function(buttonCode) {
       if (buttonCode === Qt.RightButton && root.syncthing) root.syncthing.refresh()
       else root.toggle()

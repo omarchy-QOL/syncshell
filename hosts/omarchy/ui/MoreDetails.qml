@@ -116,10 +116,10 @@ Column {
       }
     }
 
-    Button {
+    TooltipButton {
       text: "+"
       Layout.preferredHeight: Style.space(28)
-      tooltipText: root.controller.addOpen
+      helpText: root.controller.addOpen
         ? "Close add folder form" : "Add folder"
       bordered: true
       foreground: root.foreground
@@ -133,7 +133,7 @@ Column {
         ? root.controller.closeAddFolder() : root.controller.openAddFolder()
     }
 
-    Button {
+    TooltipButton {
       readonly property var targetFolder: root.controller.selectedFolder()
       readonly property bool targetBusy: root.syncthing
         && root.syncthing.folderMutationBusy
@@ -142,7 +142,7 @@ Column {
       Layout.preferredHeight: Style.space(28)
       text: targetBusy ? "WAIT"
         : (targetFolder && targetFolder.paused ? "LINK" : "UNLINK")
-      tooltipText: targetFolder
+      helpText: targetFolder
         ? (targetFolder.paused
           ? "Resume synchronization for " + targetFolder.label
           : "Pause synchronization for " + targetFolder.label)
@@ -182,10 +182,10 @@ Column {
       }
     }
 
-    Button {
+    TooltipButton {
       text: "ACCEPT"
       Layout.preferredHeight: Style.space(28)
-      tooltipText: "Prepare this offered folder for local acceptance"
+      helpText: "Prepare this offered folder for local acceptance"
       bordered: true
       foreground: root.success
       fontFamily: root.fontFamily
@@ -216,16 +216,18 @@ Column {
       fontFamily: root.fontFamily
     }
 
-    Button {
+    TooltipButton {
       id: installationHelp
       implicitWidth: implicitHeight
-      text: "?"
-      tooltipText: "Installs the official package through Omarchy "
-        + "when Syncthing is absent. Removal is manual."
+      iconText: "\uf128"
+      helpText: "Install the official Syncthing package\n"
+        + "through Omarchy when it is absent.\n"
+        + "Removal remains manual."
       foreground: root.foreground
       fontFamily: root.fontFamily
-      fontSize: Style.font.caption
-      horizontalPadding: 0
+      iconSize: Style.font.body
+      horizontalPadding: Style.space(5)
+      verticalPadding: Style.space(3)
       bordered: true
       focusable: true
     }

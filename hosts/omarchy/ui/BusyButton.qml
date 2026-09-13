@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls as Controls
 import qs.Commons
 import qs.Ui
 
@@ -11,6 +10,7 @@ Item {
   property string iconText: ""
   property string tooltipText: ""
   property bool busy: false
+  property bool pulseBusyIcon: false
   property bool canActivate: true
   property bool bordered: false
   property bool focusable: false
@@ -33,14 +33,11 @@ Item {
     busy ? busyForeground : disabledForeground
   readonly property string inertText: busy ? busyText : text
   readonly property real busyIconRotation: inertIcon.rotation
+  readonly property real busyIconScale: inertIcon.scale
   readonly property real inertContentWidth:
     inertIcon.implicitWidth + inertLabel.implicitWidth
       + (iconText !== "" && inertText !== ""
           ? Style.spacing.controlGap : 0)
-  readonly property var _tooltipBorderSpec: Border.localOrSurfaceSpec(
-    "tooltip", "border", tooltipBorder, Color.tooltip.border,
-    Math.max(1, Style.normalBorderWidth))
-
   signal clicked
 
   function activate() {
@@ -55,13 +52,26 @@ Item {
       + inertButton.borderLeft + inertButton.borderRight)
   implicitHeight: interactiveButton.implicitHeight
 
+  HoverHandler {
+    id: tooltipHover
+  }
+
+  SyncshellToolTip {
+    visible: root.tooltipText !== "" && tooltipHover.hovered
+    text: root.tooltipText
+    tooltipBackground: root.tooltipBackground
+    tooltipForeground: root.tooltipForeground
+    tooltipBorder: root.tooltipBorder
+    fontFamily: root.fontFamily
+  }
+
   Button {
     id: interactiveButton
     anchors.fill: parent
     visible: root.interactive
     text: root.text
     iconText: root.iconText
-    tooltipText: root.tooltipText
+    tooltipText: ""
     bordered: root.bordered
     focusable: root.focusable
     foreground: root.foreground
@@ -88,33 +98,6 @@ Item {
       cursorShape: Qt.ArrowCursor
     }
 
-    Controls.ToolTip {
-      visible: root.tooltipText !== "" && inertHover.hovered
-      text: root.tooltipText
-      delay: 400
-      padding: 0
-      background: BorderSurface {
-        color: root.tooltipBackground
-        borderSpec: root._tooltipBorderSpec
-        radius: 0
-      }
-      contentItem: Text {
-        textFormat: Text.PlainText
-        text: root.tooltipText
-        color: root.tooltipForeground
-        font.family: root.fontFamily
-        font.pixelSize: Style.font.bodySmall
-        leftPadding: Border.left(root._tooltipBorderSpec)
-          + Style.spacing.controlPaddingX
-        rightPadding: Border.right(root._tooltipBorderSpec)
-          + Style.spacing.controlPaddingX
-        topPadding: Border.top(root._tooltipBorderSpec)
-          + Style.spacing.controlPaddingY
-        bottomPadding: Border.bottom(root._tooltipBorderSpec)
-          + Style.spacing.controlPaddingY
-      }
-    }
-
     Row {
       anchors.centerIn: parent
       spacing: Style.spacing.controlGap
@@ -135,7 +118,27 @@ Item {
           to: 360
           duration: 900
           loops: Animation.Infinite
-          running: root.busy
+          running: root.busy && !root.pulseBusyIcon
+        }
+
+        SequentialAnimation on scale {
+          loops: Animation.Infinite
+          running: root.busy && root.pulseBusyIcon
+          onRunningChanged: if (!running) inertIcon.scale = 1
+
+          NumberAnimation {
+            from: 1
+            to: 1.18
+            duration: 375
+            easing.type: Easing.OutCubic
+          }
+
+          NumberAnimation {
+            from: 1.18
+            to: 1
+            duration: 375
+            easing.type: Easing.InCubic
+          }
         }
       }
 
