@@ -23,7 +23,7 @@ queue.
 The first accepted output is `hello`:
 
 ```json
-{"v":1,"type":"hello","build":{"version":"0.1.8"},"capabilities":[]}
+{"v":1,"type":"hello","build":{"version":"0.1.8","protocol":1},"capabilities":[]}
 ```
 
 State is always a complete snapshot. Revisions increase only when public state
