@@ -20,6 +20,10 @@ rg -q 'LIST_ENTRY\(syncshell, true\)' \
 rg -q 'DIRECTORY syncshell.*USE_SOURCE_PERMISSIONS' \
   "$work/caelestia/CMakeLists.txt"
 rg -q 'Flickable' "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
+rg -q 'pendingForgetId' \
+  "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
+rg -q 'root.moreOpen.*qsTr\("Less"\)' \
+  "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
 if rg -n 'SyncthingController|syncthing-api\.sh|curl' \
     "$work/caelestia/syncshell" "$work/caelestia/services/Syncshell.qml"; then
   printf 'Caelestia retained the deleted QML engine\n' >&2

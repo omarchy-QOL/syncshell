@@ -18,7 +18,10 @@ rg -q 'SyncshellIndicator' "$config/modules/ii/bar/BarContent.qml"
 rg -q 'WlrKeyboardFocus.OnDemand' "$config/modules/ii/bar/SyncshellPopup.qml"
 rg -q 'HyprlandFocusGrab' \
   "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'Keys.onEscapePressed.*pinned = false' \
+rg -q 'Keys.onEscapePressed:' \
+  "$config/modules/ii/bar/SyncshellPopup.qml"
+rg -q 'pendingForgetId' "$config/modules/ii/bar/SyncshellPopup.qml"
+rg -q 'root.moreOpen.*Translation.tr\("Less"\)' \
   "$config/modules/ii/bar/SyncshellPopup.qml"
 rg -q 'Flickable' "$config/modules/ii/bar/SyncshellPopup.qml"
 if rg -n 'SyncthingController|syncthing-api\.sh|curl' "$config/syncshell" \

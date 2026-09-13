@@ -11,6 +11,29 @@ ColumnLayout {
   id: root
   implicitWidth: 420
   spacing: Tokens.spacing.medium
+  property bool moreOpen: false
+  property bool addOpen: false
+  property string pendingForgetId: ""
+  property string pendingForgetLabel: ""
+
+  function requestForget(folder) {
+    pendingForgetId = String(folder.id || "")
+    pendingForgetLabel = String(folder.label || folder.id || "folder")
+  }
+
+  function confirmForget() {
+    if (pendingForgetId === "") return
+    if (Syncshell.forgetFolder(pendingForgetId)) pendingForgetId = ""
+  }
+
+  Keys.onPressed: function(event) {
+    if (event.key === Qt.Key_Escape && pendingForgetId !== "") {
+      pendingForgetId = ""
+      event.accepted = true
+    } else {
+      event.accepted = false
+    }
+  }
 
   StyledText {
     Layout.fillWidth: true
@@ -33,23 +56,10 @@ ColumnLayout {
     wrapMode: Text.Wrap
   }
 
-  RowLayout {
-    TextButton {
-      text: qsTr("Refresh")
-      enabled: !Syncshell.refreshing && !Syncshell.busy
-      onClicked: Syncshell.refresh()
-    }
-    TextButton {
-      text: qsTr("Rescan all")
-      enabled: Syncshell.online && !Syncshell.busy
-        && Syncshell.folderCount > 0
-      onClicked: Syncshell.rescanAllFolders()
-    }
-    TextButton {
-      text: qsTr("Web UI")
-      enabled: Syncshell.online
-      onClicked: Syncshell.openWebUi()
-    }
+  StyledText {
+    Layout.fillWidth: true
+    text: qsTr("FOLDERS")
+    color: Colours.palette.m3onSurfaceVariant
   }
 
   Flickable {
@@ -114,23 +124,22 @@ ColumnLayout {
             }
             RowLayout {
               TextButton {
+                visible: root.moreOpen
                 text: folderCard.modelData.paused
-                  ? qsTr("Resume") : qsTr("Pause")
+                  ? qsTr("Link") : qsTr("Unlink")
                 enabled: Syncshell.online && !Syncshell.busy
                 onClicked: Syncshell.setFolderPaused(
                   folderCard.modelData.id, !folderCard.modelData.paused)
               }
               TextButton {
-                text: qsTr("Rescan")
+                text: folderCard.modelData.paused
+                  ? qsTr("Forget") : qsTr("Rescan")
                 enabled: Syncshell.online && !Syncshell.busy
-                  && !folderCard.modelData.paused
-                onClicked: Syncshell.rescanFolder(folderCard.modelData.id)
-              }
-              TextButton {
-                text: qsTr("Forget")
-                enabled: Syncshell.online && !Syncshell.busy
-                  && folderCard.modelData.paused
-                onClicked: Syncshell.forgetFolder(folderCard.modelData.id)
+                onClicked: {
+                  if (folderCard.modelData.paused)
+                    root.requestForget(folderCard.modelData)
+                  else Syncshell.rescanFolder(folderCard.modelData.id)
+                }
               }
             }
           }
@@ -139,41 +148,135 @@ ColumnLayout {
     }
   }
 
-  StyledTextField {
-    id: pathField
-    Layout.fillWidth: true
-    placeholderText: qsTr("Existing directory path")
-  }
-  RowLayout {
-    Layout.fillWidth: true
-    StyledTextField {
-      id: labelField
-      Layout.fillWidth: true
-      placeholderText: qsTr("Label")
-    }
-    StyledTextField {
-      id: idField
-      Layout.fillWidth: true
-      placeholderText: qsTr("Folder ID")
-    }
-    TextButton {
-      text: qsTr("Suggest ID")
-      enabled: Syncshell.online && !Syncshell.busy
-      onClicked: Syncshell.requestFolderIdSuggestion()
-    }
-  }
   TextButton {
     Layout.fillWidth: true
-    text: Syncshell.busy ? qsTr("Working")
-      : qsTr("Add existing directory")
-    enabled: Syncshell.online && !Syncshell.busy
-      && pathField.text.length > 0 && idField.text.length > 0
-    onClicked: Syncshell.addFolder({
-      path: pathField.text,
-      label: labelField.text,
-      folderId: idField.text,
-      deviceIds: []
-    })
+    text: root.moreOpen ? qsTr("Less") : qsTr("More")
+    onClicked: root.moreOpen = !root.moreOpen
+  }
+
+  ColumnLayout {
+    visible: root.moreOpen
+    Layout.fillWidth: true
+
+    TextButton {
+      Layout.fillWidth: true
+      text: root.addOpen ? qsTr("Cancel add folder") : qsTr("Add folder")
+      enabled: Syncshell.online && !Syncshell.busy
+      onClicked: root.addOpen = !root.addOpen
+    }
+
+    ColumnLayout {
+      visible: root.addOpen
+      Layout.fillWidth: true
+
+      StyledText {
+        Layout.fillWidth: true
+        text: qsTr("ADD FOLDER")
+        color: Colours.palette.m3onSurfaceVariant
+      }
+      StyledTextField {
+        id: pathField
+        Layout.fillWidth: true
+        placeholderText: qsTr("/path/to/existing/folder")
+      }
+      StyledTextField {
+        id: labelField
+        Layout.fillWidth: true
+        placeholderText: qsTr("Label")
+      }
+      RowLayout {
+        Layout.fillWidth: true
+        StyledTextField {
+          id: idField
+          Layout.fillWidth: true
+          placeholderText: qsTr("Folder ID")
+        }
+        TextButton {
+          text: qsTr("New ID")
+          enabled: Syncshell.online && !Syncshell.busy
+          onClicked: Syncshell.requestFolderIdSuggestion()
+        }
+      }
+      StyledText {
+        Layout.fillWidth: true
+        text: qsTr("Reuse the exact ID to rejoin a remote folder. "
+          + "A new ID creates a different folder identity.")
+        color: Colours.palette.m3onSurfaceVariant
+        wrapMode: Text.Wrap
+      }
+      TextButton {
+        Layout.fillWidth: true
+        text: Syncshell.busy ? qsTr("Adding...") : qsTr("Add folder")
+        enabled: Syncshell.online && !Syncshell.busy
+          && pathField.text.length > 0 && idField.text.length > 0
+        onClicked: Syncshell.addFolder({
+          path: pathField.text,
+          label: labelField.text,
+          folderId: idField.text,
+          deviceIds: []
+        })
+      }
+    }
+  }
+
+  StyledRect {
+    visible: root.pendingForgetId !== ""
+    Layout.fillWidth: true
+    implicitHeight: forgetContent.implicitHeight + Tokens.padding.medium * 2
+    color: Colours.tPalette.m3surfaceContainer
+    radius: Tokens.rounding.medium
+    border.width: 1
+    border.color: Colours.palette.m3error
+
+    ColumnLayout {
+      id: forgetContent
+      anchors.fill: parent
+      anchors.margins: Tokens.padding.medium
+
+      StyledText {
+        Layout.fillWidth: true
+        text: "Forget " + root.pendingForgetLabel + " ("
+          + root.pendingForgetId + ")? The directory and data files will "
+          + "not be deleted. Rejoining requires this Folder ID."
+        color: Colours.palette.m3error
+        wrapMode: Text.Wrap
+      }
+      RowLayout {
+        TextButton {
+          text: qsTr("Cancel")
+          onClicked: root.pendingForgetId = ""
+        }
+        TextButton {
+          text: qsTr("Forget")
+          enabled: !Syncshell.busy
+          onClicked: root.confirmForget()
+        }
+      }
+    }
+  }
+
+  RowLayout {
+    Layout.fillWidth: true
+    TextButton {
+      text: qsTr("Web UI")
+      enabled: Syncshell.online
+      onClicked: Syncshell.openWebUi()
+    }
+  }
+
+  RowLayout {
+    Layout.fillWidth: true
+    TextButton {
+      text: qsTr("Rescan all")
+      enabled: Syncshell.online && !Syncshell.busy
+        && Syncshell.folderCount > 0
+      onClicked: Syncshell.rescanAllFolders()
+    }
+    TextButton {
+      text: qsTr("Refresh status")
+      enabled: !Syncshell.refreshing && !Syncshell.busy
+      onClicked: Syncshell.refresh()
+    }
   }
 
   Connections {

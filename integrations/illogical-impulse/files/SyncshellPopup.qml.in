@@ -13,7 +13,21 @@ import Quickshell.Wayland
 LazyLoader {
   id: root
   property bool pinned: false
+  property bool moreOpen: false
+  property bool addOpen: false
+  property string pendingForgetId: ""
+  property string pendingForgetLabel: ""
   active: pinned
+
+  function requestForget(folder) {
+    pendingForgetId = String(folder.id || "")
+    pendingForgetLabel = String(folder.label || folder.id || "folder")
+  }
+
+  function confirmForget() {
+    if (pendingForgetId === "") return
+    if (Syncshell.forgetFolder(pendingForgetId)) pendingForgetId = ""
+  }
 
   component: PanelWindow {
     id: popupWindow
@@ -36,7 +50,10 @@ LazyLoader {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     mask: Region { item: popupBackground }
-    Keys.onEscapePressed: root.pinned = false
+    Keys.onEscapePressed: {
+      if (root.pendingForgetId !== "") root.pendingForgetId = ""
+      else root.pinned = false
+    }
 
     HyprlandFocusGrab {
       active: true
@@ -83,23 +100,10 @@ LazyLoader {
           wrapMode: Text.Wrap
         }
 
-        RowLayout {
-          DialogButton {
-            buttonText: Translation.tr("Refresh")
-            enabled: !Syncshell.busy && !Syncshell.refreshing
-            onClicked: Syncshell.refresh()
-          }
-          DialogButton {
-            buttonText: Translation.tr("Rescan all")
-            enabled: Syncshell.online && !Syncshell.busy
-              && Syncshell.folderCount > 0
-            onClicked: Syncshell.rescanAllFolders()
-          }
-          DialogButton {
-            buttonText: Translation.tr("Web UI")
-            enabled: Syncshell.online
-            onClicked: Syncshell.openWebUi()
-          }
+        StyledText {
+          Layout.fillWidth: true
+          text: Translation.tr("FOLDERS")
+          color: Appearance.colors.colOnSurfaceVariant
         }
 
         Flickable {
@@ -165,23 +169,23 @@ LazyLoader {
                   }
                   RowLayout {
                     DialogButton {
+                      visible: root.moreOpen
                       buttonText: folderCard.modelData.paused
-                        ? Translation.tr("Resume") : Translation.tr("Pause")
+                        ? Translation.tr("Link") : Translation.tr("Unlink")
                       enabled: Syncshell.online && !Syncshell.busy
                       onClicked: Syncshell.setFolderPaused(
                         folderCard.modelData.id, !folderCard.modelData.paused)
                     }
                     DialogButton {
-                      buttonText: Translation.tr("Rescan")
+                      buttonText: folderCard.modelData.paused
+                        ? Translation.tr("Forget")
+                        : Translation.tr("Rescan")
                       enabled: Syncshell.online && !Syncshell.busy
-                        && !folderCard.modelData.paused
-                      onClicked: Syncshell.rescanFolder(folderCard.modelData.id)
-                    }
-                    DialogButton {
-                      buttonText: Translation.tr("Forget")
-                      enabled: Syncshell.online && !Syncshell.busy
-                        && folderCard.modelData.paused
-                      onClicked: Syncshell.forgetFolder(folderCard.modelData.id)
+                      onClicked: {
+                        if (folderCard.modelData.paused)
+                          root.requestForget(folderCard.modelData)
+                        else Syncshell.rescanFolder(folderCard.modelData.id)
+                      }
                     }
                   }
                 }
@@ -190,41 +194,140 @@ LazyLoader {
           }
         }
 
-        MaterialTextField {
-          id: pathField
-          Layout.fillWidth: true
-          placeholderText: Translation.tr("Existing directory path")
-        }
-        RowLayout {
-          Layout.fillWidth: true
-          MaterialTextField {
-            id: labelField
-            Layout.fillWidth: true
-            placeholderText: Translation.tr("Label")
-          }
-          MaterialTextField {
-            id: idField
-            Layout.fillWidth: true
-            placeholderText: Translation.tr("Folder ID")
-          }
-          DialogButton {
-            buttonText: Translation.tr("Suggest ID")
-            enabled: Syncshell.online && !Syncshell.busy
-            onClicked: Syncshell.requestFolderIdSuggestion()
-          }
-        }
         DialogButton {
           Layout.fillWidth: true
-          buttonText: Syncshell.busy ? Translation.tr("Working")
-            : Translation.tr("Add existing directory")
-          enabled: Syncshell.online && !Syncshell.busy
-            && pathField.text.length > 0 && idField.text.length > 0
-          onClicked: Syncshell.addFolder({
-            path: pathField.text,
-            label: labelField.text,
-            folderId: idField.text,
-            deviceIds: []
-          })
+          buttonText: root.moreOpen ? Translation.tr("Less")
+            : Translation.tr("More")
+          onClicked: root.moreOpen = !root.moreOpen
+        }
+
+        ColumnLayout {
+          visible: root.moreOpen
+          Layout.fillWidth: true
+
+          DialogButton {
+            Layout.fillWidth: true
+            buttonText: root.addOpen ? Translation.tr("Cancel add folder")
+              : Translation.tr("Add folder")
+            enabled: Syncshell.online && !Syncshell.busy
+            onClicked: root.addOpen = !root.addOpen
+          }
+
+          ColumnLayout {
+            visible: root.addOpen
+            Layout.fillWidth: true
+
+            StyledText {
+              Layout.fillWidth: true
+              text: Translation.tr("ADD FOLDER")
+              color: Appearance.colors.colOnSurfaceVariant
+            }
+            MaterialTextField {
+              id: pathField
+              Layout.fillWidth: true
+              placeholderText: Translation.tr(
+                "/path/to/existing/folder")
+            }
+            MaterialTextField {
+              id: labelField
+              Layout.fillWidth: true
+              placeholderText: Translation.tr("Label")
+            }
+            RowLayout {
+              Layout.fillWidth: true
+              MaterialTextField {
+                id: idField
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Folder ID")
+              }
+              DialogButton {
+                buttonText: Translation.tr("New ID")
+                enabled: Syncshell.online && !Syncshell.busy
+                onClicked: Syncshell.requestFolderIdSuggestion()
+              }
+            }
+            StyledText {
+              Layout.fillWidth: true
+              text: Translation.tr("Reuse the exact ID to rejoin a remote "
+                + "folder. A new ID creates a different folder identity.")
+              color: Appearance.colors.colOnSurfaceVariant
+              wrapMode: Text.Wrap
+            }
+            DialogButton {
+              Layout.fillWidth: true
+              buttonText: Syncshell.busy ? Translation.tr("Adding...")
+                : Translation.tr("Add folder")
+              enabled: Syncshell.online && !Syncshell.busy
+                && pathField.text.length > 0 && idField.text.length > 0
+              onClicked: Syncshell.addFolder({
+                path: pathField.text,
+                label: labelField.text,
+                folderId: idField.text,
+                deviceIds: []
+              })
+            }
+          }
+        }
+
+        Rectangle {
+          visible: root.pendingForgetId !== ""
+          Layout.fillWidth: true
+          implicitHeight: forgetContent.implicitHeight + 16
+          color: Appearance.colors.colLayer2
+          radius: Appearance.rounding.small
+          border.width: 1
+          border.color: Appearance.m3colors.m3error
+
+          ColumnLayout {
+            id: forgetContent
+            anchors.fill: parent
+            anchors.margins: 8
+
+            StyledText {
+              Layout.fillWidth: true
+              text: "Forget " + root.pendingForgetLabel
+                + " (" + root.pendingForgetId + ")? The directory and data "
+                + "files will not be deleted. Rejoining requires this "
+                + "Folder ID."
+              color: Appearance.m3colors.m3error
+              wrapMode: Text.Wrap
+            }
+            RowLayout {
+              DialogButton {
+                buttonText: Translation.tr("Cancel")
+                onClicked: root.pendingForgetId = ""
+              }
+              DialogButton {
+                buttonText: Translation.tr("Forget")
+                enabled: !Syncshell.busy
+                onClicked: root.confirmForget()
+              }
+            }
+          }
+        }
+
+        RowLayout {
+          Layout.fillWidth: true
+          DialogButton {
+            buttonText: Translation.tr("Web UI")
+            enabled: Syncshell.online
+            onClicked: Syncshell.openWebUi()
+          }
+        }
+
+        RowLayout {
+          Layout.fillWidth: true
+          DialogButton {
+            buttonText: Translation.tr("Rescan all")
+            enabled: Syncshell.online && !Syncshell.busy
+              && Syncshell.folderCount > 0
+            onClicked: Syncshell.rescanAllFolders()
+          }
+          DialogButton {
+            buttonText: Translation.tr("Refresh status")
+            enabled: !Syncshell.busy && !Syncshell.refreshing
+            onClicked: Syncshell.refresh()
+          }
         }
       }
 

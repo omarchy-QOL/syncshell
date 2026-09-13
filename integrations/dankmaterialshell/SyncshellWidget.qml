@@ -10,8 +10,21 @@ PluginComponent {
   layerNamespacePlugin: "syncshell"
   popoutWidth: 480
   popoutHeight: 680
-  property var popoutService: null
   property var service: null
+  property bool moreOpen: false
+  property bool addOpen: false
+  property string pendingForgetId: ""
+  property string pendingForgetLabel: ""
+
+  function requestForget(folder) {
+    pendingForgetId = String(folder.id || "")
+    pendingForgetLabel = String(folder.label || folder.id || "folder")
+  }
+
+  function confirmForget() {
+    if (pendingForgetId === "" || !service) return
+    if (service.forgetFolder(pendingForgetId)) pendingForgetId = ""
+  }
 
   function resolveService() {
     service = pluginService && pluginId
@@ -88,35 +101,6 @@ PluginComponent {
         : "Starting native core"
       showCloseButton: true
 
-      headerActions: Component {
-        Row {
-          spacing: Theme.spacingXS
-          DankButton {
-            text: "Refresh"
-            iconName: "refresh"
-            buttonHeight: 32
-            enabled: root.service && !root.service.busy
-              && !root.service.refreshing
-            onClicked: root.service.refresh()
-          }
-          DankButton {
-            text: "Rescan all"
-            iconName: "sync"
-            buttonHeight: 32
-            enabled: root.service && root.service.online
-              && !root.service.busy && root.service.folderCount > 0
-            onClicked: root.service.rescanAllFolders()
-          }
-          DankButton {
-            text: "Web UI"
-            iconName: "open_in_new"
-            buttonHeight: 32
-            enabled: root.service && root.service.online
-            onClicked: root.service.openWebUi()
-          }
-        }
-      }
-
       Column {
         width: parent.width
         spacing: Theme.spacingS
@@ -137,6 +121,12 @@ PluginComponent {
           text: root.service ? root.service.activityText : ""
           color: Theme.surfaceVariantText
           elide: Text.ElideMiddle
+        }
+
+        StyledText {
+          text: "FOLDERS"
+          color: Theme.surfaceVariantText
+          font.weight: Font.DemiBold
         }
 
         Flickable {
@@ -197,7 +187,8 @@ PluginComponent {
                   Row {
                     spacing: Theme.spacingXS
                     DankButton {
-                      text: modelData.paused ? "Resume" : "Pause"
+                      visible: root.moreOpen
+                      text: modelData.paused ? "Link" : "Unlink"
                       buttonHeight: 30
                       enabled: root.service && root.service.online
                         && !root.service.busy
@@ -205,18 +196,14 @@ PluginComponent {
                         modelData.id, !modelData.paused)
                     }
                     DankButton {
-                      text: "Rescan"
+                      text: modelData.paused ? "Forget" : "Rescan"
                       buttonHeight: 30
                       enabled: root.service && root.service.online
-                        && !modelData.paused && !root.service.busy
-                      onClicked: root.service.rescanFolder(modelData.id)
-                    }
-                    DankButton {
-                      text: "Forget"
-                      buttonHeight: 30
-                      enabled: root.service && root.service.online
-                        && modelData.paused && !root.service.busy
-                      onClicked: root.service.forgetFolder(modelData.id)
+                        && !root.service.busy
+                      onClicked: {
+                        if (modelData.paused) root.requestForget(modelData)
+                        else root.service.rescanFolder(modelData.id)
+                      }
                     }
                   }
                 }
@@ -225,53 +212,160 @@ PluginComponent {
           }
         }
 
-        StyledText {
-          text: "Add existing directory"
-          color: Theme.surfaceText
-          font.weight: Font.DemiBold
-        }
-        DankTextField {
-          id: pathField
+        DankButton {
           width: parent.width
-          placeholderText: "/absolute/path"
-          leftIconName: "folder"
-          showClearButton: true
+          text: root.moreOpen ? "Less" : "More"
+          iconName: root.moreOpen ? "expand_less" : "expand_more"
+          buttonHeight: 34
+          onClicked: root.moreOpen = !root.moreOpen
         }
-        Row {
+
+        Column {
+          visible: root.moreOpen
           width: parent.width
           spacing: Theme.spacingS
-          DankTextField {
-            id: labelField
-            width: (parent.width - parent.spacing) * 0.4
-            placeholderText: "Label"
-          }
-          DankTextField {
-            id: idField
-            width: (parent.width - parent.spacing) * 0.6
-            placeholderText: "Folder ID"
-          }
-        }
-        Row {
-          spacing: Theme.spacingS
+
           DankButton {
-            text: "Suggest ID"
+            width: parent.width
+            text: root.addOpen ? "Cancel add folder" : "Add folder"
             buttonHeight: 34
             enabled: root.service && root.service.online
               && !root.service.busy
-            onClicked: root.service.requestFolderIdSuggestion()
+            onClicked: root.addOpen = !root.addOpen
           }
+
+          Column {
+            visible: root.addOpen
+            width: parent.width
+            spacing: Theme.spacingS
+
+            StyledText {
+              text: "ADD FOLDER"
+              color: Theme.surfaceText
+              font.weight: Font.DemiBold
+            }
+            DankTextField {
+              id: pathField
+              width: parent.width
+              placeholderText: "/path/to/existing/folder"
+              leftIconName: "folder"
+              showClearButton: true
+            }
+            DankTextField {
+              id: labelField
+              width: parent.width
+              placeholderText: "Label"
+            }
+            Row {
+              width: parent.width
+              spacing: Theme.spacingS
+              DankTextField {
+                id: idField
+                width: parent.width - suggestButton.width - parent.spacing
+                placeholderText: "Folder ID"
+              }
+              DankButton {
+                id: suggestButton
+                text: "New ID"
+                buttonHeight: 34
+                enabled: root.service && root.service.online
+                  && !root.service.busy
+                onClicked: root.service.requestFolderIdSuggestion()
+              }
+            }
+            StyledText {
+              width: parent.width
+              text: "Reuse the exact ID to rejoin a remote folder. "
+                + "A new ID creates a different folder identity."
+              color: Theme.surfaceVariantText
+              wrapMode: Text.WordWrap
+            }
+            DankButton {
+              width: parent.width
+              text: root.service && root.service.busy
+                ? "Adding..." : "Add folder"
+              buttonHeight: 34
+              enabled: root.service && root.service.online
+                && pathField.text !== "" && idField.text !== ""
+                && !root.service.busy
+              onClicked: root.service.addFolder({
+                path: pathField.text,
+                label: labelField.text,
+                folderId: idField.text,
+                deviceIds: []
+              })
+            }
+          }
+        }
+
+        StyledRect {
+          visible: root.pendingForgetId !== ""
+          width: parent.width
+          height: forgetContent.implicitHeight + Theme.spacingM * 2
+          radius: Theme.cornerRadius
+          color: Theme.surfaceContainerHigh
+
+          Column {
+            id: forgetContent
+            anchors.fill: parent
+            anchors.margins: Theme.spacingM
+            spacing: Theme.spacingS
+
+            StyledText {
+              width: parent.width
+              text: "Forget " + root.pendingForgetLabel + " ("
+                + root.pendingForgetId + ")? The directory and data files "
+                + "will not be deleted. Rejoining requires this Folder ID."
+              color: Theme.error
+              wrapMode: Text.WordWrap
+            }
+            Row {
+              spacing: Theme.spacingS
+              DankButton {
+                text: "Cancel"
+                buttonHeight: 32
+                onClicked: root.pendingForgetId = ""
+              }
+              DankButton {
+                text: "Forget"
+                buttonHeight: 32
+                enabled: root.service && !root.service.busy
+                onClicked: root.confirmForget()
+              }
+            }
+          }
+        }
+
+        Row {
+          width: parent.width
+          spacing: Theme.spacingS
           DankButton {
-            text: root.service && root.service.busy ? "Working" : "Add folder"
+            text: "Web UI"
+            iconName: "open_in_new"
             buttonHeight: 34
             enabled: root.service && root.service.online
-              && pathField.text !== "" && idField.text !== ""
-              && !root.service.busy
-            onClicked: root.service.addFolder({
-              path: pathField.text,
-              label: labelField.text,
-              folderId: idField.text,
-              deviceIds: []
-            })
+            onClicked: root.service.openWebUi()
+          }
+        }
+
+        Row {
+          width: parent.width
+          spacing: Theme.spacingS
+          DankButton {
+            text: "Rescan all"
+            iconName: "sync"
+            buttonHeight: 34
+            enabled: root.service && root.service.online
+              && !root.service.busy && root.service.folderCount > 0
+            onClicked: root.service.rescanAllFolders()
+          }
+          DankButton {
+            text: "Refresh status"
+            iconName: "refresh"
+            buttonHeight: 34
+            enabled: root.service && !root.service.busy
+              && !root.service.refreshing
+            onClicked: root.service.refresh()
           }
         }
       }
