@@ -31,6 +31,7 @@ done
 [[ $(rg -c 'syncshell module start' "$config") == 1 ]]
 [[ $(rg -c 'syncshell placement start' "$config") == 1 ]]
 [[ $(rg -c 'syncshell style start' "$style") == 1 ]]
+rg -Uq 'syncshell placement end\n[[:space:]]*"tray"' "$config"
 rg -q 'unrelated setting' "$config"
 rg -q '"tray"' "$config"
 rg -q '#clock' "$style"

@@ -80,7 +80,7 @@ def install_config(path: pathlib.Path, root: pathlib.Path) -> None:
     placement = (
         f"\n    {PLACEMENT_START}\n"
         '    "custom/syncshell",\n'
-        f"    {PLACEMENT_END}"
+        f"    {PLACEMENT_END}\n    "
     )
     if modules:
         end = modules.end()

@@ -19,6 +19,10 @@ ShellRoot {
   property string pendingForgetLabel: ""
   property string lastStatus: ""
 
+  onPopupOpenChanged: {
+    if (popupOpen) Qt.callLater(function() { background.forceActiveFocus() })
+  }
+
   function localPath(url) {
     var value = String(url || "")
     if (value.indexOf("file://") === 0) value = value.slice(7)
@@ -120,11 +124,6 @@ ShellRoot {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
     mask: Region { item: background }
 
-    Keys.onEscapePressed: {
-      if (root.pendingForgetId !== "") root.pendingForgetId = ""
-      else root.popupOpen = false
-    }
-
     HyprlandFocusGrab {
       active: root.popupOpen
       windows: [popupWindow]
@@ -138,6 +137,11 @@ ShellRoot {
       border.width: 1
       border.color: "#585b70"
       radius: 12
+      focus: true
+      Keys.onEscapePressed: {
+        if (root.pendingForgetId !== "") root.pendingForgetId = ""
+        else root.popupOpen = false
+      }
 
       ColumnLayout {
         anchors.fill: parent
