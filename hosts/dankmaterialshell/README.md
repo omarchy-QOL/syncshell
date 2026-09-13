@@ -1,9 +1,27 @@
-# DankMaterialShell host
+# DankMaterialShell adapter
 
-This future host will own a native DankMaterialShell widget, its presentation,
-and its platform integration around the Syncshell native-core contract.
+Syncshell supports DankMaterialShell 1.5.3 through 1.6.1 on Arch Linux with
+Quickshell 0.3.1. The composite plugin owns one native core in its daemon and
+shares that service with every horizontal or vertical bar widget instance.
 
-It is unimplemented and unsupported in Syncshell 0.1.8. The historical
-`dev-syncshell-cross-distro` and `dev-syncshell-cross-distro-ui` branches retain
-source material under `integrations/dankmaterialshell/`; that QML-first runtime
-is evidence, not an implementation base for this directory.
+## Install and update
+
+Build a complete plugin directory, then install it through DMS:
+
+```bash
+integrations/dankmaterialshell/assemble.sh /tmp/Syncshell
+dms plugins install /tmp/Syncshell
+```
+
+To update, assemble from the new checkout, uninstall the old plugin, install
+the new directory, and restart `dms.service`. The plugin bundle includes the
+prebuilt core; installation performs no build or download.
+
+## Remove
+
+```bash
+dms plugins uninstall syncshell
+```
+
+Removal deletes only the adapter. Syncthing configuration, service state, and
+folder contents remain owned by Syncthing and the user.
