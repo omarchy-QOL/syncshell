@@ -11,6 +11,9 @@ Notable changes to Syncthing for Omarchy are documented here.
 - fix themed bar icon contrast and rendering at the host size, contributed by
   [@baranskyi](https://github.com/baranskyi) in
   [#47](https://github.com/omarchy-QOL/syncshell/pull/47)
+- stop zero-work `sync-preparing` transitions from flashing as active syncing,
+  contributed by [@dawez](https://github.com/dawez) in
+  [#101](https://github.com/omarchy-QOL/syncshell/pull/101)
 
 - connect local conflict folder opening and guarded renaming to the desktop
   user, without changing permissions or replacing an existing destination
