@@ -34,6 +34,10 @@ QtObject {
     service.folderStatuses.folder.state = "sync-preparing"
     compare(PanelModel.buildFolderRows(service, "/home/test")[0].syncing,
       false, "preparing state without work is not syncing")
+    service.folderStatuses.folder.state = "syncing"
+    compare(PanelModel.buildFolderRows(service, "/home/test")[0].syncing,
+      true, "concrete syncing state is syncing")
+    service.folderStatuses.folder.state = "sync-preparing"
     service.folderStatuses.folder.needTotalItems = 1
     compare(PanelModel.buildFolderRows(service, "/home/test")[0].syncing,
       true, "pending items are syncing")
