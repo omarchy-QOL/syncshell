@@ -1,9 +1,9 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -68 +68 @@ if("shell" IN_LIST ENABLE_MODULES)
--    foreach(dir assets components modules services utils)
-+    foreach(dir assets components modules services syncshell utils)
+@@ -70,0 +71,2 @@
++
++    install(DIRECTORY syncshell DESTINATION "${INSTALL_QSCONFDIR}" USE_SOURCE_PERMISSIONS)
 diff --git a/modules/ServiceLoader.qml b/modules/ServiceLoader.qml
 --- a/modules/ServiceLoader.qml
 +++ b/modules/ServiceLoader.qml

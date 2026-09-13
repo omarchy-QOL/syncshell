@@ -17,7 +17,7 @@ rg -q 'SyncshellStatus' \
   "$work/caelestia/modules/bar/components/StatusIcons.qml"
 rg -q 'LIST_ENTRY\(syncshell, true\)' \
   "$work/caelestia/plugin/src/Caelestia/Config/barconfig.hpp"
-rg -q 'components modules services syncshell utils' \
+rg -q 'DIRECTORY syncshell.*USE_SOURCE_PERMISSIONS' \
   "$work/caelestia/CMakeLists.txt"
 rg -q 'Flickable' "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
 if rg -n 'SyncthingController|syncthing-api\.sh|curl' \
