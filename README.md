@@ -1,4 +1,25 @@
-# Syncthing for Omarchy
+<h1 align="center">Syncthing for Omarchy</h1>
+
+<p align="center">
+  <a href="https://github.com/omarchy-QOL/syncshell/actions/workflows/test.yml">
+    <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/omarchy-QOL/syncshell/test.yml?branch=main&amp;style=flat-square&amp;logo=github&amp;logoColor=white&amp;label=CI&amp;labelColor=2e3440">
+  </a>
+  <a href="core">
+    <img alt="Core coverage: 71.3%" src="https://img.shields.io/badge/core%20coverage-71.3%25-88c0d0?style=flat-square&amp;logo=go&amp;logoColor=white&amp;labelColor=2e3440">
+  </a>
+  <a href="https://github.com/omarchy-QOL/syncshell/releases">
+    <img alt="Latest version" src="https://img.shields.io/github/v/tag/omarchy-QOL/syncshell?sort=semver&amp;style=flat-square&amp;label=version&amp;logo=git&amp;logoColor=white&amp;labelColor=2e3440&amp;color=5e81ac">
+  </a>
+  <a href="https://omarchy.org">
+    <img alt="Omarchy plugin" src="https://img.shields.io/badge/Omarchy-plugin-b48ead?style=flat-square&amp;logo=archlinux&amp;logoColor=white&amp;labelColor=2e3440">
+  </a>
+  <a href="https://github.com/syncthing/syncthing/releases/tag/v2.1.3">
+    <img alt="Tested with Syncthing v2.1.3" src="https://img.shields.io/badge/tested%20Syncthing-v2.1.3-26b6db?style=flat-square&amp;logo=syncthing&amp;logoColor=white&amp;labelColor=2e3440">
+  </a>
+  <a href="LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/omarchy-QOL/syncshell?style=flat-square&amp;logo=opensourceinitiative&amp;logoColor=white&amp;labelColor=2e3440&amp;color=ebcb8b">
+  </a>
+</p>
 
 Syncshell (**Sync**thing + quick**shell**) shows Syncthing activity in the
 Omarchy bar, manages local folders and opens a redesigned Web UI. Version 0.1.8
