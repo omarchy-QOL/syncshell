@@ -1,9 +1,23 @@
-# Waybar host
+# Waybar adapter
 
-This future host will own a Waybar-native status and action surface around the
-Syncshell native-core contract rather than presenting the Omarchy panel.
+Syncshell supports Waybar 0.15.0 with Quickshell 0.3.1 on Arch Linux and
+Hyprland. The native custom module reads one JSON status stream and provides
+popup, refresh, and Web UI click actions. A single Quickshell bridge owns the
+bundled core across every Waybar output.
 
-It is unimplemented and unsupported in Syncshell 0.1.8. The historical
-`dev-syncshell-cross-distro` and `dev-syncshell-cross-distro-ui` branches have
-no Waybar adapter; their `shared/` controller and `integrations/standalone/`
-harness are limited source evidence for a later design.
+## Install, update, and remove
+
+Assemble and run the bundle installer:
+
+```bash
+integrations/waybar/assemble.sh /absolute/path/to/syncshell-waybar
+/absolute/path/to/syncshell-waybar/install.sh
+```
+
+Run a newer bundle's installer to update. Remove the adapter with
+`~/.local/share/syncshell/waybar/remove.sh`. Managed JSONC and CSS fragments
+are marked explicitly; unrelated Waybar configuration, Syncthing settings,
+and synchronized data remain in place.
+
+See [Arch shell adapters](../../docs/arch-adapters.md) for ownership,
+placement, and exact support details.

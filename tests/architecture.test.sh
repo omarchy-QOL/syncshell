@@ -35,23 +35,22 @@ if git -C "$root" ls-files --stage | grep -q '^120000 '; then
 fi
 [[ ! -f $root/.gitmodules ]] || fail "plugin tree contains submodules"
 
-future_hosts=(
+adapter_hosts=(
   caelestia
   dankmaterialshell
   illogical-impulse
   waybar
 )
-for host in "${future_hosts[@]}"; do
+for host in "${adapter_hosts[@]}"; do
   host_dir="$root/hosts/$host"
-  [[ -d $host_dir ]] || fail "future host directory is missing: $host"
+  [[ -d $host_dir ]] || fail "adapter host directory is missing: $host"
   mapfile -t entries < <(
     find "$host_dir" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort
   )
   [[ ${#entries[@]} -eq 1 && ${entries[0]} == README.md ]] \
-    || fail "future host must contain only README.md: $host"
-  grep -Fq 'unimplemented and unsupported in Syncshell 0.1.8' \
-    "$host_dir/README.md" \
-    || fail "future host README makes an unsupported status claim: $host"
+    || fail "adapter host must contain only README.md: $host"
+  grep -Fq 'Syncshell supports' "$host_dir/README.md" \
+    || fail "adapter host README omits its support claim: $host"
 done
 
 if git -C "$root" ls-files \
