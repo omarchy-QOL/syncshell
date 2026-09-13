@@ -1,0 +1,4 @@
+.pragma library
+
+var TOOLTIP_DELAY_MS = 750
+var REFRESH_FEEDBACK_MIN_MS = 1500

@@ -10,12 +10,16 @@ Item {
   property string iconText: ""
   property string tooltipText: ""
   property bool busy: false
+  property bool pulseBusyIcon: false
   property bool canActivate: true
   property bool bordered: false
   property bool focusable: false
   property color foreground: Color.foreground
   property color busyForeground: foreground
   property color disabledForeground: Qt.darker(foreground, 1.6)
+  property color tooltipBackground: Color.tooltip.background
+  property color tooltipForeground: Color.tooltip.text
+  property color tooltipBorder: Color.tooltip.border
   property string fontFamily: Style.font.family
   property real fontSize: Style.font.body
   property real iconSize: Style.font.icon
@@ -29,11 +33,11 @@ Item {
     busy ? busyForeground : disabledForeground
   readonly property string inertText: busy ? busyText : text
   readonly property real busyIconRotation: inertIcon.rotation
+  readonly property real busyIconScale: inertIcon.scale
   readonly property real inertContentWidth:
     inertIcon.implicitWidth + inertLabel.implicitWidth
       + (iconText !== "" && inertText !== ""
           ? Style.spacing.controlGap : 0)
-
   signal clicked
 
   function activate() {
@@ -48,13 +52,26 @@ Item {
       + inertButton.borderLeft + inertButton.borderRight)
   implicitHeight: interactiveButton.implicitHeight
 
+  HoverHandler {
+    id: tooltipHover
+  }
+
+  SyncshellToolTip {
+    visible: root.tooltipText !== "" && tooltipHover.hovered
+    text: root.tooltipText
+    tooltipBackground: root.tooltipBackground
+    tooltipForeground: root.tooltipForeground
+    tooltipBorder: root.tooltipBorder
+    fontFamily: root.fontFamily
+  }
+
   Button {
     id: interactiveButton
     anchors.fill: parent
     visible: root.interactive
     text: root.text
     iconText: root.iconText
-    tooltipText: root.tooltipText
+    tooltipText: ""
     bordered: root.bordered
     focusable: root.focusable
     foreground: root.foreground
@@ -77,6 +94,7 @@ Item {
       : Border.none()
 
     HoverHandler {
+      id: inertHover
       cursorShape: Qt.ArrowCursor
     }
 
@@ -100,7 +118,27 @@ Item {
           to: 360
           duration: 900
           loops: Animation.Infinite
-          running: root.busy
+          running: root.busy && !root.pulseBusyIcon
+        }
+
+        SequentialAnimation on scale {
+          loops: Animation.Infinite
+          running: root.busy && root.pulseBusyIcon
+          onRunningChanged: if (!running) inertIcon.scale = 1
+
+          NumberAnimation {
+            from: 1
+            to: 1.18
+            duration: 375
+            easing.type: Easing.OutCubic
+          }
+
+          NumberAnimation {
+            from: 1.18
+            to: 1
+            duration: 375
+            easing.type: Easing.InCubic
+          }
         }
       }
 

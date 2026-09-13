@@ -74,7 +74,7 @@ Column {
           foreground: hero.foreground
           onToggled: root.controller.toggleSyncing()
 
-          PanelToolTip {
+          SyncshellToolTip {
             visible: powerSwitch.containsMouse
             text: root.controller.toggleHint
             fontFamily: hero.fontFamily
@@ -110,7 +110,7 @@ Column {
         elide: Text.ElideRight
       }
 
-      Button {
+      TooltipButton {
         id: copyHostIdButton
         anchors.left: deviceNameText.right
         anchors.leftMargin: Style.space(4)
@@ -119,7 +119,7 @@ Column {
         height: Math.round(deviceNameText.implicitHeight)
         text: "host ID"
         iconText: "󰆏"
-        tooltipText: "Copy host ID"
+        helpText: "Copy host ID"
         bordered: true
         foreground: root.foreground
         fontFamily: root.fontFamily

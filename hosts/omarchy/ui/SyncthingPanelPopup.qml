@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Commons
 import qs.Ui
+import "UiConstants.js" as UiConstants
 
 KeyboardPanel {
     id: root
@@ -12,6 +13,9 @@ KeyboardPanel {
     property alias addIdText: addForm.idText
     property alias selectedDeviceIds: addForm.selectedDeviceIds
     property alias pendingFolderValue: addForm.pendingFolderValue
+    property Timer refreshFeedbackTimer: Timer {
+        interval: UiConstants.REFRESH_FEEDBACK_MIN_MS
+    }
 
     function resetAddForm() {
         addForm.reset();
@@ -42,7 +46,7 @@ KeyboardPanel {
     }
 
     focusTarget: keyCatcher
-    contentWidth: fittedContentWidth(Style.space(380))
+    contentWidth: fittedContentWidth(Style.space(400))
     contentHeight: root.controller.settingsMigrationOpen
         ? fittedContentHeight(Style.space(520), Style.space(560))
         : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
@@ -156,6 +160,8 @@ KeyboardPanel {
         parent: keyCatcher
         anchors.top: parent.top
         anchors.right: parent.right
+        anchors.rightMargin: interactive
+            ? scrollBar.implicitWidth + Style.spacing.sm : 0
         anchors.bottom: fixedActions.top
         anchors.bottomMargin: Style.space(12)
         anchors.left: parent.left
@@ -166,12 +172,19 @@ KeyboardPanel {
         flickableDirection: Flickable.VerticalFlick
         interactive: contentHeight > height
         ScrollBar.vertical: ScrollBar {
+            id: scrollBar
+            parent: keyCatcher
+            anchors.top: panelFlick.top
+            anchors.left: panelFlick.right
+            anchors.leftMargin: Style.spacing.sm
+            anchors.bottom: panelFlick.bottom
             policy: ScrollBar.AsNeeded
         }
 
         Column {
             id: content
-            width: panelFlick.width
+            x: Style.spacing.hairline
+            width: panelFlick.width - x
             spacing: Style.space(12)
 
             PanelStatus {
@@ -284,13 +297,49 @@ KeyboardPanel {
         }
 
         Row {
-            spacing: Style.space(8)
+            spacing: Style.space(6)
+
+            Button {
+                text: "Web UI"
+                bordered: true
+                foreground: root.controller.foreground
+                fontFamily: root.controller.fontFamily
+                fontSize: Style.font.body
+                horizontalPadding: Style.space(6)
+                verticalPadding: Style.space(4)
+                enabled: root.controller.syncthing !== null
+                    && root.controller.syncthing.online
+                onClicked: root.controller.openWebUi()
+            }
+
+            Repeater {
+                model: ["TUI", "GUI"]
+
+                BusyButton {
+                    required property string modelData
+                    text: modelData
+                    tooltipText: "To be added soon."
+                    canActivate: false
+                    bordered: true
+                    foreground: root.controller.foreground
+                    disabledForeground: root.controller.dim
+                    fontFamily: root.controller.fontFamily
+                    fontSize: Style.font.body
+                    horizontalPadding: Style.space(6)
+                    verticalPadding: Style.space(4)
+                }
+            }
+        }
+
+        Row {
+            spacing: Style.spacing.sm
 
             BusyButton {
                 id: rescanAllButton
                 iconText: "󰑐"
                 text: "Rescan all folders"
                 busyText: "Rescanning..."
+                tooltipText: "Rescan all folders for local changes."
                 busy: root.controller.syncthing
                     && root.controller.syncthing.folderMutationAction
                         === "rescan-all"
@@ -298,7 +347,10 @@ KeyboardPanel {
                 foreground: root.controller.foreground
                 busyForeground: root.controller.warning
                 fontFamily: root.controller.fontFamily
+                fontSize: Style.font.body
                 iconSize: Style.font.body
+                horizontalPadding: Style.space(5)
+                verticalPadding: Style.space(4)
                 canActivate: root.controller.syncthing
                     && root.controller.syncthing.online
                     && root.controller.rescannableFolderCount > 0
@@ -307,28 +359,57 @@ KeyboardPanel {
                 onClicked: root.controller.syncthing.rescanAllFolders()
             }
 
-            Button {
-                text: "Web UI"
+            BusyButton {
+                iconText: "\uf21e"
+                text: "Refresh Sync.status"
+                busyText: "Rechecking Syncthing"
+                pulseBusyIcon: true
+                tooltipText: "Request latest Syncthing state.\n"
+                    + "Active folders with current errors\n"
+                    + "rescanned and errors rechecked."
                 bordered: true
                 foreground: root.controller.foreground
+                busyForeground: root.controller.warning
                 fontFamily: root.controller.fontFamily
-                enabled: root.controller.syncthing !== null && root.controller.syncthing.online
-                onClicked: root.controller.openWebUi()
+                fontSize: Style.font.body
+                iconSize: Style.font.body
+                horizontalPadding: Style.space(5)
+                verticalPadding: Style.space(4)
+                busy: refreshFeedbackTimer.running
+                    || (root.controller.syncthing
+                        && root.controller.syncthing.refreshing)
+                canActivate: root.controller.syncthing
+                    && root.controller.syncthing.canRefresh
+                    && !refreshFeedbackTimer.running
+                onClicked: {
+                    if (root.controller.syncthing.refresh(true))
+                        refreshFeedbackTimer.restart();
+                }
             }
 
-            Button {
+            TooltipButton {
+                id: settingsButton
                 width: rescanAllButton.height
                 height: rescanAllButton.height
-                iconText: "\uf013"
-                iconSize: Style.font.body
-                tooltipText: "Settings"
+                helpText: "Settings"
                 bordered: true
                 foreground: root.controller.foreground
                 fontFamily: root.controller.fontFamily
                 enabled: root.controller.syncthing !== null
                 onClicked: root.controller.openSettingsMenu()
+
+                Text {
+                    anchors.centerIn: parent
+                    anchors.horizontalCenterOffset: 0.5
+                    text: "\uf013"
+                    textFormat: Text.PlainText
+                    color: settingsButton.foreground
+                    font.family: settingsButton.fontFamily
+                    font.pixelSize: Style.font.body
+                }
             }
         }
+
     }
 
     Text {
