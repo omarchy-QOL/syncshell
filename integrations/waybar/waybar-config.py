@@ -77,13 +77,15 @@ def install_config(path: pathlib.Path, root: pathlib.Path) -> None:
         raise ValueError("Waybar config has no object")
     text = text[: opening + 1] + module_block(root) + text[opening + 1 :]
     modules = re.search(r'("modules-right"\s*:\s*\[)', text)
-    placement = (
-        f"\n    {PLACEMENT_START}\n"
-        '    "custom/syncshell",\n'
-        f"    {PLACEMENT_END}\n    "
-    )
     if modules:
         end = modules.end()
+        remainder = text[end:]
+        separator = "" if remainder.lstrip().startswith("]") else ","
+        placement = (
+            f"\n    {PLACEMENT_START}\n"
+            f'    "custom/syncshell"{separator}\n'
+            f"    {PLACEMENT_END}\n    "
+        )
         text = text[:end] + placement + text[end:]
     else:
         addition = (

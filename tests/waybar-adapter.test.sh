@@ -36,6 +36,16 @@ rg -q 'unrelated setting' "$config"
 rg -q '"tray"' "$config"
 rg -q '#clock' "$style"
 
+empty_config="$work/waybar/empty.jsonc"
+printf '%s\n' '{"modules-right": []}' >"$empty_config"
+"$work/bundle/waybar-config.py" install --config "$empty_config" \
+  --style "$style" --root "$work/bundle"
+if rg -Uq '"custom/syncshell",\n[[:space:]]*// syncshell placement end' \
+    "$empty_config"; then
+  printf 'Waybar empty module array retained a trailing comma\n' >&2
+  exit 1
+fi
+
 "$work/bundle/waybar-config.py" remove --config "$config" \
   --style "$style" --root "$work/bundle"
 if rg -q syncshell "$config" "$style"; then
