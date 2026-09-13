@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "integration": "caelestia",
+  "repository": "https://github.com/caelestia-dots/shell.git",
+  "commit": "1d0e5a588c61f1d905eba5fe8446ec222d37f50c",
+  "cliCommit": "7401d9e3a371e583bc0b42dc1a139d01e278e6c1",
+  "quickshellCommit": "0fed22a2c47d9568ddf13cf61586b3f2ac4378a2",
+  "host": "Arch Linux with Hyprland",
+  "patch": "overlay.patch"
+}

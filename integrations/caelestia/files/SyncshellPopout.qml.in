@@ -1,0 +1,186 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Layouts
+import Caelestia.Config
+import qs.components
+import qs.components.controls
+import qs.services
+
+ColumnLayout {
+  id: root
+  implicitWidth: 420
+  spacing: Tokens.spacing.medium
+
+  StyledText {
+    Layout.fillWidth: true
+    text: qsTr("Syncshell")
+    color: Colours.palette.m3primary
+    font: Tokens.font.title.medium
+  }
+
+  StyledText {
+    Layout.fillWidth: true
+    text: Syncshell.summaryText
+  }
+
+  StyledText {
+    Layout.fillWidth: true
+    visible: text.length > 0
+    text: Syncshell.lastError || Syncshell.actionNotice
+    color: Syncshell.lastError ? Colours.palette.m3error
+      : Colours.palette.m3primary
+    wrapMode: Text.Wrap
+  }
+
+  RowLayout {
+    TextButton {
+      text: qsTr("Refresh")
+      enabled: !Syncshell.refreshing && !Syncshell.busy
+      onClicked: Syncshell.refresh()
+    }
+    TextButton {
+      text: qsTr("Rescan all")
+      enabled: Syncshell.online && !Syncshell.busy
+        && Syncshell.folderCount > 0
+      onClicked: Syncshell.rescanAllFolders()
+    }
+    TextButton {
+      text: qsTr("Web UI")
+      enabled: Syncshell.online
+      onClicked: Syncshell.openWebUi()
+    }
+  }
+
+  Flickable {
+    id: folderView
+    Layout.fillWidth: true
+    Layout.preferredHeight: Math.min(300,
+      Math.max(60, folderColumn.implicitHeight))
+    clip: true
+    contentWidth: width
+    contentHeight: folderColumn.implicitHeight
+    boundsBehavior: Flickable.StopAtBounds
+
+    Column {
+      id: folderColumn
+      width: folderView.width
+      spacing: Tokens.spacing.small
+
+      StyledText {
+        width: parent.width
+        visible: Syncshell.folders.length === 0
+        text: Syncshell.summaryText
+        color: Colours.palette.m3onSurfaceVariant
+        horizontalAlignment: Text.AlignHCenter
+      }
+
+      Repeater {
+        model: Syncshell.folders
+        delegate: StyledRect {
+          id: folderCard
+          required property var modelData
+          width: folderColumn.width
+          height: details.implicitHeight + Tokens.padding.medium * 2
+          color: Colours.tPalette.m3surfaceContainer
+          radius: Tokens.rounding.medium
+
+          ColumnLayout {
+            id: details
+            anchors.fill: parent
+            anchors.margins: Tokens.padding.medium
+            spacing: Tokens.spacing.small
+            StyledText {
+              Layout.fillWidth: true
+              text: String(folderCard.modelData.label
+                || folderCard.modelData.id)
+              font: Tokens.font.label.large
+            }
+            StyledText {
+              Layout.fillWidth: true
+              text: String(folderCard.modelData.path || "")
+              color: Colours.palette.m3onSurfaceVariant
+              elide: Text.ElideMiddle
+            }
+            StyledText {
+              Layout.fillWidth: true
+              text: String(folderCard.modelData.status
+                && (folderCard.modelData.status.error
+                  || folderCard.modelData.status.state) || "unknown")
+              color: folderCard.modelData.status
+                && folderCard.modelData.status.error
+                ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
+              elide: Text.ElideRight
+            }
+            RowLayout {
+              TextButton {
+                text: folderCard.modelData.paused
+                  ? qsTr("Resume") : qsTr("Pause")
+                enabled: Syncshell.online && !Syncshell.busy
+                onClicked: Syncshell.setFolderPaused(
+                  folderCard.modelData.id, !folderCard.modelData.paused)
+              }
+              TextButton {
+                text: qsTr("Rescan")
+                enabled: Syncshell.online && !Syncshell.busy
+                  && !folderCard.modelData.paused
+                onClicked: Syncshell.rescanFolder(folderCard.modelData.id)
+              }
+              TextButton {
+                text: qsTr("Forget")
+                enabled: Syncshell.online && !Syncshell.busy
+                  && folderCard.modelData.paused
+                onClicked: Syncshell.forgetFolder(folderCard.modelData.id)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  StyledTextField {
+    id: pathField
+    Layout.fillWidth: true
+    placeholderText: qsTr("Existing directory path")
+  }
+  RowLayout {
+    Layout.fillWidth: true
+    StyledTextField {
+      id: labelField
+      Layout.fillWidth: true
+      placeholderText: qsTr("Label")
+    }
+    StyledTextField {
+      id: idField
+      Layout.fillWidth: true
+      placeholderText: qsTr("Folder ID")
+    }
+    TextButton {
+      text: qsTr("Suggest ID")
+      enabled: Syncshell.online && !Syncshell.busy
+      onClicked: Syncshell.requestFolderIdSuggestion()
+    }
+  }
+  TextButton {
+    Layout.fillWidth: true
+    text: Syncshell.busy ? qsTr("Working")
+      : qsTr("Add existing directory")
+    enabled: Syncshell.online && !Syncshell.busy
+      && pathField.text.length > 0 && idField.text.length > 0
+    onClicked: Syncshell.addFolder({
+      path: pathField.text,
+      label: labelField.text,
+      folderId: idField.text,
+      deviceIds: []
+    })
+  }
+
+  Connections {
+    target: Syncshell
+    function onFolderIdSuggestionChanged() {
+      if (!idField.activeFocus && Syncshell.folderIdSuggestion)
+        idField.text = Syncshell.folderIdSuggestion
+    }
+  }
+}

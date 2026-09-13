@@ -1,0 +1,14 @@
+import QtQuick
+import Caelestia.Config
+import qs.components
+import qs.services
+
+MaterialIcon {
+  property color colour: Colours.palette.m3secondary
+  animate: true
+  text: !Syncshell.online ? "sync_problem"
+    : Syncshell.syncingFolderCount > 0 ? "sync" : "sync_alt"
+  color: Syncshell.folderProblemCount > 0
+    ? Colours.palette.m3error : colour
+  fill: Syncshell.online ? 1 : 0
+}

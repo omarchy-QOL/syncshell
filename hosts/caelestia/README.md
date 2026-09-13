@@ -1,9 +1,28 @@
-# Caelestia host
+# Caelestia adapter
 
-This future host will own a native Caelestia status item and popout while using
-the Syncshell native-core contract for host-neutral state and actions.
+Syncshell supports Caelestia Shell commit
+`1d0e5a588c61f1d905eba5fe8446ec222d37f50c` on Arch Linux with its pinned
+Quickshell and CLI revisions. The status entry and popout use one shell-owned
+native core. The adapter extends Caelestia's compiled bar configuration so the
+entry remains a normal configurable status item.
 
-It is unimplemented and unsupported in Syncshell 0.1.8. The historical
-`dev-syncshell-cross-distro` and `dev-syncshell-cross-distro-ui` branches retain
-source material under `integrations/caelestia/`; those overlays and templates
-do not provide runtime support here.
+## Install and update
+
+Apply the adapter to the clean pinned checkout before building Caelestia:
+
+```bash
+integrations/caelestia/apply.sh /path/to/pinned/caelestia-checkout
+cmake -S /path/to/pinned/caelestia-checkout \
+  -B /path/to/pinned/caelestia-checkout/build -G Ninja
+cmake --build /path/to/pinned/caelestia-checkout/build
+sudo cmake --install /path/to/pinned/caelestia-checkout/build
+```
+
+The overlay bundles the prebuilt core and required QML files. Syncshell performs
+no runtime build or download. Update by applying a newer Syncshell checkout to
+a fresh checkout at the same supported Caelestia revision and rebuilding.
+
+## Remove
+
+Rebuild and install the unmodified pinned Caelestia checkout. Syncthing
+configuration, service state, and folder contents are not changed.
