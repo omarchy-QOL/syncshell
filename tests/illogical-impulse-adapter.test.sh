@@ -16,7 +16,7 @@ git -C "$work/ii" diff --check
 test -x "$config/syncshell/bin/x86_64/syncshell-core"
 rg -q 'SyncshellIndicator' "$config/modules/ii/bar/BarContent.qml"
 rg -q 'WlrKeyboardFocus.OnDemand' "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'onActiveChanged.*pinned = false' \
+rg -q 'HyprlandFocusGrab' \
   "$config/modules/ii/bar/SyncshellPopup.qml"
 rg -q 'Keys.onEscapePressed.*pinned = false' \
   "$config/modules/ii/bar/SyncshellPopup.qml"

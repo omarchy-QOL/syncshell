@@ -7,6 +7,7 @@ import qs.modules.common
 import qs.modules.common.widgets
 import qs.services
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 
 LazyLoader {
@@ -33,10 +34,15 @@ LazyLoader {
     WlrLayershell.namespace: "quickshell:syncshell"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-    onActiveChanged: if (!active) root.pinned = false
 
     mask: Region { item: popupBackground }
     Keys.onEscapePressed: root.pinned = false
+
+    HyprlandFocusGrab {
+      active: true
+      windows: [popupWindow]
+      onCleared: root.pinned = false
+    }
 
     StyledRectangularShadow { target: popupBackground }
 
