@@ -42,7 +42,7 @@ KeyboardPanel {
     }
 
     focusTarget: keyCatcher
-    contentWidth: fittedContentWidth(Style.space(380))
+    contentWidth: fittedContentWidth(Style.space(400))
     contentHeight: root.controller.settingsMigrationOpen
         ? fittedContentHeight(Style.space(520), Style.space(560))
         : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
