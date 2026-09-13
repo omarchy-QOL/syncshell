@@ -1,0 +1,12 @@
+{
+  "id": "syncshell-waybar",
+  "name": "Syncshell for Waybar",
+  "version": "0.1.8",
+  "host": "waybar",
+  "platform": "arch-hyprland",
+  "requires": {
+    "quickshell": ">=0.3.1",
+    "syncthing": ">=2.1.5",
+    "waybar": ">=0.14.0"
+  }
+}
