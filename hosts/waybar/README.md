@@ -7,11 +7,10 @@ bundled core across every Waybar output.
 
 ## Install, update, and remove
 
-Assemble and run the bundle installer:
+Install or update from the repository root:
 
 ```bash
-integrations/waybar/assemble.sh /absolute/path/to/syncshell-waybar
-/absolute/path/to/syncshell-waybar/install.sh
+./install.sh --shell waybar
 ```
 
 Run a newer bundle's installer to update. Remove the adapter with

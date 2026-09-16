@@ -38,6 +38,44 @@ Version 0.1.8 supports Omarchy, DankMaterialShell, Illogical Impulse,
 Caelestia, and Waybar on Linux x86_64. The four Arch and Hyprland adapter
 workflows are documented in [Arch shell adapters](docs/arch-adapters.md).
 
+### Installation on other shells
+
+The currently verified combinations use Arch Linux, Hyprland, and one of the
+shells below. Install the shell through its upstream instructions first. Then
+clone Syncshell's development branch and run the same installer used by the VM
+acceptance path:
+
+```bash
+git clone --branch dev --single-branch \
+  https://github.com/omarchy-QOL/syncshell.git
+cd syncshell
+./install.sh --shell dms
+```
+
+Replace `dms` with the shell name from this table:
+
+| OS         | Compositor | Shell                | Installer argument |
+| ---------- | ---------- | -------------------- | ------------------ |
+| Arch Linux | Hyprland   | DankMaterialShell    | `dms`              |
+| Arch Linux | Hyprland   | Illogical Impulse   | `ii`               |
+| Arch Linux | Hyprland   | Caelestia            | `caelestia`        |
+| Arch Linux | Hyprland   | Waybar + Quickshell  | `waybar`           |
+
+The installer verifies the bundled core before changing the shell. DMS and
+Waybar are installed directly. Illogical Impulse is applied to the existing
+`~/.config/quickshell/ii` tree with backups under
+`$XDG_STATE_HOME/syncshell/backups`, or `~/.local/state/syncshell/backups` by
+default. Caelestia rebuilds its compiled configuration and therefore requires
+the build dependencies from its upstream installation guide.
+
+Restart the shell when its user service is not managed by systemd. To update,
+pull `dev` and rerun the same command:
+
+```bash
+git pull --ff-only origin dev
+./install.sh --shell ii
+```
+
 ## Keybindings
 
 Also shown in the panel footer.

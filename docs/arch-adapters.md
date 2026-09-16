@@ -28,32 +28,30 @@ promises.
 
 ## DankMaterialShell
 
-Build a release-ready plugin directory from a clean checkout:
+Install or update from a clean Syncshell checkout:
 
 ```bash
-integrations/dankmaterialshell/assemble.sh /absolute/path/to/Syncshell
+./install.sh --shell dms
 ```
 
-Install that directory through DMS's plugin manager, enable the `syncshell`
-widget, and restart `dms.service`. Run the same assembly from a newer clean
-checkout to update. Use DMS's plugin uninstall action to remove it. DMS removes
-the plugin files while leaving Syncthing configuration and synchronized data
-alone.
+The installer assembles the plugin, enables its widget, and restarts
+`dms.service`. Use DMS's plugin uninstall action to remove it. DMS removes the
+plugin files while leaving Syncthing configuration and synchronized data alone.
 
 The widget has native horizontal and vertical bar forms. Its popup uses DMS
 controls and shares the daemon-owned core service.
 
 ## Illogical Impulse
 
-Check out the supported Illogical Impulse commit, then apply the overlay:
+Install or update against the supported Illogical Impulse configuration:
 
 ```bash
-integrations/illogical-impulse/apply.sh /absolute/path/to/ii-checkout
+./install.sh --shell ii
 ```
 
-Install the resulting `dots/.config/quickshell/ii` tree with the upstream
-workflow. Keep a copy of every replaced file when updating. To remove the
-adapter, restore those files and remove only `services/Syncshell.qml`,
+The installer clones the pinned source, applies the overlay, and keeps replaced
+files under the Syncshell state directory. To remove the adapter, restore those
+files and remove only `services/Syncshell.qml`,
 `modules/ii/bar/SyncshellIndicator.qml`,
 `modules/ii/bar/SyncshellPopup.qml`, and the `syncshell/` directory. Restart the
 II shell afterward. Do not remove Syncthing configuration or folder data.
@@ -63,17 +61,15 @@ configuration.
 
 ## Caelestia
 
-Check out the supported Caelestia shell commit and apply the overlay before
-running its documented CMake build:
+Install or update against the supported Caelestia shell revision:
 
 ```bash
-integrations/caelestia/apply.sh /absolute/path/to/caelestia-shell
+./install.sh --shell caelestia
 ```
 
-The compiled configuration must use version `2.3.0` and preserve source file
-permissions when installing the `syncshell/` tree. Updates repeat the overlay
-and CMake install from a clean supported checkout. Removal rebuilds and installs
-the untouched supported checkout; this removes the registered status choice,
+The installer clones the pinned shell, applies the overlay, and rebuilds its
+compiled configuration as version `2.3.0`. Removal rebuilds and installs the
+untouched supported checkout; this removes the registered status choice,
 service, popout, and bundled core without touching Syncthing.
 
 Install Caelestia's documented Material Symbols, Rubik, and CaskaydiaCove Nerd
@@ -81,17 +77,16 @@ Font dependencies. Without them, material icon names render as text.
 
 ## Waybar
 
-Assemble and install the self-contained adapter:
+Install or update the self-contained adapter:
 
 ```bash
-integrations/waybar/assemble.sh /absolute/path/to/syncshell-waybar
-/absolute/path/to/syncshell-waybar/install.sh
+./install.sh --shell waybar
 ```
 
-The installer adds marked blocks to the active `config.jsonc` or `config`,
-prepends one marked CSS import, installs a user service, and reloads Waybar. It
-is idempotent and keeps a first-install `*.syncshell-before` config copy. Run a
-new bundle's installer to update.
+The installer assembles a verified bundle, adds marked blocks to the active
+`config.jsonc` or `config`, prepends one marked CSS import, installs a user
+service, and reloads Waybar. It is idempotent and keeps a first-install
+`*.syncshell-before` config copy.
 
 Remove it with:
 

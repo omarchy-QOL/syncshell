@@ -6,16 +6,14 @@ shares that service with every horizontal or vertical bar widget instance.
 
 ## Install and update
 
-Build a complete plugin directory, then install it through DMS:
+Install or update from the repository root:
 
 ```bash
-integrations/dankmaterialshell/assemble.sh /tmp/Syncshell
-dms plugins install /tmp/Syncshell
+./install.sh --shell dms
 ```
 
-To update, assemble from the new checkout, uninstall the old plugin, install
-the new directory, and restart `dms.service`. The plugin bundle includes the
-prebuilt core; installation performs no build or download.
+The installer assembles the plugin, enables its widget, and restarts
+`dms.service`. The plugin bundle includes the prebuilt core.
 
 ## Remove
 

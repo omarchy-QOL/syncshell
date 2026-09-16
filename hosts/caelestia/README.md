@@ -8,19 +8,15 @@ entry remains a normal configurable status item.
 
 ## Install and update
 
-Apply the adapter to the clean pinned checkout before building Caelestia:
+Install or update from the repository root:
 
 ```bash
-integrations/caelestia/apply.sh /path/to/pinned/caelestia-checkout
-cmake -S /path/to/pinned/caelestia-checkout \
-  -B /path/to/pinned/caelestia-checkout/build -G Ninja
-cmake --build /path/to/pinned/caelestia-checkout/build
-sudo cmake --install /path/to/pinned/caelestia-checkout/build
+./install.sh --shell caelestia
 ```
 
-The overlay bundles the prebuilt core and required QML files. Syncshell performs
-no runtime build or download. Update by applying a newer Syncshell checkout to
-a fresh checkout at the same supported Caelestia revision and rebuilding.
+The installer clones the pinned Caelestia source, applies the adapter, and
+rebuilds its compiled configuration. It requires Caelestia's upstream build
+dependencies. Syncshell's core remains a prebuilt, checksummed artifact.
 
 ## Remove
 

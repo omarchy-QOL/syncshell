@@ -21,6 +21,9 @@ for entry_point in manifest.json Panel.qml Service.qml; do
   [[ -f $root/$entry_point && ! -L $root/$entry_point ]] \
     || fail "$entry_point must be a regular root entry point"
 done
+[[ -x $root/install.sh ]] || fail "cross-shell installer is missing"
+grep -Fq 'dms|ii|caelestia|waybar' "$root/install.sh" \
+  || fail "cross-shell installer omits a supported adapter"
 
 jq -e '.version == "0.1.8"' "$root/manifest.json" >/dev/null \
   || fail "manifest is not the 0.1.8 candidate"

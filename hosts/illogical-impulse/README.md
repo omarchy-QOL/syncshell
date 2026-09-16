@@ -8,16 +8,15 @@ does not create another session.
 
 ## Install and update
 
-Apply the pinned source overlay before installing Illogical Impulse's files:
+Install or update from the repository root:
 
 ```bash
-integrations/illogical-impulse/apply.sh /path/to/pinned/ii-checkout
+./install.sh --shell ii
 ```
 
-The command requires a clean checkout at the documented commit. It installs
-the QML service, bar item, popup, and prebuilt core into that checkout without
-building or downloading Syncshell at runtime. Reapply from a new Syncshell
-checkout to update, then restart the shell.
+The installer clones the pinned upstream source, applies the adapter, backs up
+replaced files, and installs the QML service, bar item, popup, and prebuilt
+core. Restart the shell when it is not managed by a user service.
 
 ## Remove
 
