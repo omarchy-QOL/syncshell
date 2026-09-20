@@ -250,6 +250,13 @@ Column {
     fontFamily: root.fontFamily
   }
 
+  PanelSectionHeader {
+    visible: root.controller.pendingOfferRows.length > 0
+    text: "PENDING FOLDER REQUESTS"
+    foreground: root.foreground
+    fontFamily: root.fontFamily
+  }
+
   RowLayout {
     visible: root.controller.pendingOfferRows.length > 0
     width: parent.width
