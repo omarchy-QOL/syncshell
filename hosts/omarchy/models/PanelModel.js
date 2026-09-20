@@ -273,7 +273,7 @@ function pendingDeviceRows(syncthing) {
       name: name,
       address: String(device.address || ""),
       shortId: shortId,
-      label: String(name || shortId) + " wants to connect · " + shortId
+      label: String(name || shortId) + " (" + shortId + ") wants to connect"
     })
   }
   return rows
