@@ -484,7 +484,7 @@ Panel {
     if (!label) label = pathLabel(popup.addPathText)
     currentFolderId = String(popup.addIdText || "").trim()
     addSubmissionPending = syncthing.addFolder(
-      popup.addPathText,
+      resolveFolderPath(String(popup.addPathText || "").trim()),
       label,
       popup.addIdText,
       popup.selectedDeviceIds,
