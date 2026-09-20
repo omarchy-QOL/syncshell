@@ -244,30 +244,38 @@ QtObject {
     notice = ""
   }
 
-  function requestSelfRemoval(deletePluginSettings) {
-    if (!runtimeReady || !selectTheme || busy) {
-      error = "Syncthing must be available for clean removal"
+  function requestSelfRemoval(deletePluginSettings, syncthingMissing) {
+    if (busy) {
+      error = "Wait for the current settings operation to finish before removing SyncShell"
+      return
+    }
+    if (!syncthingMissing && (!runtimeReady || !selectTheme)) {
+      error = "Start Syncthing so SyncShell can restore its Web UI before removal"
       return
     }
     busy = true
     error = ""
     _deleteSettingsAfterRemoval = deletePluginSettings === true
+    if (syncthingMissing) {
+      startRemovalWorker("")
+      return
+    }
     if (!guiAssetsPath) {
       finishRemoval("Syncthing did not report its GUI assets path")
       return
     }
     if (ownsTheme(currentWebUiTheme)) {
       selectTheme("default", function() {
-        root.startRemovalWorker()
+        root.startRemovalWorker(root.guiAssetsPath)
       }, function(actionError) {
         root.finishRemoval(root.apiErrorMessage(actionError))
       })
-    } else startRemovalWorker()
+    } else startRemovalWorker(guiAssetsPath)
   }
 
-  function startRemovalWorker() {
+  function startRemovalWorker(guiAssets) {
     removalProcess.command = [
-      "bash", removeHelperPath, "start", pluginRoot, guiAssetsPath,
+      "bash", removeHelperPath, "start", pluginRoot, guiAssets,
       _deleteSettingsAfterRemoval ? "purge" : "preserve"
     ]
     removalProcess.running = true

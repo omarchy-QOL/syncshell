@@ -539,7 +539,18 @@ QtObject {
   function cancelSettingsMigration() { settings.cancelMigration() }
   function clearSettingsNotice() { settings.clearNotice() }
   function requestSelfRemoval(deletePluginSettings) {
-    settings.requestSelfRemoval(deletePluginSettings)
+    if (packageController.packageActionRunning || packageController.operationRunning) {
+      settings.error = "Wait for Syncthing installation to finish before removing SyncShell"
+      return
+    }
+    if (!online && (packageController.refreshing || packageController.packageError
+        || ["existing", "missing"].indexOf(packageController.state) < 0)) {
+      settings.error = "Could not confirm the Syncthing installation status. "
+        + "Check the installation and try again"
+      return
+    }
+    settings.requestSelfRemoval(deletePluginSettings,
+      !online && packageController.state === "missing")
   }
 
   onLocalDeviceIdChanged: rememberLocalIdentity()
