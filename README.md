@@ -36,6 +36,9 @@ Open the widget and expand **More**. If Syncthing is missing, select **Install
 Syncthing** to install the package and start the user service. Existing
 installations are detected automatically.
 
+If UFW is enabled, run `sudo ufw allow syncthing` to allow
+[device discovery and synchronization][firewall].
+
 The released plugin supports Omarchy on Linux x86_64. Alpha adapters for
 DankMaterialShell, Illogical Impulse, Caelestia, and Waybar are under
 development; they are not part of the supported release. ARM and daemon mode
@@ -328,3 +331,5 @@ runtime and system-call dependency use the
 
 [webui-provenance]:
   https://github.com/syncshell/syncshell-webui/blob/main/UPSTREAM.md
+[firewall]:
+  https://docs.syncthing.net/users/firewall.html#uncomplicated-firewall-ufw
