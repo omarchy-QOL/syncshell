@@ -96,7 +96,7 @@ BorderSurface {
     }
 
     Text {
-      text: "Existing directory"
+      text: "Local directory"
       textFormat: Text.PlainText
       color: root.dim
       font.family: root.fontFamily

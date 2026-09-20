@@ -100,6 +100,7 @@ QtObject {
   property string folderMutationId: ""
   property string folderMutationAction: ""
   property string folderMutationError: ""
+  signal folderDirectoryRequired(var args)
   property string folderMutationNotice: ""
   property int folderMutationNoticeVisibleMs: UiConstants.NOTICE_VISIBLE_MS
   property string recentlyLinkedFolderId: ""
@@ -326,6 +327,12 @@ QtObject {
     rescanTracker.reset()
     var id = core.action(action, args || ({}), function(ok, data, error) {
       if (!ok) {
+        if (action === "folder.add-existing" && error
+            && error.code === "path_missing" && !args.createDirectory) {
+          root.clearFolderAction()
+          root.folderDirectoryRequired(args)
+          return
+        }
         root.failFolderAction(error,
           "Could not complete the folder operation")
         return
@@ -400,11 +407,13 @@ QtObject {
         + " to rejoin the same remote folder.")
   }
 
-  function addFolder(path, label, folderId, selectedDeviceIds, pendingDeviceId) {
-    var shared = selectedDeviceIds || []
+  function addFolder(path, label, folderId, selectedDeviceIds, pendingDeviceId,
+      createDirectory) {
+    var shared = (selectedDeviceIds || []).slice()
     return runFolderAction("folder.add-existing", "add", folderId, {
       folderId: folderId,
       path: path,
+      createDirectory: createDirectory === true,
       label: label,
       deviceIds: shared,
       pendingDeviceId: pendingDeviceId

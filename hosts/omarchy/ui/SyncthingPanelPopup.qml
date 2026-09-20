@@ -56,8 +56,9 @@ KeyboardPanel {
     PanelKeyCatcher {
         id: keyCatcher
         anchors.fill: parent
-        blocked: root.controller.addOpen || moreDetails.folderPopupOpen
-            || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen
+        blocked: !root.controller.folderConfirmOpen
+            && (root.controller.addOpen || moreDetails.folderPopupOpen
+                || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen)
         onCloseRequested: {
             if (root.controller.settingsMigrationOpen) {
                 root.controller.chooseSettingsPort(2);
@@ -475,10 +476,14 @@ KeyboardPanel {
         parent: keyCatcher
         anchors.fill: parent
         opened: root.controller.folderConfirmOpen
+        destructiveConfirmation: root.controller.folderConfirmAction !== "create"
         z: 10
         confirmFirst: true
         equalWidthActions: true
         message: {
+            if (root.controller.folderConfirmAction === "create")
+                return "Create " + root.controller.folderCreationArgs.path
+                    + " and add the folder?";
             var folder = root.controller.folderById(
                 root.controller.folderConfirmId);
             if (!folder)
@@ -499,11 +504,14 @@ KeyboardPanel {
                 + "Rejoining the same remote folder requires this exact "
                 + "Folder ID.";
         }
-        confirmText: "Yes"
-        cancelText: "No"
+        confirmText: root.controller.folderConfirmAction === "create"
+            ? "Create and add" : "Yes"
+        cancelText: root.controller.folderConfirmAction === "create"
+            ? "Cancel" : "No"
         background: Color.popups.background
         foreground: Color.popups.text
-        selectedText: root.controller.urgent
+        selectedText: root.controller.folderConfirmAction === "create"
+            ? root.controller.foreground : root.controller.urgent
         fontFamily: root.controller.fontFamily
         onCanceled: root.controller.cancelFolderAction()
         onConfirmed: root.controller.confirmFolderAction()

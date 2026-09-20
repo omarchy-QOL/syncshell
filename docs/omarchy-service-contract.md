@@ -167,8 +167,10 @@ not inferred.
   when bounded state cannot expose every configured folder and directs the
   user to the Web UI.
 - `forgetFolder(id)` forgets one verified paused folder.
-- `addFolder(path, label, id, devices, offer)` adds one existing local
-  directory.
+- `addFolder(path, label, id, devices, offer, createDirectory)` adds a local
+  directory. A missing directory emits `folderDirectoryRequired(args)` so
+  the panel can request confirmation. Only an explicitly confirmed retry
+  passes `createDirectory: true`.
 - `setFolderSharing(id, devices)` replaces one folder's remote-device
   membership.
 - `addDevice(id, name)` configures one remote device from Syncthing's current

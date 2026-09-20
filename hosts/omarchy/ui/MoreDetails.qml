@@ -226,19 +226,6 @@ Column {
     }
   }
 
-  AddFolderForm {
-    id: addForm
-    visible: root.controller.addOpen
-    controller: root.controller
-    syncthing: root.syncthing
-    folderPickerRunning: root.controller.folderPickerRunning
-    foreground: root.foreground
-    dim: root.dim
-    urgent: root.urgent
-    warning: root.controller.warning
-    fontFamily: root.fontFamily
-  }
-
   FolderSharingForm {
     id: folderSharingForm
     visible: root.controller.folderShareOpen
@@ -281,7 +268,7 @@ Column {
     TooltipButton {
       text: "ACCEPT"
       Layout.preferredHeight: Style.spacing.controlHeight
-      helpText: "Prepare this offered folder for local acceptance"
+      helpText: "Configure offered folder request"
       bordered: true
       foreground: root.success
       fontFamily: root.fontFamily
@@ -294,6 +281,19 @@ Column {
       onClicked: root.controller.acceptPendingFolderOffer(
         root.controller.selectedPendingOffer)
     }
+  }
+
+  AddFolderForm {
+    id: addForm
+    visible: root.controller.addOpen
+    controller: root.controller
+    syncthing: root.syncthing
+    folderPickerRunning: root.controller.folderPickerRunning
+    foreground: root.foreground
+    dim: root.dim
+    urgent: root.urgent
+    warning: root.controller.warning
+    fontFamily: root.fontFamily
   }
 
   PanelSeparator {

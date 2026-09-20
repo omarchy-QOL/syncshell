@@ -206,6 +206,7 @@ type RescanResult struct {
 type ActionArguments struct {
 	FolderID        string   `json:"folderId,omitempty"`
 	Path            string   `json:"path,omitempty"`
+	CreateDirectory bool     `json:"createDirectory,omitempty"`
 	Label           string   `json:"label,omitempty"`
 	DeviceIDs       []string `json:"deviceIds,omitempty"`
 	FolderIDs       []string `json:"folderIds,omitempty"`
