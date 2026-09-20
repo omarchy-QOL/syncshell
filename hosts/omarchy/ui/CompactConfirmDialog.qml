@@ -12,6 +12,7 @@ Item {
   property int selectedIndex: 1
   property bool confirmFirst: false
   property bool equalWidthActions: false
+  property bool destructiveConfirmation: true
   property color background: Color.background
   property color foreground: Color.foreground
   property color scrim: Util.alpha(background, 0.7)
@@ -93,6 +94,7 @@ Item {
 
               readonly property bool selected: root.selectedIndex === index
               readonly property bool destructive: modelData.confirm
+                && root.destructiveConfirmation
 
               width: root.equalWidthActions
                 ? (actions.width - actions.spacing) / 2 : Style.space(76)

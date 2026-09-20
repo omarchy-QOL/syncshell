@@ -65,6 +65,10 @@ func (s *Session) Act(ctx context.Context, action string, arguments ActionArgume
 }
 
 func validateActionArguments(action string, arguments ActionArguments) *ActionResult {
+	if arguments.CreateDirectory && action != "folder.add-existing" {
+		result := rejected("invalid_action", "directory creation is only valid when adding a folder")
+		return &result
+	}
 	folderOnly := arguments.FolderID != "" && arguments.Path == "" &&
 		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
 		len(arguments.FolderIDs) == 0 &&
@@ -323,7 +327,8 @@ func (s *Session) addExistingFolder(ctx context.Context, arguments ActionArgumen
 		return rejected("folder_id_invalid", "folder ID is invalid")
 	}
 	canonicalPath, validation := canonicalDirectory(arguments.Path)
-	if validation != nil {
+	missing := validation != nil && validation.Error.Code == "path_missing"
+	if validation != nil && !(missing && arguments.CreateDirectory) {
 		return *validation
 	}
 	folders, err := s.client.Folders(ctx)
@@ -367,6 +372,19 @@ func (s *Session) addExistingFolder(ctx context.Context, arguments ActionArgumen
 	defaults["paused"] = false
 	defaults["devices"] = selectFolderDevices(nil,
 		append([]string{localID}, selected...))
+	if missing {
+		if err := os.MkdirAll(canonicalPath, 0o755); err != nil {
+			return rejected("path_create_failed", "cannot create folder directory: "+err.Error())
+		}
+		canonicalPath, validation = canonicalDirectory(canonicalPath)
+		if validation != nil {
+			return *validation
+		}
+		if result := validateUnusedFolder(folderID, canonicalPath, folders, status.Tilde); result != nil {
+			return *result
+		}
+		defaults["path"] = canonicalPath
+	}
 	if err := s.client.AddFolder(ctx, defaults); err != nil {
 		return s.afterAmbiguousMutation(ctx, err)
 	}
@@ -485,15 +503,46 @@ func canonicalDirectory(path string) (string, *ActionResult) {
 		result := rejected("path_invalid", "folder path must be absolute")
 		return "", &result
 	}
-	resolved, err := filepath.EvalSymlinks(filepath.Clean(path))
+	path = filepath.Clean(path)
+	existing := path
+	var missing []string
+	for {
+		_, err := os.Lstat(existing)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, os.ErrNotExist) {
+			result := rejected("path_unavailable", "cannot access folder path: "+err.Error())
+			return "", &result
+		}
+		parent := filepath.Dir(existing)
+		if parent == existing {
+			result := rejected("path_unavailable", "cannot access the filesystem root")
+			return "", &result
+		}
+		missing = append(missing, filepath.Base(existing))
+		existing = parent
+	}
+	resolved, err := filepath.EvalSymlinks(existing)
 	if err != nil {
-		result := rejected("path_missing", "folder path does not exist")
+		result := rejected("path_unavailable", "cannot resolve folder path or symlink: "+err.Error())
 		return "", &result
 	}
 	info, err := os.Stat(resolved)
-	if err != nil || !info.IsDir() {
+	if err != nil {
+		result := rejected("path_unavailable", "cannot access folder path: "+err.Error())
+		return "", &result
+	}
+	if !info.IsDir() {
 		result := rejected("path_invalid", "folder path is not a directory")
 		return "", &result
+	}
+	for i := len(missing) - 1; i >= 0; i-- {
+		resolved = filepath.Join(resolved, missing[i])
+	}
+	if len(missing) > 0 {
+		result := rejected("path_missing", "folder path does not exist")
+		return resolved, &result
 	}
 	return resolved, nil
 }

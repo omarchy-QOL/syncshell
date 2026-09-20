@@ -128,7 +128,13 @@ Action arguments are exact:
   exceeds the bounded snapshot, because completion could not be observed for
   every target.
 - `folder.add-existing` takes `folderId`, `path`, optional `label`, bounded
-  `deviceIds`, and optional `pendingDeviceId`.
+  `deviceIds`, optional `pendingDeviceId`, and optional `createDirectory`.
+  A missing directory returns `path_missing` without changing the filesystem.
+  After explicit confirmation, `createDirectory: true` creates the directory
+  and missing parents after validating the folder and sharing choices.
+  Permission errors and broken symlinks do not count as missing directories.
+  If adding the Syncthing configuration subsequently fails, the directory
+  remains available for retry; no local files are removed.
 - `folder.set-sharing` takes `folderId` and bounded `deviceIds`. It replaces
   that folder's remote-device membership while retaining the local device.
 - `device.add` takes `deviceId` and an optional `deviceName`.

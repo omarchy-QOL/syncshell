@@ -19,7 +19,7 @@ the Omarchy bar, manages local folders and opens a redesigned Web UI. Version
 
 - select the switch/toggle in the top right to start or stop the user service
 - select a folder card to open its directory
-- select **+** to configure an existing local directory
+- select **+** to configure a local directory
 - expand **More**, then use **Remote Devices** to add a device or manage its
   shared folders
 - select **RESCAN** on a folder or **Rescan all folders** for linked folders
@@ -248,8 +248,9 @@ in [Syncshell Web provenance][webui-provenance].
   sharing.
 - **FORGET** removes an unlinked folder from Syncthing's configuration while
   keeping its files.
-- **Add** requires an existing directory and a unique Folder ID. Overlapping
-  paths are rejected. Select remote devices explicitly to share the folder.
+- **Add** requires a unique Folder ID. Missing directories can be created
+  after confirmation. Overlapping paths are rejected. Select remote devices
+  explicitly to share the folder.
 - Use **FOLDERS** to choose a folder's devices or review and remove the selected
   device's existing shares.
 

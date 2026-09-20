@@ -43,6 +43,7 @@ Panel {
   property string selectedPendingOffer: ""
   property string folderConfirmAction: ""
   property string folderConfirmId: ""
+  property var folderCreationArgs: null
   readonly property bool folderConfirmOpen: folderConfirmAction !== ""
   property string deviceConfirmAction: ""
   property string deviceConfirmId: ""
@@ -509,15 +510,21 @@ Panel {
   function confirmFolderAction() {
     var action = folderConfirmAction
     var id = folderConfirmId
+    var creation = folderCreationArgs
     cancelFolderAction()
     if (!syncthing) return
-    if (action === "forget") syncthing.forgetFolder(id)
+    if (action === "create" && creation) {
+      addSubmissionPending = syncthing.addFolder(creation.path,
+        creation.label, creation.folderId, creation.deviceIds,
+        creation.pendingDeviceId, true)
+    } else if (action === "forget") syncthing.forgetFolder(id)
     else syncthing.setFolderLinked(id, action === "link")
   }
 
   function cancelFolderAction() {
     folderConfirmAction = ""
     folderConfirmId = ""
+    folderCreationArgs = null
   }
 
   function openWebUi() {
@@ -669,6 +676,15 @@ Panel {
 
   Connections {
     target: root.syncthing
+
+    function onFolderDirectoryRequired(args) {
+      root.addSubmissionPending = false
+      if (!root.addOpen || !root.opened) return
+      root.folderCreationArgs = args
+      root.folderConfirmAction = "create"
+      popup.closeTransientPopups()
+      popup.focusPanel()
+    }
 
     function onFolderIdSuggestionChanged() {
       if (root.addOpen && !root.addIdEdited
