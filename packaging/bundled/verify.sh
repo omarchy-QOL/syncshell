@@ -53,11 +53,11 @@ printf '%s\n' \
   '  </gui>' \
   '</configuration>' >"$config"
 chmod 600 -- "$config"
-frames=$("$binary" stream --host-id bundled-verify --config "$config" \
+frames=$("$binary" stream --config "$config" \
   </dev/null 2>/dev/null || true)
 hello=$(sed -n '1p' <<<"$frames")
-jq -e '.v == 1 and .type == "hello" and .build.version == "0.1.8"
-  and .build.protocol == 1' <<<"$hello" >/dev/null \
+jq -e '.v == 2 and .type == "hello" and .build.version == "0.1.9"' \
+  <<<"$hello" >/dev/null \
   || fail "runtime version or protocol is unexpected"
 
 printf '%s\n' "$metadata"

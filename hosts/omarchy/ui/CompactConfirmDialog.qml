@@ -10,9 +10,12 @@ Item {
   property string cancelText: "Cancel"
   property string confirmText: "Confirm"
   property int selectedIndex: 1
+  property bool confirmFirst: false
+  property bool equalWidthActions: false
+  property bool destructiveConfirmation: true
   property color background: Color.background
   property color foreground: Color.foreground
-  property color scrim: Util.alpha(Color.background, 0.7)
+  property color scrim: Util.alpha(background, 0.7)
   property color selectedBackground: Util.alpha(Color.foreground, 0.08)
   property color selectedText: Color.accent
   property string fontFamily: Style.font.family
@@ -21,6 +24,8 @@ Item {
   signal confirmed()
 
   visible: opened
+  implicitWidth: Style.space(390)
+  onOpenedChanged: if (opened) selectedIndex = confirmFirst ? 1 : 0
 
   Rectangle {
     anchors.fill: parent
@@ -33,9 +38,11 @@ Item {
 
     BorderSurface {
       id: card
-      width: Math.min(parent.width - Style.space(12), Style.space(390))
+      width: Math.min(parent.width - Style.space(12),
+        root.implicitWidth)
       height: card.contentTopInset + card.contentBottomInset
-        + messageText.implicitHeight + Style.space(12) + Style.space(28)
+        + messageText.implicitHeight + Style.space(12)
+        + Style.spacing.controlHeight
       anchors.centerIn: parent
       color: root.background
       borderSpec: Border.flat(root.selectedText, Style.normalBorderWidth)
@@ -68,22 +75,30 @@ Item {
         }
 
         Row {
+          id: actions
+          anchors.left: root.equalWidthActions ? parent.left : undefined
           anchors.right: parent.right
           anchors.bottom: parent.bottom
           spacing: Style.space(6)
 
           Repeater {
-            model: [root.cancelText, root.confirmText]
+            model: root.confirmFirst
+              ? [{ text: root.confirmText, confirm: true },
+                 { text: root.cancelText, confirm: false }]
+              : [{ text: root.cancelText, confirm: false },
+                 { text: root.confirmText, confirm: true }]
 
             BorderSurface {
               required property int index
-              required property string modelData
+              required property var modelData
 
               readonly property bool selected: root.selectedIndex === index
-              readonly property bool destructive: index === 1
+              readonly property bool destructive: modelData.confirm
+                && root.destructiveConfirmation
 
-              width: Style.space(76)
-              height: Style.space(28)
+              width: root.equalWidthActions
+                ? (actions.width - actions.spacing) / 2 : Style.space(76)
+              height: Style.spacing.controlHeight
               color: selected
                 ? (destructive
                   ? Util.alpha(Color.urgent, 0.22)
@@ -99,7 +114,7 @@ Item {
 
               Text {
                 anchors.centerIn: parent
-                text: modelData
+                text: modelData.text
                 textFormat: Text.PlainText
                 color: destructive
                   ? (selected ? Color.urgent : root.foreground)
@@ -114,8 +129,8 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onEntered: root.selectedIndex = index
                 onClicked: {
-                  if (index === 0) root.canceled()
-                  else root.confirmed()
+                  if (modelData.confirm) root.confirmed()
+                  else root.canceled()
                 }
               }
             }

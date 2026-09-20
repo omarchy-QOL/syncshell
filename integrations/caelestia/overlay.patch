@@ -1,0 +1,51 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -70,0 +71,2 @@
++
++    install(DIRECTORY syncshell DESTINATION "${INSTALL_QSCONFDIR}" USE_SOURCE_PERMISSIONS)
+diff --git a/modules/ServiceLoader.qml b/modules/ServiceLoader.qml
+--- a/modules/ServiceLoader.qml
++++ b/modules/ServiceLoader.qml
+@@ -14,0 +15 @@ Scope {
++        Syncshell;
+diff --git a/modules/bar/components/StatusIcons.qml b/modules/bar/components/StatusIcons.qml
+--- a/modules/bar/components/StatusIcons.qml
++++ b/modules/bar/components/StatusIcons.qml
+@@ -144,0 +145,8 @@ StyledRect {
++                DelegateChoice {
++                    roleValue: "syncshell"
++                    delegate: EntryWrapper {
++                        SyncshellStatus {
++                            colour: root.colour
++                        }
++                    }
++                }
+diff --git a/modules/bar/popouts/Content.qml b/modules/bar/popouts/Content.qml
+--- a/modules/bar/popouts/Content.qml
++++ b/modules/bar/popouts/Content.qml
+@@ -121,0 +122,5 @@ Item {
++        Popout {
++            name: "syncshell"
++            sourceComponent: SyncshellPopout {}
++        }
++
+diff --git a/modules/bar/popouts/Wrapper.qml b/modules/bar/popouts/Wrapper.qml
+--- a/modules/bar/popouts/Wrapper.qml
++++ b/modules/bar/popouts/Wrapper.qml
+@@ -100 +100,2 @@ Item {
+-        when: root.isDetached || (root.hasCurrent && root.currentName === "wirelesspassword")
++        when: root.isDetached || (root.hasCurrent
++            && ["wirelesspassword", "syncshell"].includes(root.currentName))
+diff --git a/modules/nexus/pages/panels/taskbar/BarStatusIcons.qml b/modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+--- a/modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
++++ b/modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+@@ -17 +17,2 @@ PageBase {
+-            battery: qsTr("Battery")
++            battery: qsTr("Battery"),
++            syncshell: qsTr("Syncshell")
+diff --git a/plugin/src/Caelestia/Config/barconfig.hpp b/plugin/src/Caelestia/Config/barconfig.hpp
+--- a/plugin/src/Caelestia/Config/barconfig.hpp
++++ b/plugin/src/Caelestia/Config/barconfig.hpp
+@@ -109,0 +110 @@ class BarConfig : public settings::ObjectNode {
++            LIST_ENTRY(syncshell, true),

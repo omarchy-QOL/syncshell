@@ -8,10 +8,9 @@ Row {
   property string dots: ""
   property string detail: ""
   property string action: ""
-  property color foreground: "white"
-  property color syncColor: "#26B6DB"
-  property color removalColor: "#bf616a"
-  property color uploadColor: "#a3be8c"
+  required property color syncColor
+  required property color removalColor
+  required property color uploadColor
   property string fontFamily: Style.font.family
   property int fontSize: Style.font.caption
 

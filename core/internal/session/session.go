@@ -14,7 +14,6 @@ import (
 
 // Config constructs one authoritative session.
 type Config struct {
-	HostID              string
 	Discovery           syncthing.DiscoveryOptions
 	Lifecycle           systemduser.Binding
 	SystemdCommand      string
@@ -27,6 +26,8 @@ type hydratedState struct {
 	devices        []Device
 	folders        []Folder
 	pendingFolders map[string]PendingFolder
+	pendingDevices []PendingDevice
+	nearbyDevices  []NearbyDevice
 	webUI          WebUI
 	truncation     Truncation
 }
@@ -36,7 +37,6 @@ type hydratedState struct {
 type Session struct {
 	desktopEnabled bool
 	desktop        *desktop.Bridge
-	hostID         string
 	executable     string
 	client         *syncthing.Client
 	target         syncthing.Target
@@ -80,7 +80,6 @@ func New(ctx context.Context, config Config) (*Session, error) {
 		desired = "enabled"
 	}
 	return &Session{
-		hostID:              boundedIdentifier(config.HostID),
 		executable:          syncthing.FindExecutable(config.Discovery.SyncthingBinary),
 		client:              client,
 		target:              target,
@@ -128,28 +127,18 @@ func (s *Session) Refresh(ctx context.Context) (PublishedSnapshot, error) {
 func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 	previous := s.Current().State
 	snapshot := Snapshot{
-		HostID:         s.hostID,
 		Connection:     Connection{Phase: "loading", Endpoint: s.client.Endpoint()},
 		Identity:       previous.Identity,
 		Devices:        previous.Devices,
 		Folders:        previous.Folders,
 		PendingFolders: previous.PendingFolders,
+		PendingDevices: previous.PendingDevices,
+		NearbyDevices:  previous.NearbyDevices,
 		Activity:       previous.Activity,
 		WebUI:          previous.WebUI,
 		Installation: Installation{ExecutablePath: boundedPath(s.executable),
 			Available: s.executable != ""},
-		Mutation:   previous.Mutation,
 		Truncation: previous.Truncation,
-		Capabilities: []string{
-			"configure", "folder.add-existing", "folder.forget", "folder.pause",
-			"folder.recheck-errors", "folder.rescan", "folder.rescan-all",
-			"folder.resume", "folder.suggest-id",
-			"lifecycle.disable", "lifecycle.enable", "lifecycle.start", "lifecycle.stop",
-			"refresh", "webui.set-theme",
-		},
-	}
-	if s.desktopEnabled {
-		snapshot.Capabilities = append(snapshot.Capabilities, "webui.open")
 	}
 	if err := s.client.Health(ctx); err != nil {
 		snapshot.Connection.Phase = "error"
@@ -194,8 +183,10 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 	snapshot.Devices = hydrated.devices
 	snapshot.Folders = hydrated.folders
 	snapshot.PendingFolders = hydrated.pendingFolders
+	snapshot.PendingDevices = hydrated.pendingDevices
+	snapshot.NearbyDevices = hydrated.nearbyDevices
 	snapshot.WebUI = hydrated.webUI
-	snapshot.Counts = normalizedCounts(hydrated.devices, hydrated.folders)
+	snapshot.Counts = normalizedCounts(hydrated.devices, hydrated.folders, snapshot.Identity.DeviceID)
 	snapshot.Truncation = hydrated.truncation
 	snapshot.Connection.Phase = "ready"
 	snapshot.Connection.Online = true
@@ -234,6 +225,14 @@ func (s *Session) loadAuthenticated(
 	if err != nil {
 		return hydratedState{}, err
 	}
+	pendingDevices, err := s.client.PendingDevices(ctx)
+	if err != nil {
+		return hydratedState{}, err
+	}
+	discovery, err := s.client.DiscoveryCache(ctx)
+	if err != nil {
+		return hydratedState{}, err
+	}
 	gui, err := s.client.GUIConfig(ctx)
 	if err != nil {
 		return hydratedState{}, err
@@ -243,13 +242,18 @@ func (s *Session) loadAuthenticated(
 		return hydratedState{}, err
 	}
 	truncation := collectionTruncation(devices, folders, pending)
+	truncation.PendingDevices = max(0, len(pendingDevices)-maxPendingDevices)
+	truncation.NearbyDevices = max(0,
+		len(nearbyDeviceIDs(discovery, devices, status.MyID))-maxNearbyDevices)
 	truncation.FolderErrors = omittedFolderErrors
 	return hydratedState{
 		identity: Identity{DeviceID: boundedIdentifier(status.MyID),
 			Version: boundedLabel(version.Version)},
-		devices:        normalizeDevices(devices, connections, status.MyID),
+		devices:        normalizeDevices(devices, connections),
 		folders:        normalizedFolders,
 		pendingFolders: normalizePendingFolders(pending),
+		pendingDevices: normalizePendingDevices(pendingDevices),
+		nearbyDevices:  normalizeNearbyDevices(discovery, devices, status.MyID),
 		webUI: WebUI{URL: webURL(s.client.Endpoint()), Theme: boundedIdentifier(gui.Theme),
 			GUIAssets: boundedPath(paths.GUIAssets)},
 		truncation: truncation,
@@ -365,7 +369,7 @@ func (s *Session) Configure(config OperationalConfig) ActionResult {
 	default:
 	}
 	s.publishDesiredState(desired)
-	return ActionResult{OK: true, Revision: s.Current().Revision}
+	return ActionResult{OK: true}
 }
 
 func validateOperationalConfig(config OperationalConfig) *ActionResult {

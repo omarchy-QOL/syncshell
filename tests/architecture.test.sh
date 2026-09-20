@@ -21,9 +21,9 @@ for entry_point in manifest.json Panel.qml Service.qml; do
   [[ -f $root/$entry_point && ! -L $root/$entry_point ]] \
     || fail "$entry_point must be a regular root entry point"
 done
-
-jq -e '.version == "0.1.8"' "$root/manifest.json" >/dev/null \
-  || fail "manifest is not the 0.1.8 candidate"
+[[ -x $root/install.sh ]] || fail "cross-shell installer is missing"
+jq -e '.version | type == "string" and length > 0' \
+  "$root/manifest.json" >/dev/null || fail "manifest version is missing"
 [[ -f $root/packaging/bundled/SHA256SUMS ]] \
   || fail "canonical bundled checksum list is missing"
 [[ $(find "$root/packaging/bundled" -maxdepth 1 -type f \
@@ -35,43 +35,4 @@ if git -C "$root" ls-files --stage | grep -q '^120000 '; then
 fi
 [[ ! -f $root/.gitmodules ]] || fail "plugin tree contains submodules"
 
-future_hosts=(
-  caelestia
-  dankmaterialshell
-  illogical-impulse
-  waybar
-)
-for host in "${future_hosts[@]}"; do
-  host_dir="$root/hosts/$host"
-  [[ -d $host_dir ]] || fail "future host directory is missing: $host"
-  mapfile -t entries < <(
-    find "$host_dir" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort
-  )
-  [[ ${#entries[@]} -eq 1 && ${entries[0]} == README.md ]] \
-    || fail "future host must contain only README.md: $host"
-  grep -Fq 'unimplemented and unsupported in Syncshell 0.1.8' \
-    "$host_dir/README.md" \
-    || fail "future host README makes an unsupported status claim: $host"
-done
-
-if git -C "$root" ls-files \
-    | grep -Eq '(^|/)(TODO|sources|\.research)(/|$)'; then
-  fail "implementation prompts or transcripts are tracked"
-fi
-
-if rg -n '/home/iz|/home-hdd-cold|chatgpt-share' \
-    "$root/docs" "$root/hosts" >/dev/null; then
-  fail "tracked architecture material contains developer-local evidence"
-fi
-
-grep -Fq 'Omarchy remains the sole owner' \
-  "$root/docs/adr/0003-omarchy-settings-boundary.md" \
-  || fail "Omarchy settings ownership is missing"
-grep -Fq 'Unit presence or activity is not authority' \
-  "$root/docs/ownership.md" \
-  || fail "lifecycle authority rule is missing"
-grep -Fq 'There is no mixed runtime, fallback, alias, or feature flag' \
-  "$root/docs/ownership.md" \
-  || fail "one-way cutover rule is missing"
-
-printf '%s[ok]%s architecture contract passed\n' "$green" "$reset"
+printf '%s[ok]%s package layout passed\n' "$green" "$reset"

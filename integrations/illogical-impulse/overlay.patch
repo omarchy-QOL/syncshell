@@ -1,0 +1,17 @@
+diff --git a/dots/.config/quickshell/ii/modules/ii/bar/BarContent.qml b/dots/.config/quickshell/ii/modules/ii/bar/BarContent.qml
+--- a/dots/.config/quickshell/ii/modules/ii/bar/BarContent.qml
++++ b/dots/.config/quickshell/ii/modules/ii/bar/BarContent.qml
+@@ -317,6 +317,13 @@ Item { // Bar content region
+                 }
+             }
+ 
++            SyncshellIndicator {
++                Layout.alignment: Qt.AlignVCenter
++                Layout.leftMargin: 4
++                Layout.rightMargin: 4
++                visible: !Config.options.bar.vertical
++            }
++
+             SysTray {
+                 visible: root.useShortenedForm === 0
+                 Layout.fillWidth: false

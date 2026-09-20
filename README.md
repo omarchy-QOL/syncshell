@@ -19,9 +19,11 @@ the Omarchy bar, manages local folders and opens a redesigned Web UI. Version
 
 - select the switch/toggle in the top right to start or stop the user service
 - select a folder card to open its directory
-- select **+** to configure an existing local directory
+- select **+** to configure a local directory
+- expand **More**, then use **Remote Devices** to add a device or manage its
+  shared folders
 - select **RESCAN** on a folder or **Rescan all folders** for linked folders
-- select **Web UI** for device setup and advanced folder options
+- select **Web UI** for advanced Syncthing options
 - select the gear or press `s` for appearance settings and clean removal
 
 ## Install
@@ -34,8 +36,13 @@ Open the widget and expand **More**. If Syncthing is missing, select **Install
 Syncthing** to install the package and start the user service. Existing
 installations are detected automatically.
 
-Version 0.1.8 supports Omarchy on Linux x86_64 systems. Other host directories
-are placeholders; other shells, ARM and daemon mode remain future work.
+If UFW is enabled, run `sudo ufw allow syncthing` to allow
+[device discovery and synchronization][firewall].
+
+The released plugin supports Omarchy on Linux x86_64. Alpha adapters for
+DankMaterialShell, Illogical Impulse, Caelestia, and Waybar are under
+development; they are not part of the supported release. ARM and daemon mode
+remain future work.
 
 ## Keybindings
 
@@ -235,14 +242,17 @@ after its core restarts.
 Tested with Syncthing v2.1.3. Source history and licensing details are recorded
 in [Syncshell Web provenance][webui-provenance].
 
-## Manage folders from the panel
+## Manage folders and devices from the panel
 
 - **UNLINK / LINK** pause and resume a folder; they do not change its path or
   sharing.
 - **FORGET** removes an unlinked folder from Syncthing's configuration while
   keeping its files.
-- **Add** requires an existing directory and a unique Folder ID. Overlapping
-  paths are rejected. Select remote devices explicitly to share the folder.
+- **Add** requires a unique Folder ID. Missing directories can be created
+  after confirmation. Overlapping paths are rejected. Select remote devices
+  explicitly to share the folder.
+- Use **FOLDERS** to choose a folder's devices or review and remove the selected
+  device's existing shares.
 
 Incoming unencrypted folder offers can prefill the setup form. Use the Web UI
 for encrypted sharing, untrusted devices and details beyond the panel's limits.
@@ -256,8 +266,12 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
-| 0.1.9   | TBD        | syncshell-tui, syncshell-gui, check parity across UIs   |
-|         |            | compatibility w/ caelestia, end4 illogical impulse, ... |
+| 0.1.9   | 2026-09-21 | add remote-device setup and folder-sharing controls     |
+|         |            | confirm directory creation and folder/device removal    |
+|         |            | fix remote counts and keep rescan controls consistent   |
+|         |            | refine dropdowns, status, and installation feedback     |
+|         |            | allow plugin removal while Syncthing is unavailable     |
+| Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
 | 0.1.8   | 2026-09-13 | use one native core for the Omarchy panel               |
 |         |            | support healthy externally managed Syncthing instances  |
 |         |            | add the Preact Web UI and settings migration            |
@@ -292,9 +306,10 @@ Syncshell does not restart it automatically.
 ## Remove
 
 Select **Cleanly remove Syncthing plugin** in settings. You can keep or delete
-plugin settings; both choices remove the custom Web UI profiles and restore
-Syncthing's default UI. Syncthing itself, its configuration and synced files
-remain intact.
+plugin settings. When Syncthing is reachable, both choices restore its default
+UI and remove the custom Web UI profiles. Otherwise those profiles are retained
+so removal never guesses their location. Syncthing itself, its configuration
+and synced files remain intact.
 
 To uninstall Syncthing separately:
 
@@ -319,3 +334,5 @@ runtime and system-call dependency use the
 
 [webui-provenance]:
   https://github.com/syncshell/syncshell-webui/blob/main/UPSTREAM.md
+[firewall]:
+  https://docs.syncthing.net/users/firewall.html#uncomplicated-firewall-ufw

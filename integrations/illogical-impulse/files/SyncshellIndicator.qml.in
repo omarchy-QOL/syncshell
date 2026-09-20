@@ -1,0 +1,36 @@
+import QtQuick
+import qs.modules.common
+import qs.modules.common.widgets
+import qs.services
+
+MouseArea {
+  id: root
+
+  implicitWidth: content.implicitWidth + 12
+  implicitHeight: Appearance.sizes.barHeight
+  onClicked: popup.pinned = !popup.pinned
+
+  Row {
+    id: content
+    anchors.centerIn: parent
+    spacing: 3
+
+    MaterialSymbol {
+      anchors.verticalCenter: parent.verticalCenter
+      text: !Syncshell.online ? "sync_problem"
+        : Syncshell.syncingFolderCount > 0 ? "sync" : "sync_alt"
+      iconSize: Appearance.font.pixelSize.larger
+      color: Syncshell.folderProblemCount > 0
+        ? Appearance.m3colors.m3error : Appearance.colors.colOnLayer0
+      fill: Syncshell.online ? 1 : 0
+    }
+
+    StyledText {
+      anchors.verticalCenter: parent.verticalCenter
+      text: String(Syncshell.folderCount)
+      color: Appearance.colors.colOnLayer0
+    }
+  }
+
+  SyncshellPopup { id: popup }
+}

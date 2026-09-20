@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "integration": "illogical-impulse",
+  "repository": "https://github.com/end-4/dots-hyprland.git",
+  "commit": "42d0aae17b744a38cd05c9044c189bfc9b13869a",
+  "quickshellCommit": "7511545ee20664e3b8b8d3322c0ffe7567c56f7a",
+  "host": "Arch Linux with Hyprland",
+  "patch": "overlay.patch",
+  "orientations": ["top", "bottom"]
+}

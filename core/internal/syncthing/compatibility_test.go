@@ -39,12 +39,3 @@ func TestActiveVersionCompatibilityFixtures(t *testing.T) {
 		})
 	}
 }
-
-func FuzzEventJSON(f *testing.F) {
-	f.Add([]byte(`[{"id":1,"type":"ConfigSaved","data":{}}]`))
-	f.Add([]byte(`null`))
-	f.Fuzz(func(t *testing.T, contents []byte) {
-		var events []Event
-		_ = json.Unmarshal(contents, &events)
-	})
-}

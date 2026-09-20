@@ -1,6 +1,23 @@
 # Changelog
 
-Notable changes to Syncthing for Omarchy are documented here.
+Notable changes to Syncshell for Omarchy are documented here.
+
+## 0.1.9 - 2026-09-21
+
+- add remote-device discovery and setup to the Omarchy panel, including nearby
+  and pending devices
+- add folder-sharing controls for new and existing folders and safe local
+  removal of configured devices and folder shares
+- configure incoming folder offers and confirm creation of missing local
+  directories, including paths starting with `~`
+- confirm folder link changes and device removal before applying them
+- allow clean plugin removal when Syncthing is stopped, disabled, or absent
+- report only remote devices in connection totals and use Syncthing's Device ID
+  terminology
+- refine panel dropdowns, status indicators, action placement, and installation
+  feedback
+- keep folder controls inert during targeted and all-folder rescans and handle
+  paused folders and long-running scans consistently
 
 ## 0.1.8 - 2026-09-13
 

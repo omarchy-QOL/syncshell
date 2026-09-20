@@ -56,6 +56,9 @@ func TestClientHealthStatusFoldersAndRescan(t *testing.T) {
 	defer server.Close()
 
 	client := testClient(t, server.URL, "", false)
+	if client.Endpoint() != server.URL {
+		t.Fatalf("client endpoint = %q, want %q", client.Endpoint(), server.URL)
+	}
 	ctx := context.Background()
 	if err := client.Health(ctx); err != nil {
 		t.Fatal(err)
@@ -64,12 +67,26 @@ func TestClientHealthStatusFoldersAndRescan(t *testing.T) {
 	if err != nil || status.MyID != "LOCAL-ID" {
 		t.Fatalf("unexpected status: %#v %v", status, err)
 	}
+	version, err := client.Version(ctx)
+	if err != nil || version.Version != "v2.1.3" {
+		t.Fatalf("unexpected version: %#v %v", version, err)
+	}
+	devices, err := client.Devices(ctx)
+	if err != nil || len(devices) != 1 || devices[0].DeviceID != "LOCAL-ID" {
+		t.Fatalf("unexpected devices: %#v %v", devices, err)
+	}
 	folders, err := client.Folders(ctx)
 	if err != nil || len(folders) != 1 || folders[0].ID != "folder" {
 		t.Fatalf("unexpected folders: %#v %v", folders, err)
 	}
-	if err := client.Rescan(ctx, "folder"); err != nil {
+	connections, err := client.Connections(ctx)
+	if err != nil || len(connections.Connections) != 0 {
+		t.Fatalf("unexpected connections: %#v %v", connections, err)
+	}
+	if disposition, err := client.Rescan(ctx, "folder"); err != nil {
 		t.Fatal(err)
+	} else if disposition != RescanCompleted {
+		t.Fatalf("rescan disposition = %q, want %q", disposition, RescanCompleted)
 	}
 	if rescans.Load() != 1 {
 		t.Fatalf("got %d rescans, want 1", rescans.Load())
@@ -113,10 +130,13 @@ func TestRescanConfirmsLongRunningScanAfterTimeout(t *testing.T) {
 
 			client := testClient(t, server.URL, "", false)
 			client.http.Timeout = 50 * time.Millisecond
-			err := client.Rescan(context.Background(), test.folderID)
+			disposition, err := client.Rescan(context.Background(), test.folderID)
 			if test.wantOK {
 				if err != nil {
 					t.Fatalf("confirmed rescan failed: %v", err)
+				}
+				if disposition != RescanRunning {
+					t.Fatalf("rescan disposition = %q, want %q", disposition, RescanRunning)
 				}
 				return
 			}

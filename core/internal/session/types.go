@@ -4,16 +4,19 @@ package session
 import "github.com/omarchy-QOL/syncshell/core/internal/systemduser"
 
 const (
-	maxPublicString   = 4096
-	maxIdentifier     = 256
-	maxLabel          = 512
-	maxErrorText      = 1024
-	maxDevices        = 256
-	maxFolders        = 128
-	maxFolderDevices  = 64
-	maxFolderErrors   = 4
-	maxPendingFolders = 32
-	maxPendingOffers  = 16
+	maxPublicString    = 4096
+	maxIdentifier      = 256
+	maxLabel           = 512
+	maxErrorText       = 1024
+	maxDevices         = 256
+	maxFolders         = 128
+	maxFolderDevices   = 64
+	maxFolderErrors    = 4
+	maxPendingFolders  = 32
+	maxPendingOffers   = 16
+	maxPendingDevices  = 64
+	maxNearbyDevices   = 64
+	maxDeviceAddresses = 8
 )
 
 // Error is a sanitized public failure.
@@ -93,6 +96,19 @@ type PendingFolder struct {
 	OfferedBy map[string]FolderOffer `json:"offeredBy"`
 }
 
+// PendingDevice is one unknown remote device connection attempt.
+type PendingDevice struct {
+	ID      string `json:"id"`
+	Name    string `json:"name,omitempty"`
+	Address string `json:"address,omitempty"`
+}
+
+// NearbyDevice is one unconfigured device in Syncthing's discovery cache.
+type NearbyDevice struct {
+	ID        string   `json:"id"`
+	Addresses []string `json:"addresses"`
+}
+
 // Activity is one bounded current file operation.
 type Activity struct {
 	FolderID string `json:"folderId"`
@@ -120,15 +136,6 @@ type Installation struct {
 	Available      bool   `json:"available"`
 }
 
-// Mutation is the single serialized action state.
-type Mutation struct {
-	Busy       bool   `json:"busy"`
-	ID         string `json:"id,omitempty"`
-	Action     string `json:"action,omitempty"`
-	Error      *Error `json:"error,omitempty"`
-	Suggestion string `json:"suggestion,omitempty"`
-}
-
 // Counts contains normalized aggregate state used by rich hosts.
 type Counts struct {
 	Folders          int `json:"folders"`
@@ -146,24 +153,25 @@ type Truncation struct {
 	FolderErrors   int `json:"folderErrors,omitempty"`
 	PendingFolders int `json:"pendingFolders,omitempty"`
 	PendingOffers  int `json:"pendingOffers,omitempty"`
+	PendingDevices int `json:"pendingDevices,omitempty"`
+	NearbyDevices  int `json:"nearbyDevices,omitempty"`
 }
 
 // Snapshot is the complete immutable public state at one revision.
 type Snapshot struct {
-	HostID         string                   `json:"hostId,omitempty"`
 	Connection     Connection               `json:"connection"`
 	Identity       Identity                 `json:"identity"`
 	Devices        []Device                 `json:"devices"`
 	Folders        []Folder                 `json:"folders"`
 	PendingFolders map[string]PendingFolder `json:"pendingFolders"`
+	PendingDevices []PendingDevice          `json:"pendingDevices"`
+	NearbyDevices  []NearbyDevice           `json:"nearbyDevices"`
 	Activity       ActivityState            `json:"activity"`
 	WebUI          WebUI                    `json:"webUi"`
 	Installation   Installation             `json:"installation"`
-	Mutation       Mutation                 `json:"mutation"`
 	Counts         Counts                   `json:"counts"`
 	Truncation     Truncation               `json:"truncation"`
 	Lifecycle      systemduser.State        `json:"lifecycle"`
-	Capabilities   []string                 `json:"capabilities"`
 }
 
 // PublishedSnapshot pairs complete public state with its monotonic revision.
@@ -181,18 +189,29 @@ type OperationalConfig struct {
 
 // ActionResult is one correlated domain result.
 type ActionResult struct {
-	OK       bool   `json:"ok"`
-	Revision uint64 `json:"revision,omitempty"`
-	Data     any    `json:"data,omitempty"`
-	Error    *Error `json:"error,omitempty"`
+	OK    bool   `json:"ok"`
+	Data  any    `json:"data,omitempty"`
+	Error *Error `json:"error,omitempty"`
+}
+
+// RescanResult reports whether every target completed within the request
+// bound or which confirmed targets are still scanning.
+type RescanResult struct {
+	State            string   `json:"state"`
+	TargetFolderIDs  []string `json:"targetFolderIds"`
+	RunningFolderIDs []string `json:"runningFolderIds"`
 }
 
 // ActionArguments is the single protocol-to-session action input shape.
 type ActionArguments struct {
 	FolderID        string   `json:"folderId,omitempty"`
 	Path            string   `json:"path,omitempty"`
+	CreateDirectory bool     `json:"createDirectory,omitempty"`
 	Label           string   `json:"label,omitempty"`
 	DeviceIDs       []string `json:"deviceIds,omitempty"`
+	FolderIDs       []string `json:"folderIds,omitempty"`
 	PendingDeviceID string   `json:"pendingDeviceId,omitempty"`
+	DeviceID        string   `json:"deviceId,omitempty"`
+	DeviceName      string   `json:"deviceName,omitempty"`
 	Theme           string   `json:"theme,omitempty"`
 }

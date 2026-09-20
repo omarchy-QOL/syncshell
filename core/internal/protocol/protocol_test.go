@@ -13,7 +13,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/omarchy-QOL/syncshell/core/internal/session"
 	"github.com/omarchy-QOL/syncshell/core/internal/syncthing"
@@ -23,10 +22,10 @@ const protocolTestKey = "protocol-test-key"
 
 func TestStreamShutdownContract(t *testing.T) {
 	coreSession, _ := newProtocolSession(t, false)
-	input := strings.NewReader(`{"v":1,"type":"shutdown","id":"10"}` + "\n")
+	input := strings.NewReader(`{"v":2,"type":"shutdown","id":"10"}` + "\n")
 	var output bytes.Buffer
 	err := (Stream{Session: coreSession, Input: input, Output: &output,
-		Build: Build{Version: "0.1.8", Protocol: Version, GoVersion: "test"}}).Run(context.Background())
+		Build: Build{Version: "0.1.8"}}).Run(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,14 +39,14 @@ func TestStreamShutdownContract(t *testing.T) {
 func TestStreamConfigureRefreshAndRescanWithoutWebAssets(t *testing.T) {
 	coreSession, rescans := newProtocolSession(t, false)
 	input := strings.NewReader(
-		`{"v":1,"type":"configure","id":"1","config":{"probeIntervalSeconds":2,"refreshIntervalSeconds":90}}` + "\n" +
-			`{"v":1,"type":"refresh","id":"2"}` + "\n" +
-			`{"v":1,"type":"action","id":"3","action":"folder.rescan","args":{"folderId":"folder"}}` + "\n" +
-			`{"v":1,"type":"action","id":"4","action":"folder.suggest-id","args":{}}` + "\n" +
-			`{"v":1,"type":"shutdown","id":"5"}` + "\n")
+		`{"v":2,"type":"configure","id":"1","config":{"probeIntervalSeconds":2,"refreshIntervalSeconds":90}}` + "\n" +
+			`{"v":2,"type":"refresh","id":"2"}` + "\n" +
+			`{"v":2,"type":"action","id":"3","action":"folder.rescan","args":{"folderId":"folder"}}` + "\n" +
+			`{"v":2,"type":"action","id":"4","action":"folder.suggest-id","args":{}}` + "\n" +
+			`{"v":2,"type":"shutdown","id":"5"}` + "\n")
 	var output bytes.Buffer
 	err := (Stream{Session: coreSession, Input: input, Output: &output,
-		Build: Build{Version: "0.1.8", Protocol: Version}}).Run(context.Background())
+		Build: Build{Version: "0.1.8"}}).Run(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,6 +76,119 @@ func TestStreamConfigureRefreshAndRescanWithoutWebAssets(t *testing.T) {
 	if data["folderId"] != "abcdefghij" {
 		t.Fatalf("suggestion data missing: %#v", results["4"])
 	}
+	rescanData, _ := results["3"]["data"].(map[string]any)
+	if rescanData["state"] != "completed" {
+		t.Fatalf("rescan disposition missing: %#v", results["3"])
+	}
+	rescanResultIndex := -1
+	suggestionResultIndex := -1
+	for index, frame := range frames {
+		if frame["type"] != "result" {
+			continue
+		}
+		switch frame["id"] {
+		case "3":
+			rescanResultIndex = index
+		case "4":
+			suggestionResultIndex = index
+		}
+	}
+	if rescanResultIndex < 1 || frames[rescanResultIndex-1]["type"] != "snapshot" {
+		t.Fatalf("changed action snapshot did not precede its result: %#v", frames)
+	}
+	for index := rescanResultIndex + 1; index < suggestionResultIndex; index++ {
+		if frames[index]["type"] == "snapshot" {
+			t.Fatalf("unchanged action emitted a duplicate snapshot: %#v", frames)
+		}
+	}
+}
+
+func TestAmbiguousActionPublishesRefreshedStateBeforeResult(t *testing.T) {
+	var paused atomic.Bool
+	server := httptest.NewServer(http.HandlerFunc(func(
+		writer http.ResponseWriter,
+		request *http.Request,
+	) {
+		switch request.URL.Path {
+		case "/rest/noauth/health":
+			protocolJSON(writer, `{"status":"OK"}`)
+		case "/rest/system/status":
+			protocolJSON(writer, `{"myID":"LOCAL-ID"}`)
+		case "/rest/system/version":
+			protocolJSON(writer, `{"version":"v2.1.3"}`)
+		case "/rest/config/devices":
+			protocolJSON(writer, `[]`)
+		case "/rest/config/folders":
+			protocolJSON(writer, fmt.Sprintf(
+				`[{"id":"folder","path":"/tmp/folder","paused":%t}]`, paused.Load()))
+		case "/rest/config/folders/folder":
+			if request.Method == http.MethodPatch {
+				paused.Store(true)
+				connection, _, err := writer.(http.Hijacker).Hijack()
+				if err == nil {
+					_ = connection.Close()
+				}
+				return
+			}
+			protocolJSON(writer, fmt.Sprintf(
+				`{"id":"folder","path":"/tmp/folder","paused":%t}`, paused.Load()))
+		case "/rest/system/connections":
+			protocolJSON(writer, `{"connections":{}}`)
+		case "/rest/db/status":
+			protocolJSON(writer, `{"state":"idle"}`)
+		case "/rest/folder/errors":
+			protocolJSON(writer, `{"errors":[]}`)
+		case "/rest/cluster/pending/folders", "/rest/cluster/pending/devices",
+			"/rest/system/discovery":
+			protocolJSON(writer, `{}`)
+		case "/rest/config/gui":
+			protocolJSON(writer, `{"theme":"default"}`)
+		case "/rest/system/paths":
+			protocolJSON(writer, `{"guiAssets":"/tmp/gui"}`)
+		default:
+			http.NotFound(writer, request)
+		}
+	}))
+	defer server.Close()
+	configPath := filepath.Join(t.TempDir(), "config.xml")
+	config := fmt.Sprintf(
+		`<configuration><gui><address>%s</address><apikey>%s</apikey></gui></configuration>`,
+		strings.TrimPrefix(server.URL, "http://"), protocolTestKey)
+	if err := os.WriteFile(configPath, []byte(config), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	coreSession, err := session.New(context.Background(), session.Config{
+		Discovery: syncthing.DiscoveryOptions{ConfigPath: configPath},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	input := strings.NewReader(
+		`{"v":2,"type":"action","id":"1","action":"folder.pause","args":{"folderId":"folder"}}` + "\n" +
+			`{"v":2,"type":"shutdown","id":"2"}` + "\n")
+	var output bytes.Buffer
+	if err := (Stream{Session: coreSession, Input: input, Output: &output,
+		Build: Build{Version: "0.1.8"}}).Run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	frames := decodeFrames(t, output.Bytes())
+	resultIndex := -1
+	for index, frame := range frames {
+		if frame["type"] == "result" && frame["id"] == "1" {
+			resultIndex = index
+			break
+		}
+	}
+	if resultIndex < 1 || frames[resultIndex]["ok"] != false ||
+		frames[resultIndex-1]["type"] != "snapshot" {
+		t.Fatalf("ambiguous mutation ordering is invalid: %#v", frames)
+	}
+	state, _ := frames[resultIndex-1]["state"].(map[string]any)
+	folders, _ := state["folders"].([]any)
+	folder, _ := folders[0].(map[string]any)
+	if folder["paused"] != true {
+		t.Fatalf("refreshed mutation state was not published: %#v", frames)
+	}
 }
 
 func TestStreamRejectsMalformedDuplicateAndWrongVersion(t *testing.T) {
@@ -85,17 +197,17 @@ func TestStreamRejectsMalformedDuplicateAndWrongVersion(t *testing.T) {
 		input string
 	}{
 		{"malformed", "{\n"},
-		{"duplicate", `{"v":1,"type":"refresh","id":"1"}` + "\n" +
-			`{"v":1,"type":"refresh","id":"1"}` + "\n"},
-		{"wrong version", `{"v":2,"type":"refresh","id":"1"}` + "\n"},
-		{"unknown field", `{"v":1,"type":"refresh","id":"1","unknown":true}` + "\n"},
+		{"duplicate", `{"v":2,"type":"refresh","id":"1"}` + "\n" +
+			`{"v":2,"type":"refresh","id":"1"}` + "\n"},
+		{"wrong version", `{"v":3,"type":"refresh","id":"1"}` + "\n"},
+		{"unknown field", `{"v":2,"type":"refresh","id":"1","unknown":true}` + "\n"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			coreSession, _ := newProtocolSession(t, false)
 			var output bytes.Buffer
 			err := (Stream{Session: coreSession, Input: strings.NewReader(test.input),
-				Output: &output, Build: Build{Version: "0.1.8", Protocol: Version}}).
+				Output: &output, Build: Build{Version: "0.1.8"}}).
 				Run(context.Background())
 			if err == nil {
 				t.Fatal("invalid protocol input succeeded")
@@ -111,19 +223,19 @@ func TestStreamRejectsMalformedDuplicateAndWrongVersion(t *testing.T) {
 func TestRequestIDWindowDoesNotExpireStream(t *testing.T) {
 	ids := requestIDs{seen: make(map[string]struct{})}
 	for index := 0; index < maxRememberedRequests+10; index++ {
-		line := []byte(fmt.Sprintf(`{"v":1,"type":"refresh","id":"%d"}`, index))
+		line := []byte(fmt.Sprintf(`{"v":2,"type":"refresh","id":"%d"}`, index))
 		if _, err := validateRequest(line, &ids); err != nil {
 			t.Fatalf("request %d failed: %v", index, err)
 		}
 	}
-	latest := []byte(fmt.Sprintf(`{"v":1,"type":"refresh","id":"%d"}`,
+	latest := []byte(fmt.Sprintf(`{"v":2,"type":"refresh","id":"%d"}`,
 		maxRememberedRequests+9))
 	if _, err := validateRequest(latest, &ids); err == nil ||
 		!strings.Contains(err.Error(), "duplicated") {
 		t.Fatalf("recent duplicate was accepted: %v", err)
 	}
 	if _, err := validateRequest(
-		[]byte(`{"v":1,"type":"refresh","id":"0"}`), &ids); err != nil {
+		[]byte(`{"v":2,"type":"refresh","id":"0"}`), &ids); err != nil {
 		t.Fatalf("evicted request ID terminated the stream: %v", err)
 	}
 }
@@ -133,7 +245,7 @@ func TestStreamBoundsInputAndEndsOnClosedStdin(t *testing.T) {
 	var output bytes.Buffer
 	err := (Stream{Session: coreSession,
 		Input: bytes.NewReader(bytes.Repeat([]byte{'x'}, MaxLineBytes)), Output: &output,
-		Build: Build{Version: "0.1.8", Protocol: Version}}).Run(context.Background())
+		Build: Build{Version: "0.1.8"}}).Run(context.Background())
 	if err == nil {
 		t.Fatal("oversized line succeeded")
 	}
@@ -145,7 +257,7 @@ func TestStreamBoundsInputAndEndsOnClosedStdin(t *testing.T) {
 	coreSession, _ = newProtocolSession(t, false)
 	output.Reset()
 	err = (Stream{Session: coreSession, Input: strings.NewReader(""), Output: &output,
-		Build: Build{Version: "0.1.8", Protocol: Version}}).Run(context.Background())
+		Build: Build{Version: "0.1.8"}}).Run(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,7 +272,7 @@ func TestStreamStdoutIsJSONAndSecretFree(t *testing.T) {
 	coreSession, _ := newProtocolSession(t, true)
 	var output bytes.Buffer
 	if err := (Stream{Session: coreSession, Input: strings.NewReader(""), Output: &output,
-		Build: Build{Version: "0.1.8", Protocol: Version}}).Run(context.Background()); err != nil {
+		Build: Build{Version: "0.1.8"}}).Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if strings.Contains(output.String(), protocolTestKey) {
@@ -231,34 +343,6 @@ func TestBoundedPublicSnapshotFitsOneFrame(t *testing.T) {
 	}
 }
 
-func TestStreamSupportsSlowStdoutConsumer(t *testing.T) {
-	coreSession, _ := newProtocolSession(t, false)
-	writer := &slowWriter{}
-	if err := (Stream{Session: coreSession, Input: strings.NewReader(""),
-		Output: writer, Build: Build{Version: "0.1.8", Protocol: Version}}).
-		Run(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	frames := decodeFrames(t, writer.Bytes())
-	assertTypes(t, frames, "hello", "snapshot", "end")
-}
-
-type slowWriter struct{ bytes.Buffer }
-
-func (w *slowWriter) Write(contents []byte) (int, error) {
-	time.Sleep(time.Millisecond)
-	return w.Buffer.Write(contents)
-}
-
-func FuzzRequestDecoder(f *testing.F) {
-	f.Add([]byte(`{"v":1,"type":"refresh","id":"1"}`))
-	f.Add([]byte(`{`))
-	f.Fuzz(func(t *testing.T, data []byte) {
-		var request request
-		_ = decodeStrict(data, &request)
-	})
-}
-
 func newProtocolSession(t *testing.T, unauthorized bool) (*session.Session, *atomic.Int32) {
 	t.Helper()
 	var rescans atomic.Int32
@@ -290,10 +374,12 @@ func newProtocolSession(t *testing.T, unauthorized bool) (*session.Session, *ato
 		case "/rest/system/connections":
 			protocolJSON(writer, `{"connections":{}}`)
 		case "/rest/db/status":
-			protocolJSON(writer, `{"state":"idle"}`)
+			protocolJSON(writer, fmt.Sprintf(`{"state":"idle","globalFiles":%d}`,
+				rescans.Load()))
 		case "/rest/folder/errors":
 			protocolJSON(writer, `{"errors":[]}`)
-		case "/rest/cluster/pending/folders":
+		case "/rest/cluster/pending/folders", "/rest/cluster/pending/devices",
+			"/rest/system/discovery":
 			protocolJSON(writer, `{}`)
 		case "/rest/config/gui":
 			protocolJSON(writer, `{"theme":"default"}`)

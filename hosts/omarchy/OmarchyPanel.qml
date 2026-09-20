@@ -6,6 +6,7 @@ import qs.Ui
 import "ui"
 import "ui/UiConstants.js" as UiConstants
 import "models/PanelModel.js" as PanelModel
+import "models/ThemePaletteModel.js" as ThemePaletteModel
 
 Panel {
   id: root
@@ -16,9 +17,12 @@ Panel {
     ? bar.shell.serviceFor(moduleName) : null
   readonly property color foreground: bar ? bar.foreground : Color.foreground
   readonly property color urgent: bar ? bar.urgent : Color.urgent
-  readonly property color warning: "#ebcb8b"
-  readonly property color success: "#a3be8c"
-  readonly property color syncthingBlue: "#26B6DB"
+  readonly property color warning: syncthing
+    ? syncthing.warning : ThemePaletteModel.DefaultYellow
+  readonly property color success: syncthing
+    ? syncthing.success : ThemePaletteModel.DefaultGreen
+  readonly property color syncActivityColor: syncthing
+    ? syncthing.syncActivityColor : ThemePaletteModel.DefaultCyan
   readonly property color dim: Qt.darker(foreground, 1.5)
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   readonly property string homePath: Quickshell.env("HOME")
@@ -33,22 +37,29 @@ Panel {
   property bool addIdEdited: false
   property bool addLabelFromOffer: false
   property bool addSubmissionPending: false
+  property bool folderShareOpen: false
   property bool preserveStateForFolderPicker: false
-  property string selectedFolderId: ""
+  property string currentFolderId: ""
   property string selectedPendingOffer: ""
-  property string forgetFolderId: ""
-  property bool forgetConfirmOpen: false
+  property string folderConfirmAction: ""
+  property string folderConfirmId: ""
+  property var folderCreationArgs: null
+  readonly property bool folderConfirmOpen: folderConfirmAction !== ""
+  property string deviceConfirmAction: ""
+  property string deviceConfirmId: ""
+  property string deviceConfirmName: ""
+  readonly property bool deviceConfirmOpen: deviceConfirmAction !== ""
   property string folderPickerOutput: ""
   property string folderPickerError: ""
   property string displayedNotice: ""
   property bool noticeShown: false
   readonly property var folderRows: buildFolderRows()
-  readonly property var selectedFolderRow: folderById(selectedFolderId)
+  readonly property var currentFolderRow: folderById(currentFolderId)
   readonly property bool compactFolders: folderRows.length >= 5
   readonly property string displayedFolderId: compactFolders
     && visibleSyncActivity !== "" && syncthing
     && folderById(syncthing.syncActivityFolderId)
-    ? syncthing.syncActivityFolderId : selectedFolderId
+    ? syncthing.syncActivityFolderId : currentFolderId
   readonly property var visibleFolderRows: compactFolders
     ? (folderById(displayedFolderId) ? [folderById(displayedFolderId)] : [])
     : folderRows
@@ -108,11 +119,17 @@ Panel {
       || syncthing.packageError
       || syncthing.settingsError
       || syncthing.controlError
-      || (quiet ? "" : syncthing.lastError) || ""
+      || ((quiet || syncthing.installationState === "missing")
+        ? "" : syncthing.lastError) || ""
   }
   readonly property string visibleNotice: syncthing
     ? syncthing.folderMutationNotice || syncthing.settingsNotice : ""
+  readonly property int visibleNoticeDurationMs: syncthing
+    && syncthing.folderMutationNotice !== ""
+    ? syncthing.folderMutationNoticeVisibleMs : UiConstants.NOTICE_VISIBLE_MS
   readonly property string visibleWarning: {
+    if (syncthing && syncthing.installationState === "missing")
+      return "Syncthing is not installed. Open More to install it."
     if (managedStop) return syncthing.summaryText
     return syncthing
       ? syncthing.recoveryWarning || syncthing.serviceStateWarning : ""
@@ -140,27 +157,13 @@ Panel {
   readonly property string localDeviceName: PanelModel.localDeviceName(
     syncthing, Quickshell.env("HOSTNAME"))
 
-  function showNotice(message) {
+  function showNotice(message, visibleMs) {
     displayedNotice = message
     noticeShown = true
     noticeFadeTimer.stop()
+    noticeDisplayTimer.interval = Number(visibleMs) > 0
+      ? Math.round(Number(visibleMs)) : UiConstants.NOTICE_VISIBLE_MS
     noticeDisplayTimer.restart()
-  }
-
-  function copyToClipboard(value, notice) {
-    var text = String(value || "")
-    if (!text) return
-    Quickshell.execDetached(["wl-copy", "--", text])
-    showNotice(notice)
-  }
-
-  function copyLocalDeviceId() {
-    copyToClipboard(syncthing ? syncthing.displayDeviceId : "",
-      "Host ID copied")
-  }
-
-  function copyFolderId(folderId) {
-    copyToClipboard(folderId, "Folder ID copied")
   }
 
   function chooseServiceStateAction(index) {
@@ -198,9 +201,24 @@ Panel {
   }
 
   function showFolderErrors(folderId) {
-    selectedFolderId = folderId
+    currentFolderId = folderId
     moreOpen = true
     Qt.callLater(function() { popup.scrollToMore() })
+  }
+
+  function scrollToMore() {
+    popup.scrollToMore()
+  }
+
+  function scrollToTop() {
+    popup.scrollToTop()
+  }
+
+  function toggleFolderSharing() {
+    var opening = !folderShareOpen
+    if (opening && addOpen) closeAddFolder()
+    folderShareOpen = opening
+    if (folderShareOpen) Qt.callLater(function() { popup.scrollToMore() })
   }
 
   function showBarTooltip() {
@@ -250,26 +268,26 @@ Panel {
     return scanningFolderCount === 0
   }
 
-  function selectedFolder() {
-    return selectedFolderRow
+  function currentFolder() {
+    return currentFolderRow
   }
 
   function folderById(folderId) {
     return PanelModel.folderById(folderRows, folderId)
   }
 
-  function ensureFolderSelection() {
-    if (selectedFolder()) return
-    selectedFolderId = folderRows.length > 0 ? folderRows[0].id : ""
+  function ensureCurrentFolder() {
+    if (currentFolder()) return
+    currentFolderId = folderRows.length > 0 ? folderRows[0].id : ""
   }
 
-  function selectFolderOffset(offset) {
+  function cycleCurrentFolder(offset) {
     if (folderRows.length < 2 || offset === 0) return
-    var current = selectedFolder()
+    var current = currentFolder()
     var index = current ? folderRows.indexOf(current) : 0
     index = (index + (offset > 0 ? 1 : -1) + folderRows.length)
       % folderRows.length
-    selectedFolderId = folderRows[index].id
+    currentFolderId = folderRows[index].id
   }
 
   function folderOptions() {
@@ -283,6 +301,50 @@ Panel {
 
   function deviceOptions() {
     return PanelModel.deviceOptions(syncthing)
+  }
+
+  function remoteDeviceRows() {
+    return PanelModel.remoteDeviceRows(syncthing)
+  }
+
+  function pendingDeviceRows() {
+    return PanelModel.pendingDeviceRows(syncthing)
+  }
+
+  function nearbyDeviceOptions() {
+    return PanelModel.nearbyDeviceOptions(syncthing)
+  }
+
+  function requestPendingDeviceDismiss(device) {
+    if (!device || !syncthing || syncthing.folderMutationBusy) return
+    deviceConfirmId = String(device.id || "")
+    deviceConfirmName = String(device.name || "")
+      || PanelModel.shortDeviceId(device.id)
+    deviceConfirmAction = "dismiss"
+  }
+
+  function requestDeviceRemoval(device) {
+    if (!device || !syncthing || syncthing.folderMutationBusy) return
+    deviceConfirmId = String(device.id || "")
+    deviceConfirmName = String(device.name || "")
+      || PanelModel.shortDeviceId(device.id)
+    deviceConfirmAction = "remove"
+  }
+
+  function confirmDeviceAction() {
+    var action = deviceConfirmAction
+    var id = deviceConfirmId
+    var name = deviceConfirmName
+    cancelDeviceAction()
+    if (!syncthing) return
+    if (action === "dismiss") syncthing.dismissPendingDevice(id, name)
+    else if (action === "remove") syncthing.removeDevice(id, name)
+  }
+
+  function cancelDeviceAction() {
+    deviceConfirmAction = ""
+    deviceConfirmId = ""
+    deviceConfirmName = ""
   }
 
   function pendingOfferOptions() {
@@ -333,6 +395,7 @@ Panel {
     addIdEdited = false
     addLabelFromOffer = false
     addSubmissionPending = false
+    folderShareOpen = false
     popup.resetAddForm()
     syncthing.requestFolderIdSuggestion()
     Qt.callLater(function() { popup.focusAddPath() })
@@ -342,6 +405,7 @@ Panel {
     if (syncthing && syncthing.folderMutationBusy
         && syncthing.folderMutationAction === "add") return
     addOpen = false
+    folderShareOpen = false
     addSubmissionPending = false
     popup.focusPanel()
   }
@@ -354,8 +418,8 @@ Panel {
     addIdEdited = false
     addLabelFromOffer = false
     addSubmissionPending = false
-    forgetFolderId = ""
-    forgetConfirmOpen = false
+    cancelFolderAction()
+    cancelDeviceAction()
     folderPickerError = ""
     popup.closeTransientPopups()
   }
@@ -398,7 +462,7 @@ Panel {
     if (!addOpen) return
     popup.pendingFolderValue = selected
     applyPendingFolder(selected)
-    popup.scrollToTop()
+    popup.scrollToMore()
     Qt.callLater(function() { popup.focusAddPath() })
   }
 
@@ -419,9 +483,9 @@ Panel {
     if (!syncthing || syncthing.folderMutationBusy) return
     var label = String(popup.addLabelText || "").trim()
     if (!label) label = pathLabel(popup.addPathText)
-    selectedFolderId = String(popup.addIdText || "").trim()
+    currentFolderId = String(popup.addIdText || "").trim()
     addSubmissionPending = syncthing.addFolder(
-      popup.addPathText,
+      resolveFolderPath(String(popup.addPathText || "").trim()),
       label,
       popup.addIdText,
       popup.selectedDeviceIds,
@@ -431,15 +495,36 @@ Panel {
   function requestForget(folder) {
     if (!folder || !folder.paused || !syncthing
         || syncthing.folderMutationBusy) return
-    selectedFolderId = folder.id
-    forgetFolderId = folder.id
-    forgetConfirmOpen = true
+    currentFolderId = folder.id
+    folderConfirmId = folder.id
+    folderConfirmAction = "forget"
   }
 
-  function confirmForget() {
-    forgetConfirmOpen = false
-    if (syncthing) syncthing.forgetFolder(forgetFolderId)
-    forgetFolderId = ""
+  function requestFolderLinkChange(folder, linked) {
+    if (!folder || !syncthing || syncthing.folderMutationBusy) return
+    currentFolderId = folder.id
+    folderConfirmId = folder.id
+    folderConfirmAction = linked ? "link" : "unlink"
+  }
+
+  function confirmFolderAction() {
+    var action = folderConfirmAction
+    var id = folderConfirmId
+    var creation = folderCreationArgs
+    cancelFolderAction()
+    if (!syncthing) return
+    if (action === "create" && creation) {
+      addSubmissionPending = syncthing.addFolder(creation.path,
+        creation.label, creation.folderId, creation.deviceIds,
+        creation.pendingDeviceId, true)
+    } else if (action === "forget") syncthing.forgetFolder(id)
+    else syncthing.setFolderLinked(id, action === "link")
+  }
+
+  function cancelFolderAction() {
+    folderConfirmAction = ""
+    folderConfirmId = ""
+    folderCreationArgs = null
   }
 
   function openWebUi() {
@@ -469,7 +554,7 @@ Panel {
   function closeTransientViews() {
     moreOpen = false
     addOpen = false
-    forgetConfirmOpen = false
+    cancelFolderAction()
     popup.closeTransientPopups()
   }
 
@@ -527,13 +612,17 @@ Panel {
     }
   }
 
+  function openSyncthingPackageDocumentation() {
+    Qt.openUrlExternally("https://omarchy.org/manual/other-packages/")
+  }
+
   onSyncthingChanged: configureService()
   onSettingsChanged: configureService()
-  onFolderRowsChanged: ensureFolderSelection()
+  onFolderRowsChanged: ensureCurrentFolder()
   onPendingOfferRowsChanged: ensurePendingOfferSelection()
   onVisibleNoticeChanged: {
     if (visibleNotice !== "") {
-      showNotice(visibleNotice)
+      showNotice(visibleNotice, visibleNoticeDurationMs)
     } else if (displayedNotice !== "") {
       noticeDisplayTimer.stop()
       noticeShown = false
@@ -546,7 +635,7 @@ Panel {
         syncthing.recheckSettings()
         syncthing.refresh()
       }
-      ensureFolderSelection()
+      ensureCurrentFolder()
       popup.scrollToTop()
       Qt.callLater(function() { popup.focusPanel() })
     } else if (!preserveStateForFolderPicker) {
@@ -558,7 +647,7 @@ Panel {
 
   Timer {
     id: noticeDisplayTimer
-    interval: 10000
+    interval: UiConstants.NOTICE_VISIBLE_MS
     repeat: false
     onTriggered: {
       root.noticeShown = false
@@ -568,7 +657,7 @@ Panel {
 
   Timer {
     id: noticeFadeTimer
-    interval: 350
+    interval: UiConstants.NOTICE_FADE_MS
     repeat: false
     onTriggered: {
       if (root.noticeShown) return
@@ -587,6 +676,15 @@ Panel {
 
   Connections {
     target: root.syncthing
+
+    function onFolderDirectoryRequired(args) {
+      root.addSubmissionPending = false
+      if (!root.addOpen || !root.opened) return
+      root.folderCreationArgs = args
+      root.folderConfirmAction = "create"
+      popup.closeTransientPopups()
+      popup.focusPanel()
+    }
 
     function onFolderIdSuggestionChanged() {
       if (root.addOpen && !root.addIdEdited

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Commons
 import qs.Ui
+import "UiConstants.js" as UiConstants
 
 Column {
   id: root
@@ -10,8 +11,8 @@ Column {
   property var syncthing
   property color foreground: Color.foreground
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
-  property color success: "#a3be8c"
+  required property color warning
+  required property color success
   property string fontFamily: Style.font.family
 
   width: parent ? parent.width : implicitWidth
@@ -35,6 +36,7 @@ Column {
       title: "Syncthing"
       meta: root.controller.localDeviceName
       metaOpacity: 0
+      iconSize: Style.font.displayLarge + Style.spacing.md
       foreground: root.foreground
       fontFamily: root.fontFamily
       iconOpacity: root.syncthing && root.syncthing.online
@@ -91,15 +93,15 @@ Column {
       anchors.rightMargin: hero.trailingInset
       anchors.bottom: hero.bottom
       height: Math.max(deviceNameText.implicitHeight,
-        copyHostIdButton.height)
+        copyDeviceIdButton.height)
 
       Text {
         id: deviceNameText
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         width: Math.min(implicitWidth, Math.max(0,
-          deviceMetaRow.width - (copyHostIdButton.visible
-            ? copyHostIdButton.width + Style.space(4) : 0)))
+          deviceMetaRow.width - (copyDeviceIdButton.visible
+            ? copyDeviceIdButton.width + Style.space(4) : 0)))
         text: root.controller.localDeviceName.toUpperCase()
         textFormat: Text.PlainText
         color: Qt.darker(root.foreground, 1.4)
@@ -110,24 +112,24 @@ Column {
         elide: Text.ElideRight
       }
 
-      TooltipButton {
-        id: copyHostIdButton
+      IdCopyButton {
+        id: copyDeviceIdButton
         anchors.left: deviceNameText.right
         anchors.leftMargin: Style.space(4)
         anchors.verticalCenter: parent.verticalCenter
         visible: root.syncthing && root.syncthing.displayDeviceId !== ""
         height: Math.round(deviceNameText.implicitHeight)
-        text: "host ID"
-        iconText: "󰆏"
-        helpText: "Copy host ID"
-        bordered: true
+        value: root.syncthing ? root.syncthing.displayDeviceId : ""
+        notice: "Device ID copied"
+        text: "device ID"
+        helpText: "Copy device ID"
+        controller: root.controller
         foreground: root.foreground
         fontFamily: root.fontFamily
         fontSize: Math.max(Style.space(8), Style.font.caption - 1)
         iconSize: Math.max(Style.space(7), Style.font.caption - 3)
         horizontalPadding: Style.space(4)
         verticalPadding: 0
-        onClicked: root.controller.copyLocalDeviceId()
       }
     }
   }
@@ -169,7 +171,8 @@ Column {
 
     Behavior on opacity {
       NumberAnimation {
-        duration: root.controller.noticeShown ? 0 : 350
+        duration: root.controller.noticeShown ? 0
+          : UiConstants.NOTICE_FADE_MS
         easing.type: Easing.OutCubic
       }
     }

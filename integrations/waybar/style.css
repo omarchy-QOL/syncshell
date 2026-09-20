@@ -1,0 +1,17 @@
+#custom-syncshell {
+  min-width: 54px;
+  padding: 0 10px;
+}
+
+#custom-syncshell.offline,
+#custom-syncshell.error {
+  color: #f38ba8;
+}
+
+#custom-syncshell.syncing {
+  color: #89b4fa;
+}
+
+#custom-syncshell.idle {
+  color: #a6e3a1;
+}

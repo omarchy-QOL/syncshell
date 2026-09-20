@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../../shared"
 import "controllers"
+import "ui/UiConstants.js" as UiConstants
 import "models/FacadeModel.js" as FacadeModel
 
 QtObject {
@@ -43,6 +44,8 @@ QtObject {
   readonly property var devices: FacadeModel.devices(state.devices)
   readonly property var folders: FacadeModel.folders(state.folders)
   readonly property var pendingFolders: state.pendingFolders || ({})
+  readonly property var pendingDevices: state.pendingDevices || []
+  readonly property var nearbyDevices: state.nearbyDevices || []
   readonly property var folderStatuses:
     FacadeModel.folderStatuses(state.folders)
   readonly property var syncingFiles: FacadeModel.syncingFiles(activity)
@@ -97,15 +100,16 @@ QtObject {
   property string folderMutationId: ""
   property string folderMutationAction: ""
   property string folderMutationError: ""
+  signal folderDirectoryRequired(var args)
   property string folderMutationNotice: ""
-  property bool pendingRescanResultReady: false
+  property int folderMutationNoticeVisibleMs: UiConstants.NOTICE_VISIBLE_MS
   property string recentlyLinkedFolderId: ""
   property bool folderPreparationBusy: false
   property string folderPreparationError: ""
   property string folderIdSuggestion: ""
 
   readonly property string syncActivityDots: currentActivity.detail
-    ? [".  ", ".. ", "..."][_activityDotIndex] : ""
+    ? ["   ", ".  ", ".. ", "..."][_activityDotIndex] : ""
   readonly property string syncActivityFolderId:
     String(currentActivity.folderId || "")
   readonly property string syncActivityAction:
@@ -122,6 +126,9 @@ QtObject {
   readonly property bool settingsMigrationOpen: settings.migrationOpen
   readonly property bool settingsCanAutoPort: settings.canAutoPort
   readonly property string settingsMigrationMessage: settings.migrationMessage
+  readonly property color warning: settings.warning
+  readonly property color success: settings.success
+  readonly property color syncActivityColor: settings.syncActivity
 
   property int refreshIntervalSec: 60
   property int _activityDotIndex: 0
@@ -200,7 +207,7 @@ QtObject {
     if (!core.protocolReady || refreshing) return false
     refreshing = true
     if (recheckErrors === true) folderMutationError = ""
-    var callback = function(ok, revision, data, error) {
+    var callback = function(ok, data, error) {
       root.refreshing = false
       if (!ok && recheckErrors === true) {
         root.folderMutationError = root.actionError(error,
@@ -234,66 +241,66 @@ QtObject {
     return String(error && error.message || fallback || "Action failed")
   }
 
-  function notify(message) {
+  function notify(message, visibleMs) {
     if (!message) return
-    Quickshell.execDetached([
-      "omarchy-notification-send", "Syncthing", String(message)
-    ])
+    var args = ["omarchy-notification-send"]
+    if (Number(visibleMs) > 0)
+      args.push("-t", String(Math.round(Number(visibleMs))))
+    args.push("Syncthing", String(message))
+    Quickshell.execDetached(args)
+  }
+
+  function publishFolderNotice(notice, panelVisibleMs, desktopVisibleMs) {
+    folderMutationNoticeVisibleMs = Number(panelVisibleMs) > 0
+      ? Math.round(Number(panelVisibleMs)) : UiConstants.NOTICE_VISIBLE_MS
+    folderMutationNotice = String(notice || "")
+    if (!folderMutationNotice) return
+    noticeTimer.restart()
+    notify(folderMutationNotice, desktopVisibleMs)
   }
 
   function isRescanAction(action) {
     return action === "rescan" || action === "rescan-all"
   }
 
-  function rescanTargetsScanning() {
-    if (folderMutationAction === "rescan") {
-      var status = folderStatuses[String(folderMutationId || "")] || ({})
-      return String(status.state || "").indexOf("scan") === 0
-    }
-    if (folderMutationAction !== "rescan-all") return false
+  function scanningFolderIds() {
+    var result = []
     for (var i = 0; i < folders.length; i++) {
-      if (folders[i].paused) continue
       var state = folderStatuses[String(folders[i].id || "")] || ({})
-      if (String(state.state || "").indexOf("scan") === 0) return true
+      if (String(state.state || "").indexOf("scan") === 0)
+        result.push(String(folders[i].id || ""))
     }
-    return false
+    result.sort()
+    return result
   }
 
   function clearFolderAction() {
     folderMutationBusy = false
     folderMutationAction = ""
     folderMutationId = ""
-    pendingRescanResultReady = false
+    rescanTracker.reset()
   }
 
-  function settlePendingRescan() {
-    if (!folderMutationBusy || !pendingRescanResultReady) return
+  function completeRescan() {
+    if (!folderMutationBusy) return
     if (!isRescanAction(folderMutationAction)) return
-    if (rescanTargetsScanning()) return
     var notice = folderMutationAction === "rescan-all"
       ? "Rescan complete for all folders"
       : "Rescan complete for " + folderLabel(folderMutationId)
     clearFolderAction()
-    folderMutationNotice = notice
-    noticeTimer.restart()
-    notify(notice)
+    publishFolderNotice(notice)
   }
 
   function finishFolderAction(contractAction, folderId, notice) {
-    if (isRescanAction(contractAction)) {
-      pendingRescanResultReady = true
-      settlePendingRescan()
-      return
-    }
     clearFolderAction()
     if (contractAction === "link") {
       recentlyLinkedFolderId = String(folderId || "")
       linkedTimer.restart()
     }
-    folderMutationNotice = String(notice || "")
-    if (!folderMutationNotice) return
-    noticeTimer.restart()
-    notify(folderMutationNotice)
+    var deviceAdded = contractAction === "device-add"
+    publishFolderNotice(notice,
+      deviceAdded ? UiConstants.DEVICE_ADD_PANEL_NOTICE_MS : 0,
+      deviceAdded ? UiConstants.DEVICE_ADD_DESKTOP_NOTICE_MS : 0)
   }
 
   function failFolderAction(error, fallback) {
@@ -317,11 +324,26 @@ QtObject {
     folderMutationError = ""
     noticeTimer.stop()
     folderMutationNotice = ""
-    pendingRescanResultReady = false
-    var id = core.action(action, args || ({}), function(ok, revision, data, error) {
+    rescanTracker.reset()
+    var id = core.action(action, args || ({}), function(ok, data, error) {
       if (!ok) {
+        if (action === "folder.add-existing" && error
+            && error.code === "path_missing" && !args.createDirectory) {
+          root.clearFolderAction()
+          root.folderDirectoryRequired(args)
+          return
+        }
         root.failFolderAction(error,
           "Could not complete the folder operation")
+        return
+      }
+      if (root.isRescanAction(contractAction)) {
+        if (!rescanTracker.acceptResult(data, root.scanningFolderIds())) {
+          root.failFolderAction({
+            code: "invalid_result",
+            message: "Native core returned an invalid rescan result"
+          }, "Could not complete the folder operation")
+        }
         return
       }
       root.finishFolderAction(contractAction, folderId, notice)
@@ -385,11 +407,13 @@ QtObject {
         + " to rejoin the same remote folder.")
   }
 
-  function addFolder(path, label, folderId, selectedDeviceIds, pendingDeviceId) {
-    var shared = selectedDeviceIds || []
+  function addFolder(path, label, folderId, selectedDeviceIds, pendingDeviceId,
+      createDirectory) {
+    var shared = (selectedDeviceIds || []).slice()
     return runFolderAction("folder.add-existing", "add", folderId, {
       folderId: folderId,
       path: path,
+      createDirectory: createDirectory === true,
       label: label,
       deviceIds: shared,
       pendingDeviceId: pendingDeviceId
@@ -399,13 +423,80 @@ QtObject {
         + "shared with another device.")
   }
 
+  function setFolderSharing(folderId, selectedDeviceIds) {
+    var shared = selectedDeviceIds || []
+    var folder = configuredFolder(folderId)
+    var previous = []
+    var members = folder && folder.devices ? folder.devices : []
+    for (var i = 0; i < members.length; i++) {
+      var memberId = String((members[i] || {}).deviceID || "")
+      if (memberId && memberId !== localDeviceId) previous.push(memberId)
+    }
+    var names = []
+    for (var j = 0; j < shared.length; j++) {
+      var name = ""
+      for (var k = 0; k < devices.length; k++) {
+        if (String(devices[k].deviceID || "") === String(shared[j])) {
+          name = String(devices[k].name || "")
+          break
+        }
+      }
+      names.push(name || "Device " + String(shared[j]).slice(0, 7))
+    }
+    var notice = "Folder sharing removed. The local folder remains configured."
+    if (shared.length > 0 && previous.length === 0) {
+      notice = folderLabel(folderId) + " shared with " + names.join(", ")
+        + "; waiting for " + names.join(", ") + " to accept."
+    } else if (shared.length > 0) {
+      notice = "Sharing with " + names.join(", ") + " updated."
+    }
+    return runFolderAction("folder.set-sharing", "share", folderId, {
+      folderId: folderId,
+      deviceIds: shared
+    }, notice)
+  }
+
+  function addDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runFolderAction("device.add", "device-add", deviceId, {
+      deviceId: deviceId,
+      deviceName: name
+    }, label + " added. Add this device on " + label
+      + " to complete connection.")
+  }
+
+  function dismissPendingDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || String(deviceId || "").slice(0, 7)
+    return runFolderAction("device.dismiss-pending", "device-dismiss",
+      deviceId, { deviceId: deviceId }, "Dismissed pending request from "
+        + label + ".")
+  }
+
+  function removeDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runFolderAction("device.remove", "device-remove", deviceId,
+      { deviceId: deviceId }, label + " removed from this device.")
+  }
+
+  function removeDeviceFolderShares(deviceId, folderIds, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runFolderAction("device.remove-folder-shares",
+      "device-remove-shares",
+      deviceId, { deviceId: deviceId, folderIds: folderIds || [] },
+      "Selected folder shares removed from " + label + ".")
+  }
+
   function requestFolderIdSuggestion() {
     if (!online || folderPreparationBusy) return
     folderPreparationBusy = true
     folderPreparationError = ""
     folderIdSuggestion = ""
     var id = core.action("folder.suggest-id", {},
-      function(ok, revision, data, error) {
+      function(ok, data, error) {
         root.folderPreparationBusy = false
         if (ok) root.folderIdSuggestion = String(data && data.folderId || "")
         else root.folderPreparationError = root.actionError(error,
@@ -421,11 +512,13 @@ QtObject {
     noticeTimer.stop()
     folderMutationError = ""
     folderMutationNotice = ""
+    folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
   }
 
   function clearFolderMutationNotice() {
     noticeTimer.stop()
     folderMutationNotice = ""
+    folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
   }
 
   function runLifecycle(action) {
@@ -433,7 +526,7 @@ QtObject {
     serviceActionRunning = true
     controlError = ""
     var id = core.action("lifecycle." + action, {},
-      function(ok, revision, data, error) {
+      function(ok, data, error) {
         root.serviceActionRunning = false
         if (!ok) root.controlError = root.actionError(error,
           "Could not update the Syncthing service")
@@ -459,7 +552,7 @@ QtObject {
 
   function selectTheme(theme, onSuccess, onError) {
     var id = core.action("webui.set-theme", { theme: theme },
-      function(ok, revision, data, error) {
+      function(ok, data, error) {
         if (ok) onSuccess()
         else onError(error)
       })
@@ -474,23 +567,32 @@ QtObject {
   function cancelSettingsMigration() { settings.cancelMigration() }
   function clearSettingsNotice() { settings.clearNotice() }
   function requestSelfRemoval(deletePluginSettings) {
+    if (packageController.packageActionRunning || packageController.operationRunning) {
+      settings.error = "Wait for Syncthing installation to finish before removing Syncshell"
+      return
+    }
     settings.requestSelfRemoval(deletePluginSettings)
   }
 
   onLocalDeviceIdChanged: rememberLocalIdentity()
   onDevicesChanged: rememberLocalIdentity()
-  onFolderStatusesChanged: settlePendingRescan()
+  onFolderStatusesChanged: rescanTracker.reconcile(scanningFolderIds())
   onOnlineChanged: {
-    if (!online && folderMutationBusy && pendingRescanResultReady) {
+    if (!online && folderMutationBusy
+        && rescanTracker.runningFolderIds.length > 0) {
       failFolderAction(null,
         "Could not confirm rescan completion because Syncthing became unavailable")
     }
   }
 
+  property RescanTracker rescanTracker: RescanTracker {
+    onCompleted: root.completeRescan()
+  }
+
   property CoreProcess core: CoreProcess {
     pluginRoot: root.pluginRoot
     startupArguments: [
-      "--host-id", "omarchy",
+      "--desktop-authorized",
       "--probe-interval-seconds", String(root.probeIntervalSeconds),
       "--desired-service-state", root.configuredServiceState,
       "--lifecycle-kind", "systemd-user",
@@ -533,13 +635,18 @@ QtObject {
     interval: 500
     repeat: true
     running: root.syncActivityDetail !== ""
-    onTriggered: root._activityDotIndex = (root._activityDotIndex + 1) % 3
+    onTriggered: root._activityDotIndex = (root._activityDotIndex + 1) % 4
   }
 
   property Timer noticeTimer: Timer {
-    interval: 10400
+    // Allow the panel fade to clear the notice first.
+    interval: root.folderMutationNoticeVisibleMs
+      + UiConstants.NOTICE_FADE_MS + 50
     repeat: false
-    onTriggered: root.folderMutationNotice = ""
+    onTriggered: {
+      root.folderMutationNotice = ""
+      root.folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
+    }
   }
 
   property Timer linkedTimer: Timer {

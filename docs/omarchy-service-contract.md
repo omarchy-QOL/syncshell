@@ -29,7 +29,7 @@ aliases, fallback runtimes, and mixed-version bridges are not retained.
 | `canRefresh`             | bool   | core can accept a status refresh       |
 | `statusFresh`            | bool   | current core state is fresh            |
 | `lastError`              | string | sanitized connection error             |
-| `recoveryWarning`        | string | discovery or recovery progress         |
+| `recoveryWarning`        | string | startup or truncation warning          |
 | `baseUrl`                | string | URL used by the Web UI action          |
 | `localDeviceId`          | string | live local device ID                   |
 | `displayDeviceId`        | string | live or remembered device ID           |
@@ -37,11 +37,13 @@ aliases, fallback runtimes, and mixed-version bridges are not retained.
 | `devices`                | array  | configured device objects              |
 | `folders`                | array  | configured folder objects              |
 | `pendingFolders`         | object | offers by folder and device            |
+| `pendingDevices`         | array  | unknown incoming device requests       |
+| `nearbyDevices`          | array  | unknown discovered device IDs          |
 | `folderStatuses`         | object | status keyed by folder ID              |
 | `syncingFiles`           | array  | bounded active file tokens             |
 | `folderCount`            | int    | configured folder count                |
 | `deviceCount`            | int    | configured device count                |
-| `connectedDeviceCount`   | int    | local plus connected devices           |
+| `connectedDeviceCount`   | int    | core-reported connected count          |
 | `folderProblemCount`     | int    | folders with state or pull errors      |
 | `syncingFolderCount`     | int    | folders with remaining items           |
 | `summaryText`            | string | panel summary for the current state    |
@@ -54,7 +56,8 @@ reported separately from Syncthing connection state.
 Folder objects expose at least `id`, `label`, `path`, `paused`, `markerName`,
 and `devices[].deviceID`. Folder status objects expose at least `state`,
 `error`, `errors`, `pullErrors`, `needTotalItems`, `needBytes`, `globalFiles`,
-and `globalBytes`. Device objects expose `deviceID`, `name`, and `untrusted`.
+and `globalBytes`. Device objects expose `deviceID`, `name`, `untrusted`, and
+`connected`.
 
 The `openWebUi()` method opens the selected GUI. Bundled profiles request the
 core's `webui.open` action to grant local desktop access; the default profile
@@ -68,12 +71,12 @@ Web UI accessible without local file actions.
 | `installationState`          | string | current installation phase     |
 | `installationLabel`          | string | visible installation summary   |
 | `executablePath`             | string | discovered executable          |
-| `canUseRuntime`              | bool   | runtime can be contacted       |
+| `canUseRuntime`              | bool   | core executable or API exists  |
 | `canInstall`                 | bool   | install action is safe         |
 | `packageStatus`              | string | installation progress          |
 | `packageError`               | string | installation or status error   |
 | `serviceAvailable`           | bool   | trusted user unit is available |
-| `serviceActive`              | bool   | observed or pending run state  |
+| `serviceActive`              | bool   | observed run state             |
 | `serviceActionRunning`       | bool   | start or stop is in progress   |
 | `canControlService`          | bool   | lifecycle switch may be shown  |
 | `controlError`               | string | lifecycle action error         |
@@ -89,18 +92,17 @@ Web UI accessible without local file actions.
 
 Installation phases are `checking`, `existing`, `incomplete`, and `missing`.
 
-For 0.1.8, `serviceAvailable` does not itself grant authority.
-`canControlService` is true only for an explicit, target-aware lifecycle
-binding. An API-online external instance stays online and hides unrelated
-lifecycle controls.
+`serviceAvailable` does not itself grant authority. `canControlService` is
+true only for an explicit, target-aware lifecycle binding. An API-online
+external instance stays online and hides unrelated lifecycle controls.
 
-## Folder preparation and mutation
+## Folder preparation and mutations
 
 | Property                 | Type   | Meaning                              |
 | ------------------------ | ------ | ------------------------------------ |
-| `folderMutationBusy`     | bool   | one folder mutation is active        |
-| `folderMutationId`       | string | affected ID, or empty for all        |
-| `folderMutationAction`   | string | current folder action                |
+| `folderMutationBusy`     | bool   | one panel mutation is active         |
+| `folderMutationId`       | string | affected folder or device ID         |
+| `folderMutationAction`   | string | current panel mutation               |
 | `folderMutationError`    | string | current mutation failure             |
 | `folderMutationNotice`   | string | successful mutation notice           |
 | `recentlyLinkedFolderId` | string | recently resumed folder highlight    |
@@ -108,19 +110,20 @@ lifecycle controls.
 | `folderPreparationError` | string | ID suggestion failure                |
 | `folderIdSuggestion`     | string | generated ten-character folder ID    |
 
-Folder mutation actions are `add`, `link`, `unlink`, `rescan`, `rescan-all`,
-and `forget`.
+Mutation actions are `add`, `link`, `unlink`, `rescan`, `rescan-all`, `forget`,
+`share`, `device-add`, `device-dismiss`, and `device-remove-shares`.
 
 Only one mutation is accepted at a time. A false method result means the
 request was rejected before asynchronous work began. Forgetting removes only
 the Syncthing folder record and never local data. Add requires an existing,
 canonical, non-overlapping path and a unique ID.
 
-An accepted rescan publishes the stable mutation action and target ID before
-the API request starts. The panel derives its optimistic targets from those
-fields and the current folder pause state. The host keeps matching buttons
-inert, rotates their refresh glyphs, and presents `RESCANNING` until success,
-failure, cancellation, or core loss clears the mutation.
+An accepted rescan records the stable mutation action and target ID locally
+before the API request starts. Its result distinguishes a completed request
+from explicitly reported folder IDs that are still scanning. The shared rescan
+tracker follows only those IDs. The host keeps matching buttons inert, rotates
+their refresh glyphs, and presents `RESCANNING` until success, failure,
+cancellation, API loss, or core loss clears the mutation.
 
 ## Activity and host settings
 
@@ -159,24 +162,37 @@ not inferred.
 - `requestFolderIdSuggestion()` requests one new folder ID.
 - `setFolderLinked(id, linked)` resumes or pauses a verified folder.
 - `rescanFolder(id)` rescans one active folder.
-- `rescanAllFolders()` rescans every linked folder.
+- `rescanAllFolders()` rescans every linked folder. The core uses the global
+  endpoint only when no configured folder is paused. It rejects the action
+  when bounded state cannot expose every configured folder and directs the
+  user to the Web UI.
 - `forgetFolder(id)` forgets one verified paused folder.
-- `addFolder(path, label, id, devices, offer)` adds one existing local
-  directory.
+- `addFolder(path, label, id, devices, offer, createDirectory)` adds a local
+  directory. A missing directory emits `folderDirectoryRequired(args)` so
+  the panel can request confirmation. Only an explicitly confirmed retry
+  passes `createDirectory: true`.
+- `setFolderSharing(id, devices)` replaces one folder's remote-device
+  membership.
+- `addDevice(id, name)` configures one remote device from Syncthing's current
+  default device template.
+- `removeDevice(id, name)` removes one device from the local configuration.
+- `dismissPendingDevice(id, name)` dismisses one incoming device request.
+- `removeDeviceFolderShares(id, folders, name)` removes the specified existing
+  folder shares from a device.
 - `clearFolderMutationMessage()` clears the folder error and notice.
 - `clearFolderMutationNotice()` clears the folder notice only.
+- `openWebUi()` opens the selected Syncthing interface.
 - `openSettings()` opens the host file or its migration dialog.
 - `recheckSettings()` reloads and validates the actual file.
 - `autoPortSettings()` writes a validated older-format conversion with backup.
 - `manualPortSettings()` opens the user file and temporary reference template.
 - `cancelSettingsMigration()` dismisses without writing; a warning remains.
 - `clearSettingsNotice()` clears the host settings notice.
-- `requestSelfRemoval(deleteSettings)` starts native removal after theme
-  restoration.
+- `requestSelfRemoval(deleteSettings)` starts native removal, restoring the
+  default Web UI first when Syncthing is reachable.
 
-Folder mutation methods and drift selection return whether work was accepted.
-Other methods are asynchronous fire-and-observe calls through the properties
-above.
+Mutation methods and drift selection return whether work was accepted. Other
+methods are asynchronous fire-and-observe calls through the properties above.
 
 ## Signals, timing, errors, and cancellation
 
@@ -190,9 +206,9 @@ sent through the host notification helper. The panel displays notices for ten
 seconds, then fades them for 350 milliseconds. A recently linked folder is
 highlighted for ten seconds. File activity cycles every 2.5 seconds.
 
-The panel's visible error priority is folder picker, folder mutation,
-lifecycle control, package, settings, then connection. Recovery and lifecycle
-drift warnings are separate from errors.
+The panel's visible error priority is folder picker, folder mutation, package,
+settings, lifecycle control, then connection. Recovery and lifecycle drift
+warnings are separate from errors.
 
 There is no user-facing cancel action for an accepted mutation. Service
 destruction, target loss, or runtime loss aborts outstanding API requests,

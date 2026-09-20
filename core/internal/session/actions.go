@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/omarchy-QOL/syncshell/core/internal/syncthing"
@@ -15,59 +16,69 @@ import (
 
 var safeName = regexp.MustCompile(`^[A-Za-z0-9._-]+$`)
 
-// Act serializes, publishes, validates, and executes one domain action.
-func (s *Session) Act(
-	ctx context.Context,
-	action string,
-	arguments ActionArguments,
-	requestID string,
-	publish func(PublishedSnapshot),
-) ActionResult {
+const rescanAllWorkers = 8
+
+// Act serializes, validates, and executes one domain action.
+func (s *Session) Act(ctx context.Context, action string, arguments ActionArguments) ActionResult {
 	s.actionMu.Lock()
 	defer s.actionMu.Unlock()
-	s.publishMutation(Mutation{Busy: true, ID: boundedIdentifier(requestID),
-		Action: boundedIdentifier(action)}, publish)
 
-	var result ActionResult
 	if validation := validateActionArguments(action, arguments); validation != nil {
-		return s.finishMutation(action, requestID, *validation, publish)
+		return *validation
 	}
 	switch action {
 	case "folder.pause":
-		result = s.setFolderPaused(ctx, arguments.FolderID, true)
+		return s.setFolderPaused(ctx, arguments.FolderID, true)
 	case "folder.resume":
-		result = s.setFolderPaused(ctx, arguments.FolderID, false)
+		return s.setFolderPaused(ctx, arguments.FolderID, false)
 	case "folder.rescan":
-		result = s.rescanFolder(ctx, arguments.FolderID)
+		return s.rescanFolder(ctx, arguments.FolderID)
 	case "folder.rescan-all":
-		result = s.rescanAll(ctx)
+		return s.rescanAll(ctx)
 	case "folder.recheck-errors":
-		result = s.recheckFolderErrors(ctx)
+		return s.recheckFolderErrors(ctx)
 	case "folder.forget":
-		result = s.forgetFolder(ctx, arguments.FolderID)
+		return s.forgetFolder(ctx, arguments.FolderID)
 	case "folder.add-existing":
-		result = s.addExistingFolder(ctx, arguments)
+		return s.addExistingFolder(ctx, arguments)
+	case "folder.set-sharing":
+		return s.setFolderSharing(ctx, arguments)
 	case "folder.suggest-id":
-		result = s.suggestFolderID(ctx)
+		return s.suggestFolderID(ctx)
+	case "device.add":
+		return s.addDevice(ctx, arguments)
+	case "device.remove":
+		return s.removeDevice(ctx, arguments.DeviceID)
+	case "device.dismiss-pending":
+		return s.dismissPendingDevice(ctx, arguments.DeviceID)
+	case "device.remove-folder-shares":
+		return s.removeDeviceFolderShares(ctx, arguments)
 	case "lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
-		result = s.lifecycleAction(ctx, strings.TrimPrefix(action, "lifecycle."))
+		return s.lifecycleAction(ctx, strings.TrimPrefix(action, "lifecycle."))
 	case "webui.open":
-		result = s.openWebUI(ctx)
+		return s.openWebUI(ctx)
 	case "webui.set-theme":
-		result = s.setWebUITheme(ctx, arguments.Theme)
+		return s.setWebUITheme(ctx, arguments.Theme)
 	default:
-		result = rejected("unsupported_action", "action is not supported")
+		return rejected("unsupported_action", "action is not supported")
 	}
-	return s.finishMutation(action, requestID, result, publish)
 }
 
 func validateActionArguments(action string, arguments ActionArguments) *ActionResult {
+	if arguments.CreateDirectory && action != "folder.add-existing" {
+		result := rejected("invalid_action", "directory creation is only valid when adding a folder")
+		return &result
+	}
 	folderOnly := arguments.FolderID != "" && arguments.Path == "" &&
 		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
-		arguments.PendingDeviceID == "" && arguments.Theme == ""
+		len(arguments.FolderIDs) == 0 &&
+		arguments.PendingDeviceID == "" && arguments.DeviceID == "" &&
+		arguments.DeviceName == "" && arguments.Theme == ""
 	empty := arguments.FolderID == "" && arguments.Path == "" &&
 		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
-		arguments.PendingDeviceID == "" && arguments.Theme == ""
+		len(arguments.FolderIDs) == 0 &&
+		arguments.PendingDeviceID == "" && arguments.DeviceID == "" &&
+		arguments.DeviceName == "" && arguments.Theme == ""
 	valid := false
 	switch action {
 	case "folder.pause", "folder.resume", "folder.rescan", "folder.forget":
@@ -76,11 +87,36 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 		"lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
 		valid = empty
 	case "folder.add-existing":
-		valid = arguments.Theme == ""
+		valid = arguments.Theme == "" && len(arguments.FolderIDs) == 0 &&
+			arguments.DeviceID == "" &&
+			arguments.DeviceName == ""
+	case "folder.set-sharing":
+		valid = arguments.FolderID != "" && arguments.Path == "" &&
+			arguments.Label == "" && arguments.PendingDeviceID == "" &&
+			arguments.DeviceID == "" && arguments.DeviceName == "" &&
+			len(arguments.FolderIDs) == 0 && arguments.Theme == ""
+	case "device.add":
+		valid = arguments.DeviceID != "" && arguments.FolderID == "" &&
+			arguments.Path == "" && arguments.Label == "" &&
+			len(arguments.DeviceIDs) == 0 && arguments.PendingDeviceID == "" &&
+			len(arguments.FolderIDs) == 0 && arguments.Theme == ""
+	case "device.remove", "device.dismiss-pending":
+		valid = arguments.DeviceID != "" && arguments.DeviceName == "" &&
+			arguments.FolderID == "" && arguments.Path == "" &&
+			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
+			len(arguments.FolderIDs) == 0 && arguments.PendingDeviceID == "" &&
+			arguments.Theme == ""
+	case "device.remove-folder-shares":
+		valid = arguments.DeviceID != "" && arguments.DeviceName == "" &&
+			arguments.FolderID == "" && arguments.Path == "" &&
+			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
+			arguments.PendingDeviceID == "" && arguments.Theme == ""
 	case "webui.set-theme":
 		valid = arguments.Theme != "" && arguments.FolderID == "" && arguments.Path == "" &&
 			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
-			arguments.PendingDeviceID == ""
+			len(arguments.FolderIDs) == 0 && arguments.PendingDeviceID == "" &&
+			arguments.DeviceID == "" &&
+			arguments.DeviceName == ""
 	default:
 		valid = empty
 	}
@@ -105,7 +141,7 @@ func (s *Session) setFolderPaused(ctx context.Context, folderID string, paused b
 		}
 		return rejected("folder_active", "folder is already active")
 	}
-	if err := s.client.PatchFolder(ctx, folderID, map[string]bool{"paused": paused}); err != nil {
+	if err := s.client.SetFolderPaused(ctx, folderID, paused); err != nil {
 		return s.afterAmbiguousMutation(ctx, err)
 	}
 	return s.refreshAfterMutation(ctx)
@@ -119,10 +155,29 @@ func (s *Session) rescanFolder(ctx context.Context, folderID string) ActionResul
 	if snapshotFolder.Paused || currentFolder.Paused {
 		return rejected("folder_paused", "paused folders cannot be rescanned")
 	}
-	if err := s.client.Rescan(ctx, folderID); err != nil {
-		return ActionResult{Error: publicError(err)}
+	disposition, requestErr := s.client.Rescan(ctx, folderID)
+	published, refreshErr := s.Refresh(ctx)
+	if requestErr != nil {
+		return ActionResult{Error: publicError(requestErr)}
 	}
-	return s.refreshAfterMutation(ctx)
+	if refreshErr != nil {
+		return ActionResult{Error: publicError(refreshErr)}
+	}
+	running := make([]string, 0, 1)
+	if disposition == syncthing.RescanRunning && folderScanning(published.State, folderID) {
+		running = append(running, folderID)
+	}
+	state := string(syncthing.RescanCompleted)
+	if len(running) > 0 {
+		state = string(syncthing.RescanRunning)
+	}
+	return ActionResult{OK: true, Data: RescanResult{State: state,
+		TargetFolderIDs: []string{folderID}, RunningFolderIDs: running}}
+}
+
+type rescanAttempt struct {
+	disposition syncthing.RescanDisposition
+	err         error
 }
 
 func (s *Session) rescanAll(ctx context.Context) ActionResult {
@@ -136,20 +191,92 @@ func (s *Session) rescanAll(ctx context.Context) ActionResult {
 	if len(folders) == 0 {
 		return rejected("folder_missing", "no folders are configured")
 	}
-	linked := false
+	if len(folders) > maxFolders {
+		return rejected("folder_limit",
+			"rescan all exceeds panel folder limits; use the Syncthing Web UI")
+	}
+	targets := make([]string, 0, len(folders))
 	for _, folder := range folders {
 		if !folder.Paused {
-			linked = true
-			break
+			targets = append(targets, folder.ID)
 		}
 	}
-	if !linked {
+	sort.Strings(targets)
+	if len(targets) == 0 {
 		return rejected("folder_paused", "no linked folders are available to rescan")
 	}
-	if err := s.client.Rescan(ctx, ""); err != nil {
-		return ActionResult{Error: publicError(err)}
+	attempts := make([]rescanAttempt, len(targets))
+	if len(targets) == len(folders) {
+		disposition, scanErr := s.client.Rescan(ctx, "")
+		for index := range attempts {
+			attempts[index] = rescanAttempt{disposition: disposition, err: scanErr}
+		}
+	} else {
+		s.rescanTargets(ctx, targets, attempts)
 	}
-	return s.refreshAfterMutation(ctx)
+	published, refreshErr := s.Refresh(ctx)
+	for index := range attempts {
+		if attempts[index].err != nil {
+			return ActionResult{Error: publicError(attempts[index].err)}
+		}
+	}
+	if refreshErr != nil {
+		return ActionResult{Error: publicError(refreshErr)}
+	}
+	for index, folderID := range targets {
+		if attempts[index].disposition == syncthing.RescanRunning &&
+			findFolder(published.State.Folders, folderID) == nil {
+			return rejected("folder_changed",
+				"rescan completion cannot be confirmed; use the Syncthing Web UI")
+		}
+	}
+	return ActionResult{OK: true, Data: rescanResult(targets, attempts, published.State)}
+}
+
+func (s *Session) rescanTargets(
+	ctx context.Context,
+	targets []string,
+	attempts []rescanAttempt,
+) {
+	jobs := make(chan int)
+	workers := min(rescanAllWorkers, len(targets))
+	var wait sync.WaitGroup
+	wait.Add(workers)
+	for range workers {
+		go func() {
+			defer wait.Done()
+			for index := range jobs {
+				disposition, err := s.client.Rescan(ctx, targets[index])
+				attempts[index] = rescanAttempt{disposition: disposition, err: err}
+			}
+		}()
+	}
+	for index := range targets {
+		jobs <- index
+	}
+	close(jobs)
+	wait.Wait()
+}
+
+func folderScanning(snapshot Snapshot, folderID string) bool {
+	folder := findFolder(snapshot.Folders, folderID)
+	return folder != nil && strings.HasPrefix(folder.Status.State, "scan")
+}
+
+func rescanResult(targets []string, attempts []rescanAttempt, snapshot Snapshot) RescanResult {
+	running := make([]string, 0, len(targets))
+	for index, folderID := range targets {
+		if attempts[index].disposition == syncthing.RescanRunning &&
+			folderScanning(snapshot, folderID) {
+			running = append(running, folderID)
+		}
+	}
+	state := string(syncthing.RescanCompleted)
+	if len(running) > 0 {
+		state = string(syncthing.RescanRunning)
+	}
+	return RescanResult{State: state, TargetFolderIDs: targets,
+		RunningFolderIDs: running}
 }
 
 func (s *Session) recheckFolderErrors(ctx context.Context) ActionResult {
@@ -163,18 +290,18 @@ func (s *Session) recheckFolderErrors(ctx context.Context) ActionResult {
 			len(status.Errors) == 0 {
 			continue
 		}
-		if err := s.client.Rescan(ctx, folder.ID); err != nil && firstErr == nil {
+		if _, err := s.client.Rescan(ctx, folder.ID); err != nil && firstErr == nil {
 			firstErr = err
 		}
 	}
-	published, refreshErr := s.Refresh(ctx)
+	_, refreshErr := s.Refresh(ctx)
 	if refreshErr != nil {
-		return ActionResult{Revision: published.Revision, Error: publicError(refreshErr)}
+		return ActionResult{Error: publicError(refreshErr)}
 	}
 	if firstErr != nil {
-		return ActionResult{Revision: published.Revision, Error: publicError(firstErr)}
+		return ActionResult{Error: publicError(firstErr)}
 	}
-	return ActionResult{OK: true, Revision: published.Revision}
+	return ActionResult{OK: true}
 }
 
 func (s *Session) forgetFolder(ctx context.Context, folderID string) ActionResult {
@@ -200,7 +327,8 @@ func (s *Session) addExistingFolder(ctx context.Context, arguments ActionArgumen
 		return rejected("folder_id_invalid", "folder ID is invalid")
 	}
 	canonicalPath, validation := canonicalDirectory(arguments.Path)
-	if validation != nil {
+	missing := validation != nil && validation.Error.Code == "path_missing"
+	if validation != nil && !(missing && arguments.CreateDirectory) {
 		return *validation
 	}
 	folders, err := s.client.Folders(ctx)
@@ -222,7 +350,8 @@ func (s *Session) addExistingFolder(ctx context.Context, arguments ActionArgumen
 	if err != nil {
 		return ActionResult{Error: publicError(err)}
 	}
-	selected, validation := validateSelectedDevices(arguments, devices, pending)
+	localID := s.Current().State.Identity.DeviceID
+	selected, validation := validateSelectedDevices(arguments, devices, pending, localID)
 	if validation != nil {
 		return *validation
 	}
@@ -241,7 +370,21 @@ func (s *Session) addExistingFolder(ctx context.Context, arguments ActionArgumen
 	defaults["label"] = boundedLabel(label)
 	defaults["path"] = canonicalPath
 	defaults["paused"] = false
-	defaults["devices"] = folderDevices(s.Current().State.Identity.DeviceID, selected)
+	defaults["devices"] = selectFolderDevices(nil,
+		append([]string{localID}, selected...))
+	if missing {
+		if err := os.MkdirAll(canonicalPath, 0o755); err != nil {
+			return rejected("path_create_failed", "cannot create folder directory: "+err.Error())
+		}
+		canonicalPath, validation = canonicalDirectory(canonicalPath)
+		if validation != nil {
+			return *validation
+		}
+		if result := validateUnusedFolder(folderID, canonicalPath, folders, status.Tilde); result != nil {
+			return *result
+		}
+		defaults["path"] = canonicalPath
+	}
 	if err := s.client.AddFolder(ctx, defaults); err != nil {
 		return s.afterAmbiguousMutation(ctx, err)
 	}
@@ -262,7 +405,7 @@ func (s *Session) suggestFolderID(ctx context.Context) ActionResult {
 	if len(suggestion) != 10 || !safeName.MatchString(suggestion) {
 		return rejected("suggestion_invalid", "Syncthing returned an invalid folder ID")
 	}
-	return ActionResult{OK: true, Revision: s.Current().Revision,
+	return ActionResult{OK: true,
 		Data: map[string]string{"folderId": suggestion}}
 }
 
@@ -323,17 +466,17 @@ func (s *Session) requireOnline() *ActionResult {
 }
 
 func (s *Session) refreshAfterMutation(ctx context.Context) ActionResult {
-	published, err := s.Refresh(ctx)
+	_, err := s.Refresh(ctx)
 	if err != nil {
-		return ActionResult{Revision: published.Revision, Error: publicError(err)}
+		return ActionResult{Error: publicError(err)}
 	}
-	return ActionResult{OK: true, Revision: published.Revision}
+	return ActionResult{OK: true}
 }
 
 func (s *Session) afterAmbiguousMutation(ctx context.Context, err error) ActionResult {
 	if ambiguousMutation(err) {
-		published, _ := s.Refresh(ctx)
-		return ActionResult{Revision: published.Revision, Error: publicError(err)}
+		_, _ = s.Refresh(ctx)
+		return ActionResult{Error: publicError(err)}
 	}
 	return ActionResult{Error: publicError(err)}
 }
@@ -342,35 +485,6 @@ func ambiguousMutation(err error) bool {
 	var target *syncthing.Error
 	return errors.As(err, &target) &&
 		(target.Code == syncthing.ErrorConnection || target.Code == syncthing.ErrorTimeout)
-}
-
-func (s *Session) publishMutation(mutation Mutation, publish func(PublishedSnapshot)) {
-	s.stateMu.Lock()
-	if s.current.Revision != 0 {
-		s.current.State.Mutation = mutation
-		s.current.Revision++
-	}
-	published := clonePublished(s.current)
-	s.stateMu.Unlock()
-	if publish != nil && published.Revision != 0 {
-		publish(published)
-	}
-}
-
-func (s *Session) finishMutation(
-	action string,
-	requestID string,
-	result ActionResult,
-	publish func(PublishedSnapshot),
-) ActionResult {
-	mutation := Mutation{ID: boundedIdentifier(requestID),
-		Action: boundedIdentifier(action), Error: result.Error}
-	if data, ok := result.Data.(map[string]string); ok {
-		mutation.Suggestion = boundedIdentifier(data["folderId"])
-	}
-	s.publishMutation(mutation, publish)
-	result.Revision = s.Current().Revision
-	return result
 }
 
 func findFolder(folders []Folder, folderID string) *Folder {
@@ -389,15 +503,46 @@ func canonicalDirectory(path string) (string, *ActionResult) {
 		result := rejected("path_invalid", "folder path must be absolute")
 		return "", &result
 	}
-	resolved, err := filepath.EvalSymlinks(filepath.Clean(path))
+	path = filepath.Clean(path)
+	existing := path
+	var missing []string
+	for {
+		_, err := os.Lstat(existing)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, os.ErrNotExist) {
+			result := rejected("path_unavailable", "cannot access folder path: "+err.Error())
+			return "", &result
+		}
+		parent := filepath.Dir(existing)
+		if parent == existing {
+			result := rejected("path_unavailable", "cannot access the filesystem root")
+			return "", &result
+		}
+		missing = append(missing, filepath.Base(existing))
+		existing = parent
+	}
+	resolved, err := filepath.EvalSymlinks(existing)
 	if err != nil {
-		result := rejected("path_missing", "folder path does not exist")
+		result := rejected("path_unavailable", "cannot resolve folder path or symlink: "+err.Error())
 		return "", &result
 	}
 	info, err := os.Stat(resolved)
-	if err != nil || !info.IsDir() {
+	if err != nil {
+		result := rejected("path_unavailable", "cannot access folder path: "+err.Error())
+		return "", &result
+	}
+	if !info.IsDir() {
 		result := rejected("path_invalid", "folder path is not a directory")
 		return "", &result
+	}
+	for i := len(missing) - 1; i >= 0; i-- {
+		resolved = filepath.Join(resolved, missing[i])
+	}
+	if len(missing) > 0 {
+		result := rejected("path_missing", "folder path does not exist")
+		return resolved, &result
 	}
 	return resolved, nil
 }
@@ -442,18 +587,14 @@ func validateSelectedDevices(
 	arguments ActionArguments,
 	devices []syncthing.Device,
 	pending syncthing.PendingFolders,
+	localID string,
 ) ([]string, *ActionResult) {
-	available := make(map[string]syncthing.Device, len(devices))
-	for _, device := range devices {
-		available[device.DeviceID] = device
+	selected, validation := validateRemoteDevices(arguments.DeviceIDs, devices, localID)
+	if validation != nil {
+		return nil, validation
 	}
-	selectedSet := make(map[string]struct{}, len(arguments.DeviceIDs))
-	for _, deviceID := range arguments.DeviceIDs {
-		device, exists := available[deviceID]
-		if !exists || device.Untrusted {
-			result := rejected("device_invalid", "selected device is unavailable or untrusted")
-			return nil, &result
-		}
+	selectedSet := make(map[string]struct{}, len(selected))
+	for _, deviceID := range selected {
 		selectedSet[deviceID] = struct{}{}
 	}
 	if arguments.PendingDeviceID != "" {
@@ -471,27 +612,5 @@ func validateSelectedDevices(
 			return nil, &result
 		}
 	}
-	selected := make([]string, 0, len(selectedSet))
-	for deviceID := range selectedSet {
-		selected = append(selected, deviceID)
-	}
-	sort.Strings(selected)
 	return selected, nil
-}
-
-func folderDevices(localDeviceID string, selected []string) []map[string]string {
-	ids := append([]string{localDeviceID}, selected...)
-	seen := make(map[string]struct{}, len(ids))
-	result := make([]map[string]string, 0, len(ids))
-	for _, deviceID := range ids {
-		if deviceID == "" {
-			continue
-		}
-		if _, exists := seen[deviceID]; exists {
-			continue
-		}
-		seen[deviceID] = struct{}{}
-		result = append(result, map[string]string{"deviceID": deviceID})
-	}
-	return result
 }

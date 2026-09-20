@@ -1,10 +1,17 @@
 import QtQuick
 import "../hosts/omarchy/models/PanelModel.js" as PanelModel
 import "../hosts/omarchy/models/SettingsModel.js" as SettingsModel
+import "../hosts/omarchy/models/ThemePaletteModel.js" as ThemePaletteModel
 import "../hosts/omarchy/models/FacadeModel.js" as FacadeModel
+import "../shared"
 
 QtObject {
   id: root
+
+  property int rescanCompletions: 0
+  property RescanTracker rescanTracker: RescanTracker {
+    onCompleted: root.rescanCompletions++
+  }
 
   function compare(actual, expected, name) {
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -104,6 +111,44 @@ QtObject {
     ] }), "__proto__\n\n<file>", "error text remains data")
   }
 
+  function testDeviceModels() {
+    var remoteId = "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-"
+      + "GGGGGGG-HHHHHHH"
+    var nearbyId = "IIIIIII-JJJJJJJ-KKKKKKK-LLLLLLL-MMMMMMM-NNNNNNN-"
+      + "OOOOOOO-PPPPPPP"
+    var service = {
+      localDeviceId: "LOCAL",
+      devices: [
+        { deviceID: "LOCAL", name: "chronos", connected: true },
+        { deviceID: remoteId, name: "xps", connected: false }
+      ],
+      folders: [{ id: "sync", devices: [{ deviceID: remoteId }] }],
+      pendingDevices: [{
+        id: remoteId,
+        name: "xps",
+        address: "tcp://192.0.2.8:22000"
+      }],
+      nearbyDevices: [{
+        id: nearbyId,
+        addresses: ["tcp://192.0.2.9:22000"]
+      }]
+    }
+    var remotes = PanelModel.remoteDeviceRows(service)
+    compare(remotes.length, 1, "local device excluded from remote devices")
+    compare(remotes[0].label, "xps · 1 folder", "remote folder count")
+    compare(remotes[0].connected, false, "remote connection state")
+    var pending = PanelModel.pendingDeviceRows(service)
+    compare(pending[0].label, "xps (AAAAAAA) wants to connect",
+      "incoming request label")
+    var nearby = PanelModel.nearbyDeviceOptions(service)
+    compare(nearby[0], { value: "", label: "Custom Device ID" },
+      "custom device source first")
+    compare(nearby[1], {
+      value: nearbyId,
+      label: "IIIIIII · tcp://192.0.2.9:22000"
+    }, "nearby device source")
+  }
+
   function testSettingsModel() {
     var current = 'version = 2\n[style]\nicon_style = "themed"\n'
       + 'web_ui_theme = "default"\n[service]\nservice_state = "disabled"\n'
@@ -168,6 +213,22 @@ QtObject {
       "CRLF preserved")
   }
 
+  function testThemePaletteModel() {
+    var complete = "background\t#000000\nyellow\t#A1b2C3\n"
+      + "green\t#102030\ncyan\t#abcdef\nblue\t#ffffff\n"
+    compare(ThemePaletteModel.parse(complete), {
+      yellow: "#A1b2C3", green: "#102030", cyan: "#abcdef"
+    }, "complete theme palette")
+    compare(ThemePaletteModel.parse(
+      "yellow\t#A1b2C3\ngreen\t#102030\n"), null,
+      "missing theme color")
+    compare(ThemePaletteModel.parse(
+      "yellow\t#A1b2C3\ngreen\tgreen\ncyan\t#abcdef\n"), null,
+      "malformed theme color")
+    compare(ThemePaletteModel.parse(complete + "cyan\t#abcdef\n"), null,
+      "duplicate theme color")
+  }
+
   function testFacadeProjection() {
     var sourceDevices = [{
       id: "local", name: "desktop", untrusted: false, connected: true
@@ -175,9 +236,9 @@ QtObject {
       id: "remote", name: "phone", untrusted: true, connected: false
     }]
     compare(FacadeModel.devices(sourceDevices), [{
-      deviceID: "local", name: "desktop", untrusted: false
+      deviceID: "local", name: "desktop", untrusted: false, connected: true
     }, {
-      deviceID: "remote", name: "phone", untrusted: true
+      deviceID: "remote", name: "phone", untrusted: true, connected: false
     }], "device projection")
     compare(FacadeModel.folderStatuses([{
       id: "folder",
@@ -237,13 +298,41 @@ QtObject {
     }).status, "aligned", "aligned state")
   }
 
+  function testRescanTracker() {
+    compare(rescanTracker.acceptResult({
+      state: "completed",
+      targetFolderIds: ["folder"],
+      runningFolderIds: []
+    }, []), true, "fast rescan result accepted")
+    compare(rescanCompletions, 1, "fast rescan completes immediately")
+    compare(rescanTracker.acceptResult({
+      state: "running",
+      targetFolderIds: ["folder", "other"],
+      runningFolderIds: ["folder"]
+    }, ["folder"]), true, "long rescan result accepted")
+    compare(rescanTracker.runningFolderIds, ["folder"],
+      "running rescan target retained")
+    compare(rescanCompletions, 1, "running rescan remains pending")
+    rescanTracker.reconcile(["other"])
+    compare(rescanCompletions, 2, "long rescan completes after target scan")
+    compare(rescanTracker.acceptResult({
+      state: "running",
+      targetFolderIds: ["folder"],
+      runningFolderIds: ["other"]
+    }, ["other"]), false, "unrelated running target rejected")
+    compare(rescanCompletions, 2, "invalid result does not complete")
+  }
+
   Component.onCompleted: {
     try {
       testPanelModel()
-    testFolderErrorDetails()
+      testFolderErrorDetails()
+      testDeviceModels()
       testSettingsModel()
+      testThemePaletteModel()
       testFacadeProjection()
       testDriftPresentation()
+      testRescanTracker()
       console.log("all QML model tests passed")
       Qt.exit(0)
     } catch (error) {

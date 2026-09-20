@@ -88,6 +88,9 @@ QtObject {
       ? "syncthing-omarchy" : "default"
   readonly property bool serviceStateActionRunning:
     settingsProcess.running && _settingsAction === "service-state"
+  readonly property color warning: themePalette.warning
+  readonly property color success: themePalette.success
+  readonly property color syncActivity: themePalette.syncActivity
 
   function localPath(url) {
     var value = String(url || "")
@@ -242,29 +245,37 @@ QtObject {
   }
 
   function requestSelfRemoval(deletePluginSettings) {
-    if (!runtimeReady || !selectTheme || busy) {
-      error = "Syncthing must be available for clean removal"
+    if (busy) {
+      error = "Wait for the current settings operation to finish before removing Syncshell"
       return
     }
     busy = true
     error = ""
     _deleteSettingsAfterRemoval = deletePluginSettings === true
+    if (!runtimeReady) {
+      startRemovalWorker("")
+      return
+    }
+    if (!selectTheme) {
+      finishRemoval("Could not restore the Syncthing Web UI before removal")
+      return
+    }
     if (!guiAssetsPath) {
       finishRemoval("Syncthing did not report its GUI assets path")
       return
     }
     if (ownsTheme(currentWebUiTheme)) {
       selectTheme("default", function() {
-        root.startRemovalWorker()
+        root.startRemovalWorker(root.guiAssetsPath)
       }, function(actionError) {
         root.finishRemoval(root.apiErrorMessage(actionError))
       })
-    } else startRemovalWorker()
+    } else startRemovalWorker(guiAssetsPath)
   }
 
-  function startRemovalWorker() {
+  function startRemovalWorker(guiAssets) {
     removalProcess.command = [
-      "bash", removeHelperPath, "start", pluginRoot, guiAssetsPath,
+      "bash", removeHelperPath, "start", pluginRoot, guiAssets,
       _deleteSettingsAfterRemoval ? "purge" : "preserve"
     ]
     removalProcess.running = true
@@ -278,6 +289,11 @@ QtObject {
   function scheduleReconcile() {
     if (!_settingsLoaded || !_settingsValid || !runtimeReady) return
     reconcileTimer.restart()
+  }
+
+  function scheduleThemeRefresh() {
+    themePalette.scheduleRefresh()
+    if (webUiTheme === "omarchy") scheduleReconcile()
   }
 
   function reconcile() {
@@ -355,6 +371,10 @@ QtObject {
   onLegacyThemedIconChanged: {
     if (!settingsExists) iconStyle = SettingsModel.defaults(legacyThemedIcon).iconStyle
   }
+
+  Component.onCompleted: themePalette.refreshNow()
+
+  property ThemePaletteController themePalette: ThemePaletteController {}
 
   property FileView settingsFile: FileView {
     id: settingsFile
@@ -454,11 +474,10 @@ QtObject {
 
   property Connections themeConnections: Connections {
     target: Color
-    enabled: root.webUiTheme === "omarchy"
-    function onBackgroundChanged() { root.scheduleReconcile() }
-    function onForegroundChanged() { root.scheduleReconcile() }
-    function onAccentChanged() { root.scheduleReconcile() }
-    function onMutedChanged() { root.scheduleReconcile() }
-    function onUrgentChanged() { root.scheduleReconcile() }
+    function onBackgroundChanged() { root.scheduleThemeRefresh() }
+    function onForegroundChanged() { root.scheduleThemeRefresh() }
+    function onAccentChanged() { root.scheduleThemeRefresh() }
+    function onMutedChanged() { root.scheduleThemeRefresh() }
+    function onUrgentChanged() { root.scheduleThemeRefresh() }
   }
 }

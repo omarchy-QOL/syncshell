@@ -51,6 +51,9 @@ validate_installation() {
 
 validate_theme_paths() {
   local gui_assets=$1 theme_path
+  theme_paths=()
+  # Keep themes when Syncthing cannot provide their verified parent directory.
+  [[ -n $gui_assets ]] || return 0
   [[ $gui_assets == /* ]] || fail "the GUI assets path must be absolute"
   gui_assets=$(realpath -m -- "$gui_assets")
   theme_paths=("$gui_assets/syncthing-omarchy" "$gui_assets/syncshell-modern")
@@ -78,7 +81,7 @@ worker() {
   local source_root=$1
   local gui_assets=$2
   local cleanup_mode=$3
-  local exit_code worker_dir theme_path
+  local exit_code message worker_dir theme_path
 
   init_paths
   worker_dir=$(dirname -- "$(realpath -m -- "$0")")
@@ -111,8 +114,11 @@ worker() {
     delete_tree "$config_root"
     delete_tree "$state_root"
   fi
-  notify_result "Syncthing plugin" \
-    "Plugin removed; Syncthing folders and data were left untouched"
+  message="Plugin settings deleted"
+  if [[ $cleanup_mode == preserve ]]; then
+    message="Plugin settings preserved: $config_root/settings.toml"
+  fi
+  notify_result "Syncshell removed" "$message"
 }
 
 start() {

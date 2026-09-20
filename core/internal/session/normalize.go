@@ -11,7 +11,6 @@ import (
 func normalizeDevices(
 	wire []syncthing.Device,
 	connections syncthing.Connections,
-	localDeviceID string,
 ) []Device {
 	limit := min(len(wire), maxDevices)
 	result := make([]Device, 0, limit)
@@ -20,15 +19,19 @@ func normalizeDevices(
 		result = append(result, Device{ID: boundedIdentifier(device.DeviceID),
 			Name:      boundedLabel(device.Name),
 			Untrusted: device.Untrusted,
-			Connected: device.DeviceID == localDeviceID || connection.Connected})
+			Connected: connection.Connected})
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].ID < result[j].ID })
 	return result
 }
 
-func normalizedCounts(devices []Device, folders []Folder) Counts {
+func normalizedCounts(devices []Device, folders []Folder, localDeviceID string) Counts {
 	counts := Counts{Folders: len(folders), Devices: len(devices)}
 	for _, device := range devices {
+		if device.ID == localDeviceID {
+			counts.Devices--
+			continue
+		}
 		if device.Connected {
 			counts.ConnectedDevices++
 		}
@@ -97,6 +100,59 @@ func normalizePendingFolders(pending syncthing.PendingFolders) map[string]Pendin
 		result[boundedIdentifier(folderID)] = PendingFolder{OfferedBy: offers}
 	}
 	return result
+}
+
+func normalizePendingDevices(pending syncthing.PendingDevices) []PendingDevice {
+	ids := make([]string, 0, len(pending))
+	for id := range pending {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	result := make([]PendingDevice, 0, min(len(ids), maxPendingDevices))
+	for _, id := range ids[:min(len(ids), maxPendingDevices)] {
+		device := pending[id]
+		result = append(result, PendingDevice{ID: boundedIdentifier(id),
+			Name: boundedLabel(device.Name), Address: boundedLabel(device.Address)})
+	}
+	return result
+}
+
+func normalizeNearbyDevices(
+	discovery syncthing.DiscoveryCache,
+	configured []syncthing.Device,
+	localID string,
+) []NearbyDevice {
+	ids := nearbyDeviceIDs(discovery, configured, localID)
+	result := make([]NearbyDevice, 0, min(len(ids), maxNearbyDevices))
+	for _, id := range ids[:min(len(ids), maxNearbyDevices)] {
+		addresses := discovery[id].Addresses
+		bounded := make([]string, 0, min(len(addresses), maxDeviceAddresses))
+		for _, address := range addresses[:min(len(addresses), maxDeviceAddresses)] {
+			bounded = append(bounded, boundedLabel(address))
+		}
+		result = append(result, NearbyDevice{ID: boundedIdentifier(id), Addresses: bounded})
+	}
+	return result
+}
+
+func nearbyDeviceIDs(
+	discovery syncthing.DiscoveryCache,
+	configured []syncthing.Device,
+	localID string,
+) []string {
+	ignored := make(map[string]struct{}, len(configured)+1)
+	ignored[localID] = struct{}{}
+	for _, device := range configured {
+		ignored[device.DeviceID] = struct{}{}
+	}
+	ids := make([]string, 0, len(discovery))
+	for id := range discovery {
+		if _, exists := ignored[id]; !exists {
+			ids = append(ids, id)
+		}
+	}
+	sort.Strings(ids)
+	return ids
 }
 
 func collectionTruncation(
@@ -185,15 +241,16 @@ func clonePublished(source PublishedSnapshot) PublishedSnapshot {
 		}
 		copy.State.PendingFolders[folderID] = PendingFolder{OfferedBy: offers}
 	}
+	copy.State.PendingDevices = append([]PendingDevice(nil), source.State.PendingDevices...)
+	copy.State.NearbyDevices = append([]NearbyDevice(nil), source.State.NearbyDevices...)
+	for index := range copy.State.NearbyDevices {
+		copy.State.NearbyDevices[index].Addresses = append([]string(nil),
+			source.State.NearbyDevices[index].Addresses...)
+	}
 	copy.State.Activity.Files = append([]Activity(nil), source.State.Activity.Files...)
 	if source.State.Activity.Current != nil {
 		current := *source.State.Activity.Current
 		copy.State.Activity.Current = &current
 	}
-	if source.State.Mutation.Error != nil {
-		errorCopy := *source.State.Mutation.Error
-		copy.State.Mutation.Error = &errorCopy
-	}
-	copy.State.Capabilities = append([]string(nil), source.State.Capabilities...)
 	return copy
 }

@@ -1,0 +1,17 @@
+{
+  "id": "syncshell",
+  "name": "Syncshell",
+  "description": "Monitor Syncthing and safely manage synchronized folders",
+  "version": "0.1.9",
+  "author": "ilyaZar",
+  "type": "composite",
+  "capabilities": ["daemon", "dankbar-widget", "monitoring"],
+  "icon": "sync",
+  "components": {
+    "daemon": "./SyncshellDaemon.qml",
+    "widget": "./SyncshellWidget.qml"
+  },
+  "requires_dms": ">=1.5.3",
+  "dependencies": ["syncthing"],
+  "permissions": ["process", "network"]
+}

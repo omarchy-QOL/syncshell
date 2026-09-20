@@ -8,7 +8,8 @@ function devices(values) {
     projected.push({
       deviceID: String(device.id || ""),
       name: String(device.name || ""),
-      untrusted: device.untrusted === true
+      untrusted: device.untrusted === true,
+      connected: device.connected === true
     })
   }
   return projected
@@ -82,7 +83,7 @@ function lifecyclePresentation(lifecycle) {
 function truncationWarning(truncation) {
   var state = truncation || ({})
   var keys = ["devices", "folders", "folderDevices",
-    "pendingFolders", "pendingOffers"]
+    "pendingFolders", "pendingOffers", "pendingDevices", "nearbyDevices"]
   for (var i = 0; i < keys.length; i++) {
     if (Number(state[keys[i]] || 0) > 0) {
       return "Some Syncthing items exceed panel limits; use the Web UI for "

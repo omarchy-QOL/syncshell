@@ -22,6 +22,15 @@ import (
 
 const maxResponseBytes = 8 << 20
 
+// RescanDisposition distinguishes a completed request from a confirmed scan
+// that outlived the bounded HTTP request.
+type RescanDisposition string
+
+const (
+	RescanCompleted RescanDisposition = "completed"
+	RescanRunning   RescanDisposition = "running"
+)
+
 // Client owns authenticated transport to one selected Syncthing instance.
 type Client struct {
 	target    Target
@@ -210,16 +219,19 @@ func (c *Client) FolderStatus(ctx context.Context, folderID string) (FolderStatu
 }
 
 // Rescan requests one verified folder scan.
-func (c *Client) Rescan(ctx context.Context, folderID string) error {
+func (c *Client) Rescan(ctx context.Context, folderID string) (RescanDisposition, error) {
 	path := "/rest/db/scan"
 	if folderID != "" {
 		path += "?folder=" + url.QueryEscape(folderID)
 	}
 	err := c.request(ctx, http.MethodPost, path, nil, true, nil)
-	if err == nil || !c.rescanStarted(ctx, folderID, err) {
-		return err
+	if err == nil {
+		return RescanCompleted, nil
 	}
-	return nil
+	if c.rescanStarted(ctx, folderID, err) {
+		return RescanRunning, nil
+	}
+	return "", err
 }
 
 func (c *Client) rescanStarted(ctx context.Context, folderID string, err error) bool {
@@ -266,7 +278,6 @@ func (c *Client) requestWith(
 	body []byte,
 	authenticated bool,
 	destination any,
-	acceptedStatuses ...int,
 ) error {
 	request, err := http.NewRequestWithContext(ctx, method, c.base+path, bytes.NewReader(body))
 	if err != nil {
@@ -291,19 +302,10 @@ func (c *Client) requestWith(
 	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
 		return failure(ErrorUnauthorized, "request", "Syncthing authorization failed", nil)
 	}
-	accepted := false
-	for _, status := range acceptedStatuses {
-		if response.StatusCode == status {
-			accepted = true
-			break
-		}
-	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		if accepted {
-			return nil
-		}
-		return failure(ErrorHTTP, "request",
-			fmt.Sprintf("Syncthing returned HTTP %d", response.StatusCode), nil)
+		return &Error{Code: ErrorHTTP, Op: "request",
+			Message: fmt.Sprintf("Syncthing returned HTTP %d", response.StatusCode),
+			status:  response.StatusCode}
 	}
 	contents, err := io.ReadAll(io.LimitReader(response.Body, maxResponseBytes+1))
 	if err != nil {
