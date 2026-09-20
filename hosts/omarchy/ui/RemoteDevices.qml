@@ -38,10 +38,10 @@ Column {
   }
 
   function ensureSelections() {
-    if (!selectedDevice && remoteRows.length > 0)
-      selectedDeviceId = remoteRows[0].id
-    if (!selectedPending && pendingRows.length > 0)
-      selectedPendingId = pendingRows[0].id
+    if (!rowById(remoteRows, selectedDeviceId))
+      selectedDeviceId = remoteRows.length > 0 ? remoteRows[0].id : ""
+    if (!rowById(pendingRows, selectedPendingId))
+      selectedPendingId = pendingRows.length > 0 ? pendingRows[0].id : ""
   }
 
   function deviceOptions() {
@@ -148,7 +148,10 @@ Column {
         ? "Device is connected" : "Device is disconnected"
       foreground: root.foreground
       fontFamily: root.fontFamily
-      onChanged: function(value) { root.selectedDeviceId = value }
+      onChanged: function(value) {
+        root.selectedDeviceId = value
+        deviceSelector.value = Qt.binding(function() { return root.selectedDeviceId })
+      }
     }
 
     Text {
@@ -281,7 +284,10 @@ Column {
             || root.selectedPending.shortId) + " attempted to connect." : ""
         foreground: root.foreground
         fontFamily: root.fontFamily
-        onChanged: function(value) { root.selectedPendingId = value }
+        onChanged: function(value) {
+          root.selectedPendingId = value
+          pendingSelector.value = Qt.binding(function() { return root.selectedPendingId })
+        }
       }
 
       TooltipButton {
