@@ -8,13 +8,12 @@ BorderSurface {
   property var controller
   property var syncthing
   property color foreground: Color.foreground
-  property color dim: Qt.darker(foreground, 1.5)
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
+  required property color warning
   property string fontFamily: Style.font.family
   property var draftDeviceIds: []
   property bool submitting: false
-  readonly property var folder: controller ? controller.selectedFolderRow : null
+  readonly property var folder: controller ? controller.currentFolderRow : null
   readonly property bool popupOpen: devicePicker.popupOpen
 
   function resetDraft() {
@@ -33,7 +32,7 @@ BorderSurface {
   onFolderChanged: if (visible) resetDraft()
 
   width: parent ? parent.width : implicitWidth
-  implicitHeight: content.implicitHeight + Style.space(16)
+  implicitHeight: content.implicitHeight + Style.space(8)
   color: "transparent"
   borderSpec: Border.controlSpec("normal", foreground, Color.accent)
   radius: Style.cornerRadius
@@ -54,6 +53,7 @@ BorderSurface {
     id: content
     anchors.fill: parent
     anchors.margins: Style.space(8)
+    anchors.topMargin: 0
     spacing: Style.space(6)
 
     InlineFormHeader {

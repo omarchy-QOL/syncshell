@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Commons
 import qs.Ui
+import "UiConstants.js" as UiConstants
 
 Column {
   id: root
@@ -10,8 +11,8 @@ Column {
   property var syncthing
   property color foreground: Color.foreground
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
-  property color success: "#a3be8c"
+  required property color warning
+  required property color success
   property string fontFamily: Style.font.family
 
   width: parent ? parent.width : implicitWidth
@@ -35,6 +36,7 @@ Column {
       title: "Syncthing"
       meta: root.controller.localDeviceName
       metaOpacity: 0
+      iconSize: Style.font.displayLarge + Style.spacing.md
       foreground: root.foreground
       fontFamily: root.fontFamily
       iconOpacity: root.syncthing && root.syncthing.online
@@ -169,7 +171,8 @@ Column {
 
     Behavior on opacity {
       NumberAnimation {
-        duration: root.controller.noticeShown ? 0 : 350
+        duration: root.controller.noticeShown ? 0
+          : UiConstants.NOTICE_FADE_MS
         easing.type: Easing.OutCubic
       }
     }

@@ -11,7 +11,7 @@ Item {
   property string text: ""
   property string helpText: "Copy ID"
   property string variant: "button"
-  property real size: Style.space(28)
+  property real size: Style.spacing.controlHeight
   property color foreground: Color.foreground
   property string fontFamily: Style.font.family
   property int fontSize: Style.font.caption

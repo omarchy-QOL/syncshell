@@ -598,7 +598,7 @@ Panel {
 
   Timer {
     id: noticeDisplayTimer
-    interval: 10000
+    interval: UiConstants.NOTICE_VISIBLE_MS
     repeat: false
     onTriggered: {
       root.noticeShown = false
@@ -608,7 +608,7 @@ Panel {
 
   Timer {
     id: noticeFadeTimer
-    interval: 350
+    interval: UiConstants.NOTICE_FADE_MS
     repeat: false
     onTriggered: {
       if (root.noticeShown) return

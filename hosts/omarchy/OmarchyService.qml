@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../../shared"
 import "controllers"
+import "ui/UiConstants.js" as UiConstants
 import "models/FacadeModel.js" as FacadeModel
 
 QtObject {
@@ -606,7 +607,8 @@ QtObject {
   }
 
   property Timer noticeTimer: Timer {
-    interval: 10400
+    // Allow the panel fade to clear the notice first.
+    interval: UiConstants.NOTICE_VISIBLE_MS + UiConstants.NOTICE_FADE_MS + 50
     repeat: false
     onTriggered: root.folderMutationNotice = ""
   }

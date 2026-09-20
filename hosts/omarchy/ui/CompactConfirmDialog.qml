@@ -15,7 +15,7 @@ Item {
   property bool compact: false
   property color background: Color.background
   property color foreground: Color.foreground
-  property color scrim: Util.alpha(Color.background, 0.7)
+  property color scrim: Util.alpha(background, 0.7)
   property color selectedBackground: Util.alpha(Color.foreground, 0.08)
   property color selectedText: Color.accent
   property string fontFamily: Style.font.family
@@ -39,7 +39,8 @@ Item {
       width: Math.min(parent.width - Style.space(12),
         Style.space(root.compact ? 280 : 390))
       height: card.contentTopInset + card.contentBottomInset
-        + messageText.implicitHeight + Style.space(12) + Style.space(28)
+        + messageText.implicitHeight + Style.space(12)
+        + Style.spacing.controlHeight
       anchors.centerIn: parent
       color: root.background
       borderSpec: Border.flat(root.selectedText, Style.normalBorderWidth)
@@ -94,7 +95,7 @@ Item {
 
               width: root.equalWidthActions
                 ? (actions.width - actions.spacing) / 2 : Style.space(76)
-              height: Style.space(28)
+              height: Style.spacing.controlHeight
               color: selected
                 ? (destructive
                   ? Util.alpha(Color.urgent, 0.22)
