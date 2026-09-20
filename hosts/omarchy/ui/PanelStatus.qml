@@ -18,26 +18,6 @@ Column {
   width: parent ? parent.width : implicitWidth
   spacing: Style.space(12)
 
-  Text {
-    visible: root.controller.displayedNotice !== ""
-    width: parent.width
-    text: root.controller.displayedNotice
-    textFormat: Text.PlainText
-    opacity: root.controller.noticeShown ? 1 : 0
-    color: root.success
-    font.family: root.fontFamily
-    font.pixelSize: Style.font.bodySmall
-    wrapMode: Text.WordWrap
-
-    Behavior on opacity {
-      NumberAnimation {
-        duration: root.controller.noticeShown ? 0
-          : UiConstants.NOTICE_FADE_MS
-        easing.type: Easing.OutCubic
-      }
-    }
-  }
-
   Item {
     id: header
     width: parent.width
@@ -176,6 +156,26 @@ Column {
     font.family: root.fontFamily
     font.pixelSize: Style.font.bodySmall
     wrapMode: Text.WordWrap
+  }
+
+  Text {
+    visible: root.controller.displayedNotice !== ""
+    width: parent.width
+    text: root.controller.displayedNotice
+    textFormat: Text.PlainText
+    opacity: root.controller.noticeShown ? 1 : 0
+    color: root.success
+    font.family: root.fontFamily
+    font.pixelSize: Style.font.bodySmall
+    wrapMode: Text.WordWrap
+
+    Behavior on opacity {
+      NumberAnimation {
+        duration: root.controller.noticeShown ? 0
+          : UiConstants.NOTICE_FADE_MS
+        easing.type: Easing.OutCubic
+      }
+    }
   }
 
   Column {
