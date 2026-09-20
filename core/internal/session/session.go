@@ -186,7 +186,8 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 	snapshot.PendingDevices = hydrated.pendingDevices
 	snapshot.NearbyDevices = hydrated.nearbyDevices
 	snapshot.WebUI = hydrated.webUI
-	snapshot.Counts = normalizedCounts(hydrated.devices, hydrated.folders)
+	snapshot.Counts = normalizedCounts(hydrated.devices, hydrated.folders,
+		status.MyID)
 	snapshot.Truncation = hydrated.truncation
 	snapshot.Connection.Phase = "ready"
 	snapshot.Connection.Online = true
@@ -249,7 +250,7 @@ func (s *Session) loadAuthenticated(
 	return hydratedState{
 		identity: Identity{DeviceID: boundedIdentifier(status.MyID),
 			Version: boundedLabel(version.Version)},
-		devices:        normalizeDevices(devices, connections, status.MyID),
+		devices:        normalizeDevices(devices, connections),
 		folders:        normalizedFolders,
 		pendingFolders: normalizePendingFolders(pending),
 		pendingDevices: normalizePendingDevices(pendingDevices),

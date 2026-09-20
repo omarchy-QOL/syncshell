@@ -48,8 +48,13 @@ func TestRefreshIsDeterministicAndRevisioned(t *testing.T) {
 	if !first.State.Connection.Online || first.State.Identity.DeviceID != "LOCAL-ID" {
 		t.Fatalf("unexpected online state: %#v", first.State)
 	}
-	if len(first.State.Devices) != 2 || !first.State.Devices[1].Connected {
+	if len(first.State.Devices) != 2 || first.State.Devices[0].ID != "LOCAL-ID" ||
+		first.State.Devices[0].Connected || !first.State.Devices[1].Connected {
 		t.Fatalf("device normalization failed: %#v", first.State.Devices)
+	}
+	if first.State.Counts.Devices != 1 || first.State.Counts.ConnectedDevices != 1 {
+		t.Fatalf("local device was included in connection counts: %#v",
+			first.State.Counts)
 	}
 	if first.State.Lifecycle.Classification != "external" ||
 		first.State.Lifecycle.CanControl {
