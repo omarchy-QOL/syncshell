@@ -511,6 +511,8 @@ KeyboardPanel {
 
     CompactConfirmDialog {
         id: deviceConfirmDialog
+        implicitWidth: Style.space(root.controller.deviceConfirmAction === "remove"
+            ? 320 : 390)
         parent: keyCatcher
         anchors.fill: parent
         opened: root.controller.deviceConfirmOpen
@@ -523,8 +525,8 @@ KeyboardPanel {
                 + "It can reappear if the device connects again."
             : "Remove " + root.controller.deviceConfirmName
                 + " from this device?\n\nFolder sharing with it will be "
-                + "removed locally. Local folders and files remain. The "
-                + "other device is unchanged."
+                + "removed locally. Local folders and files remain.\n"
+                + "The other device is unchanged."
         confirmText: "Yes"
         cancelText: "No"
         background: Color.popups.background

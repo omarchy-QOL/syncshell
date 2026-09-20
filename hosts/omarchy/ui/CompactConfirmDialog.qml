@@ -23,6 +23,7 @@ Item {
   signal confirmed()
 
   visible: opened
+  implicitWidth: Style.space(390)
   onOpenedChanged: if (opened) selectedIndex = confirmFirst ? 1 : 0
 
   Rectangle {
@@ -37,7 +38,7 @@ Item {
     BorderSurface {
       id: card
       width: Math.min(parent.width - Style.space(12),
-        Style.space(390))
+        root.implicitWidth)
       height: card.contentTopInset + card.contentBottomInset
         + messageText.implicitHeight + Style.space(12)
         + Style.spacing.controlHeight
