@@ -187,6 +187,7 @@ KeyboardPanel {
         boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.VerticalFlick
         interactive: contentHeight > height
+        onMovementStarted: root.closeTransientPopups()
         ScrollBar.vertical: ScrollBar {
             id: scrollBar
             parent: keyCatcher
