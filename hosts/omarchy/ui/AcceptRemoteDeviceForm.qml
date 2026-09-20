@@ -99,29 +99,12 @@ BorderSurface {
       width: parent.width
       spacing: Style.space(6)
 
-      Row {
-        spacing: Style.space(4)
-
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          text: "Device ID"
-          color: root.dim
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.caption
-          font.bold: true
-        }
-
-        IdCopyButton {
-          anchors.verticalCenter: parent.verticalCenter
-          text: "COPY ID"
-          value: String(root.device && root.device.id || "")
-          notice: "Device ID copied"
-          helpText: "Copy device ID"
-          controller: root.controller
-          foreground: root.foreground
-          fontFamily: root.fontFamily
-          height: Style.space(24)
-        }
+      Text {
+        text: "Device ID"
+        color: root.dim
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.caption
+        font.bold: true
       }
 
       Text {
@@ -132,7 +115,19 @@ BorderSurface {
         font.family: root.fontFamily
         font.pixelSize: Style.font.caption
         horizontalAlignment: Text.AlignRight
-        elide: Text.ElideLeft
+        elide: Text.ElideMiddle
+      }
+
+      IdCopyButton {
+        Layout.preferredWidth: Style.space(18)
+        Layout.preferredHeight: Style.space(18)
+        value: String(root.device && root.device.id || "")
+        notice: "Device ID copied"
+        helpText: "Copy device ID"
+        controller: root.controller
+        foreground: root.foreground
+        fontFamily: root.fontFamily
+        iconSize: Math.max(Style.space(7), Style.font.caption - 3)
       }
     }
 
