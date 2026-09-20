@@ -26,13 +26,12 @@ func normalizeDevices(
 }
 
 func normalizedCounts(devices []Device, folders []Folder, localDeviceID string) Counts {
-	counts := Counts{Folders: len(folders)}
-	localDeviceID = boundedIdentifier(localDeviceID)
+	counts := Counts{Folders: len(folders), Devices: len(devices)}
 	for _, device := range devices {
-		if localDeviceID != "" && device.ID == localDeviceID {
+		if device.ID == localDeviceID {
+			counts.Devices--
 			continue
 		}
-		counts.Devices++
 		if device.Connected {
 			counts.ConnectedDevices++
 		}
