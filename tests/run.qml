@@ -138,7 +138,7 @@ QtObject {
     compare(remotes[0].label, "xps · 1 folder", "remote folder count")
     compare(remotes[0].connected, false, "remote connection state")
     var pending = PanelModel.pendingDeviceRows(service)
-    compare(pending[0].label, "xps wants to connect · AAAAAAA",
+    compare(pending[0].label, "xps (AAAAAAA) wants to connect",
       "incoming request label")
     var nearby = PanelModel.nearbyDeviceOptions(service)
     compare(nearby[0], { value: "", label: "Custom Device ID" },
