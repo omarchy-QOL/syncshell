@@ -121,6 +121,9 @@ Panel {
   }
   readonly property string visibleNotice: syncthing
     ? syncthing.folderMutationNotice || syncthing.settingsNotice : ""
+  readonly property int visibleNoticeDurationMs: syncthing
+    && syncthing.folderMutationNotice !== ""
+    ? syncthing.folderMutationNoticeVisibleMs : UiConstants.NOTICE_VISIBLE_MS
   readonly property string visibleWarning: {
     if (syncthing && syncthing.installationState === "missing")
       return "Syncthing is not installed. Open More to install it."
@@ -151,10 +154,12 @@ Panel {
   readonly property string localDeviceName: PanelModel.localDeviceName(
     syncthing, Quickshell.env("HOSTNAME"))
 
-  function showNotice(message) {
+  function showNotice(message, visibleMs) {
     displayedNotice = message
     noticeShown = true
     noticeFadeTimer.stop()
+    noticeDisplayTimer.interval = Number(visibleMs) > 0
+      ? Math.round(Number(visibleMs)) : UiConstants.NOTICE_VISIBLE_MS
     noticeDisplayTimer.restart()
   }
 
@@ -200,6 +205,10 @@ Panel {
 
   function scrollToMore() {
     popup.scrollToMore()
+  }
+
+  function scrollToTop() {
+    popup.scrollToTop()
   }
 
   function toggleFolderSharing() {
@@ -582,7 +591,7 @@ Panel {
   onPendingOfferRowsChanged: ensurePendingOfferSelection()
   onVisibleNoticeChanged: {
     if (visibleNotice !== "") {
-      showNotice(visibleNotice)
+      showNotice(visibleNotice, visibleNoticeDurationMs)
     } else if (displayedNotice !== "") {
       noticeDisplayTimer.stop()
       noticeShown = false

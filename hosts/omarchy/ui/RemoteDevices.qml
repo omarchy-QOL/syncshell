@@ -106,10 +106,13 @@ Column {
     target: root.syncthing
     function onFolderMutationNoticeChanged() {
       if (!root.submitting || !root.syncthing.folderMutationNotice) return
+      var deviceAdded = root.addOpen || root.acceptOpen
       root.submitting = false
       root.addOpen = false
       root.acceptOpen = false
       root.foldersOpen = false
+      if (deviceAdded)
+        Qt.callLater(function() { root.controller.scrollToTop() })
     }
     function onFolderMutationErrorChanged() {
       if (root.syncthing.folderMutationError) root.submitting = false

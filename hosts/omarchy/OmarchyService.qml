@@ -101,6 +101,7 @@ QtObject {
   property string folderMutationAction: ""
   property string folderMutationError: ""
   property string folderMutationNotice: ""
+  property int folderMutationNoticeVisibleMs: UiConstants.NOTICE_VISIBLE_MS
   property string recentlyLinkedFolderId: ""
   property bool folderPreparationBusy: false
   property string folderPreparationError: ""
@@ -239,11 +240,22 @@ QtObject {
     return String(error && error.message || fallback || "Action failed")
   }
 
-  function notify(message) {
+  function notify(message, visibleMs) {
     if (!message) return
-    Quickshell.execDetached([
-      "omarchy-notification-send", "Syncthing", String(message)
-    ])
+    var args = ["omarchy-notification-send"]
+    if (Number(visibleMs) > 0)
+      args.push("-t", String(Math.round(Number(visibleMs))))
+    args.push("Syncthing", String(message))
+    Quickshell.execDetached(args)
+  }
+
+  function publishFolderNotice(notice, panelVisibleMs, desktopVisibleMs) {
+    folderMutationNoticeVisibleMs = Number(panelVisibleMs) > 0
+      ? Math.round(Number(panelVisibleMs)) : UiConstants.NOTICE_VISIBLE_MS
+    folderMutationNotice = String(notice || "")
+    if (!folderMutationNotice) return
+    noticeTimer.restart()
+    notify(folderMutationNotice, desktopVisibleMs)
   }
 
   function isRescanAction(action) {
@@ -275,9 +287,7 @@ QtObject {
       ? "Rescan complete for all folders"
       : "Rescan complete for " + folderLabel(folderMutationId)
     clearFolderAction()
-    folderMutationNotice = notice
-    noticeTimer.restart()
-    notify(notice)
+    publishFolderNotice(notice)
   }
 
   function finishFolderAction(contractAction, folderId, notice) {
@@ -286,10 +296,10 @@ QtObject {
       recentlyLinkedFolderId = String(folderId || "")
       linkedTimer.restart()
     }
-    folderMutationNotice = String(notice || "")
-    if (!folderMutationNotice) return
-    noticeTimer.restart()
-    notify(folderMutationNotice)
+    var deviceAdded = contractAction === "device-add"
+    publishFolderNotice(notice,
+      deviceAdded ? UiConstants.DEVICE_ADD_PANEL_NOTICE_MS : 0,
+      deviceAdded ? UiConstants.DEVICE_ADD_DESKTOP_NOTICE_MS : 0)
   }
 
   function failFolderAction(error, fallback) {
@@ -486,11 +496,13 @@ QtObject {
     noticeTimer.stop()
     folderMutationError = ""
     folderMutationNotice = ""
+    folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
   }
 
   function clearFolderMutationNotice() {
     noticeTimer.stop()
     folderMutationNotice = ""
+    folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
   }
 
   function runLifecycle(action) {
@@ -612,9 +624,13 @@ QtObject {
 
   property Timer noticeTimer: Timer {
     // Allow the panel fade to clear the notice first.
-    interval: UiConstants.NOTICE_VISIBLE_MS + UiConstants.NOTICE_FADE_MS + 50
+    interval: root.folderMutationNoticeVisibleMs
+      + UiConstants.NOTICE_FADE_MS + 50
     repeat: false
-    onTriggered: root.folderMutationNotice = ""
+    onTriggered: {
+      root.folderMutationNotice = ""
+      root.folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
+    }
   }
 
   property Timer linkedTimer: Timer {
