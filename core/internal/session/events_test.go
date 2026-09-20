@@ -175,7 +175,7 @@ func TestLocalIndexDeletionAfterUserRescan(t *testing.T) {
 				t.Fatal(err)
 			}
 			result := coreSession.Act(context.Background(), test.action,
-				test.arguments, "rescan", nil)
+				test.arguments)
 			if !result.OK || api.rescanCount() != 1 {
 				t.Fatalf("rescan failed: %#v count=%d", result, api.rescanCount())
 			}

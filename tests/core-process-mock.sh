@@ -9,8 +9,8 @@ for argument in "$@"; do
 done
 
 printf '%s\n' \
-  '{"v":1,"type":"hello","build":{"version":"test","protocol":1},"capabilities":[]}' \
-  '{"v":1,"type":"snapshot","revision":1,"state":{"connection":{"online":true},"identity":{"deviceId":"TEST-ID"},"folders":[{"id":"folder"}]}}'
+  '{"v":2,"type":"hello","build":{"version":"test"}}' \
+  '{"v":2,"type":"snapshot","revision":1,"state":{"connection":{"online":true},"identity":{"deviceId":"TEST-ID"},"folders":[{"id":"folder"}]}}'
 
 while IFS= read -r line; do
   id=$(jq -er '.id' <<<"$line")
@@ -18,15 +18,15 @@ while IFS= read -r line; do
   case $type in
     configure|refresh|action)
       [[ $exit_on_request == false ]] || exit 17
-      printf '{"v":1,"type":"result","id":"%s","ok":true,"revision":1}\n' "$id"
+      printf '{"v":2,"type":"result","id":"%s","ok":true}\n' "$id"
       ;;
     shutdown)
-      printf '{"v":1,"type":"result","id":"%s","ok":true,"revision":1}\n' "$id"
-      printf '%s\n' '{"v":1,"type":"end","reason":"shutdown"}'
+      printf '{"v":2,"type":"result","id":"%s","ok":true}\n' "$id"
+      printf '%s\n' '{"v":2,"type":"end","reason":"shutdown"}'
       exit 0
       ;;
     *) exit 1 ;;
   esac
 done
 
-printf '%s\n' '{"v":1,"type":"end","reason":"stdin"}'
+printf '%s\n' '{"v":2,"type":"end","reason":"stdin"}'

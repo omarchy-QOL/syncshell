@@ -2,9 +2,15 @@ import QtQuick
 import "../hosts/omarchy/models/PanelModel.js" as PanelModel
 import "../hosts/omarchy/models/SettingsModel.js" as SettingsModel
 import "../hosts/omarchy/models/FacadeModel.js" as FacadeModel
+import "../shared"
 
 QtObject {
   id: root
+
+  property int rescanCompletions: 0
+  property RescanTracker rescanTracker: RescanTracker {
+    onCompleted: root.rescanCompletions++
+  }
 
   function compare(actual, expected, name) {
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -275,6 +281,31 @@ QtObject {
     }).status, "aligned", "aligned state")
   }
 
+  function testRescanTracker() {
+    compare(rescanTracker.acceptResult({
+      state: "completed",
+      targetFolderIds: ["folder"],
+      runningFolderIds: []
+    }, []), true, "fast rescan result accepted")
+    compare(rescanCompletions, 1, "fast rescan completes immediately")
+    compare(rescanTracker.acceptResult({
+      state: "running",
+      targetFolderIds: ["folder", "other"],
+      runningFolderIds: ["folder"]
+    }, ["folder"]), true, "long rescan result accepted")
+    compare(rescanTracker.runningFolderIds, ["folder"],
+      "running rescan target retained")
+    compare(rescanCompletions, 1, "running rescan remains pending")
+    rescanTracker.reconcile(["other"])
+    compare(rescanCompletions, 2, "long rescan completes after target scan")
+    compare(rescanTracker.acceptResult({
+      state: "running",
+      targetFolderIds: ["folder"],
+      runningFolderIds: ["other"]
+    }, ["other"]), false, "unrelated running target rejected")
+    compare(rescanCompletions, 2, "invalid result does not complete")
+  }
+
   Component.onCompleted: {
     try {
       testPanelModel()
@@ -283,6 +314,7 @@ QtObject {
       testSettingsModel()
       testFacadeProjection()
       testDriftPresentation()
+      testRescanTracker()
       console.log("all QML model tests passed")
       Qt.exit(0)
     } catch (error) {

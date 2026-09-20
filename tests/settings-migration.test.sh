@@ -23,12 +23,12 @@ cat >"$test_root/bin/x86_64/syncshell-core" <<'MOCK'
 #!/bin/bash
 set -euo pipefail
 printf '%s\n' \
-  '{"v":1,"type":"hello","build":{"version":"test","protocol":1}}' \
-  '{"v":1,"type":"snapshot","revision":1,"state":{"connection":{"phase":"ready","online":true,"fresh":true},"webUi":{"theme":"default","guiAssets":"/tmp/test-gui"},"folders":[],"counts":{}}}'
+  '{"v":2,"type":"hello","build":{"version":"test"}}' \
+  '{"v":2,"type":"snapshot","revision":1,"state":{"connection":{"phase":"ready","online":true,"fresh":true},"webUi":{"theme":"default","guiAssets":"/tmp/test-gui"},"folders":[],"counts":{}}}'
 while IFS= read -r line; do
   printf '%s\n' "$line" >>"$TEST_SANDBOX/requests"
   id=$(jq -er '.id' <<<"$line")
-  printf '{"v":1,"type":"result","id":"%s","ok":true,"revision":1}\n' "$id"
+  printf '{"v":2,"type":"result","id":"%s","ok":true}\n' "$id"
 done
 MOCK
 chmod 755 "$test_root/bin/omarchy" "$test_root/bin/x86_64/syncshell-core"

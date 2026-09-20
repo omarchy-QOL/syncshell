@@ -11,6 +11,8 @@ ShellRoot {
   property int handledGeneration: 0
   property bool versionFailurePassed: false
   property bool lineBoundPassed: false
+  property bool unknownResultPassed: false
+  property bool duplicateResultPassed: false
   property bool pendingRequestSent: false
   property bool pendingFailurePassed: false
   property bool crashCapPassed: false
@@ -32,7 +34,7 @@ ShellRoot {
     Qt.exit(1)
   }
 
-  function requestCompleted(ok, revision, data, error) {
+  function requestCompleted(ok, data, error) {
     if (!ok || error) {
       fail("mock request failed: " + JSON.stringify(error))
       return
@@ -69,7 +71,7 @@ ShellRoot {
     if (!pendingProbe.protocolReady || pendingProbe.revision < 1
         || pendingRequestSent) return
     pendingRequestSent = true
-    var id = pendingProbe.refresh(function(ok, revision, data, error) {
+    var id = pendingProbe.refresh(function(ok, data, error) {
       if (ok || !error || error.code !== "core_unavailable") {
         root.fail("pending request did not receive core-unavailable failure")
         return
@@ -87,6 +89,24 @@ ShellRoot {
     onRevisionChanged: root.handleSnapshot()
 
     onProtocolFailed: function(message) { root.fail(message) }
+  }
+
+  CoreProcess {
+    id: unknownResultProbe
+    pluginRoot: root.testPluginRoot
+    desiredRunning: false
+    onProtocolFailed: function(message) {
+      root.unknownResultPassed = message.indexOf("duplicate or unknown") >= 0
+    }
+  }
+
+  CoreProcess {
+    id: duplicateResultProbe
+    pluginRoot: root.testPluginRoot
+    desiredRunning: false
+    onProtocolFailed: function(message) {
+      root.duplicateResultPassed = message.indexOf("duplicate or unknown") >= 0
+    }
   }
 
   CoreProcess {
@@ -154,7 +174,8 @@ ShellRoot {
       }
       if (root.completedRequests !== 3 || root.readyCount !== 2
           || !root.versionFailurePassed || !root.lineBoundPassed
-          || !root.pendingFailurePassed) {
+          || !root.pendingFailurePassed || !root.unknownResultPassed
+          || !root.duplicateResultPassed) {
         root.fail("core process lifecycle did not complete")
         return
       }
@@ -168,8 +189,17 @@ ShellRoot {
     running: true
     repeat: false
     onTriggered: {
-      versionProbe.handleLine('{"v":2,"type":"hello"}')
+      versionProbe.handleLine('{"v":3,"type":"hello"}')
       lineBoundProbe.handleLine("x".repeat(lineBoundProbe.maxLineLength + 1))
+      var hello = '{"v":2,"type":"hello",'
+        + '"build":{"version":"test"}}'
+      var result = '{"v":2,"type":"result","id":"1","ok":true}'
+      unknownResultProbe.handleLine(hello)
+      unknownResultProbe.handleLine(result)
+      duplicateResultProbe.handleLine(hello)
+      duplicateResultProbe._pending = ({ "1": null })
+      duplicateResultProbe.handleLine(result)
+      duplicateResultProbe.handleLine(result)
     }
   }
 

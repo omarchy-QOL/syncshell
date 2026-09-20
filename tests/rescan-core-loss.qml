@@ -32,11 +32,19 @@ ShellRoot {
           service.folderMutationBusy = true
           service.folderMutationAction = "rescan"
           service.folderMutationId = "folder"
-          service.pendingRescanResultReady = true
+          if (!service.rescanTracker.acceptResult({
+              state: "running",
+              targetFolderIds: ["folder"],
+              runningFolderIds: ["folder"]
+            }, ["folder"])) {
+            root.fail("rescan tracker rejected a valid running result")
+            return
+          }
           service.core.snapshot = Object.assign({}, service.core.snapshot, {
             connection: { online: false }
           })
-          if (service.folderMutationBusy || service.pendingRescanResultReady
+          if (service.folderMutationBusy
+              || service.rescanTracker.runningFolderIds.length !== 0
               || service.folderMutationError === ""
               || service.folderMutationNotice !== "") {
             root.fail("API loss retained an accepted rescan or reported success")

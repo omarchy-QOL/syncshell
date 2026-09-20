@@ -40,7 +40,7 @@ if (process.argv[2].startsWith('file:') || process.argv[2].startsWith('/')) {
 await writeFile(join(temporary, 'xdg-open'), opener, { mode: 0o700 });
 const core = spawn(
     resolve(process.env.SYNCSHELL_CORE),
-    ['stream', '--host-id', 'omarchy', '--config', configPath],
+    ['stream', '--desktop-authorized', '--config', configPath],
     {
         env: { ...process.env, PATH: temporary + ':' + process.env.PATH },
         stdio: ['pipe', 'pipe', 'pipe']
@@ -68,7 +68,7 @@ try {
     await waitUntil(() => frames.includes('"online":true'));
     core.stdin.write(
         JSON.stringify({
-            v: 1,
+            v: 2,
             type: 'action',
             id: 'desktop-open',
             action: 'webui.open',

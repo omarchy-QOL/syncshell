@@ -568,7 +568,6 @@ go -C core test -race ./internal/session ./internal/protocol
 bash tests/core-process.test.sh
 bash tests/adapter-service.test.sh
 bash tests/rescan-core-loss.test.sh
-bash tests/standalone-service.test.sh
 ```
 
 Then run the repository gates already required by the development guide:
@@ -581,7 +580,6 @@ go -C core vet ./...
 qml6 --apptype core -f tests/run.qml
 bash tests/architecture.test.sh
 bash tests/native-core-architecture.test.sh
-bash tests/omarchy-service-contract.test.sh
 for adapter in dankmaterialshell illogical-impulse caelestia waybar; do
   bash "tests/$adapter-adapter.test.sh"
 done

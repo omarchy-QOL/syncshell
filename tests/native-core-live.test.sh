@@ -91,7 +91,7 @@ folder_json=$(syncthing cli --home="$st_home" config defaults folder dump-json |
 syncthing cli --home="$st_home" config folders add-json "$folder_json" >/dev/null
 
 go -C "$root/core" build -trimpath -o "$binary" ./cmd/syncshell-core
-"$binary" probe --json --host-id standalone --config "$config" \
+"$binary" probe --json --config "$config" \
   >"$test_root/probe.json"
 "$binary" status --json --config "$config" >"$test_root/status.json"
 jq -e '
@@ -108,30 +108,30 @@ jq -e '
 
 {
   printf '%s\n' \
-    '{"v":1,"type":"configure","id":"1","config":{"probeIntervalSeconds":2}}'
+    '{"v":2,"type":"configure","id":"1","config":{"probeIntervalSeconds":2}}'
   sleep 1
   printf '%s\n' 'live event fixture' >"$folder/live-event.txt"
   printf '%s\n' \
-    '{"v":1,"type":"action","id":"2","action":"folder.rescan","args":{"folderId":"native-core"}}'
+    '{"v":2,"type":"action","id":"2","action":"folder.rescan","args":{"folderId":"native-core"}}'
   sleep 2
   printf '%s\n' \
-    '{"v":1,"type":"action","id":"3","action":"folder.pause","args":{"folderId":"native-core"}}' \
-    '{"v":1,"type":"action","id":"4","action":"folder.rescan","args":{"folderId":"native-core"}}' \
-    '{"v":1,"type":"action","id":"5","action":"folder.resume","args":{"folderId":"native-core"}}' \
-    '{"v":1,"type":"action","id":"6","action":"folder.rescan-all","args":{}}' \
-    '{"v":1,"type":"action","id":"7","action":"folder.suggest-id","args":{}}'
+    '{"v":2,"type":"action","id":"3","action":"folder.pause","args":{"folderId":"native-core"}}' \
+    '{"v":2,"type":"action","id":"4","action":"folder.rescan","args":{"folderId":"native-core"}}' \
+    '{"v":2,"type":"action","id":"5","action":"folder.resume","args":{"folderId":"native-core"}}' \
+    '{"v":2,"type":"action","id":"6","action":"folder.rescan-all","args":{}}' \
+    '{"v":2,"type":"action","id":"7","action":"folder.suggest-id","args":{}}'
   jq -cn --arg path "$second_folder" \
-    '{v:1,type:"action",id:"8",action:"folder.add-existing",
+    '{v:2,type:"action",id:"8",action:"folder.add-existing",
       args:{folderId:"second",path:$path,label:"Second"}}'
   printf '%s\n' \
-    '{"v":1,"type":"action","id":"9","action":"folder.pause","args":{"folderId":"second"}}' \
-    '{"v":1,"type":"action","id":"10","action":"folder.forget","args":{"folderId":"second"}}' \
-    '{"v":1,"type":"action","id":"11","action":"webui.set-theme","args":{"theme":"default"}}'
+    '{"v":2,"type":"action","id":"9","action":"folder.pause","args":{"folderId":"second"}}' \
+    '{"v":2,"type":"action","id":"10","action":"folder.forget","args":{"folderId":"second"}}' \
+    '{"v":2,"type":"action","id":"11","action":"webui.set-theme","args":{"theme":"default"}}'
   unlink "$folder/live-event.txt"
   printf '%s\n' \
-    '{"v":1,"type":"action","id":"12","action":"folder.rescan","args":{"folderId":"native-core"}}'
+    '{"v":2,"type":"action","id":"12","action":"folder.rescan","args":{"folderId":"native-core"}}'
   sleep 6
-  printf '%s\n' '{"v":1,"type":"shutdown","id":"13"}'
+  printf '%s\n' '{"v":2,"type":"shutdown","id":"13"}'
 } |
   "$binary" stream --config "$config" >"$test_root/stream.jsonl" \
     2>"$test_root/core.stderr"
