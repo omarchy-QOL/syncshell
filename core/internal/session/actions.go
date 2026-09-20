@@ -47,6 +47,8 @@ func (s *Session) Act(ctx context.Context, action string, arguments ActionArgume
 		return s.suggestFolderID(ctx)
 	case "device.add":
 		return s.addDevice(ctx, arguments)
+	case "device.remove":
+		return s.removeDevice(ctx, arguments.DeviceID)
 	case "device.dismiss-pending":
 		return s.dismissPendingDevice(ctx, arguments.DeviceID)
 	case "device.remove-folder-shares":
@@ -94,7 +96,7 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 			arguments.Path == "" && arguments.Label == "" &&
 			len(arguments.DeviceIDs) == 0 && arguments.PendingDeviceID == "" &&
 			len(arguments.FolderIDs) == 0 && arguments.Theme == ""
-	case "device.dismiss-pending":
+	case "device.remove", "device.dismiss-pending":
 		valid = arguments.DeviceID != "" && arguments.DeviceName == "" &&
 			arguments.FolderID == "" && arguments.Path == "" &&
 			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&

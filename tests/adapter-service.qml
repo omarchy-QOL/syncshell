@@ -60,14 +60,14 @@ ShellRoot {
       Qt.callLater(root.begin)
 
     onActionFinished: function(action, ok, data, error) {
-      if (root.stage === 7) {
+      if (root.stage === 8) {
         if (ok || action !== "folder.rescan" || busy
             || rescanTracker.runningFolderIds.length !== 0
             || actionNotice !== "" || actionError === "") {
           root.fail("shared adapter retained a rescan after API loss")
           return
         }
-        root.stage = 8
+        root.stage = 9
         service.core.terminate()
         finishTimer.restart()
         return
@@ -118,6 +118,13 @@ ShellRoot {
           return
         }
         root.stage = 7
+        removeDevice("REMOTE", "Remote")
+      } else if (root.stage === 7) {
+        if (action !== "device.remove") {
+          root.fail("device removal action was not forwarded")
+          return
+        }
+        root.stage = 8
         service.core.snapshot = Object.assign({}, service.core.snapshot, {
           connection: { online: true },
           folders: [{

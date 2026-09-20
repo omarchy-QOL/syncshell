@@ -66,6 +66,12 @@ func (c *Client) AddDevice(ctx context.Context, config DeviceConfig) error {
 	return c.jsonRequest(ctx, http.MethodPost, "/rest/config/devices", config, nil)
 }
 
+// DeleteDevice removes one device from the local configuration.
+func (c *Client) DeleteDevice(ctx context.Context, deviceID string) error {
+	return c.request(ctx, http.MethodDelete,
+		"/rest/config/devices/"+url.PathEscape(deviceID), nil, true, nil)
+}
+
 // PendingDevices reads current unknown-device connection attempts.
 func (c *Client) PendingDevices(ctx context.Context) (PendingDevices, error) {
 	var response PendingDevices

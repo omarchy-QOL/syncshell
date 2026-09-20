@@ -38,6 +38,10 @@ while IFS= read -r line; do
       jq -e '.args == {"deviceId":"PENDING"}' <<<"$line" >/dev/null
       printf '{"v":2,"type":"result","id":"%s","ok":true}\n' "$id"
       ;;
+    action:device.remove)
+      jq -e '.args == {"deviceId":"REMOTE"}' <<<"$line" >/dev/null
+      printf '{"v":2,"type":"result","id":"%s","ok":true}\n' "$id"
+      ;;
     action:device.remove-folder-shares)
       jq -e '.args == {"deviceId":"REMOTE","folderIds":["docs"]}' \
         <<<"$line" >/dev/null

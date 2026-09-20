@@ -197,6 +197,23 @@ func (s *Session) addDevice(ctx context.Context, arguments ActionArguments) Acti
 	return s.refreshAfterMutation(ctx)
 }
 
+func (s *Session) removeDevice(ctx context.Context, rawDeviceID string) ActionResult {
+	if result := s.requireOnline(); result != nil {
+		return *result
+	}
+	deviceID := strings.ToUpper(strings.TrimSpace(rawDeviceID))
+	if deviceID == s.Current().State.Identity.DeviceID {
+		return rejected("device_self", "this device cannot be removed")
+	}
+	if !deviceIDPattern.MatchString(deviceID) {
+		return rejected("device_id_invalid", "device ID is invalid")
+	}
+	if err := s.client.DeleteDevice(ctx, deviceID); err != nil {
+		return s.afterAmbiguousMutation(ctx, err)
+	}
+	return s.refreshAfterMutation(ctx)
+}
+
 func (s *Session) dismissPendingDevice(ctx context.Context, rawDeviceID string) ActionResult {
 	if result := s.requireOnline(); result != nil {
 		return *result

@@ -408,6 +408,17 @@ func TestDeviceAndSharingActionsPreserveFolderConfiguration(t *testing.T) {
 	if !result.OK || len(api.pendingDevices) != 0 {
 		t.Fatalf("dismiss pending device failed: %#v %#v", result, api.pendingDevices)
 	}
+
+	result = coreSession.Act(context.Background(), "device.remove",
+		ActionArguments{DeviceID: remoteID})
+	if !result.OK {
+		t.Fatalf("remove device failed: %#v", result)
+	}
+	for _, device := range coreSession.Current().State.Devices {
+		if device.ID == remoteID {
+			t.Fatalf("removed device remains published: %#v", device)
+		}
+	}
 }
 
 func TestDeviceFolderRemovalValidatesEveryFolderBeforeWriting(t *testing.T) {
@@ -567,6 +578,8 @@ func TestActionArgumentShapesRejectUnrelatedFields(t *testing.T) {
 			map[string]bool{"folderId": true, "deviceIds": true}},
 		{"device.add", ActionArguments{DeviceID: "REMOTE", DeviceName: "Remote"},
 			map[string]bool{"deviceId": true, "deviceName": true}},
+		{"device.remove", ActionArguments{DeviceID: "REMOTE"},
+			map[string]bool{"deviceId": true}},
 		{"device.dismiss-pending", ActionArguments{DeviceID: "REMOTE"},
 			map[string]bool{"deviceId": true}},
 		{"device.remove-folder-shares", ActionArguments{DeviceID: "REMOTE",
@@ -761,6 +774,17 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 			DeviceID: a.lastDeviceAdd["deviceID"].(string),
 			Name:     fmt.Sprint(a.lastDeviceAdd["name"]),
 		})
+		writer.WriteHeader(http.StatusOK)
+	case strings.HasPrefix(request.URL.Path, "/rest/config/devices/") &&
+		request.Method == http.MethodDelete:
+		deviceID := strings.TrimPrefix(request.URL.Path, "/rest/config/devices/")
+		devices := a.devices[:0]
+		for _, device := range a.devices {
+			if device.DeviceID != deviceID {
+				devices = append(devices, device)
+			}
+		}
+		a.devices = devices
 		writer.WriteHeader(http.StatusOK)
 	case request.URL.Path == "/rest/config/folders" && request.Method == http.MethodGet:
 		a.folderReads++

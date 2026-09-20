@@ -319,6 +319,14 @@ QtObject {
     }, "Dismissed pending request from " + label, String(deviceId || ""))
   }
 
+  function removeDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runAction("device.remove", {
+      deviceId: String(deviceId || "")
+    }, label + " removed from this device", String(deviceId || ""))
+  }
+
   function removeDeviceFolderShares(deviceId, folderIds, name) {
     var label = String(name || "").trim()
       || "Device " + String(deviceId || "").slice(0, 7)

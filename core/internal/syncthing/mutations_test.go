@@ -102,6 +102,13 @@ func TestClientConfigurationAndFileRequests(t *testing.T) {
 			},
 		},
 		{
+			name: "delete device", method: http.MethodDelete,
+			target: "/rest/config/devices/AAAAAAA-BBBBBBB",
+			call: func(ctx context.Context, client *Client) error {
+				return client.DeleteDevice(ctx, "AAAAAAA-BBBBBBB")
+			},
+		},
+		{
 			name: "pending devices", method: http.MethodGet,
 			target:   "/rest/cluster/pending/devices",
 			response: `{"AAAAAAA":{"name":"xps","address":"tcp://192.0.2.1:22000"}}`,

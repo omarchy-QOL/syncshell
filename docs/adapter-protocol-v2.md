@@ -102,6 +102,7 @@ The domain action names are:
 - `folder.set-sharing`
 - `folder.suggest-id`
 - `device.add`
+- `device.remove`
 - `device.dismiss-pending`
 - `device.remove-folder-shares`
 - `lifecycle.start`
@@ -131,6 +132,7 @@ Action arguments are exact:
 - `folder.set-sharing` takes `folderId` and bounded `deviceIds`. It replaces
   that folder's remote-device membership while retaining the local device.
 - `device.add` takes `deviceId` and an optional `deviceName`.
+- `device.remove` takes `deviceId` and removes it from the local configuration.
 - `device.dismiss-pending` takes `deviceId`.
 - `device.remove-folder-shares` takes `deviceId` and bounded `folderIds`. It
   removes only the specified existing relationships.
