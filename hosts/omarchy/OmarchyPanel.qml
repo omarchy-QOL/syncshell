@@ -39,7 +39,7 @@ Panel {
   property bool addSubmissionPending: false
   property bool folderShareOpen: false
   property bool preserveStateForFolderPicker: false
-  property string selectedFolderId: ""
+  property string currentFolderId: ""
   property string selectedPendingOffer: ""
   property string forgetFolderId: ""
   property bool forgetConfirmOpen: false
@@ -51,12 +51,12 @@ Panel {
   property string displayedNotice: ""
   property bool noticeShown: false
   readonly property var folderRows: buildFolderRows()
-  readonly property var selectedFolderRow: folderById(selectedFolderId)
+  readonly property var currentFolderRow: folderById(currentFolderId)
   readonly property bool compactFolders: folderRows.length >= 5
   readonly property string displayedFolderId: compactFolders
     && visibleSyncActivity !== "" && syncthing
     && folderById(syncthing.syncActivityFolderId)
-    ? syncthing.syncActivityFolderId : selectedFolderId
+    ? syncthing.syncActivityFolderId : currentFolderId
   readonly property var visibleFolderRows: compactFolders
     ? (folderById(displayedFolderId) ? [folderById(displayedFolderId)] : [])
     : folderRows
@@ -190,7 +190,7 @@ Panel {
   }
 
   function showFolderErrors(folderId) {
-    selectedFolderId = folderId
+    currentFolderId = folderId
     moreOpen = true
     Qt.callLater(function() { popup.scrollToMore() })
   }
@@ -200,7 +200,9 @@ Panel {
   }
 
   function toggleFolderSharing() {
-    folderShareOpen = !folderShareOpen
+    var opening = !folderShareOpen
+    if (opening && addOpen) closeAddFolder()
+    folderShareOpen = opening
     if (folderShareOpen) Qt.callLater(function() { popup.scrollToMore() })
   }
 
@@ -251,26 +253,26 @@ Panel {
     return scanningFolderCount === 0
   }
 
-  function selectedFolder() {
-    return selectedFolderRow
+  function currentFolder() {
+    return currentFolderRow
   }
 
   function folderById(folderId) {
     return PanelModel.folderById(folderRows, folderId)
   }
 
-  function ensureFolderSelection() {
-    if (selectedFolder()) return
-    selectedFolderId = folderRows.length > 0 ? folderRows[0].id : ""
+  function ensureCurrentFolder() {
+    if (currentFolder()) return
+    currentFolderId = folderRows.length > 0 ? folderRows[0].id : ""
   }
 
-  function selectFolderOffset(offset) {
+  function cycleCurrentFolder(offset) {
     if (folderRows.length < 2 || offset === 0) return
-    var current = selectedFolder()
+    var current = currentFolder()
     var index = current ? folderRows.indexOf(current) : 0
     index = (index + (offset > 0 ? 1 : -1) + folderRows.length)
       % folderRows.length
-    selectedFolderId = folderRows[index].id
+    currentFolderId = folderRows[index].id
   }
 
   function folderOptions() {
@@ -438,7 +440,7 @@ Panel {
     if (!addOpen) return
     popup.pendingFolderValue = selected
     applyPendingFolder(selected)
-    popup.scrollToTop()
+    popup.scrollToMore()
     Qt.callLater(function() { popup.focusAddPath() })
   }
 
@@ -459,7 +461,7 @@ Panel {
     if (!syncthing || syncthing.folderMutationBusy) return
     var label = String(popup.addLabelText || "").trim()
     if (!label) label = pathLabel(popup.addPathText)
-    selectedFolderId = String(popup.addIdText || "").trim()
+    currentFolderId = String(popup.addIdText || "").trim()
     addSubmissionPending = syncthing.addFolder(
       popup.addPathText,
       label,
@@ -471,7 +473,7 @@ Panel {
   function requestForget(folder) {
     if (!folder || !folder.paused || !syncthing
         || syncthing.folderMutationBusy) return
-    selectedFolderId = folder.id
+    currentFolderId = folder.id
     forgetFolderId = folder.id
     forgetConfirmOpen = true
   }
@@ -567,9 +569,13 @@ Panel {
     }
   }
 
+  function openSyncthingPackageDocumentation() {
+    Qt.openUrlExternally("https://omarchy.org/manual/other-packages/")
+  }
+
   onSyncthingChanged: configureService()
   onSettingsChanged: configureService()
-  onFolderRowsChanged: ensureFolderSelection()
+  onFolderRowsChanged: ensureCurrentFolder()
   onPendingOfferRowsChanged: ensurePendingOfferSelection()
   onVisibleNoticeChanged: {
     if (visibleNotice !== "") {
@@ -586,7 +592,7 @@ Panel {
         syncthing.recheckSettings()
         syncthing.refresh()
       }
-      ensureFolderSelection()
+      ensureCurrentFolder()
       popup.scrollToTop()
       Qt.callLater(function() { popup.focusPanel() })
     } else if (!preserveStateForFolderPicker) {
