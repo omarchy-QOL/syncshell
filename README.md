@@ -274,7 +274,7 @@ after its core restarts.
 Tested with Syncthing v2.1.3. Source history and licensing details are recorded
 in [Syncshell Web provenance][webui-provenance].
 
-## Manage folders from the panel
+## Manage folders and devices from the panel
 
 - **UNLINK / LINK** pause and resume a folder; they do not change its path or
   sharing.
@@ -282,6 +282,8 @@ in [Syncshell Web provenance][webui-provenance].
   keeping its files.
 - **Add** requires an existing directory and a unique Folder ID. Overlapping
   paths are rejected. Select remote devices explicitly to share the folder.
+- Use **FOLDERS** to choose which devices receive each folder.
+- Open **REMOTE DEVICES** -> **FOLDERS** to review or stop existing shares.
 
 Incoming unencrypted folder offers can prefill the setup form. Use the Web UI
 for encrypted sharing, untrusted devices and details beyond the panel's limits.

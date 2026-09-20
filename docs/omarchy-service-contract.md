@@ -37,6 +37,8 @@ aliases, fallback runtimes, and mixed-version bridges are not retained.
 | `devices`                | array  | configured device objects              |
 | `folders`                | array  | configured folder objects              |
 | `pendingFolders`         | object | offers by folder and device            |
+| `pendingDevices`         | array  | unknown incoming device requests       |
+| `nearbyDevices`          | array  | unknown discovered device IDs          |
 | `folderStatuses`         | object | status keyed by folder ID              |
 | `syncingFiles`           | array  | bounded active file tokens             |
 | `folderCount`            | int    | configured folder count                |
@@ -54,7 +56,8 @@ reported separately from Syncthing connection state.
 Folder objects expose at least `id`, `label`, `path`, `paused`, `markerName`,
 and `devices[].deviceID`. Folder status objects expose at least `state`,
 `error`, `errors`, `pullErrors`, `needTotalItems`, `needBytes`, `globalFiles`,
-and `globalBytes`. Device objects expose `deviceID`, `name`, and `untrusted`.
+and `globalBytes`. Device objects expose `deviceID`, `name`, `untrusted`, and
+`connected`.
 
 The `openWebUi()` method opens the selected GUI. Bundled profiles request the
 core's `webui.open` action to grant local desktop access; the default profile
@@ -108,8 +111,8 @@ lifecycle controls.
 | `folderPreparationError` | string | ID suggestion failure                |
 | `folderIdSuggestion`     | string | generated ten-character folder ID    |
 
-Folder mutation actions are `add`, `link`, `unlink`, `rescan`, `rescan-all`,
-and `forget`.
+Mutation actions are `add`, `link`, `unlink`, `rescan`, `rescan-all`, `forget`,
+`share`, `device-add`, `device-dismiss`, and `device-folders`.
 
 Only one mutation is accepted at a time. A false method result means the
 request was rejected before asynchronous work began. Forgetting removes only
@@ -163,6 +166,13 @@ not inferred.
 - `forgetFolder(id)` forgets one verified paused folder.
 - `addFolder(path, label, id, devices, offer)` adds one existing local
   directory.
+- `setFolderSharing(id, devices)` replaces one folder's remote-device
+  membership.
+- `addDevice(id, name)` configures one remote device from Syncthing's current
+  default device template.
+- `dismissPendingDevice(id, name)` dismisses one incoming device request.
+- `setDeviceFolders(id, folders, name)` removes existing shares omitted from
+  the selected device's folder list.
 - `clearFolderMutationMessage()` clears the folder error and notice.
 - `clearFolderMutationNotice()` clears the folder notice only.
 - `openSettings()` opens the host file or its migration dialog.
