@@ -122,82 +122,6 @@ Column {
   width: parent ? parent.width : implicitWidth
   spacing: Style.space(8)
 
-  Column {
-    visible: root.pendingRows.length > 0
-    width: parent.width
-    spacing: Style.space(6)
-
-    PanelSectionHeader {
-      text: "PENDING DEVICE REQUESTS"
-      foreground: root.foreground
-      fontFamily: root.fontFamily
-    }
-
-    RowLayout {
-      width: parent.width
-      spacing: Style.space(6)
-
-      SyncshellDropdown {
-        id: pendingSelector
-        Layout.fillWidth: true
-        Layout.preferredHeight: Style.spacing.controlHeight
-        showLabel: false
-        rowHeight: Style.spacing.controlHeight
-        value: root.selectedPendingId
-        options: root.pendingOptions()
-        interactive: options.length > 1
-        helpText: root.selectedPending
-          ? "Remote device " + (root.selectedPending.name
-            || root.selectedPending.shortId) + " attempted to connect." : ""
-        foreground: root.foreground
-        fontFamily: root.fontFamily
-        onChanged: function(value) { root.selectedPendingId = value }
-      }
-
-      TooltipButton {
-        iconText: "\uf00c"
-        Layout.preferredWidth: Style.spacing.controlHeight
-        Layout.preferredHeight: Style.spacing.controlHeight
-        helpText: "Accept remote device connection"
-        bordered: true
-        foreground: root.success
-        fontFamily: root.fontFamily
-        iconSize: Style.font.icon
-        enabled: root.selectedPending && !root.syncthing.folderMutationBusy
-        onClicked: root.openAccept()
-      }
-
-      TooltipButton {
-        iconText: "\uf00d"
-        Layout.preferredWidth: Style.spacing.controlHeight
-        Layout.preferredHeight: Style.spacing.controlHeight
-        helpText: "Dismiss incoming device request"
-        bordered: true
-        foreground: root.urgent
-        fontFamily: root.fontFamily
-        iconSize: Style.font.icon
-        enabled: root.selectedPending && !root.syncthing.folderMutationBusy
-        onClicked: root.controller.requestPendingDeviceDismiss(
-          root.selectedPending)
-      }
-    }
-  }
-
-  AcceptRemoteDeviceForm {
-    id: acceptForm
-    visible: root.acceptOpen && root.selectedPending
-    controller: root.controller
-    syncthing: root.syncthing
-    device: root.selectedPending
-    submitting: root.submitting
-    foreground: root.foreground
-    dim: root.dim
-    urgent: root.urgent
-    fontFamily: root.fontFamily
-    onCanceled: root.acceptOpen = false
-    onSubmissionStarted: function(started) { root.submitting = started }
-  }
-
   PanelSectionHeader {
     text: "REMOTE DEVICES"
     foreground: root.foreground
@@ -326,6 +250,82 @@ Column {
     warning: root.warning
     fontFamily: root.fontFamily
     onCanceled: root.addOpen = false
+    onSubmissionStarted: function(started) { root.submitting = started }
+  }
+
+  Column {
+    visible: root.pendingRows.length > 0
+    width: parent.width
+    spacing: Style.space(6)
+
+    PanelSectionHeader {
+      text: "PENDING DEVICE REQUESTS"
+      foreground: root.foreground
+      fontFamily: root.fontFamily
+    }
+
+    RowLayout {
+      width: parent.width
+      spacing: Style.space(6)
+
+      SyncshellDropdown {
+        id: pendingSelector
+        Layout.fillWidth: true
+        Layout.preferredHeight: Style.spacing.controlHeight
+        showLabel: false
+        rowHeight: Style.spacing.controlHeight
+        value: root.selectedPendingId
+        options: root.pendingOptions()
+        interactive: options.length > 1
+        helpText: root.selectedPending
+          ? "Remote device " + (root.selectedPending.name
+            || root.selectedPending.shortId) + " attempted to connect." : ""
+        foreground: root.foreground
+        fontFamily: root.fontFamily
+        onChanged: function(value) { root.selectedPendingId = value }
+      }
+
+      TooltipButton {
+        iconText: "\uf00c"
+        Layout.preferredWidth: Style.spacing.controlHeight
+        Layout.preferredHeight: Style.spacing.controlHeight
+        helpText: "Accept remote device connection"
+        bordered: true
+        foreground: root.success
+        fontFamily: root.fontFamily
+        iconSize: Style.font.icon
+        enabled: root.selectedPending && !root.syncthing.folderMutationBusy
+        onClicked: root.openAccept()
+      }
+
+      TooltipButton {
+        iconText: "\uf00d"
+        Layout.preferredWidth: Style.spacing.controlHeight
+        Layout.preferredHeight: Style.spacing.controlHeight
+        helpText: "Dismiss incoming device request"
+        bordered: true
+        foreground: root.urgent
+        fontFamily: root.fontFamily
+        iconSize: Style.font.icon
+        enabled: root.selectedPending && !root.syncthing.folderMutationBusy
+        onClicked: root.controller.requestPendingDeviceDismiss(
+          root.selectedPending)
+      }
+    }
+  }
+
+  AcceptRemoteDeviceForm {
+    id: acceptForm
+    visible: root.acceptOpen && root.selectedPending
+    controller: root.controller
+    syncthing: root.syncthing
+    device: root.selectedPending
+    submitting: root.submitting
+    foreground: root.foreground
+    dim: root.dim
+    urgent: root.urgent
+    fontFamily: root.fontFamily
+    onCanceled: root.acceptOpen = false
     onSubmissionStarted: function(started) { root.submitting = started }
   }
 }
