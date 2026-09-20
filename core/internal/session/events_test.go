@@ -57,6 +57,33 @@ func TestRetryDelayIsBoundedAndJittered(t *testing.T) {
 	}
 }
 
+func TestEmitLatestCoalescesPendingSnapshot(t *testing.T) {
+	updates := make(chan PublishedSnapshot, 1)
+	emitLatest(updates, PublishedSnapshot{Revision: 1})
+	emitLatest(updates, PublishedSnapshot{Revision: 2})
+	if update := <-updates; update.Revision != 2 {
+		t.Fatalf("pending revision = %d, want 2", update.Revision)
+	}
+	emitLatest(updates, PublishedSnapshot{})
+	select {
+	case update := <-updates:
+		t.Fatalf("zero revision was emitted: %#v", update)
+	default:
+	}
+}
+
+func TestFileTypeCompatibility(t *testing.T) {
+	for value, want := range map[any]string{
+		"DIRECTORY": "directory",
+		float64(1):  "directory",
+		float64(0):  "file",
+	} {
+		if got := fileType(value); got != want {
+			t.Errorf("fileType(%v) = %q, want %q", value, got, want)
+		}
+	}
+}
+
 func TestActivityNormalizationRotationAndCleanup(t *testing.T) {
 	now := time.Unix(100, 0)
 	coreSession := &Session{
@@ -79,6 +106,15 @@ func TestActivityNormalizationRotationAndCleanup(t *testing.T) {
 	if second.State.Activity.Current == nil || second.State.Activity.Current.Detail != "Upload b.bin" {
 		t.Fatalf("activity did not rotate: %#v", second.State.Activity)
 	}
+	completedUpload := []syncthing.Event{{Type: "RemoteDownloadProgress",
+		Data: []byte(`{"folder":"folder","device":"remote","state":{}}`)}}
+	if !coreSession.processActivityEvents(context.Background(), completedUpload, now) {
+		t.Fatal("completed upload did not clear activity")
+	}
+	if remaining := coreSession.publishActivity(false, now); len(remaining.State.Activity.Files) != 0 {
+		t.Fatalf("completed upload remained active: %#v", remaining.State.Activity)
+	}
+	coreSession.processActivityEvents(context.Background(), events, now)
 	disconnect := []syncthing.Event{{Type: "DeviceDisconnected",
 		Data: []byte(`{"id":"remote"}`)}}
 	if !coreSession.processActivityEvents(context.Background(), disconnect, now) {
@@ -97,6 +133,15 @@ func TestActivityNormalizationRotationAndCleanup(t *testing.T) {
 		removing.State.Activity.Current.Detail != "Removing old.txt" {
 		t.Fatalf("delete activity was not normalized: %#v", removing.State.Activity)
 	}
+	finished := []syncthing.Event{{Type: "ItemFinished",
+		Data: []byte(`{"folder":"folder","item":"old.txt"}`)}}
+	if !coreSession.processActivityEvents(context.Background(), finished, now) {
+		t.Fatal("finished item did not clear activity")
+	}
+	if remaining := coreSession.publishActivity(false, now); len(remaining.State.Activity.Files) != 0 {
+		t.Fatalf("finished item remained active: %#v", remaining.State.Activity)
+	}
+	coreSession.processActivityEvents(context.Background(), started, now)
 	expired := coreSession.publishActivity(false, now.Add(activityHold+time.Second))
 	if len(expired.State.Activity.Files) != 0 {
 		t.Fatalf("expired activity remained: %#v", expired.State.Activity)

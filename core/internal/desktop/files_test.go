@@ -11,7 +11,9 @@ import (
 )
 
 func TestGuardedRename(t *testing.T) {
-	for _, scenario := range []string{"rename", "existing", "stale", "symlink", "escape", "unrelated", "readonly", "open"} {
+	scenarios := []string{"rename", "existing", "stale", "symlink", "escape",
+		"unrelated", "readonly", "open", "check"}
+	for _, scenario := range scenarios {
 		t.Run(scenario, func(t *testing.T) {
 			root := t.TempDir()
 			source := "notes.sync-conflict-20260908-123456-ABCDEFG.txt"
@@ -44,8 +46,11 @@ func TestGuardedRename(t *testing.T) {
 				defer os.Chmod(root, 0700)
 			case "open":
 				action = "open"
+			case "check":
+				action = "check"
 			}
-			_, err := b.fileAction(context.Background(), action, body, syncthing.Folder{Path: root}, root)
+			result, err := b.fileAction(context.Background(), action, body,
+				syncthing.Folder{Path: root}, root)
 			if scenario == "rename" {
 				if err != nil {
 					t.Fatal(err)
@@ -61,6 +66,12 @@ func TestGuardedRename(t *testing.T) {
 				if err != nil || opened != root {
 					t.Fatalf("open containing directory: %q %v", opened, err)
 				}
+			} else if scenario == "check" {
+				capabilities, ok := result.(map[string]any)
+				if err != nil || !ok || capabilities["open"] != true ||
+					capabilities["rename"] != true {
+					t.Fatalf("unexpected file capabilities: %#v %v", result, err)
+				}
 			} else if err == nil {
 				t.Fatal("unsafe rename accepted")
 			}
@@ -69,6 +80,29 @@ func TestGuardedRename(t *testing.T) {
 				if string(data) != "original" {
 					t.Fatal("original replaced")
 				}
+			}
+		})
+	}
+}
+
+func TestLocalFolderPath(t *testing.T) {
+	home := t.TempDir()
+	tests := []struct {
+		name       string
+		configured string
+		requested  string
+		want       string
+	}{
+		{"absolute", "/srv/sync", "/srv/sync", "/srv/sync"},
+		{"home", "~/Sync", "~/Sync", filepath.Join(home, "Sync")},
+		{"changed", "/srv/sync", "/srv/other", ""},
+		{"relative", "sync", "sync", ""},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := localFolderPath(test.configured, test.requested, home)
+			if (err != nil) != (test.want == "") || got != test.want {
+				t.Fatalf("localFolderPath() = %q, %v; want %q", got, err, test.want)
 			}
 		})
 	}

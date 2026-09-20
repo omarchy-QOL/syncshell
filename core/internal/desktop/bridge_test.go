@@ -1,11 +1,165 @@
 package desktop
 
 import (
+	"context"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/omarchy-QOL/syncshell/core/internal/syncthing"
 )
+
+func TestDesktopLauncherReportsApplicationResult(t *testing.T) {
+	directory := t.TempDir()
+	opener := filepath.Join(directory, "xdg-open")
+	t.Setenv("PATH", directory)
+	for _, test := range []struct {
+		name   string
+		script string
+		failed bool
+	}{
+		{"accepted", "#!/bin/sh\nexit 0\n", false},
+		{"refused", "#!/bin/sh\nexit 1\n", true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if err := os.WriteFile(opener, []byte(test.script), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			err := launch(context.Background(), "https://example.test")
+			if (err != nil) != test.failed {
+				t.Fatalf("launch error = %v, want failure %t", err, test.failed)
+			}
+		})
+	}
+	if err := os.Remove(opener); err != nil {
+		t.Fatal(err)
+	}
+	if err := launch(context.Background(), "https://example.test"); err == nil ||
+		errors.Is(err, context.Canceled) {
+		t.Fatalf("missing desktop application error = %v", err)
+	}
+}
+
+func TestBridgeOpenUsesPrivateLaunchPage(t *testing.T) {
+	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/test/session-bus")
+	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
+	client, err := syncthing.NewClient(syncthing.Target{
+		Endpoint: "http://127.0.0.1:8384",
+		Local:    true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	bridge, err := New(client)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(bridge.Close)
+
+	var launched string
+	bridge.launch = func(_ context.Context, target string) error {
+		launched = target
+		return nil
+	}
+	if err := bridge.Open(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(launched, "file://") {
+		t.Fatalf("opened %q, want a private file URL", launched)
+	}
+	page, err := os.ReadFile(filepath.Join(bridge.launchDir, "open.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(page), bridge.address+"/"+bridge.token) ||
+		!strings.Contains(string(page), "http://127.0.0.1:8384") {
+		t.Fatalf("launch page does not contain the scoped grant: %s", page)
+	}
+	info, err := os.Stat(filepath.Join(bridge.launchDir, "open.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0o600 {
+		t.Fatalf("launch page mode = %v, want 0600", info.Mode().Perm())
+	}
+
+	directory := bridge.launchDir
+	bridge.Close()
+	if _, err := os.Stat(directory); !os.IsNotExist(err) {
+		t.Fatalf("private launch directory remains after close: %v", err)
+	}
+}
+
+func TestBridgeRequiresLocalDesktopSession(t *testing.T) {
+	client, err := syncthing.NewClient(syncthing.Target{
+		Endpoint: "http://127.0.0.1:8384",
+		Local:    true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "")
+	if _, err := New(client); err == nil {
+		t.Fatal("bridge accepted a session without a desktop bus")
+	}
+
+	remote, err := syncthing.NewClient(syncthing.Target{
+		Endpoint: "https://syncthing.example",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/test/session-bus")
+	if _, err := New(remote); err == nil {
+		t.Fatal("bridge accepted a remote Syncthing target")
+	}
+}
+
+func TestBridgeRejectsLookalikeLocalProcess(t *testing.T) {
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/rest/system/status" {
+			http.NotFound(w, r)
+			return
+		}
+		_, _ = io.WriteString(w, `{"myID":"LOCAL-ID"}`)
+	}))
+	defer api.Close()
+	client, err := syncthing.NewClient(syncthing.Target{
+		Endpoint: api.URL,
+		Local:    true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	bridge := &Bridge{
+		address: "127.0.0.1:12345",
+		origin:  api.URL,
+		token:   strings.Repeat("a", 64),
+		client:  client,
+	}
+	r := httptest.NewRequest(http.MethodPost,
+		"http://"+bridge.address+"/status", strings.NewReader(`{"device":"LOCAL-ID"}`))
+	r.Header.Set("Origin", bridge.origin)
+	r.Header.Set("X-Syncshell-Token", bridge.token)
+	w := httptest.NewRecorder()
+	bridge.ServeHTTP(w, r)
+	if w.Code != http.StatusConflict ||
+		!strings.Contains(w.Body.String(), "file actions require Syncthing") {
+		t.Fatalf("lookalike process response = %d %s", w.Code, w.Body.String())
+	}
+	if _, err := bridge.action(context.Background(), "delete", request{}); err == nil {
+		t.Fatal("unsupported desktop action was accepted")
+	}
+	if _, err := bridge.action(context.Background(), "status",
+		request{Device: "OTHER-ID"}); err == nil {
+		t.Fatal("desktop action accepted a changed identity")
+	}
+}
 
 func TestDesktopRequestBoundary(t *testing.T) {
 	b := &Bridge{address: "127.0.0.1:12345", origin: "http://127.0.0.1:8384", token: strings.Repeat("a", 64)}

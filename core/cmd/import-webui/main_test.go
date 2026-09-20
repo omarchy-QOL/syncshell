@@ -135,3 +135,23 @@ func TestChecksumAndLinkedTargetAreRejected(t *testing.T) {
 		t.Fatal(fmt.Sprint("linked owner directory changed: ", entries))
 	}
 }
+
+func TestArchiveInputBoundaries(t *testing.T) {
+	archive := filepath.Join(t.TempDir(), "release.tar.gz")
+	if err := os.WriteFile(archive, []byte("archive"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	data, err := readArchive(archive, "unused/repository", "0.1.2")
+	if err != nil || string(data) != "archive" {
+		t.Fatalf("local archive = %q, %v", data, err)
+	}
+	if _, err := readArchive(archive+".missing", "unused/repository", "0.1.2"); err == nil {
+		t.Fatal("missing local archive was accepted")
+	}
+	if _, err := extractArchive(t.TempDir(), "release", []byte("not gzip")); err == nil {
+		t.Fatal("invalid compressed archive was accepted")
+	}
+	if err := importRelease(t.TempDir(), "invalid", strings.Repeat("0", 64), nil); err == nil {
+		t.Fatal("invalid release version was accepted")
+	}
+}

@@ -166,6 +166,24 @@ func TestConfigDoesNotExposeCredential(t *testing.T) {
 	}
 }
 
+func TestFindExecutable(t *testing.T) {
+	directory := t.TempDir()
+	executable := filepath.Join(directory, "syncthing")
+	if err := os.WriteFile(executable, []byte("#!/bin/sh\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if got := FindExecutable(executable); got != executable {
+		t.Fatalf("selected executable = %q, want %q", got, executable)
+	}
+	if got := FindExecutable(filepath.Join(directory, "missing")); got != "" {
+		t.Fatalf("missing executable resolved to %q", got)
+	}
+	t.Setenv("PATH", directory)
+	if got := FindExecutable(""); got != executable {
+		t.Fatalf("PATH executable = %q, want %q", got, executable)
+	}
+}
+
 func FuzzConfigXML(f *testing.F) {
 	f.Add([]byte(`<configuration><gui tls="false"><address>127.0.0.1:8384</address><apikey>x</apikey></gui></configuration>`))
 	f.Add([]byte(`<configuration>`))

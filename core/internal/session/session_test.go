@@ -148,6 +148,33 @@ func TestCurrentReturnsIsolatedState(t *testing.T) {
 	}
 }
 
+func TestDesktopRequiresExplicitAuthority(t *testing.T) {
+	coreSession := &Session{}
+	result := coreSession.openWebUI(context.Background())
+	if result.OK || result.Error == nil || result.Error.Code != "desktop_unavailable" {
+		t.Fatalf("desktop action without authority = %#v", result)
+	}
+	closeDesktop := coreSession.EnableDesktop()
+	if !coreSession.desktopEnabled {
+		t.Fatal("desktop authority was not enabled")
+	}
+	closeDesktop()
+
+	client, err := syncthing.NewClient(syncthing.Target{
+		Endpoint: "http://127.0.0.1:8384",
+		Local:    true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	coreSession.client = client
+	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "")
+	result = coreSession.openWebUI(context.Background())
+	if result.OK || result.Error == nil || result.Error.Code != "desktop_unavailable" {
+		t.Fatalf("desktop action without a session bus = %#v", result)
+	}
+}
+
 func TestTrustedActiveBindingIsManaged(t *testing.T) {
 	coreSession := newTestSession(t, &testAPI{}, "active", "LOCAL-ID")
 	published, err := coreSession.Refresh(context.Background())
