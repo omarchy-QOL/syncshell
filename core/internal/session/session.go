@@ -186,8 +186,7 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 	snapshot.PendingDevices = hydrated.pendingDevices
 	snapshot.NearbyDevices = hydrated.nearbyDevices
 	snapshot.WebUI = hydrated.webUI
-	snapshot.Counts = normalizedCounts(hydrated.devices, hydrated.folders,
-		status.MyID)
+	snapshot.Counts = normalizedCounts(hydrated.devices, hydrated.folders, snapshot.Identity.DeviceID)
 	snapshot.Truncation = hydrated.truncation
 	snapshot.Connection.Phase = "ready"
 	snapshot.Connection.Online = true
