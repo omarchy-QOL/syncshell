@@ -107,7 +107,7 @@ QtObject {
   property string folderIdSuggestion: ""
 
   readonly property string syncActivityDots: currentActivity.detail
-    ? [".  ", ".. ", "..."][_activityDotIndex] : ""
+    ? ["   ", ".  ", ".. ", "..."][_activityDotIndex] : ""
   readonly property string syncActivityFolderId:
     String(currentActivity.folderId || "")
   readonly property string syncActivityAction:
@@ -607,7 +607,7 @@ QtObject {
     interval: 500
     repeat: true
     running: root.syncActivityDetail !== ""
-    onTriggered: root._activityDotIndex = (root._activityDotIndex + 1) % 3
+    onTriggered: root._activityDotIndex = (root._activityDotIndex + 1) % 4
   }
 
   property Timer noticeTimer: Timer {
