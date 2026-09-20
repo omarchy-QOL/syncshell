@@ -516,6 +516,7 @@ KeyboardPanel {
         anchors.fill: parent
         opened: root.controller.removalConfirmOpen
         busy: root.controller.syncthing ? root.controller.syncthing.settingsBusy : false
+        error: root.controller.syncthing ? root.controller.syncthing.settingsError : ""
         fontFamily: root.controller.fontFamily
         z: 11
         onCanceled: root.controller.removalConfirmOpen = false

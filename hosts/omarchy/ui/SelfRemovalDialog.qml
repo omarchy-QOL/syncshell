@@ -7,6 +7,7 @@ FocusScope {
 
     property bool opened: false
     property bool busy: false
+    property string error: ""
     property int selectedChoice: 2
     property string fontFamily: Style.font.family
     readonly property var cardBorderSpec: Border.surfaceSpec(
@@ -61,6 +62,17 @@ FocusScope {
                     font.family: root.fontFamily
                     font.pixelSize: Style.font.heading
                     font.bold: true
+                }
+
+                Text {
+                    width: parent.width
+                    visible: root.error !== ""
+                    text: root.error
+                    textFormat: Text.PlainText
+                    wrapMode: Text.Wrap
+                    color: Color.urgent
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.body
                 }
 
                 Repeater {
