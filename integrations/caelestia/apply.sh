@@ -19,7 +19,8 @@ patch --dry-run --silent -d "$target" -p1 <"$integration_root/overlay.patch"
 patch --silent -d "$target" -p1 <"$integration_root/overlay.patch"
 install -d -- "$target/syncshell/shared" "$target/syncshell/bin/x86_64"
 install -m 0644 -- "$repo_root/shared/CoreProcess.qml" \
-  "$repo_root/shared/AdapterService.qml" "$target/syncshell/shared/"
+  "$repo_root/shared/AdapterService.qml" \
+  "$repo_root/shared/DeviceWorkflow.qml" "$target/syncshell/shared/"
 install -m 0755 -- "$repo_root/bin/x86_64/syncshell-core" \
   "$target/syncshell/bin/x86_64/syncshell-core"
 install -m 0644 -- "$integration_root/files/SyncshellService.qml.in" \

@@ -20,7 +20,8 @@ install -m 0644 -- "$integration_root/plugin.json" \
   "$integration_root/SyncshellDaemon.qml" \
   "$integration_root/SyncshellWidget.qml" "$target/"
 install -m 0644 -- "$repo_root/shared/CoreProcess.qml" \
-  "$repo_root/shared/AdapterService.qml" "$target/shared/"
+  "$repo_root/shared/AdapterService.qml" \
+  "$repo_root/shared/DeviceWorkflow.qml" "$target/shared/"
 install -m 0755 -- "$repo_root/bin/x86_64/syncshell-core" \
   "$target/bin/x86_64/syncshell-core"
 (cd -- "$repo_root" && \

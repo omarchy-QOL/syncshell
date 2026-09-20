@@ -18,7 +18,8 @@ install -d -- "$install_root/shared" "$install_root/bin/x86_64" \
 install -m 0644 -- "$source_root/manifest.json" "$source_root/shell.qml" \
   "$install_root/"
 install -m 0644 -- "$source_root/shared/CoreProcess.qml" \
-  "$source_root/shared/AdapterService.qml" "$install_root/shared/"
+  "$source_root/shared/AdapterService.qml" \
+  "$source_root/shared/DeviceWorkflow.qml" "$install_root/shared/"
 install -m 0755 -- "$source_root/bin/x86_64/syncshell-core" \
   "$install_root/bin/x86_64/syncshell-core"
 install -m 0755 -- "$source_root/status.sh" \

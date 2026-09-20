@@ -1,8 +1,8 @@
 # DankMaterialShell adapter
 
-Syncshell supports DankMaterialShell 1.5.3 through 1.6.1 on Arch Linux with
-Quickshell 0.3.1. The composite plugin owns one native core in its daemon and
-shares that service with every horizontal or vertical bar widget instance.
+Syncshell supports DankMaterialShell 1.5.3 or newer on Arch Linux. The
+composite plugin owns one native core in its daemon and shares that service
+with every horizontal or vertical bar widget instance.
 
 ## Install and update
 

@@ -17,6 +17,7 @@ ShellRoot {
   property bool addOpen: false
   property string pendingForgetId: ""
   property string pendingForgetLabel: ""
+  property DeviceWorkflow deviceFlow: DeviceWorkflow { service: service }
   property string lastStatus: ""
   property string barPosition: "top"
   readonly property string pluginRoot: localPath(Qt.resolvedUrl("."))
@@ -153,6 +154,7 @@ ShellRoot {
       focus: true
       Keys.onEscapePressed: {
         if (root.pendingForgetId !== "") root.pendingForgetId = ""
+        else if (root.deviceFlow.view !== "") root.deviceFlow.close()
         else root.popupOpen = false
       }
 
@@ -185,6 +187,7 @@ ShellRoot {
         }
 
         Label {
+          visible: root.deviceFlow.view === ""
           Layout.fillWidth: true
           text: "FOLDERS"
           color: "#a6adc8"
@@ -192,6 +195,7 @@ ShellRoot {
         }
 
         Flickable {
+          visible: root.deviceFlow.view === ""
           id: folderView
           Layout.fillWidth: true
           Layout.preferredHeight: service.folders.length === 0 ? 70
@@ -265,6 +269,16 @@ ShellRoot {
                         folderCard.modelData.id, !folderCard.modelData.paused)
                     }
                     Button {
+                      visible: root.moreOpen
+                        && service.shareableDevices().length > 0
+                      text: "Share"
+                      enabled: service.online && !service.busy
+                      onClicked: {
+                        root.addOpen = false
+                        root.deviceFlow.beginFolderSharing(folderCard.modelData)
+                      }
+                    }
+                    Button {
                       text: folderCard.modelData.paused ? "Forget" : "Rescan"
                       enabled: service.online && !service.busy
                       onClicked: {
@@ -281,6 +295,7 @@ ShellRoot {
         }
 
         Button {
+          visible: root.deviceFlow.view === ""
           Layout.fillWidth: true
           text: root.moreOpen ? "Less" : "More"
           onClicked: root.moreOpen = !root.moreOpen
@@ -291,20 +306,38 @@ ShellRoot {
           Layout.fillWidth: true
 
           Button {
+            visible: root.deviceFlow.view === ""
             Layout.fillWidth: true
             text: root.addOpen ? "Cancel add folder" : "Add folder"
             enabled: service.online && !service.busy
-            onClicked: root.addOpen = !root.addOpen
+            onClicked: {
+              root.deviceFlow.close()
+              root.deviceFlow.resetFolderDraft()
+              root.addOpen = !root.addOpen
+            }
           }
 
           ColumnLayout {
-            visible: root.addOpen
+            visible: root.addOpen && root.deviceFlow.view === ""
             Layout.fillWidth: true
 
             Label {
               text: "ADD FOLDER"
               color: "#a6adc8"
               font.bold: true
+            }
+            Repeater {
+              model: service.pendingFolderOffers()
+              delegate: Button {
+                required property var modelData
+                Layout.fillWidth: true
+                text: (modelData.encrypted ? "Encrypted offer: " : "Accept ")
+                  + modelData.label + " from "
+                  + service.deviceName(modelData.deviceId)
+                enabled: !modelData.encrypted
+                onClicked: idField.text
+                    = root.deviceFlow.selectPendingFolder(modelData)
+              }
             }
             TextField {
               id: pathField
@@ -336,6 +369,17 @@ ShellRoot {
               color: "#a6adc8"
               wrapMode: Text.Wrap
             }
+            Repeater {
+              model: service.shareableDevices()
+              delegate: Button {
+                required property var modelData
+                Layout.fillWidth: true
+                text: (root.deviceFlow.draftIds.indexOf(modelData.id) >= 0
+                  ? "[x] Share with " : "[ ] Share with ")
+                  + String(modelData.name || root.deviceFlow.shortId(modelData.id))
+                onClicked: root.deviceFlow.toggleDraft(String(modelData.id || ""))
+              }
+            }
             Button {
               Layout.fillWidth: true
               text: service.busy ? "Adding..." : "Add folder"
@@ -345,8 +389,231 @@ ShellRoot {
                 path: pathField.text,
                 label: labelField.text,
                 folderId: idField.text,
-                deviceIds: []
+                deviceIds: root.deviceFlow.draftIds,
+                pendingDeviceId: root.deviceFlow.pendingDeviceId(idField.text)
               })
+            }
+          }
+
+          Label {
+            visible: root.deviceFlow.view === ""
+            Layout.fillWidth: true
+            text: "REMOTE DEVICES"
+            color: "#a6adc8"
+            font.bold: true
+          }
+
+          Repeater {
+            model: root.deviceFlow.view === "" ? service.remoteDevices() : []
+            delegate: RowLayout {
+              required property var modelData
+              Layout.fillWidth: true
+              Label {
+                Layout.fillWidth: true
+                text: String(modelData.name || root.deviceFlow.shortId(modelData.id))
+                  + " · " + service.folderIdsForDevice(modelData.id).length
+                  + " folders · "
+                  + (modelData.connected ? "connected" : "disconnected")
+                color: modelData.connected ? "#a6e3a1" : "#a6adc8"
+                elide: Text.ElideRight
+              }
+              Button {
+                text: "Folders"
+                enabled: !service.busy
+                onClicked: {
+                  root.addOpen = false
+                  root.deviceFlow.beginDeviceFolders(modelData)
+                }
+              }
+            }
+          }
+
+          Button {
+            visible: root.deviceFlow.view === ""
+            Layout.fillWidth: true
+            text: "Add remote device"
+            enabled: service.online && !service.busy
+            onClicked: {
+              root.addOpen = false
+              root.deviceFlow.beginAddDevice(null)
+            }
+          }
+
+          Repeater {
+            model: root.deviceFlow.view === "" ? service.pendingDevices : []
+            delegate: RowLayout {
+              required property var modelData
+              Layout.fillWidth: true
+              Label {
+                Layout.fillWidth: true
+                text: String(modelData.name || root.deviceFlow.shortId(modelData.id))
+                  + " wants to connect"
+                color: "#cdd6f4"
+                elide: Text.ElideRight
+              }
+              Button {
+                text: "Accept"
+                enabled: !service.busy
+                onClicked: {
+                  root.addOpen = false
+                  root.deviceFlow.beginAddDevice(modelData)
+                }
+              }
+              Button {
+                text: "Dismiss"
+                enabled: !service.busy
+                onClicked: {
+                  root.addOpen = false
+                  root.deviceFlow.beginDismissDevice(modelData)
+                }
+              }
+            }
+          }
+
+          ColumnLayout {
+            visible: root.deviceFlow.view === "add-device"
+            Layout.fillWidth: true
+            Label {
+              Layout.fillWidth: true
+              text: "ADD REMOTE DEVICE"
+              color: "#a6adc8"
+              font.bold: true
+            }
+            Repeater {
+              model: service.nearbyDevices
+              delegate: Button {
+                required property var modelData
+                Layout.fillWidth: true
+                text: "Use nearby " + root.deviceFlow.shortId(modelData.id)
+                onClicked: root.deviceFlow.targetDeviceId = String(modelData.id || "")
+              }
+            }
+            TextField {
+              Layout.fillWidth: true
+              placeholderText: "Device ID"
+              text: root.deviceFlow.targetDeviceId
+              onTextChanged: root.deviceFlow.targetDeviceId = text.toUpperCase()
+            }
+            TextField {
+              Layout.fillWidth: true
+              placeholderText: "Remote device name (optional)"
+              text: root.deviceFlow.targetDeviceName
+              onTextChanged: root.deviceFlow.targetDeviceName = text
+            }
+            RowLayout {
+              Button {
+                text: "Cancel"
+                onClicked: root.deviceFlow.close()
+              }
+              Button {
+                text: service.busy ? "Adding..." : "Add"
+                enabled: !service.busy && root.deviceFlow.targetDeviceId !== ""
+                onClicked: service.addDevice(root.deviceFlow.targetDeviceId,
+                  root.deviceFlow.targetDeviceName)
+              }
+            }
+          }
+
+          ColumnLayout {
+            visible: root.deviceFlow.view === "share-folder"
+            Layout.fillWidth: true
+            Label {
+              Layout.fillWidth: true
+              text: "SHARE " + service.folderLabel(root.deviceFlow.targetFolderId)
+              color: "#a6adc8"
+              font.bold: true
+            }
+            Repeater {
+              model: service.shareableDevices()
+              delegate: Button {
+                required property var modelData
+                Layout.fillWidth: true
+                text: (root.deviceFlow.draftIds.indexOf(modelData.id) >= 0
+                  ? "[x] " : "[ ] ")
+                  + String(modelData.name || root.deviceFlow.shortId(modelData.id))
+                onClicked: root.deviceFlow.toggleDraft(String(modelData.id || ""))
+              }
+            }
+            RowLayout {
+              Button {
+                text: "Cancel"
+                onClicked: root.deviceFlow.close()
+              }
+              Button {
+                text: "Save sharing"
+                enabled: !service.busy
+                onClicked: service.setFolderSharing(
+                  root.deviceFlow.targetFolderId, root.deviceFlow.draftIds)
+              }
+            }
+          }
+
+          ColumnLayout {
+            visible: root.deviceFlow.view === "device-folders"
+            Layout.fillWidth: true
+            Label {
+              Layout.fillWidth: true
+              text: "SHARED WITH " + (root.deviceFlow.targetDeviceName
+                || root.deviceFlow.shortId(root.deviceFlow.targetDeviceId))
+              color: "#a6adc8"
+              font.bold: true
+            }
+            Repeater {
+              model: service.folderIdsForDevice(root.deviceFlow.targetDeviceId)
+              delegate: Button {
+                required property var modelData
+                Layout.fillWidth: true
+                text: (root.deviceFlow.draftIds.indexOf(modelData) >= 0
+                  ? "[x] " : "[ ] ") + service.folderLabel(modelData)
+                onClicked: root.deviceFlow.toggleDraft(String(modelData || ""))
+              }
+            }
+            RowLayout {
+              Button {
+                text: "Cancel"
+                onClicked: root.deviceFlow.close()
+              }
+              Button {
+                text: "Save sharing"
+                enabled: !service.busy && root.deviceFlow.removedFolderIds().length > 0
+                onClicked: service.removeDeviceFolderShares(
+                  root.deviceFlow.targetDeviceId, root.deviceFlow.removedFolderIds(),
+                  root.deviceFlow.targetDeviceName)
+              }
+            }
+          }
+
+          Rectangle {
+            visible: root.deviceFlow.view === "dismiss-device"
+            Layout.fillWidth: true
+            implicitHeight: dismissDeviceContent.implicitHeight + 16
+            color: "#313244"
+            border.width: 1
+            border.color: "#f38ba8"
+            radius: 8
+            ColumnLayout {
+              id: dismissDeviceContent
+              anchors.fill: parent
+              anchors.margins: 8
+              Label {
+                Layout.fillWidth: true
+                text: "Dismiss pending request from "
+                  + (root.deviceFlow.targetDeviceName
+                    || root.deviceFlow.shortId(root.deviceFlow.targetDeviceId)) + "?"
+                color: "#f38ba8"
+              }
+              RowLayout {
+                Button {
+                  text: "Cancel"
+                  onClicked: root.deviceFlow.close()
+                }
+                Button {
+                  text: "Dismiss"
+                  enabled: !service.busy
+                  onClicked: service.dismissPendingDevice(
+                    root.deviceFlow.targetDeviceId, root.deviceFlow.targetDeviceName)
+                }
+              }
             }
           }
         }
@@ -419,6 +686,9 @@ ShellRoot {
     function onFolderIdSuggestionChanged() {
       if (!idField.activeFocus && service.folderIdSuggestion)
         idField.text = service.folderIdSuggestion
+    }
+    function onActionFinished(action, ok) {
+      root.deviceFlow.actionFinished(action, ok)
     }
   }
 }

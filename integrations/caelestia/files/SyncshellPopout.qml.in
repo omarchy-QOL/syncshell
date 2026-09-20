@@ -6,6 +6,7 @@ import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.services
+import "../../../syncshell/shared"
 
 ColumnLayout {
   id: root
@@ -15,6 +16,7 @@ ColumnLayout {
   property bool addOpen: false
   property string pendingForgetId: ""
   property string pendingForgetLabel: ""
+  property DeviceWorkflow deviceFlow: DeviceWorkflow { service: Syncshell }
 
   function requestForget(folder) {
     pendingForgetId = String(folder.id || "")
@@ -29,6 +31,9 @@ ColumnLayout {
   Keys.onPressed: function(event) {
     if (event.key === Qt.Key_Escape && pendingForgetId !== "") {
       pendingForgetId = ""
+      event.accepted = true
+    } else if (event.key === Qt.Key_Escape && deviceFlow.view !== "") {
+      deviceFlow.close()
       event.accepted = true
     } else {
       event.accepted = false
@@ -57,12 +62,14 @@ ColumnLayout {
   }
 
   StyledText {
+    visible: root.deviceFlow.view === ""
     Layout.fillWidth: true
     text: qsTr("FOLDERS")
     color: Colours.palette.m3onSurfaceVariant
   }
 
   Flickable {
+    visible: root.deviceFlow.view === ""
     id: folderView
     Layout.fillWidth: true
     Layout.preferredHeight: Math.min(300,
@@ -132,6 +139,16 @@ ColumnLayout {
                   folderCard.modelData.id, !folderCard.modelData.paused)
               }
               TextButton {
+                visible: root.moreOpen
+                  && Syncshell.shareableDevices().length > 0
+                text: qsTr("Share")
+                enabled: Syncshell.online && !Syncshell.busy
+                onClicked: {
+                  root.addOpen = false
+                  root.deviceFlow.beginFolderSharing(folderCard.modelData)
+                }
+              }
+              TextButton {
                 text: folderCard.modelData.paused
                   ? qsTr("Forget") : qsTr("Rescan")
                 enabled: Syncshell.online && !Syncshell.busy
@@ -149,6 +166,7 @@ ColumnLayout {
   }
 
   TextButton {
+    visible: root.deviceFlow.view === ""
     Layout.fillWidth: true
     text: root.moreOpen ? qsTr("Less") : qsTr("More")
     onClicked: root.moreOpen = !root.moreOpen
@@ -159,20 +177,38 @@ ColumnLayout {
     Layout.fillWidth: true
 
     TextButton {
+      visible: root.deviceFlow.view === ""
       Layout.fillWidth: true
       text: root.addOpen ? qsTr("Cancel add folder") : qsTr("Add folder")
       enabled: Syncshell.online && !Syncshell.busy
-      onClicked: root.addOpen = !root.addOpen
+      onClicked: {
+        root.deviceFlow.close()
+        root.deviceFlow.resetFolderDraft()
+        root.addOpen = !root.addOpen
+      }
     }
 
     ColumnLayout {
-      visible: root.addOpen
+      visible: root.addOpen && root.deviceFlow.view === ""
       Layout.fillWidth: true
 
       StyledText {
         Layout.fillWidth: true
         text: qsTr("ADD FOLDER")
         color: Colours.palette.m3onSurfaceVariant
+      }
+      Repeater {
+        model: Syncshell.pendingFolderOffers()
+        delegate: TextButton {
+          required property var modelData
+          Layout.fillWidth: true
+          text: (modelData.encrypted ? "Encrypted offer: " : "Accept ")
+            + modelData.label + " from "
+            + Syncshell.deviceName(modelData.deviceId)
+          enabled: !modelData.encrypted
+          onClicked: idField.text
+              = root.deviceFlow.selectPendingFolder(modelData)
+        }
       }
       StyledTextField {
         id: pathField
@@ -204,6 +240,17 @@ ColumnLayout {
         color: Colours.palette.m3onSurfaceVariant
         wrapMode: Text.Wrap
       }
+      Repeater {
+        model: Syncshell.shareableDevices()
+        delegate: TextButton {
+          required property var modelData
+          Layout.fillWidth: true
+          text: (root.deviceFlow.draftIds.indexOf(modelData.id) >= 0
+            ? "[x] Share with " : "[ ] Share with ")
+            + String(modelData.name || root.deviceFlow.shortId(modelData.id))
+          onClicked: root.deviceFlow.toggleDraft(String(modelData.id || ""))
+        }
+      }
       TextButton {
         Layout.fillWidth: true
         text: Syncshell.busy ? qsTr("Adding...") : qsTr("Add folder")
@@ -213,8 +260,228 @@ ColumnLayout {
           path: pathField.text,
           label: labelField.text,
           folderId: idField.text,
-          deviceIds: []
+          deviceIds: root.deviceFlow.draftIds,
+          pendingDeviceId: root.deviceFlow.pendingDeviceId(idField.text)
         })
+      }
+    }
+
+    StyledText {
+      visible: root.deviceFlow.view === ""
+      Layout.fillWidth: true
+      text: qsTr("REMOTE DEVICES")
+      color: Colours.palette.m3onSurfaceVariant
+    }
+
+    Repeater {
+      model: root.deviceFlow.view === "" ? Syncshell.remoteDevices() : []
+      delegate: RowLayout {
+        required property var modelData
+        Layout.fillWidth: true
+        StyledText {
+          Layout.fillWidth: true
+          text: String(modelData.name || root.deviceFlow.shortId(modelData.id))
+            + " · " + Syncshell.folderIdsForDevice(modelData.id).length
+            + " folders · "
+            + (modelData.connected ? "connected" : "disconnected")
+          color: modelData.connected ? Colours.palette.m3primary
+            : Colours.palette.m3onSurfaceVariant
+          elide: Text.ElideRight
+        }
+        TextButton {
+          text: qsTr("Folders")
+          enabled: !Syncshell.busy
+          onClicked: {
+            root.addOpen = false
+            root.deviceFlow.beginDeviceFolders(modelData)
+          }
+        }
+      }
+    }
+
+    TextButton {
+      visible: root.deviceFlow.view === ""
+      Layout.fillWidth: true
+      text: qsTr("Add remote device")
+      enabled: Syncshell.online && !Syncshell.busy
+      onClicked: {
+        root.addOpen = false
+        root.deviceFlow.beginAddDevice(null)
+      }
+    }
+
+    Repeater {
+      model: root.deviceFlow.view === "" ? Syncshell.pendingDevices : []
+      delegate: RowLayout {
+        required property var modelData
+        Layout.fillWidth: true
+        StyledText {
+          Layout.fillWidth: true
+          text: String(modelData.name || root.deviceFlow.shortId(modelData.id))
+            + " wants to connect"
+          elide: Text.ElideRight
+        }
+        TextButton {
+          text: qsTr("Accept")
+          enabled: !Syncshell.busy
+          onClicked: {
+            root.addOpen = false
+            root.deviceFlow.beginAddDevice(modelData)
+          }
+        }
+        TextButton {
+          text: qsTr("Dismiss")
+          enabled: !Syncshell.busy
+          onClicked: {
+            root.addOpen = false
+            root.deviceFlow.beginDismissDevice(modelData)
+          }
+        }
+      }
+    }
+
+    ColumnLayout {
+      visible: root.deviceFlow.view === "add-device"
+      Layout.fillWidth: true
+      StyledText {
+        Layout.fillWidth: true
+        text: qsTr("ADD REMOTE DEVICE")
+        color: Colours.palette.m3onSurfaceVariant
+      }
+      Repeater {
+        model: Syncshell.nearbyDevices
+        delegate: TextButton {
+          required property var modelData
+          Layout.fillWidth: true
+          text: "Use nearby " + root.deviceFlow.shortId(modelData.id)
+          onClicked: root.deviceFlow.targetDeviceId = String(modelData.id || "")
+        }
+      }
+      StyledTextField {
+        Layout.fillWidth: true
+        placeholderText: qsTr("Device ID")
+        text: root.deviceFlow.targetDeviceId
+        onTextChanged: root.deviceFlow.targetDeviceId = text.toUpperCase()
+      }
+      StyledTextField {
+        Layout.fillWidth: true
+        placeholderText: qsTr("Remote device name (optional)")
+        text: root.deviceFlow.targetDeviceName
+        onTextChanged: root.deviceFlow.targetDeviceName = text
+      }
+      RowLayout {
+        TextButton {
+          text: qsTr("Cancel")
+          onClicked: root.deviceFlow.close()
+        }
+        TextButton {
+          text: Syncshell.busy ? qsTr("Adding...") : qsTr("Add")
+          enabled: !Syncshell.busy && root.deviceFlow.targetDeviceId !== ""
+          onClicked: Syncshell.addDevice(root.deviceFlow.targetDeviceId,
+            root.deviceFlow.targetDeviceName)
+        }
+      }
+    }
+
+    ColumnLayout {
+      visible: root.deviceFlow.view === "share-folder"
+      Layout.fillWidth: true
+      StyledText {
+        Layout.fillWidth: true
+        text: "SHARE " + Syncshell.folderLabel(root.deviceFlow.targetFolderId)
+        color: Colours.palette.m3onSurfaceVariant
+      }
+      Repeater {
+        model: Syncshell.shareableDevices()
+        delegate: TextButton {
+          required property var modelData
+          Layout.fillWidth: true
+          text: (root.deviceFlow.draftIds.indexOf(modelData.id) >= 0
+            ? "[x] " : "[ ] ")
+            + String(modelData.name || root.deviceFlow.shortId(modelData.id))
+          onClicked: root.deviceFlow.toggleDraft(String(modelData.id || ""))
+        }
+      }
+      RowLayout {
+        TextButton {
+          text: qsTr("Cancel")
+          onClicked: root.deviceFlow.close()
+        }
+        TextButton {
+          text: qsTr("Save sharing")
+          enabled: !Syncshell.busy
+          onClicked: Syncshell.setFolderSharing(
+            root.deviceFlow.targetFolderId, root.deviceFlow.draftIds)
+        }
+      }
+    }
+
+    ColumnLayout {
+      visible: root.deviceFlow.view === "device-folders"
+      Layout.fillWidth: true
+      StyledText {
+        Layout.fillWidth: true
+        text: "SHARED WITH " + (root.deviceFlow.targetDeviceName
+          || root.deviceFlow.shortId(root.deviceFlow.targetDeviceId))
+        color: Colours.palette.m3onSurfaceVariant
+      }
+      Repeater {
+        model: Syncshell.folderIdsForDevice(root.deviceFlow.targetDeviceId)
+        delegate: TextButton {
+          required property var modelData
+          Layout.fillWidth: true
+          text: (root.deviceFlow.draftIds.indexOf(modelData) >= 0
+            ? "[x] " : "[ ] ") + Syncshell.folderLabel(modelData)
+          onClicked: root.deviceFlow.toggleDraft(String(modelData || ""))
+        }
+      }
+      RowLayout {
+        TextButton {
+          text: qsTr("Cancel")
+          onClicked: root.deviceFlow.close()
+        }
+        TextButton {
+          text: qsTr("Save sharing")
+          enabled: !Syncshell.busy && root.deviceFlow.removedFolderIds().length > 0
+          onClicked: Syncshell.removeDeviceFolderShares(
+            root.deviceFlow.targetDeviceId, root.deviceFlow.removedFolderIds(),
+            root.deviceFlow.targetDeviceName)
+        }
+      }
+    }
+
+    StyledRect {
+      visible: root.deviceFlow.view === "dismiss-device"
+      Layout.fillWidth: true
+      implicitHeight: dismissDeviceContent.implicitHeight
+        + Tokens.padding.medium * 2
+      color: Colours.tPalette.m3surfaceContainer
+      radius: Tokens.rounding.medium
+      border.width: 1
+      border.color: Colours.palette.m3error
+      ColumnLayout {
+        id: dismissDeviceContent
+        anchors.fill: parent
+        anchors.margins: Tokens.padding.medium
+        StyledText {
+          Layout.fillWidth: true
+          text: "Dismiss pending request from "
+            + (root.deviceFlow.targetDeviceName
+              || root.deviceFlow.shortId(root.deviceFlow.targetDeviceId)) + "?"
+          color: Colours.palette.m3error
+        }
+        RowLayout {
+          TextButton {
+            text: qsTr("Cancel")
+            onClicked: root.deviceFlow.close()
+          }
+          TextButton {
+            text: qsTr("Dismiss")
+            enabled: !Syncshell.busy
+            onClicked: Syncshell.dismissPendingDevice(
+              root.deviceFlow.targetDeviceId, root.deviceFlow.targetDeviceName)
+          }
+        }
       }
     }
   }
@@ -284,6 +551,9 @@ ColumnLayout {
     function onFolderIdSuggestionChanged() {
       if (!idField.activeFocus && Syncshell.folderIdSuggestion)
         idField.text = Syncshell.folderIdSuggestion
+    }
+    function onActionFinished(action, ok) {
+      root.deviceFlow.actionFinished(action, ok)
     }
   }
 }

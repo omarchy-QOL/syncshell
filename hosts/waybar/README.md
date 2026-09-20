@@ -1,9 +1,9 @@
 # Waybar adapter
 
-Syncshell supports Waybar 0.15.0 with Quickshell 0.3.1 on Arch Linux and
-Hyprland. The native custom module reads one JSON status stream and provides
-popup, refresh, and Web UI click actions. A single Quickshell bridge owns the
-bundled core across every Waybar output.
+Syncshell supports Waybar 0.14.0 or newer and Quickshell 0.3.1 or newer on
+Arch Linux with Hyprland. The native custom module reads one JSON status stream
+and provides popup, refresh, and Web UI click actions. A single Quickshell
+bridge owns the bundled core across every Waybar output.
 
 ## Install, update, and remove
 
