@@ -11,7 +11,6 @@ import (
 func normalizeDevices(
 	wire []syncthing.Device,
 	connections syncthing.Connections,
-	localDeviceID string,
 ) []Device {
 	limit := min(len(wire), maxDevices)
 	result := make([]Device, 0, limit)
@@ -20,15 +19,20 @@ func normalizeDevices(
 		result = append(result, Device{ID: boundedIdentifier(device.DeviceID),
 			Name:      boundedLabel(device.Name),
 			Untrusted: device.Untrusted,
-			Connected: device.DeviceID == localDeviceID || connection.Connected})
+			Connected: connection.Connected})
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].ID < result[j].ID })
 	return result
 }
 
-func normalizedCounts(devices []Device, folders []Folder) Counts {
-	counts := Counts{Folders: len(folders), Devices: len(devices)}
+func normalizedCounts(devices []Device, folders []Folder, localDeviceID string) Counts {
+	counts := Counts{Folders: len(folders)}
+	localDeviceID = boundedIdentifier(localDeviceID)
 	for _, device := range devices {
+		if localDeviceID != "" && device.ID == localDeviceID {
+			continue
+		}
+		counts.Devices++
 		if device.Connected {
 			counts.ConnectedDevices++
 		}
