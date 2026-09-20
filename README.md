@@ -10,8 +10,8 @@
 </p>
 
 Syncshell shows [Syncthing](https://github.com/syncthing/syncthing) activity in
-Linux bars, manages remote devices and local folders, and opens a redesigned
-Web UI. Version 0.1.8 uses one bundled Go core per live adapter.
+the Omarchy bar, manages remote devices and local folders, and opens a
+redesigned Web UI.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -36,47 +36,10 @@ Open the widget and expand **More**. If Syncthing is missing, select **Install
 Syncthing** to install the package and start the user service. Existing
 installations are detected automatically.
 
-Version 0.1.8 supports Omarchy, DankMaterialShell, Illogical Impulse,
-Caelestia, and Waybar on Linux x86_64. The four Arch and Hyprland adapter
-workflows are documented in [Arch shell adapters](docs/arch-adapters.md).
-
-### Installation on other shells
-
-The currently verified combinations use Arch Linux, Hyprland, and one of the
-shells below. Install the shell through its upstream instructions first. Then
-clone Syncshell's development branch and run the same installer used by the VM
-acceptance path:
-
-```bash
-git clone --branch dev --single-branch \
-  https://github.com/omarchy-QOL/syncshell.git
-cd syncshell
-./install.sh --shell dms
-```
-
-Replace `dms` with the shell name from this table:
-
-| OS         | Compositor | Shell                | Installer argument |
-| ---------- | ---------- | -------------------- | ------------------ |
-| Arch Linux | Hyprland   | DankMaterialShell    | `dms`              |
-| Arch Linux | Hyprland   | Illogical Impulse   | `ii`               |
-| Arch Linux | Hyprland   | Caelestia            | `caelestia`        |
-| Arch Linux | Hyprland   | Waybar + Quickshell  | `waybar`           |
-
-The installer verifies the bundled core before changing the shell. DMS and
-Waybar are installed directly. Illogical Impulse is applied to the existing
-`~/.config/quickshell/ii` tree with backups under
-`$XDG_STATE_HOME/syncshell/backups`, or `~/.local/state/syncshell/backups` by
-default. Caelestia rebuilds its compiled configuration and therefore requires
-the build dependencies from its upstream installation guide.
-
-Restart the shell when its user service is not managed by systemd. To update,
-pull `dev` and rerun the same command:
-
-```bash
-git pull --ff-only origin dev
-./install.sh --shell ii
-```
+The released plugin supports Omarchy on Linux x86_64. Alpha adapters for
+DankMaterialShell, Illogical Impulse, Caelestia, and Waybar are under
+development; they are not part of the supported release and have no published
+installation contract. ARM and daemon mode remain future work.
 
 ## Keybindings
 
@@ -284,8 +247,8 @@ in [Syncshell Web provenance][webui-provenance].
   keeping its files.
 - **Add** requires an existing directory and a unique Folder ID. Overlapping
   paths are rejected. Select remote devices explicitly to share the folder.
-- Use **FOLDERS** to choose which devices receive each folder.
-- Open **REMOTE DEVICES** -> **FOLDERS** to review or stop existing shares.
+- Use **FOLDERS** to choose a folder's devices or review and remove the selected
+  device's existing shares.
 
 Incoming unencrypted folder offers can prefill the setup form. Use the Web UI
 for encrypted sharing, untrusted devices and details beyond the panel's limits.
@@ -299,9 +262,11 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
-| 0.1.9   | TBD        | syncshell-tui and syncshell-gui                         |
+| 0.1.9   | TBD        | add remote-device setup and folder-sharing controls     |
+|         |            | fix remote counts and keep rescan controls consistent   |
+|         |            | refine dropdowns, status, and installation feedback     |
+| Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
 | 0.1.8   | 2026-09-13 | use one native core for the Omarchy panel               |
-|         |            | add Arch adapters for DMS, II, Caelestia, and Waybar    |
 |         |            | support healthy externally managed Syncthing instances  |
 |         |            | add the Preact Web UI and settings migration            |
 |         |            | add conflict review (beta) and guarded file renaming    |

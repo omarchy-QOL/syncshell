@@ -1,14 +1,21 @@
 # Changelog
 
-Notable changes to Syncshell are documented here.
+Notable changes to Syncshell for Omarchy are documented here.
+
+## Unreleased
+
+- add remote-device discovery and setup to the Omarchy panel, including nearby
+  and pending devices
+- add folder-sharing controls for new and existing folders and safe removal of
+  selected device shares
+- report only remote devices in connection totals and use Syncthing's Device ID
+  terminology
+- refine panel dropdowns, status indicators, action placement, and installation
+  feedback
+- keep folder controls inert during targeted and all-folder rescans and handle
+  paused folders and long-running scans consistently
 
 ## 0.1.8 - 2026-09-13
-
-- add native Arch and Hyprland adapters for DankMaterialShell, Illogical
-  Impulse, Caelestia, and Waybar without changing the Omarchy adapter
-- align folder controls with the Omarchy hierarchy, guard forget with a
-  confirmation, and preserve each shell's placement preferences
-- keep one bundled core per adapter across popups and additional outputs
 
 - detect SyncThingy Flatpak installations, adapted to the Go core from
   [@whelanh](https://github.com/whelanh)'s contribution in
@@ -53,18 +60,6 @@ Notable changes to Syncshell are documented here.
 - wait until targeted folders leave scanning before reporting rescan
   completion, so notices and the all-folders control follow the last folder
   rather than the HTTP accept
-- distinguish completed scans from confirmed long-running scans in action
-  results and use one shared tracker across every shell adapter
-- rescan active folders individually when any configured folder is paused,
-  avoiding Syncthing's global-request failure on paused configurations
-- remove unused host, capability, mutation, build-toolchain, and result-revision
-  fields from the adapter protocol while preserving snapshot-before-result
-  ordering
-- publish the cleaned adapter contract as protocol v2 and replace generic host
-  identity with explicit Omarchy desktop authority
-- reject all-folder rescans when bounded snapshots cannot observe every target
-- invoke each lifecycle command once and use later refreshes only to observe
-  the requested state
 - show the bar sync overlay as soon as a plugin rescan is busy, not only
   after snapshot scanning arrives
 - distinguish plain `SCANNING` from concurrent `SCAN+SYNC` during an accepted
