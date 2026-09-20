@@ -10,8 +10,8 @@
 </p>
 
 Syncshell shows [Syncthing](https://github.com/syncthing/syncthing) activity in
-the Omarchy bar, manages remote devices and local folders, and opens a
-redesigned Web UI.
+the Omarchy bar, manages local folders and opens a redesigned Web UI. Version
+0.1.8 uses a bundled Go core since other Linux shell adapters are planned.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -38,8 +38,8 @@ installations are detected automatically.
 
 The released plugin supports Omarchy on Linux x86_64. Alpha adapters for
 DankMaterialShell, Illogical Impulse, Caelestia, and Waybar are under
-development; they are not part of the supported release and have no published
-installation contract. ARM and daemon mode remain future work.
+development; they are not part of the supported release. ARM and daemon mode
+remain future work.
 
 ## Keybindings
 
