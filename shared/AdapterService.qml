@@ -12,13 +12,18 @@ QtObject {
 
   readonly property var state: core.snapshot || ({})
   readonly property var connection: state.connection || ({})
+  readonly property var identity: state.identity || ({})
   readonly property var counts: state.counts || ({})
+  readonly property var truncation: state.truncation || ({})
   readonly property var activity: state.activity || ({})
   readonly property var currentActivity: activity.current || ({})
   readonly property var webUi: state.webUi || ({})
   readonly property var folders: state.folders || []
   readonly property var devices: state.devices || []
   readonly property var pendingFolders: state.pendingFolders || ({})
+  readonly property var pendingDevices: state.pendingDevices || []
+  readonly property var nearbyDevices: state.nearbyDevices || []
+  readonly property string localDeviceId: String(identity.deviceId || "")
   readonly property bool online: core.protocolReady
     && connection.online === true
   readonly property bool refreshing: _refreshRequest !== ""
@@ -74,6 +79,87 @@ QtObject {
 
   function errorText(error, fallback) {
     return String(error && error.message || fallback || "Action failed")
+  }
+
+  function device(deviceId) {
+    var wanted = String(deviceId || "")
+    for (var index = 0; index < devices.length; index++) {
+      if (String(devices[index].id || "") === wanted) return devices[index]
+    }
+    return null
+  }
+
+  function deviceName(deviceId) {
+    var value = device(deviceId)
+    return value && value.name ? String(value.name)
+      : String(deviceId || "").split("-")[0]
+  }
+
+  function remoteDevices() {
+    var result = []
+    for (var index = 0; index < devices.length; index++) {
+      var value = devices[index] || ({})
+      if (String(value.id || "") !== ""
+          && String(value.id || "") !== localDeviceId) result.push(value)
+    }
+    return result
+  }
+
+  function shareableDevices() {
+    var result = []
+    var remote = remoteDevices()
+    for (var index = 0; index < remote.length; index++) {
+      if (remote[index].untrusted !== true) result.push(remote[index])
+    }
+    return result
+  }
+
+  function remoteDeviceIdsForFolder(folderId) {
+    var value = folder(folderId)
+    var members = value && value.devices ? value.devices : []
+    var result = []
+    for (var index = 0; index < members.length; index++) {
+      var id = String((members[index] || {}).id || "")
+      if (id !== "" && id !== localDeviceId) result.push(id)
+    }
+    return result
+  }
+
+  function folderIdsForDevice(deviceId) {
+    var wanted = String(deviceId || "")
+    var result = []
+    for (var folderIndex = 0; folderIndex < folders.length; folderIndex++) {
+      var members = folders[folderIndex].devices || []
+      for (var memberIndex = 0; memberIndex < members.length; memberIndex++) {
+        if (String((members[memberIndex] || {}).id || "") === wanted) {
+          result.push(String(folders[folderIndex].id || ""))
+          break
+        }
+      }
+    }
+    return result
+  }
+
+  function pendingFolderOffers() {
+    var result = []
+    var folderIds = Object.keys(pendingFolders).sort()
+    for (var folderIndex = 0; folderIndex < folderIds.length; folderIndex++) {
+      var folderId = folderIds[folderIndex]
+      var offeredBy = (pendingFolders[folderId] || {}).offeredBy || ({})
+      var deviceIds = Object.keys(offeredBy).sort()
+      for (var deviceIndex = 0; deviceIndex < deviceIds.length; deviceIndex++) {
+        var deviceId = deviceIds[deviceIndex]
+        var offer = offeredBy[deviceId] || ({})
+        result.push({
+          folderId: folderId,
+          deviceId: deviceId,
+          label: String(offer.label || folderId),
+          encrypted: offer.receiveEncrypted === true
+            || offer.remoteEncrypted === true
+        })
+      }
+    }
+    return result
   }
 
   function folder(folderId) {
@@ -212,6 +298,41 @@ QtObject {
       deviceIds: input.deviceIds || input.selectedDeviceIds || [],
       pendingDeviceId: String(input.pendingDeviceId || "")
     }, "Added existing directory", String(input.folderId || input.id || ""))
+  }
+
+  function setFolderSharing(folderId, deviceIds) {
+    return runAction("folder.set-sharing", {
+      folderId: String(folderId || ""),
+      deviceIds: deviceIds || []
+    }, "Folder sharing updated", String(folderId || ""))
+  }
+
+  function addDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runAction("device.add", {
+      deviceId: String(deviceId || ""),
+      deviceName: String(name || "")
+    }, label + " added; add this device there to complete the connection",
+      String(deviceId || ""))
+  }
+
+  function dismissPendingDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || String(deviceId || "").slice(0, 7)
+    return runAction("device.dismiss-pending", {
+      deviceId: String(deviceId || "")
+    }, "Dismissed pending request from " + label, String(deviceId || ""))
+  }
+
+  function removeDeviceFolderShares(deviceId, folderIds, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runAction("device.remove-folder-shares", {
+      deviceId: String(deviceId || ""),
+      folderIds: folderIds || []
+    }, "Selected folder shares removed from " + label,
+      String(deviceId || ""))
   }
 
   function openWebUi() {
