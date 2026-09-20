@@ -2,6 +2,7 @@ package desktop
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +13,37 @@ import (
 
 	"github.com/omarchy-QOL/syncshell/core/internal/syncthing"
 )
+
+func TestDesktopLauncherReportsApplicationResult(t *testing.T) {
+	directory := t.TempDir()
+	opener := filepath.Join(directory, "xdg-open")
+	t.Setenv("PATH", directory)
+	for _, test := range []struct {
+		name   string
+		script string
+		failed bool
+	}{
+		{"accepted", "#!/bin/sh\nexit 0\n", false},
+		{"refused", "#!/bin/sh\nexit 1\n", true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if err := os.WriteFile(opener, []byte(test.script), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			err := launch(context.Background(), "https://example.test")
+			if (err != nil) != test.failed {
+				t.Fatalf("launch error = %v, want failure %t", err, test.failed)
+			}
+		})
+	}
+	if err := os.Remove(opener); err != nil {
+		t.Fatal(err)
+	}
+	if err := launch(context.Background(), "https://example.test"); err == nil ||
+		errors.Is(err, context.Canceled) {
+		t.Fatalf("missing desktop application error = %v", err)
+	}
+}
 
 func TestBridgeOpenUsesPrivateLaunchPage(t *testing.T) {
 	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/test/session-bus")
@@ -119,6 +151,13 @@ func TestBridgeRejectsLookalikeLocalProcess(t *testing.T) {
 	if w.Code != http.StatusConflict ||
 		!strings.Contains(w.Body.String(), "file actions require Syncthing") {
 		t.Fatalf("lookalike process response = %d %s", w.Code, w.Body.String())
+	}
+	if _, err := bridge.action(context.Background(), "delete", request{}); err == nil {
+		t.Fatal("unsupported desktop action was accepted")
+	}
+	if _, err := bridge.action(context.Background(), "status",
+		request{Device: "OTHER-ID"}); err == nil {
+		t.Fatal("desktop action accepted a changed identity")
 	}
 }
 

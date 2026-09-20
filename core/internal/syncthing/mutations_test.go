@@ -9,6 +9,13 @@ import (
 	"testing"
 )
 
+func TestNewFolderDevice(t *testing.T) {
+	device := NewFolderDevice("REMOTE-ID")
+	if device.DeviceID != "REMOTE-ID" {
+		t.Fatalf("device ID = %q, want REMOTE-ID", device.DeviceID)
+	}
+}
+
 func TestClientConfigurationAndFileRequests(t *testing.T) {
 	ctx := context.Background()
 	tests := []struct {
