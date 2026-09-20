@@ -221,8 +221,8 @@ Column {
       verticalPadding: Style.space(4)
       canActivate: targetFolder && root.syncthing && root.syncthing.online
         && !root.syncthing.folderMutationBusy
-      onClicked: root.syncthing.setFolderLinked(
-        targetFolder.id, targetFolder.paused)
+      onClicked: root.controller.requestFolderLinkChange(
+        targetFolder, targetFolder.paused)
     }
   }
 

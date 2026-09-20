@@ -41,8 +41,9 @@ Panel {
   property bool preserveStateForFolderPicker: false
   property string currentFolderId: ""
   property string selectedPendingOffer: ""
-  property string forgetFolderId: ""
-  property bool forgetConfirmOpen: false
+  property string folderConfirmAction: ""
+  property string folderConfirmId: ""
+  readonly property bool folderConfirmOpen: folderConfirmAction !== ""
   property string deviceConfirmAction: ""
   property string deviceConfirmId: ""
   property string deviceConfirmName: ""
@@ -416,8 +417,7 @@ Panel {
     addIdEdited = false
     addLabelFromOffer = false
     addSubmissionPending = false
-    forgetFolderId = ""
-    forgetConfirmOpen = false
+    cancelFolderAction()
     cancelDeviceAction()
     folderPickerError = ""
     popup.closeTransientPopups()
@@ -495,14 +495,29 @@ Panel {
     if (!folder || !folder.paused || !syncthing
         || syncthing.folderMutationBusy) return
     currentFolderId = folder.id
-    forgetFolderId = folder.id
-    forgetConfirmOpen = true
+    folderConfirmId = folder.id
+    folderConfirmAction = "forget"
   }
 
-  function confirmForget() {
-    forgetConfirmOpen = false
-    if (syncthing) syncthing.forgetFolder(forgetFolderId)
-    forgetFolderId = ""
+  function requestFolderLinkChange(folder, linked) {
+    if (!folder || !syncthing || syncthing.folderMutationBusy) return
+    currentFolderId = folder.id
+    folderConfirmId = folder.id
+    folderConfirmAction = linked ? "link" : "unlink"
+  }
+
+  function confirmFolderAction() {
+    var action = folderConfirmAction
+    var id = folderConfirmId
+    cancelFolderAction()
+    if (!syncthing) return
+    if (action === "forget") syncthing.forgetFolder(id)
+    else syncthing.setFolderLinked(id, action === "link")
+  }
+
+  function cancelFolderAction() {
+    folderConfirmAction = ""
+    folderConfirmId = ""
   }
 
   function openWebUi() {
@@ -532,7 +547,7 @@ Panel {
   function closeTransientViews() {
     moreOpen = false
     addOpen = false
-    forgetConfirmOpen = false
+    cancelFolderAction()
     popup.closeTransientPopups()
   }
 

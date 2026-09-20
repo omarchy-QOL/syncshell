@@ -67,9 +67,8 @@ KeyboardPanel {
                 root.controller.removalConfirmOpen = false;
             } else if (root.controller.settingsMenuOpen) {
                 root.controller.closeSettingsMenu();
-            } else if (root.controller.forgetConfirmOpen) {
-                root.controller.forgetConfirmOpen = false;
-                root.controller.forgetFolderId = "";
+            } else if (root.controller.folderConfirmOpen) {
+                root.controller.cancelFolderAction();
             } else if (root.controller.deviceConfirmOpen) {
                 root.controller.cancelDeviceAction();
             } else if (root.controller.addOpen)
@@ -86,9 +85,9 @@ KeyboardPanel {
                 removalDialog.selectedChoice = (removalDialog.selectedChoice + (direction > 0 ? 1 : 2)) % 3;
             } else if (root.controller.settingsMenuOpen) {
                 root.controller.moveSettingsSelection(direction);
-            } else if (root.controller.forgetConfirmOpen) {
-                forgetDialog.selectedIndex =
-                    forgetDialog.selectedIndex === 0 ? 1 : 0;
+            } else if (root.controller.folderConfirmOpen) {
+                folderConfirmDialog.selectedIndex =
+                    folderConfirmDialog.selectedIndex === 0 ? 1 : 0;
             } else if (root.controller.deviceConfirmOpen) {
                 deviceConfirmDialog.selectedIndex =
                     deviceConfirmDialog.selectedIndex === 0 ? 1 : 0;
@@ -104,8 +103,10 @@ KeyboardPanel {
                 removalDialog.selectedChoice = (removalDialog.selectedChoice + (dy > 0 ? 1 : 2)) % 3;
             } else if (root.controller.settingsMenuOpen && dy !== 0) {
                 root.controller.moveSettingsSelection(dy);
-            } else if (root.controller.forgetConfirmOpen && (dx !== 0 || dy !== 0)) {
-                forgetDialog.selectedIndex = forgetDialog.selectedIndex === 0 ? 1 : 0;
+            } else if (root.controller.folderConfirmOpen
+                    && (dx !== 0 || dy !== 0)) {
+                folderConfirmDialog.selectedIndex =
+                    folderConfirmDialog.selectedIndex === 0 ? 1 : 0;
             } else if (root.controller.deviceConfirmOpen
                     && (dx !== 0 || dy !== 0)) {
                 deviceConfirmDialog.selectedIndex =
@@ -123,13 +124,11 @@ KeyboardPanel {
                 removalDialog.choose();
             } else if (root.controller.settingsMenuOpen) {
                 root.controller.activateSettingsSelection();
-            } else if (root.controller.forgetConfirmOpen) {
-                if (forgetDialog.selectedIndex === 0)
-                    root.controller.confirmForget();
-                else {
-                    root.controller.forgetConfirmOpen = false;
-                    root.controller.forgetFolderId = "";
-                }
+            } else if (root.controller.folderConfirmOpen) {
+                if (folderConfirmDialog.selectedIndex === 0)
+                    root.controller.confirmFolderAction();
+                else
+                    root.controller.cancelFolderAction();
             } else if (root.controller.deviceConfirmOpen) {
                 if (deviceConfirmDialog.selectedIndex === 0)
                     root.controller.confirmDeviceAction();
@@ -158,7 +157,7 @@ KeyboardPanel {
                     root.controller.closeSettingsMenu();
                 return;
             }
-            if (root.controller.forgetConfirmOpen)
+            if (root.controller.folderConfirmOpen)
                 return;
             if (root.controller.deviceConfirmOpen)
                 return;
@@ -472,16 +471,33 @@ KeyboardPanel {
     }
 
     CompactConfirmDialog {
-        id: forgetDialog
+        id: folderConfirmDialog
         parent: keyCatcher
         anchors.fill: parent
-        opened: root.controller.forgetConfirmOpen
+        opened: root.controller.folderConfirmOpen
         z: 10
         confirmFirst: true
         equalWidthActions: true
         message: {
-            var folder = root.controller.currentFolderRow;
-            return folder ? "Forget " + folder.label + " (" + folder.id + ")?\n\n" + "This removes only its Syncthing configuration. The " + "directory and data files will not be deleted. " + (folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal " + ".stfolder marker. " : "") + "Rejoining the same remote folder requires this exact Folder ID." : "Forget this unlinked folder?";
+            var folder = root.controller.folderById(
+                root.controller.folderConfirmId);
+            if (!folder)
+                return "Change this folder?";
+            if (root.controller.folderConfirmAction === "link")
+                return "Link " + folder.label + " (" + folder.id
+                    + ")?\n\nSyncthing will resume synchronization for this folder.";
+            if (root.controller.folderConfirmAction === "unlink")
+                return "Unlink " + folder.label + " (" + folder.id
+                    + ")?\n\nSyncthing will pause synchronization. Its configuration "
+                    + "and local files remain.";
+            return "Forget " + folder.label + " (" + folder.id + ")?\n\n"
+                + "This removes only its Syncthing configuration. The "
+                + "directory and data files will not be deleted. "
+                + (folder.markerName === ".stfolder"
+                    ? "Syncthing will also attempt to remove its internal "
+                        + ".stfolder marker. " : "")
+                + "Rejoining the same remote folder requires this exact "
+                + "Folder ID.";
         }
         confirmText: "Yes"
         cancelText: "No"
@@ -489,11 +505,8 @@ KeyboardPanel {
         foreground: Color.popups.text
         selectedText: root.controller.urgent
         fontFamily: root.controller.fontFamily
-        onCanceled: {
-            root.controller.forgetConfirmOpen = false;
-            root.controller.forgetFolderId = "";
-        }
-        onConfirmed: root.controller.confirmForget()
+        onCanceled: root.controller.cancelFolderAction()
+        onConfirmed: root.controller.confirmFolderAction()
     }
 
     CompactConfirmDialog {
