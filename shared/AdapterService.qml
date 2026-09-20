@@ -6,7 +6,6 @@ QtObject {
   id: root
 
   required property string pluginRoot
-  required property string hostId
   property int probeIntervalSeconds: 15
   property int refreshIntervalSeconds: 60
 
@@ -57,9 +56,7 @@ QtObject {
   property string _refreshRequest: ""
   property string _actionRequest: ""
   property string _actionName: ""
-  property string _actionFolderId: ""
-  property bool _rescanResultReady: false
-  property bool _rescanObserved: false
+  property string _actionTargetId: ""
 
   signal actionFinished(string action, bool ok, var data, var error)
 
@@ -178,14 +175,14 @@ QtObject {
   function refresh() {
     if (!core.protocolReady || refreshing || busy) return false
     actionError = ""
-    _refreshRequest = core.refresh(function(ok, revision, data, error) {
+    _refreshRequest = core.refresh(function(ok, data, error) {
       root._refreshRequest = ""
       if (!ok) root.actionError = root.errorText(error, "Refresh failed")
     })
     return _refreshRequest !== ""
   }
 
-  function runAction(name, args, notice, folderId) {
+  function runAction(name, args, notice, targetId) {
     if (!online || busy || refreshing) {
       actionError = online ? "Another operation is already running"
         : "Syncthing must be online"
@@ -194,19 +191,22 @@ QtObject {
     actionError = ""
     actionNotice = ""
     _actionName = name
-    _actionFolderId = String(folderId || "")
-    _rescanResultReady = false
-    _rescanObserved = false
+    _actionTargetId = String(targetId || "")
+    rescanTracker.reset()
     _actionRequest = core.action(name, args || ({}),
-      function(ok, revision, data, error) {
+      function(ok, data, error) {
         if (!ok) {
           root.finishAction(false, data, error)
           return
         }
         if (root._actionName === "folder.rescan"
             || root._actionName === "folder.rescan-all") {
-          root._rescanResultReady = true
-          root.settleRescan()
+          if (!rescanTracker.acceptResult(data, root.scanningFolderIds())) {
+            root.finishAction(false, null, {
+              code: "invalid_result",
+              message: "Native core returned an invalid rescan result"
+            })
+          }
           return
         }
         if (root._actionName === "folder.suggest-id")
@@ -230,9 +230,8 @@ QtObject {
   function clearAction() {
     _actionRequest = ""
     _actionName = ""
-    _actionFolderId = ""
-    _rescanResultReady = false
-    _rescanObserved = false
+    _actionTargetId = ""
+    rescanTracker.reset()
   }
 
   function scanning(folderId) {
@@ -241,26 +240,21 @@ QtObject {
       .indexOf("scan") === 0
   }
 
-  function rescanTargetsScanning() {
-    if (_actionName === "folder.rescan") return scanning(_actionFolderId)
-    if (_actionName !== "folder.rescan-all") return false
+  function scanningFolderIds() {
+    var result = []
     for (var index = 0; index < folders.length; index++) {
-      if (!folders[index].paused && scanning(folders[index].id)) return true
+      if (scanning(folders[index].id)) result.push(String(folders[index].id))
     }
-    return false
+    result.sort()
+    return result
   }
 
-  function settleRescan() {
+  function completeRescan() {
     if (!busy || (_actionName !== "folder.rescan"
         && _actionName !== "folder.rescan-all")) return
-    if (rescanTargetsScanning()) {
-      _rescanObserved = true
-      return
-    }
-    if (!_rescanResultReady || !_rescanObserved) return
     actionNotice = _actionName === "folder.rescan-all"
       ? "Rescan complete for all folders"
-      : "Rescan complete for " + folderLabel(_actionFolderId)
+      : "Rescan complete for " + folderLabel(_actionTargetId)
     finishAction(true, null, null)
   }
 
@@ -349,12 +343,25 @@ QtObject {
     })
   }
 
-  onFoldersChanged: settleRescan()
+  onFoldersChanged: rescanTracker.reconcile(scanningFolderIds())
+  onOnlineChanged: {
+    if (!online && busy && (_actionName === "folder.rescan"
+        || _actionName === "folder.rescan-all")
+        && rescanTracker.runningFolderIds.length > 0) {
+      finishAction(false, null, {
+        code: "offline",
+        message: "Could not confirm rescan completion because Syncthing became unavailable"
+      })
+    }
+  }
+
+  property RescanTracker rescanTracker: RescanTracker {
+    onCompleted: root.completeRescan()
+  }
 
   property CoreProcess core: CoreProcess {
     pluginRoot: root.pluginRoot
     startupArguments: [
-      "--host-id", root.hostId,
       "--probe-interval-seconds", String(root.probeIntervalSeconds),
       "--desired-service-state", "enabled",
       "--lifecycle-kind", "systemd-user",

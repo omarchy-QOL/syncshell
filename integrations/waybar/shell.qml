@@ -72,7 +72,6 @@ ShellRoot {
   AdapterService {
     id: service
     pluginRoot: root.pluginRoot
-    hostId: "waybar"
   }
 
   FileView {

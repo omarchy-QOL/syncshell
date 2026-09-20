@@ -14,7 +14,6 @@ import (
 
 // Config constructs one authoritative session.
 type Config struct {
-	HostID              string
 	Discovery           syncthing.DiscoveryOptions
 	Lifecycle           systemduser.Binding
 	SystemdCommand      string
@@ -38,7 +37,6 @@ type hydratedState struct {
 type Session struct {
 	desktopEnabled bool
 	desktop        *desktop.Bridge
-	hostID         string
 	executable     string
 	client         *syncthing.Client
 	target         syncthing.Target
@@ -82,7 +80,6 @@ func New(ctx context.Context, config Config) (*Session, error) {
 		desired = "enabled"
 	}
 	return &Session{
-		hostID:              boundedIdentifier(config.HostID),
 		executable:          syncthing.FindExecutable(config.Discovery.SyncthingBinary),
 		client:              client,
 		target:              target,
@@ -130,7 +127,6 @@ func (s *Session) Refresh(ctx context.Context) (PublishedSnapshot, error) {
 func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 	previous := s.Current().State
 	snapshot := Snapshot{
-		HostID:         s.hostID,
 		Connection:     Connection{Phase: "loading", Endpoint: s.client.Endpoint()},
 		Identity:       previous.Identity,
 		Devices:        previous.Devices,
@@ -142,20 +138,7 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 		WebUI:          previous.WebUI,
 		Installation: Installation{ExecutablePath: boundedPath(s.executable),
 			Available: s.executable != ""},
-		Mutation:   previous.Mutation,
 		Truncation: previous.Truncation,
-		Capabilities: []string{
-			"configure", "folder.add-existing", "folder.forget", "folder.pause",
-			"folder.recheck-errors", "folder.rescan", "folder.rescan-all",
-			"folder.resume", "folder.suggest-id",
-			"folder.set-sharing", "device.add", "device.dismiss-pending",
-			"device.set-folders",
-			"lifecycle.disable", "lifecycle.enable", "lifecycle.start", "lifecycle.stop",
-			"refresh", "webui.set-theme",
-		},
-	}
-	if s.desktopEnabled {
-		snapshot.Capabilities = append(snapshot.Capabilities, "webui.open")
 	}
 	if err := s.client.Health(ctx); err != nil {
 		snapshot.Connection.Phase = "error"
@@ -386,7 +369,7 @@ func (s *Session) Configure(config OperationalConfig) ActionResult {
 	default:
 	}
 	s.publishDesiredState(desired)
-	return ActionResult{OK: true, Revision: s.Current().Revision}
+	return ActionResult{OK: true}
 }
 
 func validateOperationalConfig(config OperationalConfig) *ActionResult {

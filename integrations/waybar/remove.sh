@@ -22,6 +22,7 @@ for path in \
     "$install_root/shared/CoreProcess.qml" \
     "$install_root/shared/AdapterService.qml" \
     "$install_root/shared/DeviceWorkflow.qml" \
+    "$install_root/shared/RescanTracker.qml" \
     "$install_root/manifest.json" \
     "$install_root/shell.qml" \
     "$install_root/status.sh" \

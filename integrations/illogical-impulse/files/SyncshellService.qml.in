@@ -6,7 +6,6 @@ import "../syncshell/shared"
 
 AdapterService {
   pluginRoot: localPath(Qt.resolvedUrl("../syncshell"))
-  hostId: "illogical-impulse"
 
   function localPath(url) {
     var value = String(url || "")

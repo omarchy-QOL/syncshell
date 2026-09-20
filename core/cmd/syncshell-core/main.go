@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime"
 	"strings"
 	"time"
 
@@ -18,6 +17,11 @@ import (
 )
 
 var buildVersion = "0.1.8"
+
+type options struct {
+	session.Config
+	DesktopAuthorized bool
+}
 
 func main() {
 	if err := run(context.Background(), os.Args[1:], os.Stdin, os.Stdout); err != nil {
@@ -44,19 +48,18 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer) 
 		return errors.New("probe and status require --json")
 	}
 
-	coreSession, err := session.New(ctx, options)
+	coreSession, err := session.New(ctx, options.Config)
 	if err != nil {
 		return err
 	}
 	switch command {
 	case "stream":
-		if options.HostID == "omarchy" {
+		if options.DesktopAuthorized {
 			closeDesktop := coreSession.EnableDesktop()
 			defer closeDesktop()
 		}
 		return protocol.Stream{Session: coreSession, Input: stdin, Output: stdout,
-			Build: protocol.Build{Version: buildVersion, Protocol: protocol.Version,
-				GoVersion: runtime.Version()}}.Run(ctx)
+			Build: protocol.Build{Version: buildVersion}}.Run(ctx)
 	case "probe", "status":
 		published, refreshErr := coreSession.Refresh(ctx)
 		encoder := json.NewEncoder(stdout)
@@ -80,8 +83,8 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer) 
 	return nil
 }
 
-func parseOptions(flags *flag.FlagSet, args []string) (session.Config, bool, error) {
-	var config session.Config
+func parseOptions(flags *flag.FlagSet, args []string) (options, bool, error) {
+	var config options
 	var outputJSON bool
 	var lifecycleKind string
 	var probeSeconds int
@@ -91,7 +94,8 @@ func parseOptions(flags *flag.FlagSet, args []string) (session.Config, bool, err
 	flags.StringVar(&config.Discovery.TLSCertificate, "tls-certificate", "", "pinned TLS certificate")
 	flags.StringVar(&config.Discovery.ExpectedDeviceID, "expected-device-id", "", "expected Syncthing device ID")
 	flags.BoolVar(&config.Discovery.InsecureTLS, "insecure-tls", false, "allow unverified TLS for this target")
-	flags.StringVar(&config.HostID, "host-id", "standalone", "host adapter identity")
+	flags.BoolVar(&config.DesktopAuthorized, "desktop-authorized", false,
+		"authorize the desktop bridge")
 	flags.StringVar(&lifecycleKind, "lifecycle-kind", "", "authorized lifecycle kind")
 	flags.BoolVar(&config.Lifecycle.Authorized, "lifecycle-authorized", false, "authorize the exact lifecycle binding")
 	flags.StringVar(&config.Lifecycle.Unit, "lifecycle-unit", "", "exact systemd user unit")
@@ -100,37 +104,29 @@ func parseOptions(flags *flag.FlagSet, args []string) (session.Config, bool, err
 	flags.StringVar(&config.DesiredServiceState, "desired-service-state", "enabled", "persistent lifecycle intent")
 	flags.BoolVar(&outputJSON, "json", false, "write JSON output")
 	if err := flags.Parse(args); err != nil {
-		return session.Config{}, false, errors.New("invalid command arguments")
+		return options{}, false, errors.New("invalid command arguments")
 	}
 	if flags.NArg() != 0 {
-		return session.Config{}, false, errors.New("unexpected command arguments")
+		return options{}, false, errors.New("unexpected command arguments")
 	}
 	if lifecycleKind != "" && lifecycleKind != "systemd-user" {
-		return session.Config{}, false, errors.New("unsupported lifecycle kind")
+		return options{}, false, errors.New("unsupported lifecycle kind")
 	}
 	if config.Lifecycle.Authorized && (lifecycleKind != "systemd-user" || config.Lifecycle.Unit == "") {
-		return session.Config{}, false, errors.New("authorized lifecycle binding is incomplete")
+		return options{}, false, errors.New("authorized lifecycle binding is incomplete")
 	}
 	if !config.Lifecycle.Authorized &&
 		(lifecycleKind != "" || config.Lifecycle.Unit != "" || config.Lifecycle.ConfigPath != "") {
-		return session.Config{}, false, errors.New("lifecycle binding requires explicit authority")
+		return options{}, false, errors.New("lifecycle binding requires explicit authority")
 	}
 	if probeSeconds < 1 || probeSeconds > 3600 {
-		return session.Config{}, false, errors.New("probe interval must be between 1 and 3600 seconds")
+		return options{}, false, errors.New("probe interval must be between 1 and 3600 seconds")
 	}
 	if config.DesiredServiceState != "enabled" && config.DesiredServiceState != "disabled" {
-		return session.Config{}, false, errors.New("desired service state must be enabled or disabled")
-	}
-	if config.HostID == "" || len(config.HostID) > 64 ||
-		strings.IndexFunc(config.HostID, func(character rune) bool {
-			return !(character >= 'a' && character <= 'z' ||
-				character >= '0' && character <= '9' ||
-				character == '.' || character == '_' || character == '-')
-		}) >= 0 {
-		return session.Config{}, false, errors.New("host identity is invalid")
+		return options{}, false, errors.New("desired service state must be enabled or disabled")
 	}
 	if strings.ContainsAny(config.Lifecycle.Unit, "\r\n\x00") {
-		return session.Config{}, false, errors.New("lifecycle unit is invalid")
+		return options{}, false, errors.New("lifecycle unit is invalid")
 	}
 	config.ProbeInterval = time.Duration(probeSeconds) * time.Second
 	return config, outputJSON, nil

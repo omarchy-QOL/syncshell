@@ -249,10 +249,5 @@ func clonePublished(source PublishedSnapshot) PublishedSnapshot {
 		current := *source.State.Activity.Current
 		copy.State.Activity.Current = &current
 	}
-	if source.State.Mutation.Error != nil {
-		errorCopy := *source.State.Mutation.Error
-		copy.State.Mutation.Error = &errorCopy
-	}
-	copy.State.Capabilities = append([]string(nil), source.State.Capabilities...)
 	return copy
 }

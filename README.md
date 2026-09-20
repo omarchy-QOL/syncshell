@@ -10,8 +10,8 @@
 </p>
 
 Syncshell shows [Syncthing](https://github.com/syncthing/syncthing) activity in
-Linux bars, manages local folders and opens a redesigned Web UI. Version 0.1.8
-uses one bundled Go core per live adapter.
+Linux bars, manages remote devices and local folders, and opens a redesigned
+Web UI. Version 0.1.8 uses one bundled Go core per live adapter.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -20,8 +20,10 @@ uses one bundled Go core per live adapter.
 - select the switch/toggle in the top right to start or stop the user service
 - select a folder card to open its directory
 - select **+** to configure an existing local directory
+- expand **More**, then use **Remote Devices** to add a device or manage its
+  shared folders
 - select **RESCAN** on a folder or **Rescan all folders** for linked folders
-- select **Web UI** for device setup and advanced folder options
+- select **Web UI** for advanced Syncthing options
 - select the gear or press `s` for appearance settings and clean removal
 
 ## Install

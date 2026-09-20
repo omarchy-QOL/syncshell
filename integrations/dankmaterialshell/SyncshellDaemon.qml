@@ -8,7 +8,6 @@ PluginComponent {
   property var popoutService: null
   property AdapterService service: AdapterService {
     pluginRoot: root.localPath(Qt.resolvedUrl("."))
-    hostId: "dankmaterialshell"
     refreshIntervalSeconds: Math.max(60,
       Number(root.pluginData.refreshIntervalSec || 60))
   }
