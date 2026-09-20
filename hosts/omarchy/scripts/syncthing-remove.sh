@@ -51,6 +51,9 @@ validate_installation() {
 
 validate_theme_paths() {
   local gui_assets=$1 theme_path
+  theme_paths=()
+  # Keep themes when Syncthing cannot provide their verified parent directory.
+  [[ -n $gui_assets ]] || return 0
   [[ $gui_assets == /* ]] || fail "the GUI assets path must be absolute"
   gui_assets=$(realpath -m -- "$gui_assets")
   theme_paths=("$gui_assets/syncthing-omarchy" "$gui_assets/syncshell-modern")

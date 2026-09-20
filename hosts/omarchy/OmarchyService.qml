@@ -539,6 +539,10 @@ QtObject {
   function cancelSettingsMigration() { settings.cancelMigration() }
   function clearSettingsNotice() { settings.clearNotice() }
   function requestSelfRemoval(deletePluginSettings) {
+    if (packageController.packageActionRunning || packageController.operationRunning) {
+      settings.error = "Wait for Syncthing installation to finish before removing Syncshell"
+      return
+    }
     settings.requestSelfRemoval(deletePluginSettings)
   }
 
