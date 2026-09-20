@@ -88,6 +88,9 @@ QtObject {
       ? "syncthing-omarchy" : "default"
   readonly property bool serviceStateActionRunning:
     settingsProcess.running && _settingsAction === "service-state"
+  readonly property color warning: themePalette.warning
+  readonly property color success: themePalette.success
+  readonly property color syncActivity: themePalette.syncActivity
 
   function localPath(url) {
     var value = String(url || "")
@@ -280,6 +283,11 @@ QtObject {
     reconcileTimer.restart()
   }
 
+  function scheduleThemeRefresh() {
+    themePalette.scheduleRefresh()
+    if (webUiTheme === "omarchy") scheduleReconcile()
+  }
+
   function reconcile() {
     if (!_settingsLoaded || !_settingsValid || !runtimeReady || !selectTheme) return
     if (_reconciling || themeProcess.running) {
@@ -355,6 +363,10 @@ QtObject {
   onLegacyThemedIconChanged: {
     if (!settingsExists) iconStyle = SettingsModel.defaults(legacyThemedIcon).iconStyle
   }
+
+  Component.onCompleted: themePalette.refreshNow()
+
+  property ThemePaletteController themePalette: ThemePaletteController {}
 
   property FileView settingsFile: FileView {
     id: settingsFile
@@ -454,11 +466,10 @@ QtObject {
 
   property Connections themeConnections: Connections {
     target: Color
-    enabled: root.webUiTheme === "omarchy"
-    function onBackgroundChanged() { root.scheduleReconcile() }
-    function onForegroundChanged() { root.scheduleReconcile() }
-    function onAccentChanged() { root.scheduleReconcile() }
-    function onMutedChanged() { root.scheduleReconcile() }
-    function onUrgentChanged() { root.scheduleReconcile() }
+    function onBackgroundChanged() { root.scheduleThemeRefresh() }
+    function onForegroundChanged() { root.scheduleThemeRefresh() }
+    function onAccentChanged() { root.scheduleThemeRefresh() }
+    function onMutedChanged() { root.scheduleThemeRefresh() }
+    function onUrgentChanged() { root.scheduleThemeRefresh() }
   }
 }

@@ -252,8 +252,9 @@ KeyboardPanel {
                     foreground: root.controller.foreground
                     dim: root.controller.dim
                     urgent: root.controller.urgent
+                    warning: root.controller.warning
                     success: root.controller.success
-                    syncColor: root.controller.syncthingBlue
+                    syncColor: root.controller.syncActivityColor
                     fontFamily: root.controller.fontFamily
                 }
             }

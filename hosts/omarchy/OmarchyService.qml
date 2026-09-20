@@ -123,6 +123,9 @@ QtObject {
   readonly property bool settingsMigrationOpen: settings.migrationOpen
   readonly property bool settingsCanAutoPort: settings.canAutoPort
   readonly property string settingsMigrationMessage: settings.migrationMessage
+  readonly property color warning: settings.warning
+  readonly property color success: settings.success
+  readonly property color syncActivityColor: settings.syncActivity
 
   property int refreshIntervalSec: 60
   property int _activityDotIndex: 0
