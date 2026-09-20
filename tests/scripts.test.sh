@@ -293,19 +293,27 @@ install_fake_plugin() {
 test_removal_mode() {
   local mode=$1
   local install_kind=$2
-  local sandbox="$test_root/removal-$mode-$install_kind"
+  local theme_cleanup=${3:-yes}
+  local sandbox="$test_root/removal-$mode-$install_kind-$theme_cleanup"
   local source="$sandbox/source"
   local installed="$sandbox/config/omarchy/plugins/io.github.ilyazar.syncthing"
   local plugin_config="$sandbox/config/omarchy/ilyazar.syncthing"
+  local plugin_state="$sandbox/state/omarchy/ilyazar.syncthing"
+  local syncthing_state="$sandbox/state/syncthing"
   local gui_assets="$sandbox/gui"
+  local gui_argument=$gui_assets
+  [[ $theme_cleanup == yes ]] || gui_argument=""
   local fake_bin="$sandbox/bin"
 
   [[ $install_kind == link ]] || source=$installed
   install_fake_plugin "$source" "$installed" "$install_kind"
-  mkdir -p -- "$plugin_config" \
+  mkdir -p -- "$plugin_config" "$plugin_state" "$syncthing_state" \
     "$gui_assets/syncthing-omarchy/assets/css" \
     "$gui_assets/syncshell-modern" "$gui_assets/owner-theme" "$fake_bin"
   printf '%s\n' 'icon_style = "themed"' >"$plugin_config/settings.toml"
+  printf '%s\n' 'plugin state' >"$plugin_state/state"
+  printf '%s\n' 'retained config' >"$syncthing_state/config.xml"
+  printf '%s\n' 'retained database' >"$syncthing_state/database"
   printf '%s\n' 'generated' \
     >"$gui_assets/syncthing-omarchy/assets/css/theme.css"
   printf '%s\n' 'modern' >"$gui_assets/syncshell-modern/index.html"
@@ -332,7 +340,7 @@ test_removal_mode() {
     FAKE_PLUGIN_TARGET="$installed" \
     PATH="$fake_bin:$PATH" \
     bash "$root/hosts/omarchy/scripts/syncthing-remove.sh" _worker \
-      "$source" "$gui_assets" "$mode"
+      "$source" "$gui_argument" "$mode"
 
   if [[ $install_kind == link ]]; then
     [[ -d $source ]] \
@@ -343,24 +351,52 @@ test_removal_mode() {
   fi
   [[ ! -e $installed && ! -L $installed ]] \
     || fail "$mode removal left the installed link"
-  [[ ! -e $gui_assets/syncthing-omarchy ]] \
-    || fail "$mode removal left generated theme assets"
-  [[ ! -e $gui_assets/syncshell-modern ]] \
-    || fail "$mode removal left the modern profile"
+  if [[ $theme_cleanup == yes ]]; then
+    [[ ! -e $gui_assets/syncthing-omarchy ]] \
+      || fail "$mode removal left generated theme assets"
+    [[ ! -e $gui_assets/syncshell-modern ]] \
+      || fail "$mode removal left the modern profile"
+  else
+    [[ $(<"$gui_assets/syncthing-omarchy/assets/css/theme.css") == generated ]] \
+      || fail "$mode removal changed retained theme assets"
+    [[ $(<"$gui_assets/syncshell-modern/index.html") == modern ]] \
+      || fail "$mode removal changed the retained modern profile"
+  fi
   [[ $(<"$gui_assets/owner-theme/index.html") == owner ]] \
     || fail "$mode removal changed an unrelated theme"
+  [[ $(<"$syncthing_state/config.xml") == 'retained config'
+    && $(<"$syncthing_state/database") == 'retained database' ]] \
+    || fail "$mode removal changed retained Syncthing data"
   if [[ $mode == preserve ]]; then
-    [[ -f $plugin_config/settings.toml ]] \
+    [[ -f $plugin_config/settings.toml && -f $plugin_state/state ]] \
       || fail "preserve removal deleted plugin settings"
   else
-    [[ ! -e $plugin_config ]] \
+    [[ ! -e $plugin_config && ! -e $plugin_state ]] \
       || fail "purge removal left plugin settings"
   fi
 }
 
+test_removal() {
+  local mode kind cleanup
+  for mode in preserve purge; do
+    for kind in link directory; do
+      for cleanup in yes no; do
+        test_removal_mode "$mode" "$kind" "$cleanup"
+      done
+    done
+  done
+}
+
+if [[ ${1:-} == --removal-only ]]; then
+  test_removal
+  printf 'removal script tests passed\n'
+  exit 0
+fi
+
 if [[ ${1:-} == --installation-only ]]; then
   test_installation_status
-  printf 'installation script tests passed\n'
+  test_removal
+  printf 'installation and removal script tests passed\n'
   exit 0
 fi
 
@@ -374,8 +410,5 @@ test_settings
 test_installation_status
 test_modern_bundle
 test_themes
-test_removal_mode preserve link
-test_removal_mode purge link
-test_removal_mode preserve directory
-test_removal_mode purge directory
+test_removal
 printf 'all script tests passed\n'
