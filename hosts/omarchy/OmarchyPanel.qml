@@ -116,11 +116,14 @@ Panel {
       || syncthing.packageError
       || syncthing.settingsError
       || syncthing.controlError
-      || (quiet ? "" : syncthing.lastError) || ""
+      || ((quiet || syncthing.installationState === "missing")
+        ? "" : syncthing.lastError) || ""
   }
   readonly property string visibleNotice: syncthing
     ? syncthing.folderMutationNotice || syncthing.settingsNotice : ""
   readonly property string visibleWarning: {
+    if (syncthing && syncthing.installationState === "missing")
+      return "Syncthing is not installed. Open More to install it."
     if (managedStop) return syncthing.summaryText
     return syncthing
       ? syncthing.recoveryWarning || syncthing.serviceStateWarning : ""
