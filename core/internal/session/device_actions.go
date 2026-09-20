@@ -16,51 +16,51 @@ type folderDevicePatch struct {
 	devices  []syncthing.FolderDevice
 }
 
-func (s *Session) setDeviceFolders(ctx context.Context, arguments ActionArguments) ActionResult {
+func (s *Session) removeDeviceFolderShares(
+	ctx context.Context,
+	arguments ActionArguments,
+) ActionResult {
 	if result := s.requireOnline(); result != nil {
 		return *result
 	}
 	deviceID := strings.TrimSpace(arguments.DeviceID)
 	current := s.Current().State
 	configured := false
-	sharedFolderIDs := make(map[string]struct{})
 	for _, device := range current.Devices {
-		if device.ID == deviceID && device.ID != current.Identity.DeviceID && !device.Untrusted {
+		if device.ID == deviceID && device.ID != current.Identity.DeviceID {
 			configured = true
 			break
 		}
 	}
 	if !configured {
-		return rejected("device_invalid", "remote device is unavailable or untrusted")
+		return rejected("device_invalid", "remote device is unavailable")
 	}
+	requested := make(map[string]struct{}, len(arguments.FolderIDs))
+	for _, rawID := range arguments.FolderIDs {
+		folderID := strings.TrimSpace(rawID)
+		if folderID == "" {
+			return rejected("folder_share_missing", "folder share is unavailable")
+		}
+		requested[folderID] = struct{}{}
+	}
+	patches := make([]folderDevicePatch, 0, len(requested))
 	for _, folder := range current.Folders {
+		if _, remove := requested[folder.ID]; !remove {
+			continue
+		}
+		shared := false
 		for _, member := range folder.Devices {
 			if member.ID == deviceID {
-				sharedFolderIDs[folder.ID] = struct{}{}
+				shared = true
 				break
 			}
 		}
-	}
-	wanted := make(map[string]struct{}, len(arguments.FolderIDs))
-	for _, rawID := range arguments.FolderIDs {
-		folderID := strings.TrimSpace(rawID)
-		if _, shared := sharedFolderIDs[folderID]; !shared {
-			return rejected("folder_add_unsupported",
-				"device folder view can only remove existing shares")
+		if !shared {
+			return rejected("folder_share_missing", "folder is not shared with this device")
 		}
-		wanted[folderID] = struct{}{}
-	}
-	patches := make([]folderDevicePatch, 0, len(sharedFolderIDs)-len(wanted))
-	for _, folder := range current.Folders {
-		if _, shared := sharedFolderIDs[folder.ID]; !shared {
-			continue
-		}
-		if _, keep := wanted[folder.ID]; keep {
-			continue
-		}
-		config, err := s.client.Folder(ctx, folder.ID)
-		if err != nil {
-			return ActionResult{Error: publicError(err)}
+		_, config, result := s.verifiedFolder(ctx, folder.ID)
+		if result.Error != nil {
+			return result
 		}
 		next := make([]syncthing.FolderDevice, 0, len(config.Devices))
 		for _, member := range config.Devices {
@@ -71,22 +71,19 @@ func (s *Session) setDeviceFolders(ctx context.Context, arguments ActionArgument
 		if len(next) != len(config.Devices) {
 			patches = append(patches, folderDevicePatch{folderID: folder.ID, devices: next})
 		}
+		delete(requested, folder.ID)
 	}
-	for _, patch := range patches {
-		if err := s.client.SetFolderDevices(ctx, patch.folderID, patch.devices); err != nil {
-			return s.afterAmbiguousMutation(ctx, err)
-		}
+	if len(requested) > 0 {
+		return rejected("folder_share_missing", "folder share is unavailable")
 	}
-	return s.refreshAfterMutation(ctx)
+	return s.applyFolderDevicePatches(ctx, patches)
 }
 
 func (s *Session) setFolderSharing(ctx context.Context, arguments ActionArguments) ActionResult {
-	if result := s.requireOnline(); result != nil {
-		return *result
-	}
 	folderID := strings.TrimSpace(arguments.FolderID)
-	if findFolder(s.Current().State.Folders, folderID) == nil {
-		return rejected("folder_missing", "folder is no longer configured")
+	_, config, result := s.verifiedFolder(ctx, folderID)
+	if result.Error != nil {
+		return result
 	}
 	devices, err := s.client.Devices(ctx)
 	if err != nil {
@@ -97,33 +94,68 @@ func (s *Session) setFolderSharing(ctx context.Context, arguments ActionArgument
 	if validation != nil {
 		return *validation
 	}
-	config, err := s.client.Folder(ctx, folderID)
-	if err != nil {
-		return ActionResult{Error: publicError(err)}
-	}
-	wanted := make(map[string]struct{}, len(selected)+1)
-	wanted[localID] = struct{}{}
-	for _, id := range selected {
-		wanted[id] = struct{}{}
-	}
-	next := make([]syncthing.FolderDevice, 0, len(wanted))
-	seen := make(map[string]struct{}, len(wanted))
-	for _, device := range config.Devices {
-		id := device.DeviceID
-		if _, keep := wanted[id]; keep {
-			next = append(next, device)
-			seen[id] = struct{}{}
+	next := selectFolderDevices(config.Devices,
+		append([]string{localID}, selected...))
+	return s.applyFolderDevicePatches(ctx, []folderDevicePatch{{
+		folderID: folderID,
+		devices:  next,
+	}})
+}
+
+func (s *Session) applyFolderDevicePatches(
+	ctx context.Context,
+	patches []folderDevicePatch,
+) ActionResult {
+	wrote := false
+	for _, patch := range patches {
+		if err := s.client.SetFolderDevices(ctx, patch.folderID, patch.devices); err != nil {
+			if wrote && !ambiguousMutation(err) {
+				_, _ = s.Refresh(ctx)
+				return ActionResult{Error: publicError(err)}
+			}
+			return s.afterAmbiguousMutation(ctx, err)
 		}
-	}
-	for _, id := range append([]string{localID}, selected...) {
-		if _, exists := seen[id]; !exists {
-			next = append(next, syncthing.NewFolderDevice(id))
-		}
-	}
-	if err := s.client.SetFolderDevices(ctx, folderID, next); err != nil {
-		return s.afterAmbiguousMutation(ctx, err)
+		wrote = true
 	}
 	return s.refreshAfterMutation(ctx)
+}
+
+func selectFolderDevices(
+	existing []syncthing.FolderDevice,
+	wantedIDs []string,
+) []syncthing.FolderDevice {
+	wanted := make(map[string]struct{}, len(wantedIDs))
+	ordered := make([]string, 0, len(wantedIDs))
+	for _, rawID := range wantedIDs {
+		deviceID := strings.TrimSpace(rawID)
+		if deviceID == "" {
+			continue
+		}
+		if _, exists := wanted[deviceID]; exists {
+			continue
+		}
+		wanted[deviceID] = struct{}{}
+		ordered = append(ordered, deviceID)
+	}
+	result := make([]syncthing.FolderDevice, 0, len(wanted))
+	seen := make(map[string]struct{}, len(wanted))
+	for _, device := range existing {
+		if _, keep := wanted[device.DeviceID]; !keep {
+			continue
+		}
+		if _, duplicate := seen[device.DeviceID]; duplicate {
+			continue
+		}
+		result = append(result, device)
+		seen[device.DeviceID] = struct{}{}
+	}
+	for _, deviceID := range ordered {
+		if _, exists := seen[deviceID]; exists {
+			continue
+		}
+		result = append(result, syncthing.NewFolderDevice(deviceID))
+	}
+	return result
 }
 
 func (s *Session) addDevice(ctx context.Context, arguments ActionArguments) ActionResult {

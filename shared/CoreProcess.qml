@@ -32,7 +32,7 @@ QtObject {
   property string _architectureOutput: ""
   property string _executableOutput: ""
 
-  signal resultReceived(string id, bool ok, int revision, var data, var error)
+  signal resultReceived(string id, bool ok, var data, var error)
   signal protocolFailed(string message)
 
   function start() {
@@ -80,7 +80,7 @@ QtObject {
   function send(type, values, callback) {
     if (!coreProcess.running || !protocolReady && type !== "shutdown") return ""
     var id = String(++_nextId)
-    var message = { v: 1, type: type, id: id }
+    var message = { v: 2, type: type, id: id }
     var keys = Object.keys(values || ({}))
     for (var index = 0; index < keys.length; index++) {
       message[keys[index]] = values[keys[index]]
@@ -110,7 +110,7 @@ QtObject {
       failProtocol("core output is not valid JSON")
       return
     }
-    if (!message || message.v !== 1 || typeof message.type !== "string") {
+    if (!message || message.v !== 2 || typeof message.type !== "string") {
       failProtocol("core protocol major is incompatible")
       return
     }
@@ -140,7 +140,7 @@ QtObject {
 
   function acceptHello(message) {
     if (message.type !== "hello" || !message.build
-        || message.build.protocol !== 1) {
+        || typeof message.build.version !== "string") {
       failProtocol("core did not provide a compatible hello")
       return
     }
@@ -171,10 +171,10 @@ QtObject {
     var next = Object.assign({}, _pending)
     delete next[id]
     _pending = next
-    if (callback) callback(message.ok === true, message.revision || 0,
-      message.data || null, message.error || null)
-    resultReceived(id, message.ok === true, message.revision || 0,
-      message.data || null, message.error || null)
+    if (callback) callback(message.ok === true, message.data || null,
+      message.error || null)
+    resultReceived(id, message.ok === true, message.data || null,
+      message.error || null)
   }
 
   function utf8Length(value) {
@@ -197,8 +197,8 @@ QtObject {
     for (var index = 0; index < ids.length; index++) {
       var id = ids[index]
       var callback = pending[id]
-      if (callback) callback(false, revision, null, failure)
-      resultReceived(id, false, revision, null, failure)
+      if (callback) callback(false, null, failure)
+      resultReceived(id, false, null, failure)
     }
   }
 

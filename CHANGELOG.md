@@ -1,6 +1,6 @@
 # Changelog
 
-Notable changes to Syncthing for Omarchy are documented here.
+Notable changes to Syncshell are documented here.
 
 ## 0.1.8 - 2026-09-13
 
@@ -53,6 +53,18 @@ Notable changes to Syncthing for Omarchy are documented here.
 - wait until targeted folders leave scanning before reporting rescan
   completion, so notices and the all-folders control follow the last folder
   rather than the HTTP accept
+- distinguish completed scans from confirmed long-running scans in action
+  results and use one shared tracker across every shell adapter
+- rescan active folders individually when any configured folder is paused,
+  avoiding Syncthing's global-request failure on paused configurations
+- remove unused host, capability, mutation, build-toolchain, and result-revision
+  fields from the adapter protocol while preserving snapshot-before-result
+  ordering
+- publish the cleaned adapter contract as protocol v2 and replace generic host
+  identity with explicit Omarchy desktop authority
+- reject all-folder rescans when bounded snapshots cannot observe every target
+- invoke each lifecycle command once and use later refreshes only to observe
+  the requested state
 - show the bar sync overlay as soon as a plugin rescan is busy, not only
   after snapshot scanning arrives
 - distinguish plain `SCANNING` from concurrent `SCAN+SYNC` during an accepted

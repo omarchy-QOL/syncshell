@@ -100,7 +100,6 @@ QtObject {
   property string folderMutationAction: ""
   property string folderMutationError: ""
   property string folderMutationNotice: ""
-  property bool pendingRescanResultReady: false
   property string recentlyLinkedFolderId: ""
   property bool folderPreparationBusy: false
   property string folderPreparationError: ""
@@ -202,7 +201,7 @@ QtObject {
     if (!core.protocolReady || refreshing) return false
     refreshing = true
     if (recheckErrors === true) folderMutationError = ""
-    var callback = function(ok, revision, data, error) {
+    var callback = function(ok, data, error) {
       root.refreshing = false
       if (!ok && recheckErrors === true) {
         root.folderMutationError = root.actionError(error,
@@ -247,31 +246,27 @@ QtObject {
     return action === "rescan" || action === "rescan-all"
   }
 
-  function rescanTargetsScanning() {
-    if (folderMutationAction === "rescan") {
-      var status = folderStatuses[String(folderMutationId || "")] || ({})
-      return String(status.state || "").indexOf("scan") === 0
-    }
-    if (folderMutationAction !== "rescan-all") return false
+  function scanningFolderIds() {
+    var result = []
     for (var i = 0; i < folders.length; i++) {
-      if (folders[i].paused) continue
       var state = folderStatuses[String(folders[i].id || "")] || ({})
-      if (String(state.state || "").indexOf("scan") === 0) return true
+      if (String(state.state || "").indexOf("scan") === 0)
+        result.push(String(folders[i].id || ""))
     }
-    return false
+    result.sort()
+    return result
   }
 
   function clearFolderAction() {
     folderMutationBusy = false
     folderMutationAction = ""
     folderMutationId = ""
-    pendingRescanResultReady = false
+    rescanTracker.reset()
   }
 
-  function settlePendingRescan() {
-    if (!folderMutationBusy || !pendingRescanResultReady) return
+  function completeRescan() {
+    if (!folderMutationBusy) return
     if (!isRescanAction(folderMutationAction)) return
-    if (rescanTargetsScanning()) return
     var notice = folderMutationAction === "rescan-all"
       ? "Rescan complete for all folders"
       : "Rescan complete for " + folderLabel(folderMutationId)
@@ -282,11 +277,6 @@ QtObject {
   }
 
   function finishFolderAction(contractAction, folderId, notice) {
-    if (isRescanAction(contractAction)) {
-      pendingRescanResultReady = true
-      settlePendingRescan()
-      return
-    }
     clearFolderAction()
     if (contractAction === "link") {
       recentlyLinkedFolderId = String(folderId || "")
@@ -319,11 +309,20 @@ QtObject {
     folderMutationError = ""
     noticeTimer.stop()
     folderMutationNotice = ""
-    pendingRescanResultReady = false
-    var id = core.action(action, args || ({}), function(ok, revision, data, error) {
+    rescanTracker.reset()
+    var id = core.action(action, args || ({}), function(ok, data, error) {
       if (!ok) {
         root.failFolderAction(error,
           "Could not complete the folder operation")
+        return
+      }
+      if (root.isRescanAction(contractAction)) {
+        if (!rescanTracker.acceptResult(data, root.scanningFolderIds())) {
+          root.failFolderAction({
+            code: "invalid_result",
+            message: "Native core returned an invalid rescan result"
+          }, "Could not complete the folder operation")
+        }
         return
       }
       root.finishFolderAction(contractAction, folderId, notice)
@@ -452,12 +451,13 @@ QtObject {
         + label + ".")
   }
 
-  function setDeviceFolders(deviceId, folderIds, name) {
+  function removeDeviceFolderShares(deviceId, folderIds, name) {
     var label = String(name || "").trim()
       || "Device " + String(deviceId || "").slice(0, 7)
-    return runFolderAction("device.set-folders", "device-folders",
+    return runFolderAction("device.remove-folder-shares",
+      "device-remove-shares",
       deviceId, { deviceId: deviceId, folderIds: folderIds || [] },
-      "Existing folder shares updated for " + label + ".")
+      "Selected folder shares removed from " + label + ".")
   }
 
   function requestFolderIdSuggestion() {
@@ -466,7 +466,7 @@ QtObject {
     folderPreparationError = ""
     folderIdSuggestion = ""
     var id = core.action("folder.suggest-id", {},
-      function(ok, revision, data, error) {
+      function(ok, data, error) {
         root.folderPreparationBusy = false
         if (ok) root.folderIdSuggestion = String(data && data.folderId || "")
         else root.folderPreparationError = root.actionError(error,
@@ -494,7 +494,7 @@ QtObject {
     serviceActionRunning = true
     controlError = ""
     var id = core.action("lifecycle." + action, {},
-      function(ok, revision, data, error) {
+      function(ok, data, error) {
         root.serviceActionRunning = false
         if (!ok) root.controlError = root.actionError(error,
           "Could not update the Syncthing service")
@@ -520,7 +520,7 @@ QtObject {
 
   function selectTheme(theme, onSuccess, onError) {
     var id = core.action("webui.set-theme", { theme: theme },
-      function(ok, revision, data, error) {
+      function(ok, data, error) {
         if (ok) onSuccess()
         else onError(error)
       })
@@ -540,18 +540,23 @@ QtObject {
 
   onLocalDeviceIdChanged: rememberLocalIdentity()
   onDevicesChanged: rememberLocalIdentity()
-  onFolderStatusesChanged: settlePendingRescan()
+  onFolderStatusesChanged: rescanTracker.reconcile(scanningFolderIds())
   onOnlineChanged: {
-    if (!online && folderMutationBusy && pendingRescanResultReady) {
+    if (!online && folderMutationBusy
+        && rescanTracker.runningFolderIds.length > 0) {
       failFolderAction(null,
         "Could not confirm rescan completion because Syncthing became unavailable")
     }
   }
 
+  property RescanTracker rescanTracker: RescanTracker {
+    onCompleted: root.completeRescan()
+  }
+
   property CoreProcess core: CoreProcess {
     pluginRoot: root.pluginRoot
     startupArguments: [
-      "--host-id", "omarchy",
+      "--desktop-authorized",
       "--probe-interval-seconds", String(root.probeIntervalSeconds),
       "--desired-service-state", root.configuredServiceState,
       "--lifecycle-kind", "systemd-user",

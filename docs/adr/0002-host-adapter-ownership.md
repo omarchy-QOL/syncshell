@@ -8,6 +8,12 @@ manifest and bar placement. Plugin updates take effect after the user's
 ordinary shell restart. The current panel and service evolve together without
 supporting mixed versions during the interval before restart.
 
-A shared view model or generic platform abstraction is rejected for 0.1.8
-because only Omarchy is supported and forwarding layers would create a second
-owner without adding behavior.
+`shared/CoreProcess.qml` owns the child-process contract.
+`shared/AdapterService.qml` and `shared/DeviceWorkflow.qml` provide common
+state and actions for DMS, Illogical Impulse, Caelestia, and Waybar. Their
+views remain host-native. Omarchy keeps its richer facade and settings because
+those behaviors are specific to its plugin contract.
+
+Shared code stops at process, state, action, and compact workflow behavior.
+Layout and shell controls remain in each adapter instead of being forced
+through a generic visual abstraction.

@@ -16,7 +16,7 @@ import (
 
 const (
 	// Version is the only supported protocol major.
-	Version = 1
+	Version = 2
 	// MaxLineBytes bounds every input and output frame including its newline.
 	MaxLineBytes          = 8 << 20
 	maxRequestID          = 128
@@ -25,17 +25,14 @@ const (
 
 // Build describes the child implementation without source paths.
 type Build struct {
-	Version   string `json:"version"`
-	Protocol  int    `json:"protocol"`
-	GoVersion string `json:"goVersion"`
+	Version string `json:"version"`
 }
 
 // Hello is the mandatory first output frame.
 type Hello struct {
-	V            int      `json:"v"`
-	Type         string   `json:"type"`
-	Build        Build    `json:"build"`
-	Capabilities []string `json:"capabilities"`
+	V     int    `json:"v"`
+	Type  string `json:"type"`
+	Build Build  `json:"build"`
 }
 
 // Snapshot is a complete session state frame.
@@ -48,13 +45,12 @@ type Snapshot struct {
 
 // Result is exactly one response to an accepted request.
 type Result struct {
-	V        int            `json:"v"`
-	Type     string         `json:"type"`
-	ID       string         `json:"id"`
-	OK       bool           `json:"ok"`
-	Revision uint64         `json:"revision,omitempty"`
-	Data     any            `json:"data,omitempty"`
-	Error    *session.Error `json:"error,omitempty"`
+	V     int            `json:"v"`
+	Type  string         `json:"type"`
+	ID    string         `json:"id"`
+	OK    bool           `json:"ok"`
+	Data  any            `json:"data,omitempty"`
+	Error *session.Error `json:"error,omitempty"`
 }
 
 // Fatal is the final frame for an unrecoverable protocol error.
@@ -104,8 +100,7 @@ func (s Stream) Run(ctx context.Context) error {
 	if s.Session == nil || s.Input == nil || s.Output == nil {
 		return errors.New("protocol stream is incomplete")
 	}
-	if err := writeFrame(s.Output, Hello{V: Version, Type: "hello", Build: s.Build,
-		Capabilities: []string{"complete-snapshots", "configure", "folder.rescan", "refresh"}}); err != nil {
+	if err := writeFrame(s.Output, Hello{V: Version, Type: "hello", Build: s.Build}); err != nil {
 		return err
 	}
 	initial, _ := s.Session.Refresh(ctx)
@@ -181,8 +176,7 @@ func (s Stream) handleRequest(
 	case "action":
 		return false, s.handleAction(ctx, request, lastRevision)
 	case "shutdown":
-		if err := s.writeResult(request.ID,
-			session.ActionResult{OK: true, Revision: s.Session.Current().Revision}); err != nil {
+		if err := s.writeResult(request.ID, session.ActionResult{OK: true}); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -197,7 +191,7 @@ func validateRequest(line []byte, ids *requestIDs) (request, error) {
 		return request{}, errors.New("request is malformed")
 	}
 	if decoded.V != Version {
-		return request{}, errors.New("protocol major 1 required")
+		return request{}, errors.New("protocol major 2 required")
 	}
 	if decoded.ID == "" || len(decoded.ID) > maxRequestID ||
 		strings.ContainsAny(decoded.ID, "\r\n\x00") {
@@ -223,28 +217,19 @@ func (s Stream) handleConfigure(request request, lastRevision *uint64) error {
 			session.ActionResult{Error: &session.Error{Code: "invalid_config",
 				Message: "configuration request is invalid"}})
 	}
-	before := s.Session.Current().Revision
 	result := s.Session.Configure(config)
-	after := s.Session.Current()
-	if after.Revision != before && after.Revision > *lastRevision {
-		if err := writeSnapshot(s.Output, after); err != nil {
-			return err
-		}
-		*lastRevision = after.Revision
+	if err := s.writeCurrent(lastRevision); err != nil {
+		return err
 	}
 	return s.writeResult(request.ID, result)
 }
 
 func (s Stream) handleRefresh(ctx context.Context, id string, lastRevision *uint64) error {
-	before := s.Session.Current().Revision
 	published, refreshErr := s.Session.Refresh(ctx)
-	if published.Revision != before && published.Revision > *lastRevision {
-		if err := writeSnapshot(s.Output, published); err != nil {
-			return err
-		}
-		*lastRevision = published.Revision
+	if err := s.writeCurrent(lastRevision); err != nil {
+		return err
 	}
-	result := session.ActionResult{OK: refreshErr == nil, Revision: published.Revision}
+	result := session.ActionResult{OK: refreshErr == nil}
 	if refreshErr != nil {
 		result.Error = published.State.Connection.Error
 	}
@@ -262,26 +247,28 @@ func (s Stream) handleAction(
 			session.ActionResult{Error: &session.Error{Code: "invalid_action",
 				Message: "action arguments are invalid"}})
 	}
-	var writeErr error
-	result := s.Session.Act(ctx, request.Action, arguments, request.ID,
-		func(published session.PublishedSnapshot) {
-			if writeErr == nil && published.Revision > *lastRevision {
-				writeErr = writeSnapshot(s.Output, published)
-				if writeErr == nil {
-					*lastRevision = published.Revision
-				}
-			}
-		})
-	if writeErr != nil {
-		return writeErr
+	result := s.Session.Act(ctx, request.Action, arguments)
+	if err := s.writeCurrent(lastRevision); err != nil {
+		return err
 	}
 	return s.writeResult(request.ID, result)
 }
 
+func (s Stream) writeCurrent(lastRevision *uint64) error {
+	published := s.Session.Current()
+	if published.Revision <= *lastRevision {
+		return nil
+	}
+	if err := writeSnapshot(s.Output, published); err != nil {
+		return err
+	}
+	*lastRevision = published.Revision
+	return nil
+}
+
 func (s Stream) writeResult(id string, result session.ActionResult) error {
 	return writeFrame(s.Output, Result{V: Version, Type: "result", ID: id,
-		OK: result.OK, Revision: result.Revision, Data: result.Data,
-		Error: result.Error})
+		OK: result.OK, Data: result.Data, Error: result.Error})
 }
 
 func readLines(ctx context.Context, reader io.Reader, output chan<- input) {

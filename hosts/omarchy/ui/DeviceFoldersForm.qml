@@ -36,6 +36,15 @@ BorderSurface {
     draftFolderIds = device ? (device.folderIds || []).slice() : []
   }
 
+  function removedFolderIds() {
+    var removed = []
+    var original = device ? device.folderIds || [] : []
+    for (var i = 0; i < original.length; i++) {
+      if (draftFolderIds.indexOf(original[i]) < 0) removed.push(original[i])
+    }
+    return removed
+  }
+
   function closePopups() { folderPicker.close() }
 
   onDeviceChanged: reset()
@@ -109,8 +118,10 @@ BorderSurface {
       fontFamily: root.fontFamily
       enabled: root.device && root.syncthing && !root.submitting
         && !root.syncthing.folderMutationBusy
-      onClicked: root.submissionStarted(root.syncthing.setDeviceFolders(
-        root.device.id, root.draftFolderIds, root.device.name))
+        && root.removedFolderIds().length > 0
+      onClicked: root.submissionStarted(
+        root.syncthing.removeDeviceFolderShares(root.device.id,
+          root.removedFolderIds(), root.device.name))
     }
   }
 }

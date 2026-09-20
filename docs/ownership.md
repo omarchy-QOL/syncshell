@@ -1,7 +1,7 @@
 # Syncshell ownership
 
-This is the ownership map for the 0.1.8 architecture. Omarchy presentation
-and settings live in the host adapter around the native core.
+This is the ownership map for the current runtime. Omarchy presentation and
+settings live in the host adapter around the native core.
 
 | Path                          | Responsibility                             |
 | ----------------------------- | ------------------------------------------ |
@@ -12,7 +12,9 @@ and settings live in the host adapter around the native core.
 | `core/internal/desktop/`      | browser grants and bounded file actions    |
 | `core/internal/protocol/`     | bounded JSONL for session public types     |
 | `shared/CoreProcess.qml`      | child process and serialization boundary   |
-| `shared/AdapterService.qml`   | adapter actions and busy state             |
+| `shared/AdapterService.qml`   | normalized adapter state and actions       |
+| `shared/DeviceWorkflow.qml`   | shared compact device-form state           |
+| `shared/RescanTracker.qml`    | shared confirmed-running rescan tracking   |
 | `hosts/omarchy/`              | Omarchy facade, settings, UI, and platform |
 | `hosts/standalone/`           | maintained contract harness                |
 | `integrations/`               | shell UI, registration, and installation   |
@@ -41,9 +43,9 @@ Omarchy entry points. They are boundaries, not additional owners.
 
 ## Runtime and updates
 
-Retained Omarchy presentation and settings files live in `hosts/omarchy/`.
-Replaced REST, credential, event, state, folder, and lifecycle QML code was
-deleted from its original paths.
+Omarchy presentation and settings files live in `hosts/omarchy/`. Syncthing
+REST, credential, event, normalized state, mutation, and lifecycle behavior
+has one implementation in the Go core rather than parallel QML implementations.
 There is no mixed runtime, fallback, alias, or feature flag.
 
 Users restart the shell after updating to load the current panel, service,
@@ -57,12 +59,12 @@ frontend tests live in the standalone
 this repository imports a pinned compiled release. Omarchy owns preparing its
 runtime profiles and supplying colors to the release's template. See
 [webui.md](webui.md).
-An Omarchy-hosted core also
-provides an ephemeral loopback endpoint for explicit local file actions. It
-uses the selected client, validates local process/configuration identity and
-requires the exact GUI origin and private tab grant. The endpoint exposes no
-general command execution, file inventory or credential API. It closes with
-the core and does not add a daemon or system service.
+An Omarchy-hosted core also provides an ephemeral loopback endpoint for
+explicit local file actions. It uses the selected client, validates local
+process/configuration identity and requires the exact GUI origin and private
+tab grant. The endpoint exposes no general command execution, file inventory
+or credential API. It closes with the core and does not add a daemon or system
+service.
 
 The DMS, Illogical Impulse, and Caelestia adapters embed the shared service in
 their native shell lifecycle. The standalone Waybar bridge owns one shared

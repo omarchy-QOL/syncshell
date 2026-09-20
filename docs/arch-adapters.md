@@ -1,10 +1,12 @@
 # Arch shell adapters
 
-Syncshell 0.1.8 supports four native Arch Linux and Hyprland adapters. Their
-panels follow the Omarchy interaction hierarchy: status first, folder cards,
-advanced link and add controls under **More**, then Web UI, rescan, and refresh
-actions. Forget is available only for an unlinked folder and requires
-confirmation. The Omarchy adapter remains unchanged.
+Syncshell supports four additional native Arch Linux and Hyprland adapters.
+Their panels follow the Omarchy interaction hierarchy: status first, folder
+cards, advanced link and add controls under **More**, then Web UI, rescan, and
+refresh actions. Forget is available only for an unlinked folder and requires
+confirmation. Each adapter also exposes discovered and pending devices, folder
+sharing, and the same explicit device-share removal flow as Omarchy. Active
+forms replace the main content so compact popups do not grow without bound.
 
 Every live adapter owns exactly one bundled `syncshell-core` process. The Go
 core owns discovery, credentials, TLS, REST, event retries, normalized state,
@@ -14,17 +16,15 @@ and mutations. Shell code owns presentation, focus, placement, and launchers.
 
 | Adapter            | Supported source                                      |
 | ------------------ | ----------------------------------------------------- |
-| DMS                | installer release `v1.5.3`, DMS `1.6.1` observed     |
+| DMS                | `>=1.5.3`                                            |
 | Illogical Impulse  | commit `42d0aae17b744a38cd05c9044c189bfc9b13869a`    |
 | Caelestia shell    | commit `1d0e5a588c61f1d905eba5fe8446ec222d37f50c`    |
 | Caelestia CLI      | commit `7401d9e3a371e583bc0b42dc1a139d01e278e6c1`    |
 | Caelestia QShell   | commit `0fed22a2c47d9568ddf13cf61586b3f2ac4378a2`    |
-| Waybar             | `0.15.0` with Quickshell `0.3.1`                     |
+| Waybar             | `>=0.14.0` with Quickshell `>=0.3.1`                 |
 
-The acceptance environment uses the official Arch cloud image
-`20260901.583572`, Hyprland `0.56.2`, Qt `6.11.2`, and Syncthing `2.1.5`.
-These versions describe the tested release lane rather than broad compatibility
-promises.
+These constraints come from the integration manifests and pinned installer
+sources. They are narrower than general shell compatibility claims.
 
 ## DankMaterialShell
 
