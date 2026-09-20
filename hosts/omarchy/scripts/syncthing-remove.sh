@@ -81,7 +81,7 @@ worker() {
   local source_root=$1
   local gui_assets=$2
   local cleanup_mode=$3
-  local exit_code worker_dir theme_path
+  local exit_code message worker_dir theme_path
 
   init_paths
   worker_dir=$(dirname -- "$(realpath -m -- "$0")")
@@ -114,8 +114,11 @@ worker() {
     delete_tree "$config_root"
     delete_tree "$state_root"
   fi
-  notify_result "Syncthing plugin" \
-    "Plugin removed; Syncthing folders and data were left untouched"
+  message="Plugin settings deleted"
+  if [[ $cleanup_mode == preserve ]]; then
+    message="Plugin settings preserved: $config_root/settings.toml"
+  fi
+  notify_result "Syncshell removed" "$message"
 }
 
 start() {

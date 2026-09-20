@@ -302,6 +302,7 @@ test_removal_mode() {
   local syncthing_state="$sandbox/state/syncthing"
   local gui_assets="$sandbox/gui"
   local gui_argument=$gui_assets
+  local notification_log="$sandbox/notification"
   [[ $theme_cleanup == yes ]] || gui_argument=""
   local fake_bin="$sandbox/bin"
 
@@ -329,7 +330,8 @@ test_removal_mode() {
     '  find "$FAKE_PLUGIN_TARGET" -depth -delete' \
     'fi' \
     >"$fake_bin/omarchy"
-  printf '%s\n' '#!/bin/bash' 'exit 0' \
+  printf '%s\n' '#!/bin/bash' \
+    'printf "%s|%s\n" "$1" "$2" >"$FAKE_NOTIFICATION_LOG"' \
     >"$fake_bin/omarchy-notification-send"
   chmod 700 -- "$fake_bin/omarchy" "$fake_bin/omarchy-notification-send"
 
@@ -338,6 +340,7 @@ test_removal_mode() {
     XDG_STATE_HOME="$sandbox/state" \
     XDG_RUNTIME_DIR="$sandbox/runtime" \
     FAKE_PLUGIN_TARGET="$installed" \
+    FAKE_NOTIFICATION_LOG="$notification_log" \
     PATH="$fake_bin:$PATH" \
     bash "$root/hosts/omarchy/scripts/syncthing-remove.sh" _worker \
       "$source" "$gui_argument" "$mode"
@@ -370,9 +373,15 @@ test_removal_mode() {
   if [[ $mode == preserve ]]; then
     [[ -f $plugin_config/settings.toml && -f $plugin_state/state ]] \
       || fail "preserve removal deleted plugin settings"
+    [[ $(<"$notification_log") == \
+        "Syncshell removed|Plugin settings preserved: $plugin_config/settings.toml" ]] \
+      || fail "preserve removal reported the wrong notification"
   else
     [[ ! -e $plugin_config && ! -e $plugin_state ]] \
       || fail "purge removal left plugin settings"
+    [[ $(<"$notification_log") == \
+        'Syncshell removed|Plugin settings deleted' ]] \
+      || fail "purge removal reported the wrong notification"
   fi
 }
 
