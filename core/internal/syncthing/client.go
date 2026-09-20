@@ -266,7 +266,6 @@ func (c *Client) requestWith(
 	body []byte,
 	authenticated bool,
 	destination any,
-	acceptedStatuses ...int,
 ) error {
 	request, err := http.NewRequestWithContext(ctx, method, c.base+path, bytes.NewReader(body))
 	if err != nil {
@@ -291,19 +290,10 @@ func (c *Client) requestWith(
 	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
 		return failure(ErrorUnauthorized, "request", "Syncthing authorization failed", nil)
 	}
-	accepted := false
-	for _, status := range acceptedStatuses {
-		if response.StatusCode == status {
-			accepted = true
-			break
-		}
-	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		if accepted {
-			return nil
-		}
-		return failure(ErrorHTTP, "request",
-			fmt.Sprintf("Syncthing returned HTTP %d", response.StatusCode), nil)
+		return &Error{Code: ErrorHTTP, Op: "request",
+			Message: fmt.Sprintf("Syncthing returned HTTP %d", response.StatusCode),
+			status:  response.StatusCode}
 	}
 	contents, err := io.ReadAll(io.LimitReader(response.Body, maxResponseBytes+1))
 	if err != nil {

@@ -31,6 +31,7 @@ type Error struct {
 	Op      string
 	Message string
 	Err     error
+	status  int
 }
 
 func (e *Error) Error() string {
@@ -47,6 +48,11 @@ func (e *Error) Unwrap() error { return e.Err }
 
 func failure(code ErrorCode, op, message string, err error) error {
 	return &Error{Code: code, Op: op, Message: message, Err: err}
+}
+
+func hasHTTPStatus(err error, status int) bool {
+	var target *Error
+	return errors.As(err, &target) && target.Code == ErrorHTTP && target.status == status
 }
 
 func classifyNetwork(op string, err error) error {

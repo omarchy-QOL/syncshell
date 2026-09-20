@@ -449,7 +449,8 @@ func (a *eventAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 		writeSessionJSON(writer, `[]`)
 	case "/rest/system/connections":
 		writeSessionJSON(writer, `{"connections":{}}`)
-	case "/rest/cluster/pending/folders":
+	case "/rest/cluster/pending/folders", "/rest/cluster/pending/devices",
+		"/rest/system/discovery":
 		writeSessionJSON(writer, `{}`)
 	case "/rest/config/gui":
 		if dark {

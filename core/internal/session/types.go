@@ -4,16 +4,19 @@ package session
 import "github.com/omarchy-QOL/syncshell/core/internal/systemduser"
 
 const (
-	maxPublicString   = 4096
-	maxIdentifier     = 256
-	maxLabel          = 512
-	maxErrorText      = 1024
-	maxDevices        = 256
-	maxFolders        = 128
-	maxFolderDevices  = 64
-	maxFolderErrors   = 4
-	maxPendingFolders = 32
-	maxPendingOffers  = 16
+	maxPublicString    = 4096
+	maxIdentifier      = 256
+	maxLabel           = 512
+	maxErrorText       = 1024
+	maxDevices         = 256
+	maxFolders         = 128
+	maxFolderDevices   = 64
+	maxFolderErrors    = 4
+	maxPendingFolders  = 32
+	maxPendingOffers   = 16
+	maxPendingDevices  = 64
+	maxNearbyDevices   = 64
+	maxDeviceAddresses = 8
 )
 
 // Error is a sanitized public failure.
@@ -93,6 +96,19 @@ type PendingFolder struct {
 	OfferedBy map[string]FolderOffer `json:"offeredBy"`
 }
 
+// PendingDevice is one unknown remote device connection attempt.
+type PendingDevice struct {
+	ID      string `json:"id"`
+	Name    string `json:"name,omitempty"`
+	Address string `json:"address,omitempty"`
+}
+
+// NearbyDevice is one unconfigured device in Syncthing's discovery cache.
+type NearbyDevice struct {
+	ID        string   `json:"id"`
+	Addresses []string `json:"addresses"`
+}
+
 // Activity is one bounded current file operation.
 type Activity struct {
 	FolderID string `json:"folderId"`
@@ -146,6 +162,8 @@ type Truncation struct {
 	FolderErrors   int `json:"folderErrors,omitempty"`
 	PendingFolders int `json:"pendingFolders,omitempty"`
 	PendingOffers  int `json:"pendingOffers,omitempty"`
+	PendingDevices int `json:"pendingDevices,omitempty"`
+	NearbyDevices  int `json:"nearbyDevices,omitempty"`
 }
 
 // Snapshot is the complete immutable public state at one revision.
@@ -156,6 +174,8 @@ type Snapshot struct {
 	Devices        []Device                 `json:"devices"`
 	Folders        []Folder                 `json:"folders"`
 	PendingFolders map[string]PendingFolder `json:"pendingFolders"`
+	PendingDevices []PendingDevice          `json:"pendingDevices"`
+	NearbyDevices  []NearbyDevice           `json:"nearbyDevices"`
 	Activity       ActivityState            `json:"activity"`
 	WebUI          WebUI                    `json:"webUi"`
 	Installation   Installation             `json:"installation"`
@@ -193,6 +213,9 @@ type ActionArguments struct {
 	Path            string   `json:"path,omitempty"`
 	Label           string   `json:"label,omitempty"`
 	DeviceIDs       []string `json:"deviceIds,omitempty"`
+	FolderIDs       []string `json:"folderIds,omitempty"`
 	PendingDeviceID string   `json:"pendingDeviceId,omitempty"`
+	DeviceID        string   `json:"deviceId,omitempty"`
+	DeviceName      string   `json:"deviceName,omitempty"`
 	Theme           string   `json:"theme,omitempty"`
 }

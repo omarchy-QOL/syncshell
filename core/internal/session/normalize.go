@@ -99,6 +99,59 @@ func normalizePendingFolders(pending syncthing.PendingFolders) map[string]Pendin
 	return result
 }
 
+func normalizePendingDevices(pending syncthing.PendingDevices) []PendingDevice {
+	ids := make([]string, 0, len(pending))
+	for id := range pending {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	result := make([]PendingDevice, 0, min(len(ids), maxPendingDevices))
+	for _, id := range ids[:min(len(ids), maxPendingDevices)] {
+		device := pending[id]
+		result = append(result, PendingDevice{ID: boundedIdentifier(id),
+			Name: boundedLabel(device.Name), Address: boundedLabel(device.Address)})
+	}
+	return result
+}
+
+func normalizeNearbyDevices(
+	discovery syncthing.DiscoveryCache,
+	configured []syncthing.Device,
+	localID string,
+) []NearbyDevice {
+	ids := nearbyDeviceIDs(discovery, configured, localID)
+	result := make([]NearbyDevice, 0, min(len(ids), maxNearbyDevices))
+	for _, id := range ids[:min(len(ids), maxNearbyDevices)] {
+		addresses := discovery[id].Addresses
+		bounded := make([]string, 0, min(len(addresses), maxDeviceAddresses))
+		for _, address := range addresses[:min(len(addresses), maxDeviceAddresses)] {
+			bounded = append(bounded, boundedLabel(address))
+		}
+		result = append(result, NearbyDevice{ID: boundedIdentifier(id), Addresses: bounded})
+	}
+	return result
+}
+
+func nearbyDeviceIDs(
+	discovery syncthing.DiscoveryCache,
+	configured []syncthing.Device,
+	localID string,
+) []string {
+	ignored := make(map[string]struct{}, len(configured)+1)
+	ignored[localID] = struct{}{}
+	for _, device := range configured {
+		ignored[device.DeviceID] = struct{}{}
+	}
+	ids := make([]string, 0, len(discovery))
+	for id := range discovery {
+		if _, exists := ignored[id]; !exists {
+			ids = append(ids, id)
+		}
+	}
+	sort.Strings(ids)
+	return ids
+}
+
 func collectionTruncation(
 	devices []syncthing.Device,
 	folders []syncthing.Folder,
@@ -184,6 +237,12 @@ func clonePublished(source PublishedSnapshot) PublishedSnapshot {
 			offers[deviceID] = offer
 		}
 		copy.State.PendingFolders[folderID] = PendingFolder{OfferedBy: offers}
+	}
+	copy.State.PendingDevices = append([]PendingDevice(nil), source.State.PendingDevices...)
+	copy.State.NearbyDevices = append([]NearbyDevice(nil), source.State.NearbyDevices...)
+	for index := range copy.State.NearbyDevices {
+		copy.State.NearbyDevices[index].Addresses = append([]string(nil),
+			source.State.NearbyDevices[index].Addresses...)
 	}
 	copy.State.Activity.Files = append([]Activity(nil), source.State.Activity.Files...)
 	if source.State.Activity.Current != nil {

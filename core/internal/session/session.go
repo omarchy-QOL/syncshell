@@ -27,6 +27,8 @@ type hydratedState struct {
 	devices        []Device
 	folders        []Folder
 	pendingFolders map[string]PendingFolder
+	pendingDevices []PendingDevice
+	nearbyDevices  []NearbyDevice
 	webUI          WebUI
 	truncation     Truncation
 }
@@ -134,6 +136,8 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 		Devices:        previous.Devices,
 		Folders:        previous.Folders,
 		PendingFolders: previous.PendingFolders,
+		PendingDevices: previous.PendingDevices,
+		NearbyDevices:  previous.NearbyDevices,
 		Activity:       previous.Activity,
 		WebUI:          previous.WebUI,
 		Installation: Installation{ExecutablePath: boundedPath(s.executable),
@@ -144,6 +148,8 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 			"configure", "folder.add-existing", "folder.forget", "folder.pause",
 			"folder.recheck-errors", "folder.rescan", "folder.rescan-all",
 			"folder.resume", "folder.suggest-id",
+			"folder.set-sharing", "device.add", "device.dismiss-pending",
+			"device.set-folders",
 			"lifecycle.disable", "lifecycle.enable", "lifecycle.start", "lifecycle.stop",
 			"refresh", "webui.set-theme",
 		},
@@ -194,6 +200,8 @@ func (s *Session) hydrate(ctx context.Context) (Snapshot, error) {
 	snapshot.Devices = hydrated.devices
 	snapshot.Folders = hydrated.folders
 	snapshot.PendingFolders = hydrated.pendingFolders
+	snapshot.PendingDevices = hydrated.pendingDevices
+	snapshot.NearbyDevices = hydrated.nearbyDevices
 	snapshot.WebUI = hydrated.webUI
 	snapshot.Counts = normalizedCounts(hydrated.devices, hydrated.folders)
 	snapshot.Truncation = hydrated.truncation
@@ -234,6 +242,14 @@ func (s *Session) loadAuthenticated(
 	if err != nil {
 		return hydratedState{}, err
 	}
+	pendingDevices, err := s.client.PendingDevices(ctx)
+	if err != nil {
+		return hydratedState{}, err
+	}
+	discovery, err := s.client.DiscoveryCache(ctx)
+	if err != nil {
+		return hydratedState{}, err
+	}
 	gui, err := s.client.GUIConfig(ctx)
 	if err != nil {
 		return hydratedState{}, err
@@ -243,6 +259,9 @@ func (s *Session) loadAuthenticated(
 		return hydratedState{}, err
 	}
 	truncation := collectionTruncation(devices, folders, pending)
+	truncation.PendingDevices = max(0, len(pendingDevices)-maxPendingDevices)
+	truncation.NearbyDevices = max(0,
+		len(nearbyDeviceIDs(discovery, devices, status.MyID))-maxNearbyDevices)
 	truncation.FolderErrors = omittedFolderErrors
 	return hydratedState{
 		identity: Identity{DeviceID: boundedIdentifier(status.MyID),
@@ -250,6 +269,8 @@ func (s *Session) loadAuthenticated(
 		devices:        normalizeDevices(devices, connections, status.MyID),
 		folders:        normalizedFolders,
 		pendingFolders: normalizePendingFolders(pending),
+		pendingDevices: normalizePendingDevices(pendingDevices),
+		nearbyDevices:  normalizeNearbyDevices(discovery, devices, status.MyID),
 		webUI: WebUI{URL: webURL(s.client.Endpoint()), Theme: boundedIdentifier(gui.Theme),
 			GUIAssets: boundedPath(paths.GUIAssets)},
 		truncation: truncation,

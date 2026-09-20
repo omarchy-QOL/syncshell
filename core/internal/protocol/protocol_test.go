@@ -293,7 +293,8 @@ func newProtocolSession(t *testing.T, unauthorized bool) (*session.Session, *ato
 			protocolJSON(writer, `{"state":"idle"}`)
 		case "/rest/folder/errors":
 			protocolJSON(writer, `{"errors":[]}`)
-		case "/rest/cluster/pending/folders":
+		case "/rest/cluster/pending/folders", "/rest/cluster/pending/devices",
+			"/rest/system/discovery":
 			protocolJSON(writer, `{}`)
 		case "/rest/config/gui":
 			protocolJSON(writer, `{"theme":"default"}`)

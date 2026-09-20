@@ -278,6 +278,33 @@ func TestConfigureValidatesHostNeutralValues(t *testing.T) {
 	}
 }
 
+func TestDeviceDiscoveryStateSeparatesConfiguredAndPendingDevices(t *testing.T) {
+	configured := []syncthing.Device{
+		{DeviceID: "LOCAL"},
+		{DeviceID: "CONFIGURED"},
+	}
+	discovery := syncthing.DiscoveryCache{
+		"LOCAL":      {Addresses: []string{"tcp://127.0.0.1:22000"}},
+		"CONFIGURED": {Addresses: []string{"tcp://192.0.2.2:22000"}},
+		"NEARBY":     {Addresses: []string{"tcp://192.0.2.3:22000"}},
+	}
+	nearby := normalizeNearbyDevices(discovery, configured, "LOCAL")
+	if len(nearby) != 1 || nearby[0].ID != "NEARBY" ||
+		len(nearby[0].Addresses) != 1 {
+		t.Fatalf("unexpected nearby devices: %#v", nearby)
+	}
+	if ids := nearbyDeviceIDs(discovery, configured, "LOCAL"); len(ids) != 1 || ids[0] != "NEARBY" {
+		t.Fatalf("unexpected nearby device IDs: %#v", ids)
+	}
+	pending := normalizePendingDevices(syncthing.PendingDevices{
+		"PENDING": {Name: "xps", Address: "tcp://192.0.2.4:22000"},
+	})
+	if len(pending) != 1 || pending[0].ID != "PENDING" ||
+		pending[0].Name != "xps" {
+		t.Fatalf("unexpected pending devices: %#v", pending)
+	}
+}
+
 func TestCollectionTruncationIsExplicit(t *testing.T) {
 	devices := make([]syncthing.Device, maxDevices+3)
 	folders := make([]syncthing.Folder, maxFolders+2)
@@ -397,7 +424,8 @@ func (a *testAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			`{"state":"idle","globalFiles":%d,"globalBytes":9}`, a.globalFiles.Load()))
 	case "/rest/folder/errors":
 		writeSessionJSON(writer, `{"errors":[]}`)
-	case "/rest/cluster/pending/folders":
+	case "/rest/cluster/pending/folders", "/rest/cluster/pending/devices",
+		"/rest/system/discovery":
 		writeSessionJSON(writer, `{}`)
 	case "/rest/config/gui":
 		writeSessionJSON(writer, `{"theme":"default"}`)

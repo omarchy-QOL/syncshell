@@ -20,6 +20,7 @@ import (
 type actionAPI struct {
 	mu                sync.Mutex
 	folders           map[string]syncthing.Folder
+	folderConfigs     map[string]syncthing.FolderConfig
 	devices           []syncthing.Device
 	pending           syncthing.PendingFolders
 	theme             string
@@ -28,6 +29,10 @@ type actionAPI struct {
 	errors            []syncthing.FolderError
 	clearOnRescan     bool
 	lastAdd           syncthing.FolderConfig
+	lastFolderPatch   map[string]any
+	folderPatchCount  int
+	lastDeviceAdd     syncthing.DeviceConfig
+	pendingDevices    syncthing.PendingDevices
 	dropThemeResponse bool
 	rescanStarted     chan struct{}
 	rescanRelease     chan struct{}
@@ -283,6 +288,119 @@ func TestSuggestionThemeAndActionShape(t *testing.T) {
 	}
 }
 
+func TestDeviceAndSharingActionsPreserveFolderConfiguration(t *testing.T) {
+	remoteID := "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH"
+	newID := "IIIIIII-JJJJJJJ-KKKKKKK-LLLLLLL-MMMMMMM-NNNNNNN-OOOOOOO-PPPPPPP"
+	api := &actionAPI{
+		folders: map[string]syncthing.Folder{"folder": {
+			ID: "folder", Label: "Folder", Path: t.TempDir(),
+			Devices: []syncthing.FolderDevice{{DeviceID: "LOCAL"}, {DeviceID: remoteID}},
+		}},
+		folderConfigs: map[string]syncthing.FolderConfig{"folder": {
+			"id": "folder", "path": "/kept", "rescanIntervalS": float64(17),
+			"devices": []any{
+				map[string]any{"deviceID": "LOCAL"},
+				map[string]any{"deviceID": remoteID,
+					"encryptionPassword": "kept-secret-setting"},
+			},
+		}},
+		devices: []syncthing.Device{{DeviceID: "LOCAL", Name: "local"},
+			{DeviceID: remoteID, Name: "remote"}},
+		pending: syncthing.PendingFolders{},
+		pendingDevices: syncthing.PendingDevices{
+			newID: {Name: "xps", Address: "tcp://192.0.2.8:22000"},
+		},
+		theme: "default",
+	}
+	coreSession := newActionSession(t, api)
+	if _, err := coreSession.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	result := coreSession.Act(context.Background(), "folder.set-sharing",
+		ActionArguments{FolderID: "folder", DeviceIDs: []string{remoteID}},
+		"share", nil)
+	if !result.OK {
+		t.Fatalf("set sharing failed: %#v", result)
+	}
+	if len(api.lastFolderPatch) != 1 {
+		t.Fatalf("sharing replaced unrelated folder fields: %#v", api.lastFolderPatch)
+	}
+	entries, _ := api.lastFolderPatch["devices"].([]any)
+	remote, _ := entries[1].(map[string]any)
+	if remote["encryptionPassword"] != "kept-secret-setting" {
+		t.Fatalf("sharing lost device entry fields: %#v", entries)
+	}
+
+	result = coreSession.Act(context.Background(), "device.set-folders",
+		ActionArguments{DeviceID: remoteID, FolderIDs: []string{}},
+		"remove-device-share", nil)
+	if !result.OK {
+		t.Fatalf("remove device share failed: %#v", result)
+	}
+	entries, _ = api.lastFolderPatch["devices"].([]any)
+	if len(entries) != 1 || entries[0].(map[string]any)["deviceID"] != "LOCAL" {
+		t.Fatalf("device share removal changed the wrong entries: %#v", entries)
+	}
+
+	result = coreSession.Act(context.Background(), "device.add",
+		ActionArguments{DeviceID: newID, DeviceName: "xps"}, "add-device", nil)
+	if !result.OK || api.lastDeviceAdd["compression"] != "metadata" ||
+		api.lastDeviceAdd["name"] != "xps" {
+		t.Fatalf("add device did not preserve defaults: %#v %#v",
+			result, api.lastDeviceAdd)
+	}
+
+	result = coreSession.Act(context.Background(), "device.dismiss-pending",
+		ActionArguments{DeviceID: newID}, "dismiss-device", nil)
+	if !result.OK || len(api.pendingDevices) != 0 {
+		t.Fatalf("dismiss pending device failed: %#v %#v", result, api.pendingDevices)
+	}
+}
+
+func TestDeviceFolderRemovalValidatesEveryFolderBeforeWriting(t *testing.T) {
+	remoteID := "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH"
+	folder := func(id string) syncthing.Folder {
+		return syncthing.Folder{ID: id, Label: id, Path: t.TempDir(),
+			Devices: []syncthing.FolderDevice{
+				syncthing.NewFolderDevice("LOCAL"),
+				syncthing.NewFolderDevice(remoteID),
+			}}
+	}
+	api := &actionAPI{
+		folders: map[string]syncthing.Folder{
+			"a": folder("a"),
+			"b": folder("b"),
+		},
+		folderConfigs: map[string]syncthing.FolderConfig{
+			"a": {"id": "a", "devices": []any{
+				map[string]any{"deviceID": "LOCAL"},
+				map[string]any{"deviceID": remoteID},
+			}},
+			"b": {"id": "b", "devices": []any{
+				map[string]any{"deviceID": "LOCAL"},
+				map[string]any{"name": "missing device ID"},
+			}},
+		},
+		devices: []syncthing.Device{{DeviceID: "LOCAL"}, {DeviceID: remoteID}},
+		pending: syncthing.PendingFolders{},
+		theme:   "default",
+	}
+	coreSession := newActionSession(t, api)
+	if _, err := coreSession.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	result := coreSession.Act(context.Background(), "device.set-folders",
+		ActionArguments{DeviceID: remoteID}, "remove-all", nil)
+	if result.Error == nil || result.Error.Code != "schema" {
+		t.Fatalf("invalid folder configuration was accepted: %#v", result)
+	}
+	if api.folderPatchCountValue() != 0 {
+		t.Fatal("folder removal wrote a partial update before validation completed")
+	}
+}
+
 func TestAddValidationRejectsUnsafeInputs(t *testing.T) {
 	devices := []syncthing.Device{{DeviceID: "TRUSTED"},
 		{DeviceID: "UNTRUSTED", Untrusted: true}}
@@ -372,8 +490,18 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		a.write(writer, `{"myID":"LOCAL"}`)
 	case request.URL.Path == "/rest/system/version":
 		a.write(writer, `{"version":"v2.1.3"}`)
-	case request.URL.Path == "/rest/config/devices":
+	case request.URL.Path == "/rest/config/devices" && request.Method == http.MethodGet:
 		a.writeValue(writer, a.devices)
+	case request.URL.Path == "/rest/config/devices" && request.Method == http.MethodPost:
+		if json.NewDecoder(request.Body).Decode(&a.lastDeviceAdd) != nil {
+			http.Error(writer, "bad config", http.StatusBadRequest)
+			return
+		}
+		a.devices = append(a.devices, syncthing.Device{
+			DeviceID: a.lastDeviceAdd["deviceID"].(string),
+			Name:     fmt.Sprint(a.lastDeviceAdd["name"]),
+		})
+		writer.WriteHeader(http.StatusOK)
 	case request.URL.Path == "/rest/config/folders" && request.Method == http.MethodGet:
 		folders := make([]syncthing.Folder, 0, len(a.folders))
 		for _, folder := range a.folders {
@@ -400,11 +528,31 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		}
 		switch request.Method {
 		case http.MethodGet:
-			a.writeValue(writer, folder)
+			if config, exists := a.folderConfigs[id]; exists {
+				a.writeValue(writer, config)
+			} else {
+				a.writeValue(writer, folder)
+			}
 		case http.MethodPatch:
-			var patch map[string]bool
+			var patch map[string]any
 			_ = json.NewDecoder(request.Body).Decode(&patch)
-			folder.Paused = patch["paused"]
+			a.lastFolderPatch = patch
+			a.folderPatchCount++
+			if paused, exists := patch["paused"].(bool); exists {
+				folder.Paused = paused
+			}
+			if entries, exists := patch["devices"].([]any); exists {
+				folder.Devices = nil
+				for _, entry := range entries {
+					device, _ := entry.(map[string]any)
+					folder.Devices = append(folder.Devices, syncthing.FolderDevice{
+						DeviceID: fmt.Sprint(device["deviceID"]),
+					})
+				}
+				if a.folderConfigs != nil {
+					a.folderConfigs[id]["devices"] = entries
+				}
+			}
 			a.folders[id] = folder
 			writer.WriteHeader(http.StatusOK)
 		case http.MethodDelete:
@@ -423,6 +571,15 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		a.writeValue(writer, syncthing.FolderErrors{Errors: a.errors})
 	case request.URL.Path == "/rest/cluster/pending/folders":
 		a.writeValue(writer, a.pending)
+	case request.URL.Path == "/rest/cluster/pending/devices" &&
+		request.Method == http.MethodGet:
+		a.writeValue(writer, a.pendingDevices)
+	case request.URL.Path == "/rest/cluster/pending/devices" &&
+		request.Method == http.MethodDelete:
+		delete(a.pendingDevices, request.URL.Query().Get("device"))
+		writer.WriteHeader(http.StatusOK)
+	case request.URL.Path == "/rest/system/discovery":
+		a.writeValue(writer, syncthing.DiscoveryCache{})
 	case request.URL.Path == "/rest/config/gui" && request.Method == http.MethodGet:
 		a.writeValue(writer, syncthing.GUIConfig{Theme: a.theme})
 	case request.URL.Path == "/rest/config/gui" && request.Method == http.MethodPatch:
@@ -442,6 +599,8 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		a.write(writer, `{"guiAssets":"/tmp/gui","baseDir-userHome":"/tmp"}`)
 	case request.URL.Path == "/rest/config/defaults/folder":
 		a.write(writer, `{"id":"","label":"","path":"","paused":false,"devices":[]}`)
+	case request.URL.Path == "/rest/config/defaults/device":
+		a.write(writer, `{"addresses":["dynamic"],"compression":"metadata"}`)
 	case request.URL.Path == "/rest/svc/random/string":
 		a.write(writer, `{"random":"ABCDEFGHIJ"}`)
 	case request.URL.Path == "/rest/db/scan":
@@ -509,6 +668,12 @@ func (a *actionAPI) currentTheme() string {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.theme
+}
+
+func (a *actionAPI) folderPatchCountValue() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.folderPatchCount
 }
 
 func (a *actionAPI) setDropThemeResponse(value bool) {

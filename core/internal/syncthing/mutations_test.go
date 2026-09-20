@@ -2,6 +2,7 @@ package syncthing
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -30,10 +31,24 @@ func TestClientConfigurationAndFileRequests(t *testing.T) {
 			},
 		},
 		{
-			name: "patch folder", method: http.MethodPatch,
+			name: "pause folder", method: http.MethodPatch,
 			target: "/rest/config/folders/folder%20one", body: `{"paused":true}`,
 			call: func(ctx context.Context, client *Client) error {
-				return client.PatchFolder(ctx, "folder one", map[string]bool{"paused": true})
+				return client.SetFolderPaused(ctx, "folder one", true)
+			},
+		},
+		{
+			name: "share folder", method: http.MethodPatch,
+			target: "/rest/config/folders/folder%20one",
+			body:   `{"devices":[{"deviceID":"REMOTE","encryptionPassword":"kept"}]}`,
+			call: func(ctx context.Context, client *Client) error {
+				var folder Folder
+				if err := json.Unmarshal([]byte(
+					`{"devices":[{"deviceID":"REMOTE","encryptionPassword":"kept"}]}`,
+				), &folder); err != nil {
+					return err
+				}
+				return client.SetFolderDevices(ctx, "folder one", folder.Devices)
 			},
 		},
 		{
@@ -59,6 +74,55 @@ func TestClientConfigurationAndFileRequests(t *testing.T) {
 			target: "/rest/config/folders", body: `{"id":"new"}`,
 			call: func(ctx context.Context, client *Client) error {
 				return client.AddFolder(ctx, FolderConfig{"id": "new"})
+			},
+		},
+		{
+			name: "default device", method: http.MethodGet,
+			target: "/rest/config/defaults/device", response: `{"addresses":["dynamic"]}`,
+			call: func(ctx context.Context, client *Client) error {
+				config, err := client.DefaultDevice(ctx)
+				if err == nil && config["addresses"] == nil {
+					t.Errorf("unexpected default device: %#v", config)
+				}
+				return err
+			},
+		},
+		{
+			name: "add device", method: http.MethodPost,
+			target: "/rest/config/devices", body: `{"deviceID":"AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH"}`,
+			call: func(ctx context.Context, client *Client) error {
+				return client.AddDevice(ctx, DeviceConfig{"deviceID": "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH"})
+			},
+		},
+		{
+			name: "pending devices", method: http.MethodGet,
+			target:   "/rest/cluster/pending/devices",
+			response: `{"AAAAAAA":{"name":"xps","address":"tcp://192.0.2.1:22000"}}`,
+			call: func(ctx context.Context, client *Client) error {
+				devices, err := client.PendingDevices(ctx)
+				if err == nil && devices["AAAAAAA"].Name != "xps" {
+					t.Errorf("unexpected pending devices: %#v", devices)
+				}
+				return err
+			},
+		},
+		{
+			name: "dismiss pending device", method: http.MethodDelete,
+			target: "/rest/cluster/pending/devices?device=AAAAAAA-BBBBBBB",
+			call: func(ctx context.Context, client *Client) error {
+				return client.DismissPendingDevice(ctx, "AAAAAAA-BBBBBBB")
+			},
+		},
+		{
+			name: "discovery cache", method: http.MethodGet,
+			target:   "/rest/system/discovery",
+			response: `{"AAAAAAA":{"addresses":["tcp://192.0.2.1:22000"]}}`,
+			call: func(ctx context.Context, client *Client) error {
+				cache, err := client.DiscoveryCache(ctx)
+				if err == nil && len(cache["AAAAAAA"].Addresses) != 1 {
+					t.Errorf("unexpected discovery cache: %#v", cache)
+				}
+				return err
 			},
 		},
 		{
@@ -186,19 +250,19 @@ func TestClientConfigurationAndFileRequests(t *testing.T) {
 	}
 }
 
-func TestFolderErrorsAcceptsUnsupportedEndpoint(t *testing.T) {
+func TestSetFolderDevicesRejectsEmptyDeviceID(t *testing.T) {
+	err := (&Client{}).SetFolderDevices(context.Background(), "folder",
+		[]FolderDevice{{}})
+	assertErrorCode(t, err, ErrorSchema)
+}
+
+func TestFolderErrorsAllowsConfiguredFolderToBecomeReady(t *testing.T) {
 	server := httptest.NewServer(http.NotFoundHandler())
 	defer server.Close()
 
 	errors, err := testClient(t, server.URL, "", false).
 		FolderErrors(context.Background(), "folder")
 	if err != nil || len(errors.Errors) != 0 {
-		t.Fatalf("unexpected unsupported response: %#v %v", errors, err)
+		t.Fatalf("unexpected not-ready response: %#v %v", errors, err)
 	}
-}
-
-func TestJSONRequestRejectsUnsupportedValues(t *testing.T) {
-	client := &Client{}
-	err := client.PatchFolder(context.Background(), "folder", make(chan int))
-	assertErrorCode(t, err, ErrorSchema)
 }

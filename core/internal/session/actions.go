@@ -47,8 +47,16 @@ func (s *Session) Act(
 		result = s.forgetFolder(ctx, arguments.FolderID)
 	case "folder.add-existing":
 		result = s.addExistingFolder(ctx, arguments)
+	case "folder.set-sharing":
+		result = s.setFolderSharing(ctx, arguments)
 	case "folder.suggest-id":
 		result = s.suggestFolderID(ctx)
+	case "device.add":
+		result = s.addDevice(ctx, arguments)
+	case "device.dismiss-pending":
+		result = s.dismissPendingDevice(ctx, arguments.DeviceID)
+	case "device.set-folders":
+		result = s.setDeviceFolders(ctx, arguments)
 	case "lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
 		result = s.lifecycleAction(ctx, strings.TrimPrefix(action, "lifecycle."))
 	case "webui.open":
@@ -64,10 +72,14 @@ func (s *Session) Act(
 func validateActionArguments(action string, arguments ActionArguments) *ActionResult {
 	folderOnly := arguments.FolderID != "" && arguments.Path == "" &&
 		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
-		arguments.PendingDeviceID == "" && arguments.Theme == ""
+		len(arguments.FolderIDs) == 0 &&
+		arguments.PendingDeviceID == "" && arguments.DeviceID == "" &&
+		arguments.DeviceName == "" && arguments.Theme == ""
 	empty := arguments.FolderID == "" && arguments.Path == "" &&
 		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
-		arguments.PendingDeviceID == "" && arguments.Theme == ""
+		len(arguments.FolderIDs) == 0 &&
+		arguments.PendingDeviceID == "" && arguments.DeviceID == "" &&
+		arguments.DeviceName == "" && arguments.Theme == ""
 	valid := false
 	switch action {
 	case "folder.pause", "folder.resume", "folder.rescan", "folder.forget":
@@ -76,11 +88,36 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 		"lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
 		valid = empty
 	case "folder.add-existing":
-		valid = arguments.Theme == ""
+		valid = arguments.Theme == "" && len(arguments.FolderIDs) == 0 &&
+			arguments.DeviceID == "" &&
+			arguments.DeviceName == ""
+	case "folder.set-sharing":
+		valid = arguments.FolderID != "" && arguments.Path == "" &&
+			arguments.Label == "" && arguments.PendingDeviceID == "" &&
+			arguments.DeviceID == "" && arguments.DeviceName == "" &&
+			len(arguments.FolderIDs) == 0 && arguments.Theme == ""
+	case "device.add":
+		valid = arguments.DeviceID != "" && arguments.FolderID == "" &&
+			arguments.Path == "" && arguments.Label == "" &&
+			len(arguments.DeviceIDs) == 0 && arguments.PendingDeviceID == "" &&
+			len(arguments.FolderIDs) == 0 && arguments.Theme == ""
+	case "device.dismiss-pending":
+		valid = arguments.DeviceID != "" && arguments.DeviceName == "" &&
+			arguments.FolderID == "" && arguments.Path == "" &&
+			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
+			len(arguments.FolderIDs) == 0 && arguments.PendingDeviceID == "" &&
+			arguments.Theme == ""
+	case "device.set-folders":
+		valid = arguments.DeviceID != "" && arguments.DeviceName == "" &&
+			arguments.FolderID == "" && arguments.Path == "" &&
+			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
+			arguments.PendingDeviceID == "" && arguments.Theme == ""
 	case "webui.set-theme":
 		valid = arguments.Theme != "" && arguments.FolderID == "" && arguments.Path == "" &&
 			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
-			arguments.PendingDeviceID == ""
+			len(arguments.FolderIDs) == 0 && arguments.PendingDeviceID == "" &&
+			arguments.DeviceID == "" &&
+			arguments.DeviceName == ""
 	default:
 		valid = empty
 	}
@@ -105,7 +142,7 @@ func (s *Session) setFolderPaused(ctx context.Context, folderID string, paused b
 		}
 		return rejected("folder_active", "folder is already active")
 	}
-	if err := s.client.PatchFolder(ctx, folderID, map[string]bool{"paused": paused}); err != nil {
+	if err := s.client.SetFolderPaused(ctx, folderID, paused); err != nil {
 		return s.afterAmbiguousMutation(ctx, err)
 	}
 	return s.refreshAfterMutation(ctx)
@@ -479,10 +516,10 @@ func validateSelectedDevices(
 	return selected, nil
 }
 
-func folderDevices(localDeviceID string, selected []string) []map[string]string {
+func folderDevices(localDeviceID string, selected []string) []syncthing.FolderDevice {
 	ids := append([]string{localDeviceID}, selected...)
 	seen := make(map[string]struct{}, len(ids))
-	result := make([]map[string]string, 0, len(ids))
+	result := make([]syncthing.FolderDevice, 0, len(ids))
 	for _, deviceID := range ids {
 		if deviceID == "" {
 			continue
@@ -491,7 +528,7 @@ func folderDevices(localDeviceID string, selected []string) []map[string]string 
 			continue
 		}
 		seen[deviceID] = struct{}{}
-		result = append(result, map[string]string{"deviceID": deviceID})
+		result = append(result, syncthing.NewFolderDevice(deviceID))
 	}
 	return result
 }

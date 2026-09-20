@@ -16,8 +16,22 @@ func (c *Client) Folder(ctx context.Context, folderID string) (Folder, error) {
 	return response, err
 }
 
-// PatchFolder applies one granular folder change.
-func (c *Client) PatchFolder(ctx context.Context, folderID string, patch any) error {
+// SetFolderPaused changes only one folder's pause state.
+func (c *Client) SetFolderPaused(ctx context.Context, folderID string, paused bool) error {
+	return c.jsonRequest(ctx, http.MethodPatch,
+		"/rest/config/folders/"+url.PathEscape(folderID),
+		map[string]bool{"paused": paused}, nil)
+}
+
+// SetFolderDevices replaces one folder's sharing relationships.
+func (c *Client) SetFolderDevices(
+	ctx context.Context,
+	folderID string,
+	devices []FolderDevice,
+) error {
+	patch := struct {
+		Devices []FolderDevice `json:"devices"`
+	}{Devices: devices}
 	return c.jsonRequest(ctx, http.MethodPatch,
 		"/rest/config/folders/"+url.PathEscape(folderID), patch, nil)
 }
@@ -38,6 +52,40 @@ func (c *Client) DefaultFolder(ctx context.Context) (FolderConfig, error) {
 // AddFolder posts one configuration built from the server default.
 func (c *Client) AddFolder(ctx context.Context, config FolderConfig) error {
 	return c.jsonRequest(ctx, http.MethodPost, "/rest/config/folders", config, nil)
+}
+
+// DefaultDevice reads the server's complete current device template.
+func (c *Client) DefaultDevice(ctx context.Context) (DeviceConfig, error) {
+	var response DeviceConfig
+	err := c.request(ctx, http.MethodGet, "/rest/config/defaults/device", nil, true, &response)
+	return response, err
+}
+
+// AddDevice posts one configuration built from the server default.
+func (c *Client) AddDevice(ctx context.Context, config DeviceConfig) error {
+	return c.jsonRequest(ctx, http.MethodPost, "/rest/config/devices", config, nil)
+}
+
+// PendingDevices reads current unknown-device connection attempts.
+func (c *Client) PendingDevices(ctx context.Context) (PendingDevices, error) {
+	var response PendingDevices
+	err := c.request(ctx, http.MethodGet,
+		"/rest/cluster/pending/devices", nil, true, &response)
+	return response, err
+}
+
+// DismissPendingDevice removes one unknown-device connection attempt.
+func (c *Client) DismissPendingDevice(ctx context.Context, deviceID string) error {
+	path := "/rest/cluster/pending/devices?device=" + url.QueryEscape(deviceID)
+	return c.request(ctx, http.MethodDelete, path, nil, true, nil)
+}
+
+// DiscoveryCache reads Syncthing's current local and global discovery cache.
+func (c *Client) DiscoveryCache(ctx context.Context) (DiscoveryCache, error) {
+	var response DiscoveryCache
+	err := c.request(ctx, http.MethodGet,
+		"/rest/system/discovery", nil, true, &response)
+	return response, err
 }
 
 // PendingFolders reads current unaccepted offers.
@@ -71,8 +119,11 @@ func (c *Client) SystemPaths(ctx context.Context) (SystemPaths, error) {
 func (c *Client) FolderErrors(ctx context.Context, folderID string) (FolderErrors, error) {
 	var response FolderErrors
 	path := "/rest/folder/errors?folder=" + url.QueryEscape(folderID) + "&page=1&perpage=100"
-	err := c.requestWith(c.http, ctx, http.MethodGet, path, nil, true, &response,
-		http.StatusNotFound)
+	err := c.request(ctx, http.MethodGet, path, nil, true, &response)
+	// A new folder can be configured before its model is ready for this endpoint.
+	if hasHTTPStatus(err, http.StatusNotFound) {
+		return FolderErrors{}, nil
+	}
 	return response, err
 }
 

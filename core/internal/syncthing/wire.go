@@ -1,6 +1,9 @@
 package syncthing
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+)
 
 // SystemStatus is the narrow identity response used by the session.
 type SystemStatus struct {
@@ -20,9 +23,48 @@ type Device struct {
 	Untrusted bool   `json:"untrusted"`
 }
 
-// FolderDevice is a folder-sharing relationship.
+// FolderDevice is a folder-sharing relationship that preserves server fields.
 type FolderDevice struct {
 	DeviceID string `json:"deviceID"`
+	fields   map[string]json.RawMessage
+}
+
+// NewFolderDevice constructs a folder-sharing relationship.
+func NewFolderDevice(deviceID string) FolderDevice {
+	return FolderDevice{DeviceID: deviceID}
+}
+
+// UnmarshalJSON preserves fields Syncshell does not interpret.
+func (d *FolderDevice) UnmarshalJSON(data []byte) error {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
+	}
+	var deviceID string
+	value, ok := fields["deviceID"]
+	if !ok || json.Unmarshal(value, &deviceID) != nil || deviceID == "" {
+		return errors.New("folder device ID is invalid")
+	}
+	d.DeviceID = deviceID
+	d.fields = fields
+	return nil
+}
+
+// MarshalJSON restores preserved fields with the current device ID.
+func (d FolderDevice) MarshalJSON() ([]byte, error) {
+	if d.DeviceID == "" {
+		return nil, errors.New("folder device ID is invalid")
+	}
+	fields := make(map[string]json.RawMessage, len(d.fields)+1)
+	for name, value := range d.fields {
+		fields[name] = value
+	}
+	deviceID, err := json.Marshal(d.DeviceID)
+	if err != nil {
+		return nil, err
+	}
+	fields["deviceID"] = deviceID
+	return json.Marshal(fields)
 }
 
 // Folder is the configured-folder wire shape used by the client.
@@ -58,6 +100,23 @@ type Connection struct {
 
 // PendingFolders maps offered folder IDs to their offering devices.
 type PendingFolders map[string]PendingFolder
+
+// PendingDevices maps unknown device IDs to their latest connection attempt.
+type PendingDevices map[string]PendingDevice
+
+// PendingDevice is one unknown device observed by Syncthing.
+type PendingDevice struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
+}
+
+// DiscoveryCache maps discovered device IDs to their observed addresses.
+type DiscoveryCache map[string]DiscoveryEntry
+
+// DiscoveryEntry is one local or global discovery result.
+type DiscoveryEntry struct {
+	Addresses []string `json:"addresses"`
+}
 
 // PendingFolder is one unaccepted folder offer.
 type PendingFolder struct {
@@ -120,3 +179,6 @@ type Event struct {
 
 // FolderConfig preserves the server's current default folder fields.
 type FolderConfig map[string]any
+
+// DeviceConfig preserves the server's current default device fields.
+type DeviceConfig map[string]any

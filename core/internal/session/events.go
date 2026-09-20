@@ -13,7 +13,8 @@ var eventTypes = []string{
 	"ConfigSaved", "DeviceConnected", "DeviceDisconnected", "DownloadProgress",
 	"FolderErrors", "FolderPaused", "FolderResumed", "FolderScanProgress",
 	"FolderSummary", "ItemFinished", "ItemStarted", "LocalIndexUpdated",
-	"PendingFoldersChanged", "RemoteDownloadProgress", "StateChanged",
+	"PendingDevicesChanged", "PendingFoldersChanged", "DeviceDiscovered",
+	"RemoteDownloadProgress", "StateChanged",
 	"StartupComplete",
 }
 
