@@ -11,8 +11,8 @@ Column {
   property color foreground: Color.foreground
   property color dim: Qt.darker(foreground, 1.5)
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
-  property color success: "#a3be8c"
+  required property color warning
+  required property color success
   property string fontFamily: Style.font.family
 
   property string selectedDeviceId: ""
@@ -46,8 +46,17 @@ Column {
 
   function deviceOptions() {
     var options = []
-    for (var i = 0; i < remoteRows.length; i++)
-      options.push({ value: remoteRows[i].id, label: remoteRows[i].label })
+    for (var i = 0; i < remoteRows.length; i++) {
+      var connected = remoteRows[i].connected
+      options.push({
+        value: remoteRows[i].id,
+        label: remoteRows[i].label,
+        statusVisible: true,
+        statusColor: connected ? root.success : Color.muted,
+        statusHelpText: connected
+          ? "Device is connected" : "Device is disconnected"
+      })
+    }
     return options
   }
 
@@ -128,9 +137,9 @@ Column {
       SyncshellDropdown {
         id: pendingSelector
         Layout.fillWidth: true
-        Layout.preferredHeight: Style.space(28)
+        Layout.preferredHeight: Style.spacing.controlHeight
         showLabel: false
-        rowHeight: Style.space(28)
+        rowHeight: Style.spacing.controlHeight
         value: root.selectedPendingId
         options: root.pendingOptions()
         interactive: options.length > 1
@@ -144,7 +153,8 @@ Column {
 
       TooltipButton {
         iconText: "\uf00c"
-        Layout.preferredHeight: Style.space(28)
+        Layout.preferredWidth: Style.spacing.controlHeight
+        Layout.preferredHeight: Style.spacing.controlHeight
         helpText: "Accept remote device connection"
         bordered: true
         foreground: root.success
@@ -156,7 +166,8 @@ Column {
 
       TooltipButton {
         iconText: "\uf00d"
-        Layout.preferredHeight: Style.space(28)
+        Layout.preferredWidth: Style.spacing.controlHeight
+        Layout.preferredHeight: Style.spacing.controlHeight
         helpText: "Dismiss incoming device request"
         bordered: true
         foreground: root.urgent
@@ -198,14 +209,14 @@ Column {
       id: deviceSelector
       visible: root.remoteRows.length > 0
       Layout.fillWidth: true
-      Layout.preferredHeight: Style.space(28)
+      Layout.preferredHeight: Style.spacing.controlHeight
       showLabel: false
-      rowHeight: Style.space(28)
+      rowHeight: Style.spacing.controlHeight
       value: root.selectedDeviceId
       options: root.deviceOptions()
       statusVisible: true
       statusColor: root.selectedDevice && root.selectedDevice.connected
-        ? root.success : root.urgent
+        ? root.success : Color.muted
       statusHelpText: root.selectedDevice && root.selectedDevice.connected
         ? "Device is connected" : "Device is disconnected"
       foreground: root.foreground
@@ -224,21 +235,9 @@ Column {
     }
 
     TooltipButton {
-      visible: root.remoteRows.length > 0
-      text: "FOLDERS"
-      Layout.preferredHeight: Style.space(28)
-      helpText: "View folders shared with\nthe selected device"
-      bordered: true
-      foreground: root.foreground
-      fontFamily: root.fontFamily
-      fontSize: Style.font.caption
-      enabled: root.selectedDevice && !root.syncthing.folderMutationBusy
-      onClicked: root.openFolders()
-    }
-
-    TooltipButton {
       iconText: "\uf067"
-      Layout.preferredHeight: Style.space(28)
+      Layout.preferredWidth: Style.spacing.controlHeight
+      Layout.preferredHeight: Style.spacing.controlHeight
       helpText: "Add device"
       bordered: true
       foreground: root.foreground
@@ -250,6 +249,36 @@ Column {
         if (root.addOpen) root.addOpen = false
         else root.openAdd()
       }
+    }
+
+    TooltipButton {
+      visible: root.remoteRows.length > 0
+      iconText: "󰉓"
+      Layout.preferredWidth: Style.spacing.controlHeight
+      Layout.preferredHeight: Style.spacing.controlHeight
+      helpText: "View folder shared\nwith selected device"
+      bordered: true
+      foreground: root.foreground
+      fontFamily: root.fontFamily
+      iconSize: Style.font.icon
+      enabled: root.selectedDevice && !root.syncthing.folderMutationBusy
+      onClicked: {
+        if (root.foldersOpen) root.foldersOpen = false
+        else root.openFolders()
+      }
+    }
+
+    BusyButton {
+      iconText: "\uf013"
+      Layout.preferredWidth: Style.spacing.controlHeight
+      Layout.preferredHeight: Style.spacing.controlHeight
+      tooltipText: "Device settings\nTo be added soon."
+      canActivate: false
+      bordered: true
+      foreground: root.foreground
+      disabledForeground: root.dim
+      fontFamily: root.fontFamily
+      iconSize: Style.font.icon
     }
   }
 

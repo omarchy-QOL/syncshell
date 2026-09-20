@@ -11,6 +11,7 @@ Controls.ToolTip {
   property color tooltipForeground: Color.tooltip.text
   property color tooltipBorder: Color.tooltip.border
   property string fontFamily: Style.font.family
+  property int textFormat: Text.PlainText
 
   readonly property var tooltipBorderSpec: Border.localOrSurfaceSpec(
     "tooltip", "border", tooltipBorder, Color.tooltip.border,
@@ -26,7 +27,7 @@ Controls.ToolTip {
   }
 
   contentItem: Text {
-    textFormat: Text.PlainText
+    textFormat: root.textFormat
     text: root.text
     color: root.tooltipForeground
     font.family: root.fontFamily

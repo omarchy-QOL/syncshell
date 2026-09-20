@@ -8,26 +8,25 @@ KeyboardPanel {
     id: root
 
     property var controller
-    property alias addPathText: addForm.pathText
-    property alias addLabelText: addForm.labelText
-    property alias addIdText: addForm.idText
-    property alias selectedDeviceIds: addForm.selectedDeviceIds
-    property alias pendingFolderValue: addForm.pendingFolderValue
+    property alias addPathText: moreDetails.addPathText
+    property alias addLabelText: moreDetails.addLabelText
+    property alias addIdText: moreDetails.addIdText
+    property alias selectedDeviceIds: moreDetails.selectedDeviceIds
+    property alias pendingFolderValue: moreDetails.pendingFolderValue
     property Timer refreshFeedbackTimer: Timer {
         interval: UiConstants.REFRESH_FEEDBACK_MIN_MS
     }
 
     function resetAddForm() {
-        addForm.reset();
+        moreDetails.resetAddForm();
     }
 
     function closeTransientPopups() {
         moreDetails.closePopups();
-        addForm.closePopups();
     }
 
     function focusAddPath() {
-        addForm.focusPath();
+        moreDetails.focusAddPath();
     }
 
     function focusPanel() {
@@ -51,8 +50,8 @@ KeyboardPanel {
         ? fittedContentHeight(Style.space(520), Style.space(560))
         : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
         Style.space(root.controller.moreOpen
-            && root.controller.selectedFolderRow
-            && root.controller.selectedFolderRow.problem ? 760 : 560))
+            && root.controller.currentFolderRow
+            && root.controller.currentFolderRow.problem ? 760 : 560))
 
     PanelKeyCatcher {
         id: keyCatcher
@@ -109,7 +108,7 @@ KeyboardPanel {
                 pendingDeviceDismissDialog.selectedIndex =
                     pendingDeviceDismissDialog.selectedIndex === 0 ? 1 : 0;
             } else if (!root.controller.addOpen && dx !== 0) {
-                root.controller.selectFolderOffset(dx);
+                root.controller.cycleCurrentFolder(dx);
             }
         }
         onActivateRequested: {
@@ -231,20 +230,6 @@ KeyboardPanel {
                     fontFamily: root.controller.fontFamily
                 }
 
-                AddFolderForm {
-                    id: addForm
-                    visible: root.controller.addOpen
-                    controller: root.controller
-                    syncthing: root.controller.syncthing
-                    folderPickerRunning: root.controller.folderPickerRunning
-                    foreground: root.controller.foreground
-                    dim: root.controller.dim
-                    urgent: root.controller.urgent
-                    warning: root.controller.warning
-                    success: root.controller.success
-                    fontFamily: root.controller.fontFamily
-                }
-
                 FolderOverview {
                     id: folderOverview
                     controller: root.controller
@@ -279,6 +264,7 @@ KeyboardPanel {
                 foreground: root.controller.foreground
                 dim: root.controller.dim
                 urgent: root.controller.urgent
+                warning: root.controller.warning
                 success: root.controller.success
                 fontFamily: root.controller.fontFamily
             }
@@ -319,6 +305,7 @@ KeyboardPanel {
 
             Button {
                 text: "Web UI"
+                height: Style.spacing.controlHeight
                 bordered: true
                 foreground: root.controller.foreground
                 fontFamily: root.controller.fontFamily
@@ -336,6 +323,7 @@ KeyboardPanel {
                 BusyButton {
                     required property string modelData
                     text: modelData
+                    height: Style.spacing.controlHeight
                     tooltipText: "To be added soon."
                     canActivate: false
                     bordered: true
@@ -354,6 +342,7 @@ KeyboardPanel {
 
             BusyButton {
                 id: rescanAllButton
+                height: Style.spacing.controlHeight
                 iconText: "󰑐"
                 text: "Rescan all folders"
                 busyText: "Rescanning..."
@@ -379,6 +368,7 @@ KeyboardPanel {
 
             BusyButton {
                 iconText: "\uf21e"
+                height: Style.spacing.controlHeight
                 text: "Refresh Sync.status"
                 busyText: "Rechecking Syncthing"
                 pulseBusyIcon: true
@@ -407,24 +397,16 @@ KeyboardPanel {
 
             TooltipButton {
                 id: settingsButton
-                width: rescanAllButton.height
-                height: rescanAllButton.height
+                width: Style.spacing.controlHeight
+                height: Style.spacing.controlHeight
+                iconText: "\uf013"
                 helpText: "Settings"
                 bordered: true
                 foreground: root.controller.foreground
                 fontFamily: root.controller.fontFamily
+                iconSize: Style.font.body
                 enabled: root.controller.syncthing !== null
                 onClicked: root.controller.openSettingsMenu()
-
-                Text {
-                    anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: 0.5
-                    text: "\uf013"
-                    textFormat: Text.PlainText
-                    color: settingsButton.foreground
-                    font.family: settingsButton.fontFamily
-                    font.pixelSize: Style.font.body
-                }
             }
         }
 
@@ -491,12 +473,12 @@ KeyboardPanel {
         opened: root.controller.forgetConfirmOpen
         z: 10
         message: {
-            var folder = root.controller.selectedFolderRow;
+            var folder = root.controller.currentFolderRow;
             return folder ? "Forget " + folder.label + " (" + folder.id + ")?\n\n" + "This removes only its Syncthing configuration. The " + "directory and data files will not be deleted. " + (folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal " + ".stfolder marker. " : "") + "Rejoining the same remote folder requires this exact Folder ID." : "Forget this unlinked folder?";
         }
         confirmText: "Forget"
-        background: Color.background
-        foreground: root.controller.foreground
+        background: Color.popups.background
+        foreground: Color.popups.text
         selectedText: root.controller.urgent
         fontFamily: root.controller.fontFamily
         onCanceled: {
@@ -520,8 +502,8 @@ KeyboardPanel {
             + root.controller.pendingDeviceDismissName + "?"
         confirmText: "Yes"
         cancelText: "No"
-        background: Color.background
-        foreground: root.controller.foreground
+        background: Color.popups.background
+        foreground: Color.popups.text
         selectedText: root.controller.urgent
         fontFamily: root.controller.fontFamily
         onCanceled: root.controller.cancelPendingDeviceDismiss()

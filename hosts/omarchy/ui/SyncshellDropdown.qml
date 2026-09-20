@@ -62,6 +62,15 @@ Item {
   function optionLabel(o) {
     return (o && typeof o === "object") ? String(o.label) : String(o)
   }
+  function optionStatusVisible(o) {
+    return o && typeof o === "object" && !!o.statusVisible
+  }
+  function optionStatusColor(o) {
+    return optionStatusVisible(o) ? o.statusColor : "transparent"
+  }
+  function optionStatusHelpText(o) {
+    return optionStatusVisible(o) ? String(o.statusHelpText || "") : ""
+  }
   function currentLabel() {
     for (var i = 0; i < options.length; i++) {
       if (optionValue(options[i]) === value) return optionLabel(options[i])
@@ -252,7 +261,8 @@ Item {
             Text {
               textFormat: Text.PlainText
               anchors.left: parent.left
-              anchors.right: parent.right
+              anchors.right: optionStatus.visible
+                ? optionStatus.left : parent.right
               anchors.verticalCenter: parent.verticalCenter
               anchors.leftMargin: Style.spacing.controlPaddingX
               anchors.rightMargin: Style.spacing.controlPaddingX
@@ -261,6 +271,26 @@ Item {
               font.family: root.fontFamily
               font.pixelSize: Style.font.body
               elide: Text.ElideRight
+            }
+
+            Rectangle {
+              id: optionStatus
+              visible: root.optionStatusVisible(modelData)
+              anchors.right: parent.right
+              anchors.rightMargin: Style.spacing.controlPaddingX
+              anchors.verticalCenter: parent.verticalCenter
+              width: Style.space(7)
+              height: width
+              radius: width / 2
+              color: root.optionStatusColor(modelData)
+
+              HoverHandler { id: optionStatusHover }
+              SyncshellToolTip {
+                visible: optionStatusHover.hovered
+                  && root.optionStatusHelpText(modelData) !== ""
+                text: root.optionStatusHelpText(modelData)
+                fontFamily: root.fontFamily
+              }
             }
 
             MouseArea {
