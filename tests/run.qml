@@ -104,6 +104,44 @@ QtObject {
     ] }), "__proto__\n\n<file>", "error text remains data")
   }
 
+  function testDeviceModels() {
+    var remoteId = "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-"
+      + "GGGGGGG-HHHHHHH"
+    var nearbyId = "IIIIIII-JJJJJJJ-KKKKKKK-LLLLLLL-MMMMMMM-NNNNNNN-"
+      + "OOOOOOO-PPPPPPP"
+    var service = {
+      localDeviceId: "LOCAL",
+      devices: [
+        { deviceID: "LOCAL", name: "chronos", connected: true },
+        { deviceID: remoteId, name: "xps", connected: false }
+      ],
+      folders: [{ id: "sync", devices: [{ deviceID: remoteId }] }],
+      pendingDevices: [{
+        id: remoteId,
+        name: "xps",
+        address: "tcp://192.0.2.8:22000"
+      }],
+      nearbyDevices: [{
+        id: nearbyId,
+        addresses: ["tcp://192.0.2.9:22000"]
+      }]
+    }
+    var remotes = PanelModel.remoteDeviceRows(service)
+    compare(remotes.length, 1, "local device excluded from remote devices")
+    compare(remotes[0].label, "xps · 1 folder", "remote folder count")
+    compare(remotes[0].connected, false, "remote connection state")
+    var pending = PanelModel.pendingDeviceRows(service)
+    compare(pending[0].label, "xps wants to connect · AAAAAAA",
+      "incoming request label")
+    var nearby = PanelModel.nearbyDeviceOptions(service)
+    compare(nearby[0], { value: "", label: "Custom Device ID" },
+      "custom device source first")
+    compare(nearby[1], {
+      value: nearbyId,
+      label: "IIIIIII · tcp://192.0.2.9:22000"
+    }, "nearby device source")
+  }
+
   function testSettingsModel() {
     var current = 'version = 2\n[style]\nicon_style = "themed"\n'
       + 'web_ui_theme = "default"\n[service]\nservice_state = "disabled"\n'
@@ -175,9 +213,9 @@ QtObject {
       id: "remote", name: "phone", untrusted: true, connected: false
     }]
     compare(FacadeModel.devices(sourceDevices), [{
-      deviceID: "local", name: "desktop", untrusted: false
+      deviceID: "local", name: "desktop", untrusted: false, connected: true
     }, {
-      deviceID: "remote", name: "phone", untrusted: true
+      deviceID: "remote", name: "phone", untrusted: true, connected: false
     }], "device projection")
     compare(FacadeModel.folderStatuses([{
       id: "folder",
@@ -240,7 +278,8 @@ QtObject {
   Component.onCompleted: {
     try {
       testPanelModel()
-    testFolderErrorDetails()
+      testFolderErrorDetails()
+      testDeviceModels()
       testSettingsModel()
       testFacadeProjection()
       testDriftPresentation()
