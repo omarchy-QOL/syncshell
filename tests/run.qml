@@ -1,6 +1,7 @@
 import QtQuick
 import "../hosts/omarchy/models/PanelModel.js" as PanelModel
 import "../hosts/omarchy/models/SettingsModel.js" as SettingsModel
+import "../hosts/omarchy/models/ThemePaletteModel.js" as ThemePaletteModel
 import "../hosts/omarchy/models/FacadeModel.js" as FacadeModel
 import "../shared"
 
@@ -212,6 +213,22 @@ QtObject {
       "CRLF preserved")
   }
 
+  function testThemePaletteModel() {
+    var complete = "background\t#000000\nyellow\t#A1b2C3\n"
+      + "green\t#102030\ncyan\t#abcdef\nblue\t#ffffff\n"
+    compare(ThemePaletteModel.parse(complete), {
+      yellow: "#A1b2C3", green: "#102030", cyan: "#abcdef"
+    }, "complete theme palette")
+    compare(ThemePaletteModel.parse(
+      "yellow\t#A1b2C3\ngreen\t#102030\n"), null,
+      "missing theme color")
+    compare(ThemePaletteModel.parse(
+      "yellow\t#A1b2C3\ngreen\tgreen\ncyan\t#abcdef\n"), null,
+      "malformed theme color")
+    compare(ThemePaletteModel.parse(complete + "cyan\t#abcdef\n"), null,
+      "duplicate theme color")
+  }
+
   function testFacadeProjection() {
     var sourceDevices = [{
       id: "local", name: "desktop", untrusted: false, connected: true
@@ -312,6 +329,7 @@ QtObject {
       testFolderErrorDetails()
       testDeviceModels()
       testSettingsModel()
+      testThemePaletteModel()
       testFacadeProjection()
       testDriftPresentation()
       testRescanTracker()

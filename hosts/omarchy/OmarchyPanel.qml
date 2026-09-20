@@ -6,6 +6,7 @@ import qs.Ui
 import "ui"
 import "ui/UiConstants.js" as UiConstants
 import "models/PanelModel.js" as PanelModel
+import "models/ThemePaletteModel.js" as ThemePaletteModel
 
 Panel {
   id: root
@@ -16,9 +17,12 @@ Panel {
     ? bar.shell.serviceFor(moduleName) : null
   readonly property color foreground: bar ? bar.foreground : Color.foreground
   readonly property color urgent: bar ? bar.urgent : Color.urgent
-  readonly property color warning: "#ebcb8b"
-  readonly property color success: "#a3be8c"
-  readonly property color syncthingBlue: "#26B6DB"
+  readonly property color warning: syncthing
+    ? syncthing.warning : ThemePaletteModel.DefaultYellow
+  readonly property color success: syncthing
+    ? syncthing.success : ThemePaletteModel.DefaultGreen
+  readonly property color syncActivityColor: syncthing
+    ? syncthing.syncActivityColor : ThemePaletteModel.DefaultCyan
   readonly property color dim: Qt.darker(foreground, 1.5)
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   readonly property string homePath: Quickshell.env("HOME")
