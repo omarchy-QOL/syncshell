@@ -110,24 +110,24 @@ Column {
         elide: Text.ElideRight
       }
 
-      TooltipButton {
+      IdCopyButton {
         id: copyHostIdButton
         anchors.left: deviceNameText.right
         anchors.leftMargin: Style.space(4)
         anchors.verticalCenter: parent.verticalCenter
         visible: root.syncthing && root.syncthing.displayDeviceId !== ""
         height: Math.round(deviceNameText.implicitHeight)
+        value: root.syncthing ? root.syncthing.displayDeviceId : ""
+        notice: "Host ID copied"
         text: "host ID"
-        iconText: "󰆏"
         helpText: "Copy host ID"
-        bordered: true
+        controller: root.controller
         foreground: root.foreground
         fontFamily: root.fontFamily
         fontSize: Math.max(Style.space(8), Style.font.caption - 1)
         iconSize: Math.max(Style.space(7), Style.font.caption - 3)
         horizontalPadding: Style.space(4)
         verticalPadding: 0
-        onClicked: root.controller.copyLocalDeviceId()
       }
     }
   }

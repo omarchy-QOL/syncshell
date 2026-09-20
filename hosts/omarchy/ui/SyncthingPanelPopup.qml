@@ -57,7 +57,8 @@ KeyboardPanel {
     PanelKeyCatcher {
         id: keyCatcher
         anchors.fill: parent
-        blocked: root.controller.addOpen || moreDetails.folderPopupOpen || moreDetails.pendingPopupOpen
+        blocked: root.controller.addOpen || moreDetails.folderPopupOpen
+            || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen
         onCloseRequested: {
             if (root.controller.settingsMigrationOpen) {
                 root.controller.chooseSettingsPort(2);
@@ -70,6 +71,8 @@ KeyboardPanel {
             } else if (root.controller.forgetConfirmOpen) {
                 root.controller.forgetConfirmOpen = false;
                 root.controller.forgetFolderId = "";
+            } else if (root.controller.pendingDeviceDismissOpen) {
+                root.controller.cancelPendingDeviceDismiss();
             } else if (root.controller.addOpen)
                 root.controller.closeAddFolder();
             else
@@ -84,6 +87,9 @@ KeyboardPanel {
                 removalDialog.selectedChoice = (removalDialog.selectedChoice + (direction > 0 ? 1 : 2)) % 3;
             } else if (root.controller.settingsMenuOpen) {
                 root.controller.moveSettingsSelection(direction);
+            } else if (root.controller.pendingDeviceDismissOpen) {
+                pendingDeviceDismissDialog.selectedIndex =
+                    pendingDeviceDismissDialog.selectedIndex === 0 ? 1 : 0;
             } else
                 root.controller.switchPanel(direction);
         }
@@ -98,6 +104,10 @@ KeyboardPanel {
                 root.controller.moveSettingsSelection(dy);
             } else if (root.controller.forgetConfirmOpen && (dx !== 0 || dy !== 0)) {
                 forgetDialog.selectedIndex = forgetDialog.selectedIndex === 0 ? 1 : 0;
+            } else if (root.controller.pendingDeviceDismissOpen
+                    && (dx !== 0 || dy !== 0)) {
+                pendingDeviceDismissDialog.selectedIndex =
+                    pendingDeviceDismissDialog.selectedIndex === 0 ? 1 : 0;
             } else if (!root.controller.addOpen && dx !== 0) {
                 root.controller.selectFolderOffset(dx);
             }
@@ -117,6 +127,11 @@ KeyboardPanel {
                     root.controller.forgetFolderId = "";
                 } else
                     root.controller.confirmForget();
+            } else if (root.controller.pendingDeviceDismissOpen) {
+                if (pendingDeviceDismissDialog.selectedIndex === 0)
+                    root.controller.confirmPendingDeviceDismiss();
+                else
+                    root.controller.cancelPendingDeviceDismiss();
             }
         }
         onTextKey: function (text) {
@@ -141,6 +156,8 @@ KeyboardPanel {
                 return;
             }
             if (root.controller.forgetConfirmOpen)
+                return;
+            if (root.controller.pendingDeviceDismissOpen)
                 return;
             if (key === "r") {
                 rescanAllButton.activate();
@@ -486,6 +503,28 @@ KeyboardPanel {
             root.controller.forgetFolderId = "";
         }
         onConfirmed: root.controller.confirmForget()
+    }
+
+    CompactConfirmDialog {
+        id: pendingDeviceDismissDialog
+        parent: keyCatcher
+        anchors.fill: parent
+        opened: root.controller.pendingDeviceDismissOpen
+        z: 10
+        compact: true
+        confirmFirst: true
+        equalWidthActions: true
+        selectedIndex: 1
+        message: "Abort pending request from "
+            + root.controller.pendingDeviceDismissName + "?"
+        confirmText: "Yes"
+        cancelText: "No"
+        background: Color.background
+        foreground: root.controller.foreground
+        selectedText: root.controller.urgent
+        fontFamily: root.controller.fontFamily
+        onCanceled: root.controller.cancelPendingDeviceDismiss()
+        onConfirmed: root.controller.confirmPendingDeviceDismiss()
     }
 
     SelfRemovalDialog {

@@ -62,6 +62,7 @@ function buildFolderRows(syncthing, homePath) {
       syncing: needItems > 0 || state === "syncing",
       scanning: state.indexOf("scan") === 0,
       paused: !!folder.paused,
+      devices: folderDevices,
       sharedDeviceCount: sharedDeviceCount,
       needItems: needItems,
       needBytes: Number(status.needBytes || 0),
@@ -217,6 +218,80 @@ function deviceOptions(syncthing) {
       description: device.untrusted
         ? "Encrypted sharing requires the Web UI"
         : "Will receive a folder share offer"
+    })
+  }
+  return options
+}
+
+function shortDeviceId(deviceId) {
+  return String(deviceId || "").split("-")[0]
+}
+
+function remoteDeviceRows(syncthing) {
+  var rows = []
+  var devices = syncthing && syncthing.devices ? syncthing.devices : []
+  var folders = syncthing && syncthing.folders ? syncthing.folders : []
+  for (var i = 0; i < devices.length; i++) {
+    var device = devices[i] || ({})
+    var id = String(device.deviceID || "")
+    if (!id || id === syncthing.localDeviceId) continue
+    var folderIds = []
+    for (var j = 0; j < folders.length; j++) {
+      var members = folders[j].devices || []
+      for (var k = 0; k < members.length; k++) {
+        if (String((members[k] || {}).deviceID || "") === id) {
+          folderIds.push(String(folders[j].id || ""))
+          break
+        }
+      }
+    }
+    var name = String(device.name || "Device " + shortDeviceId(id))
+    var count = folderIds.length
+    rows.push({
+      id: id,
+      name: name,
+      connected: device.connected === true,
+      folderIds: folderIds,
+      label: name + " · " + count + " folder" + (count === 1 ? "" : "s")
+    })
+  }
+  return rows
+}
+
+function pendingDeviceRows(syncthing) {
+  var rows = []
+  var devices = syncthing && syncthing.pendingDevices
+    ? syncthing.pendingDevices : []
+  for (var i = 0; i < devices.length; i++) {
+    var device = devices[i] || ({})
+    var id = String(device.id || "")
+    if (!id) continue
+    var shortId = shortDeviceId(id)
+    var name = String(device.name || "")
+    rows.push({
+      id: id,
+      name: name,
+      address: String(device.address || ""),
+      shortId: shortId,
+      label: String(name || shortId) + " wants to connect · " + shortId
+    })
+  }
+  return rows
+}
+
+function nearbyDeviceOptions(syncthing) {
+  var options = [{ value: "", label: "Custom Device ID" }]
+  var devices = syncthing && syncthing.nearbyDevices
+    ? syncthing.nearbyDevices : []
+  for (var i = 0; i < devices.length; i++) {
+    var device = devices[i] || ({})
+    var id = String(device.id || "")
+    if (!id) continue
+    var addresses = device.addresses || []
+    options.push({
+      value: id,
+      label: shortDeviceId(id) + (addresses.length > 0
+        ? " · " + String(addresses[0]) : "")
     })
   }
   return options

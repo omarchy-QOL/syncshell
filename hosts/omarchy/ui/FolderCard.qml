@@ -24,6 +24,7 @@ BorderSurface {
   property color success: "#a3be8c"
   property color syncColor: "#26B6DB"
   property string fontFamily: Style.font.family
+  property var controller
 
   readonly property bool problem: folder && folder.problem
   readonly property bool syncing: folder && folder.syncing
@@ -35,7 +36,6 @@ BorderSurface {
   signal forgetRequested
   signal errorDetailsRequested(string folderId)
   signal rescanRequested
-  signal copyIdRequested(string folderId)
 
   implicitHeight: nameActions.implicitHeight + details.implicitHeight
     + Style.space(14)
@@ -73,16 +73,17 @@ BorderSurface {
       onClicked: root.openRequested()
     }
 
-    TooltipPanelActionButton {
+    IdCopyButton {
       id: copyIdButton
+      variant: "panel"
       size: openFolderButton.implicitHeight
-      iconText: "󰆏"
+      value: String(root.folder.id || "")
+      notice: "Folder ID copied"
       helpText: "Copy folder ID"
-      bordered: true
+      controller: root.controller
       foreground: root.foreground
       fontFamily: root.fontFamily
       fontSize: Style.font.caption
-      onClicked: root.copyIdRequested(String(root.folder.id || ""))
     }
   }
 

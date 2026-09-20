@@ -41,6 +41,7 @@ Column {
         required property var modelData
         width: parent.width
         folder: modelData
+        controller: root.controller
         selected: String(modelData.id || "")
           === root.controller.displayedFolderId
         online: root.syncthing ? root.syncthing.online : false
@@ -66,9 +67,6 @@ Column {
         onRescanRequested: root.syncthing.rescanFolder(modelData.id)
         onErrorDetailsRequested: function(folderId) {
           root.controller.showFolderErrors(folderId)
-        }
-        onCopyIdRequested: function(folderId) {
-          root.controller.copyFolderId(folderId)
         }
       }
     }

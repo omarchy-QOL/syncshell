@@ -21,10 +21,14 @@ Column {
     ? Math.max(shownErrorCount, Number(selectedFolder.errorCount || 0)) : 0
   readonly property bool folderPopupOpen: folderSelector.popupOpen
   readonly property bool pendingPopupOpen: pendingOfferSelector.popupOpen
+  readonly property bool childPopupOpen: folderSharingForm.popupOpen
+    || remoteDevices.popupOpen
 
   function closePopups() {
     if (folderSelector.popupOpen) folderSelector.close()
     if (pendingOfferSelector.popupOpen) pendingOfferSelector.close()
+    folderSharingForm.closePopups()
+    remoteDevices.closePopups()
   }
 
   width: parent ? parent.width : implicitWidth
@@ -99,7 +103,7 @@ Column {
     width: parent.width
     spacing: Style.space(6)
 
-    ToggleDropdown {
+    SyncshellDropdown {
       id: folderSelector
       visible: root.controller.folderRows.length > 0
       Layout.fillWidth: true
@@ -117,20 +121,36 @@ Column {
     }
 
     TooltipButton {
-      text: "+"
+      iconText: "\uf067"
       Layout.preferredHeight: Style.space(28)
-      helpText: root.controller.addOpen
-        ? "Close add folder form" : "Add folder"
+      helpText: "Add folder"
       bordered: true
       foreground: root.foreground
       fontFamily: root.fontFamily
       fontSize: Style.font.body
+      iconSize: Style.font.icon
       horizontalPadding: Style.space(7)
       verticalPadding: Style.space(3)
       enabled: root.syncthing && root.syncthing.online
         && !root.syncthing.folderMutationBusy
       onClicked: root.controller.addOpen
         ? root.controller.closeAddFolder() : root.controller.openAddFolder()
+    }
+
+    TooltipButton {
+      visible: root.controller.folderRows.length > 0
+      iconText: "\uf1e0"
+      Layout.preferredHeight: Style.space(28)
+      helpText: "Share folder"
+      bordered: true
+      foreground: root.foreground
+      fontFamily: root.fontFamily
+      iconSize: Style.font.icon
+      horizontalPadding: Style.space(7)
+      verticalPadding: Style.space(3)
+      enabled: root.syncthing && root.syncthing.online
+        && !root.syncthing.folderMutationBusy
+      onClicked: root.controller.toggleFolderSharing()
     }
 
     TooltipButton {
@@ -141,17 +161,20 @@ Column {
       visible: root.controller.folderRows.length > 0
       Layout.preferredHeight: Style.space(28)
       text: targetBusy ? "WAIT"
-        : (targetFolder && targetFolder.paused ? "LINK" : "UNLINK")
+        : (targetFolder && targetFolder.paused ? "LINK" : "")
+      iconText: targetBusy || (targetFolder && targetFolder.paused)
+        ? "" : "\uf00d"
       helpText: targetFolder
         ? (targetFolder.paused
-          ? "Resume synchronization for " + targetFolder.label
-          : "Pause synchronization for " + targetFolder.label)
-          + "\n" + targetFolder.path
+          ? "Link folder"
+          : "Unlink folder")
         : "Select a folder"
       bordered: true
-      foreground: root.foreground
+      foreground: targetFolder && targetFolder.paused
+        ? root.success : root.urgent
       fontFamily: root.fontFamily
       fontSize: Style.font.body
+      iconSize: Style.font.icon
       horizontalPadding: Style.space(6)
       verticalPadding: Style.space(4)
       enabled: targetFolder && root.syncthing && root.syncthing.online
@@ -161,12 +184,24 @@ Column {
     }
   }
 
+  FolderSharingForm {
+    id: folderSharingForm
+    visible: root.controller.folderShareOpen
+    controller: root.controller
+    syncthing: root.syncthing
+    foreground: root.foreground
+    dim: root.dim
+    urgent: root.urgent
+    warning: root.controller.warning
+    fontFamily: root.fontFamily
+  }
+
   RowLayout {
     visible: root.controller.pendingOfferRows.length > 0
     width: parent.width
     spacing: Style.space(6)
 
-    ToggleDropdown {
+    SyncshellDropdown {
       id: pendingOfferSelector
       Layout.fillWidth: true
       Layout.preferredHeight: Style.space(28)
@@ -198,6 +233,23 @@ Column {
       onClicked: root.controller.acceptPendingFolderOffer(
         root.controller.selectedPendingOffer)
     }
+  }
+
+  PanelSeparator {
+    foreground: root.foreground
+  }
+
+  RemoteDevices {
+    id: remoteDevices
+    width: parent.width
+    controller: root.controller
+    syncthing: root.syncthing
+    foreground: root.foreground
+    dim: root.dim
+    urgent: root.urgent
+    warning: root.controller.warning
+    success: root.success
+    fontFamily: root.fontFamily
   }
 
   PanelSeparator {

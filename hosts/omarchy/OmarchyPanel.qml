@@ -33,11 +33,15 @@ Panel {
   property bool addIdEdited: false
   property bool addLabelFromOffer: false
   property bool addSubmissionPending: false
+  property bool folderShareOpen: false
   property bool preserveStateForFolderPicker: false
   property string selectedFolderId: ""
   property string selectedPendingOffer: ""
   property string forgetFolderId: ""
   property bool forgetConfirmOpen: false
+  property bool pendingDeviceDismissOpen: false
+  property string pendingDeviceDismissId: ""
+  property string pendingDeviceDismissName: ""
   property string folderPickerOutput: ""
   property string folderPickerError: ""
   property string displayedNotice: ""
@@ -147,22 +151,6 @@ Panel {
     noticeDisplayTimer.restart()
   }
 
-  function copyToClipboard(value, notice) {
-    var text = String(value || "")
-    if (!text) return
-    Quickshell.execDetached(["wl-copy", "--", text])
-    showNotice(notice)
-  }
-
-  function copyLocalDeviceId() {
-    copyToClipboard(syncthing ? syncthing.displayDeviceId : "",
-      "Host ID copied")
-  }
-
-  function copyFolderId(folderId) {
-    copyToClipboard(folderId, "Folder ID copied")
-  }
-
   function chooseServiceStateAction(index) {
     if (syncthing) syncthing.chooseServiceStateAction(index)
   }
@@ -201,6 +189,15 @@ Panel {
     selectedFolderId = folderId
     moreOpen = true
     Qt.callLater(function() { popup.scrollToMore() })
+  }
+
+  function scrollToMore() {
+    popup.scrollToMore()
+  }
+
+  function toggleFolderSharing() {
+    folderShareOpen = !folderShareOpen
+    if (folderShareOpen) Qt.callLater(function() { popup.scrollToMore() })
   }
 
   function showBarTooltip() {
@@ -285,6 +282,40 @@ Panel {
     return PanelModel.deviceOptions(syncthing)
   }
 
+  function remoteDeviceRows() {
+    return PanelModel.remoteDeviceRows(syncthing)
+  }
+
+  function pendingDeviceRows() {
+    return PanelModel.pendingDeviceRows(syncthing)
+  }
+
+  function nearbyDeviceOptions() {
+    return PanelModel.nearbyDeviceOptions(syncthing)
+  }
+
+  function requestPendingDeviceDismiss(device) {
+    if (!device || !syncthing || syncthing.folderMutationBusy) return
+    pendingDeviceDismissId = String(device.id || "")
+    pendingDeviceDismissName = String(device.name || "")
+      || PanelModel.shortDeviceId(device.id)
+    pendingDeviceDismissOpen = true
+  }
+
+  function confirmPendingDeviceDismiss() {
+    pendingDeviceDismissOpen = false
+    if (syncthing) syncthing.dismissPendingDevice(
+      pendingDeviceDismissId, pendingDeviceDismissName)
+    pendingDeviceDismissId = ""
+    pendingDeviceDismissName = ""
+  }
+
+  function cancelPendingDeviceDismiss() {
+    pendingDeviceDismissOpen = false
+    pendingDeviceDismissId = ""
+    pendingDeviceDismissName = ""
+  }
+
   function pendingOfferOptions() {
     return PanelModel.pendingOfferOptions(syncthing)
   }
@@ -333,6 +364,7 @@ Panel {
     addIdEdited = false
     addLabelFromOffer = false
     addSubmissionPending = false
+    folderShareOpen = false
     popup.resetAddForm()
     syncthing.requestFolderIdSuggestion()
     Qt.callLater(function() { popup.focusAddPath() })
@@ -342,6 +374,7 @@ Panel {
     if (syncthing && syncthing.folderMutationBusy
         && syncthing.folderMutationAction === "add") return
     addOpen = false
+    folderShareOpen = false
     addSubmissionPending = false
     popup.focusPanel()
   }
@@ -356,6 +389,9 @@ Panel {
     addSubmissionPending = false
     forgetFolderId = ""
     forgetConfirmOpen = false
+    pendingDeviceDismissOpen = false
+    pendingDeviceDismissId = ""
+    pendingDeviceDismissName = ""
     folderPickerError = ""
     popup.closeTransientPopups()
   }

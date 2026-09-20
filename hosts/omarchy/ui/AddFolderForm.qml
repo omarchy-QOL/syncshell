@@ -59,30 +59,16 @@ BorderSurface {
     anchors.margins: Style.space(8)
     spacing: Style.space(6)
 
-    RowLayout {
-      width: parent.width
-
-      PanelSectionHeader {
-        Layout.fillWidth: true
-        text: "ADD FOLDER"
-        foreground: root.foreground
-        fontFamily: root.fontFamily
-      }
-
-      Button {
-        text: "CANCEL"
-        bordered: true
-        foreground: root.urgent
-        fontFamily: root.fontFamily
-        fontSize: Style.font.caption
-        horizontalPadding: Style.space(6)
-        verticalPadding: Style.space(4)
-        enabled: !root.syncthing || !root.syncthing.folderMutationBusy
-        onClicked: root.controller.closeAddFolder()
-      }
+    InlineFormHeader {
+      title: "ADD FOLDER"
+      foreground: root.foreground
+      cancelColor: root.urgent
+      fontFamily: root.fontFamily
+      cancelEnabled: !root.syncthing || !root.syncthing.folderMutationBusy
+      onCanceled: root.controller.closeAddFolder()
     }
 
-    Dropdown {
+    SyncshellDropdown {
       id: pendingFolderPicker
       visible: options.length > 1
       width: parent.width
@@ -215,9 +201,8 @@ BorderSurface {
       wrapMode: Text.WordWrap
     }
 
-    MultiSelect {
+    SyncshellMultiSelect {
       id: devicePicker
-      property double lastClosedAt: 0
       width: parent.width
       label: "Share with devices"
       values: []
@@ -226,69 +211,19 @@ BorderSurface {
       placeholderText: "Find a device..."
       foreground: root.foreground
       fontFamily: root.fontFamily
-
-      onPopupOpenChanged: if (!popupOpen) lastClosedAt = Date.now()
-
-      MouseArea {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        height: parent.rowHeight
-        z: 10
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-
-        onEntered: parent.hasCursor = true
-        onExited: parent.hasCursor = false
-        onPressed: function(mouse) {
-          if (parent.popupOpen) parent.close()
-          mouse.accepted = true
-        }
-        onClicked: function(mouse) {
-          if (parent.popupOpen) parent.close()
-          else if (Date.now() - parent.lastClosedAt > 150) parent.open()
-          mouse.accepted = true
-        }
-      }
-
-      Button {
-        parent: devicePicker.Overlay.overlay || devicePicker
-        readonly property real buttonSize: devicePicker.popupRowHeight
-          + Style.spacing.controlPaddingX - Style.spacing.md * 2
-        readonly property point popupOrigin: parent
-          ? devicePicker.mapToItem(
-            parent, 0, devicePicker.height + Style.spacing.xxs)
-          : Qt.point(0, 0)
-        visible: devicePicker.popupOpen
-        x: popupOrigin.x + devicePicker.width - width
-          - Border.right(devicePicker.popupBorderSpec)
-          - Style.spacing.hairline - Style.spacing.md
-        y: popupOrigin.y + Border.top(devicePicker.popupBorderSpec)
-          + Style.spacing.hairline + Style.spacing.md
-        width: buttonSize
-        height: buttonSize
-        z: 10000
-        text: "OK"
-        bordered: true
-        foreground: root.success
-        fontFamily: root.fontFamily
-        fontSize: Style.font.caption
-        horizontalPadding: 0
-        verticalPadding: 0
-        onClicked: devicePicker.close()
-      }
     }
 
     Text {
       width: parent.width
       text: devicePicker.values.length === 0
-        ? "Local only: this folder will not synchronize with another device."
+        ? "Local only: not shared with other devices."
         : "Selected devices receive a share offer and may need to accept it."
       textFormat: Text.PlainText
       color: devicePicker.values.length === 0 ? root.warning : root.dim
       font.family: root.fontFamily
       font.pixelSize: Style.font.caption
-      wrapMode: Text.WordWrap
+      wrapMode: Text.NoWrap
+      elide: Text.ElideRight
     }
 
     Text {

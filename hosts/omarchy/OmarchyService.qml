@@ -43,6 +43,8 @@ QtObject {
   readonly property var devices: FacadeModel.devices(state.devices)
   readonly property var folders: FacadeModel.folders(state.folders)
   readonly property var pendingFolders: state.pendingFolders || ({})
+  readonly property var pendingDevices: state.pendingDevices || []
+  readonly property var nearbyDevices: state.nearbyDevices || []
   readonly property var folderStatuses:
     FacadeModel.folderStatuses(state.folders)
   readonly property var syncingFiles: FacadeModel.syncingFiles(activity)
@@ -397,6 +399,65 @@ QtObject {
       ? "Remote devices may have to accept the folder."
       : "Added " + (label || folderId) + " locally. It is linked but not "
         + "shared with another device.")
+  }
+
+  function setFolderSharing(folderId, selectedDeviceIds) {
+    var shared = selectedDeviceIds || []
+    var folder = configuredFolder(folderId)
+    var previous = []
+    var members = folder && folder.devices ? folder.devices : []
+    for (var i = 0; i < members.length; i++) {
+      var memberId = String((members[i] || {}).deviceID || "")
+      if (memberId && memberId !== localDeviceId) previous.push(memberId)
+    }
+    var names = []
+    for (var j = 0; j < shared.length; j++) {
+      var name = ""
+      for (var k = 0; k < devices.length; k++) {
+        if (String(devices[k].deviceID || "") === String(shared[j])) {
+          name = String(devices[k].name || "")
+          break
+        }
+      }
+      names.push(name || "Device " + String(shared[j]).slice(0, 7))
+    }
+    var notice = "Folder sharing removed. The local folder remains configured."
+    if (shared.length > 0 && previous.length === 0) {
+      notice = folderLabel(folderId) + " shared with " + names.join(", ")
+        + "; waiting for " + names.join(", ") + " to accept."
+    } else if (shared.length > 0) {
+      notice = "Sharing with " + names.join(", ") + " updated."
+    }
+    return runFolderAction("folder.set-sharing", "share", folderId, {
+      folderId: folderId,
+      deviceIds: shared
+    }, notice)
+  }
+
+  function addDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runFolderAction("device.add", "device-add", deviceId, {
+      deviceId: deviceId,
+      deviceName: name
+    }, label + " added. Add this device on " + label
+      + " to complete connection.")
+  }
+
+  function dismissPendingDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || String(deviceId || "").slice(0, 7)
+    return runFolderAction("device.dismiss-pending", "device-dismiss",
+      deviceId, { deviceId: deviceId }, "Dismissed pending request from "
+        + label + ".")
+  }
+
+  function setDeviceFolders(deviceId, folderIds, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runFolderAction("device.set-folders", "device-folders",
+      deviceId, { deviceId: deviceId, folderIds: folderIds || [] },
+      "Existing folder shares updated for " + label + ".")
   }
 
   function requestFolderIdSuggestion() {
