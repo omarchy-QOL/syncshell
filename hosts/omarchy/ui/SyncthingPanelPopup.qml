@@ -70,8 +70,8 @@ KeyboardPanel {
             } else if (root.controller.forgetConfirmOpen) {
                 root.controller.forgetConfirmOpen = false;
                 root.controller.forgetFolderId = "";
-            } else if (root.controller.pendingDeviceDismissOpen) {
-                root.controller.cancelPendingDeviceDismiss();
+            } else if (root.controller.deviceConfirmOpen) {
+                root.controller.cancelDeviceAction();
             } else if (root.controller.addOpen)
                 root.controller.closeAddFolder();
             else
@@ -86,9 +86,12 @@ KeyboardPanel {
                 removalDialog.selectedChoice = (removalDialog.selectedChoice + (direction > 0 ? 1 : 2)) % 3;
             } else if (root.controller.settingsMenuOpen) {
                 root.controller.moveSettingsSelection(direction);
-            } else if (root.controller.pendingDeviceDismissOpen) {
-                pendingDeviceDismissDialog.selectedIndex =
-                    pendingDeviceDismissDialog.selectedIndex === 0 ? 1 : 0;
+            } else if (root.controller.forgetConfirmOpen) {
+                forgetDialog.selectedIndex =
+                    forgetDialog.selectedIndex === 0 ? 1 : 0;
+            } else if (root.controller.deviceConfirmOpen) {
+                deviceConfirmDialog.selectedIndex =
+                    deviceConfirmDialog.selectedIndex === 0 ? 1 : 0;
             } else
                 root.controller.switchPanel(direction);
         }
@@ -103,10 +106,10 @@ KeyboardPanel {
                 root.controller.moveSettingsSelection(dy);
             } else if (root.controller.forgetConfirmOpen && (dx !== 0 || dy !== 0)) {
                 forgetDialog.selectedIndex = forgetDialog.selectedIndex === 0 ? 1 : 0;
-            } else if (root.controller.pendingDeviceDismissOpen
+            } else if (root.controller.deviceConfirmOpen
                     && (dx !== 0 || dy !== 0)) {
-                pendingDeviceDismissDialog.selectedIndex =
-                    pendingDeviceDismissDialog.selectedIndex === 0 ? 1 : 0;
+                deviceConfirmDialog.selectedIndex =
+                    deviceConfirmDialog.selectedIndex === 0 ? 1 : 0;
             } else if (!root.controller.addOpen && dx !== 0) {
                 root.controller.cycleCurrentFolder(dx);
             }
@@ -121,16 +124,17 @@ KeyboardPanel {
             } else if (root.controller.settingsMenuOpen) {
                 root.controller.activateSettingsSelection();
             } else if (root.controller.forgetConfirmOpen) {
-                if (forgetDialog.selectedIndex === 0) {
+                if (forgetDialog.selectedIndex === 0)
+                    root.controller.confirmForget();
+                else {
                     root.controller.forgetConfirmOpen = false;
                     root.controller.forgetFolderId = "";
-                } else
-                    root.controller.confirmForget();
-            } else if (root.controller.pendingDeviceDismissOpen) {
-                if (pendingDeviceDismissDialog.selectedIndex === 0)
-                    root.controller.confirmPendingDeviceDismiss();
+                }
+            } else if (root.controller.deviceConfirmOpen) {
+                if (deviceConfirmDialog.selectedIndex === 0)
+                    root.controller.confirmDeviceAction();
                 else
-                    root.controller.cancelPendingDeviceDismiss();
+                    root.controller.cancelDeviceAction();
             }
         }
         onTextKey: function (text) {
@@ -156,7 +160,7 @@ KeyboardPanel {
             }
             if (root.controller.forgetConfirmOpen)
                 return;
-            if (root.controller.pendingDeviceDismissOpen)
+            if (root.controller.deviceConfirmOpen)
                 return;
             if (key === "r") {
                 rescanAllButton.activate();
@@ -473,11 +477,14 @@ KeyboardPanel {
         anchors.fill: parent
         opened: root.controller.forgetConfirmOpen
         z: 10
+        confirmFirst: true
+        equalWidthActions: true
         message: {
             var folder = root.controller.currentFolderRow;
             return folder ? "Forget " + folder.label + " (" + folder.id + ")?\n\n" + "This removes only its Syncthing configuration. The " + "directory and data files will not be deleted. " + (folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal " + ".stfolder marker. " : "") + "Rejoining the same remote folder requires this exact Folder ID." : "Forget this unlinked folder?";
         }
-        confirmText: "Forget"
+        confirmText: "Yes"
+        cancelText: "No"
         background: Color.popups.background
         foreground: Color.popups.text
         selectedText: root.controller.urgent
@@ -490,25 +497,29 @@ KeyboardPanel {
     }
 
     CompactConfirmDialog {
-        id: pendingDeviceDismissDialog
+        id: deviceConfirmDialog
         parent: keyCatcher
         anchors.fill: parent
-        opened: root.controller.pendingDeviceDismissOpen
+        opened: root.controller.deviceConfirmOpen
         z: 10
-        compact: true
         confirmFirst: true
         equalWidthActions: true
-        selectedIndex: 1
-        message: "Abort pending request from "
-            + root.controller.pendingDeviceDismissName + "?"
+        message: root.controller.deviceConfirmAction === "dismiss"
+            ? "Dismiss pending request from "
+                + root.controller.deviceConfirmName + "?\n\n"
+                + "It can reappear if the device connects again."
+            : "Remove " + root.controller.deviceConfirmName
+                + " from this device?\n\nFolder sharing with it will be "
+                + "removed locally. Local folders and files remain. The "
+                + "other device is unchanged."
         confirmText: "Yes"
         cancelText: "No"
         background: Color.popups.background
         foreground: Color.popups.text
         selectedText: root.controller.urgent
         fontFamily: root.controller.fontFamily
-        onCanceled: root.controller.cancelPendingDeviceDismiss()
-        onConfirmed: root.controller.confirmPendingDeviceDismiss()
+        onCanceled: root.controller.cancelDeviceAction()
+        onConfirmed: root.controller.confirmDeviceAction()
     }
 
     SelfRemovalDialog {

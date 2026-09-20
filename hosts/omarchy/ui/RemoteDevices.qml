@@ -195,17 +195,18 @@ Column {
       }
     }
 
-    BusyButton {
-      iconText: "\uf013"
+    TooltipButton {
+      iconText: "\uf00d"
       Layout.preferredWidth: Style.spacing.controlHeight
       Layout.preferredHeight: Style.spacing.controlHeight
-      tooltipText: "Device settings\nTo be added soon."
-      canActivate: false
+      helpText: "Remove selected device"
+      enabled: root.selectedDevice && root.syncthing
+        && root.syncthing.online && !root.syncthing.folderMutationBusy
       bordered: true
-      foreground: root.foreground
-      disabledForeground: root.dim
+      foreground: root.urgent
       fontFamily: root.fontFamily
       iconSize: Style.font.icon
+      onClicked: root.controller.requestDeviceRemoval(root.selectedDevice)
     }
   }
 
@@ -213,9 +214,7 @@ Column {
     visible: root.selectedDevice && root.selectedDevice.folderIds.length === 0
       && !root.foldersOpen
     width: parent.width
-    text: root.selectedDevice
-      ? "No folders are shared with " + root.selectedDevice.name
-        + ". Select a folder above and use Share Folder." : ""
+    text: "No folders are shared. Use the \uf1e0-button to share a folder."
     textFormat: Text.PlainText
     color: root.warning
     font.family: root.fontFamily

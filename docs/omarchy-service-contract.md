@@ -173,6 +173,7 @@ not inferred.
   membership.
 - `addDevice(id, name)` configures one remote device from Syncthing's current
   default device template.
+- `removeDevice(id, name)` removes one device from the local configuration.
 - `dismissPendingDevice(id, name)` dismisses one incoming device request.
 - `removeDeviceFolderShares(id, folders, name)` removes the specified existing
   folder shares from a device.

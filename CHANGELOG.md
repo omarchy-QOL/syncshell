@@ -6,8 +6,8 @@ Notable changes to Syncshell for Omarchy are documented here.
 
 - add remote-device discovery and setup to the Omarchy panel, including nearby
   and pending devices
-- add folder-sharing controls for new and existing folders and safe removal of
-  selected device shares
+- add folder-sharing controls for new and existing folders and safe local
+  removal of configured devices and folder shares
 - report only remote devices in connection totals and use Syncthing's Device ID
   terminology
 - refine panel dropdowns, status indicators, action placement, and installation

@@ -465,6 +465,13 @@ QtObject {
         + label + ".")
   }
 
+  function removeDevice(deviceId, name) {
+    var label = String(name || "").trim()
+      || "Device " + String(deviceId || "").slice(0, 7)
+    return runFolderAction("device.remove", "device-remove", deviceId,
+      { deviceId: deviceId }, label + " removed from this device.")
+  }
+
   function removeDeviceFolderShares(deviceId, folderIds, name) {
     var label = String(name || "").trim()
       || "Device " + String(deviceId || "").slice(0, 7)

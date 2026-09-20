@@ -12,7 +12,6 @@ Item {
   property int selectedIndex: 1
   property bool confirmFirst: false
   property bool equalWidthActions: false
-  property bool compact: false
   property color background: Color.background
   property color foreground: Color.foreground
   property color scrim: Util.alpha(background, 0.7)
@@ -24,6 +23,7 @@ Item {
   signal confirmed()
 
   visible: opened
+  onOpenedChanged: if (opened) selectedIndex = confirmFirst ? 1 : 0
 
   Rectangle {
     anchors.fill: parent
@@ -37,7 +37,7 @@ Item {
     BorderSurface {
       id: card
       width: Math.min(parent.width - Style.space(12),
-        Style.space(root.compact ? 280 : 390))
+        Style.space(390))
       height: card.contentTopInset + card.contentBottomInset
         + messageText.implicitHeight + Style.space(12)
         + Style.spacing.controlHeight

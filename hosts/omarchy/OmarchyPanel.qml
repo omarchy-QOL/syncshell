@@ -43,9 +43,10 @@ Panel {
   property string selectedPendingOffer: ""
   property string forgetFolderId: ""
   property bool forgetConfirmOpen: false
-  property bool pendingDeviceDismissOpen: false
-  property string pendingDeviceDismissId: ""
-  property string pendingDeviceDismissName: ""
+  property string deviceConfirmAction: ""
+  property string deviceConfirmId: ""
+  property string deviceConfirmName: ""
+  readonly property bool deviceConfirmOpen: deviceConfirmAction !== ""
   property string folderPickerOutput: ""
   property string folderPickerError: ""
   property string displayedNotice: ""
@@ -314,24 +315,34 @@ Panel {
 
   function requestPendingDeviceDismiss(device) {
     if (!device || !syncthing || syncthing.folderMutationBusy) return
-    pendingDeviceDismissId = String(device.id || "")
-    pendingDeviceDismissName = String(device.name || "")
+    deviceConfirmId = String(device.id || "")
+    deviceConfirmName = String(device.name || "")
       || PanelModel.shortDeviceId(device.id)
-    pendingDeviceDismissOpen = true
+    deviceConfirmAction = "dismiss"
   }
 
-  function confirmPendingDeviceDismiss() {
-    pendingDeviceDismissOpen = false
-    if (syncthing) syncthing.dismissPendingDevice(
-      pendingDeviceDismissId, pendingDeviceDismissName)
-    pendingDeviceDismissId = ""
-    pendingDeviceDismissName = ""
+  function requestDeviceRemoval(device) {
+    if (!device || !syncthing || syncthing.folderMutationBusy) return
+    deviceConfirmId = String(device.id || "")
+    deviceConfirmName = String(device.name || "")
+      || PanelModel.shortDeviceId(device.id)
+    deviceConfirmAction = "remove"
   }
 
-  function cancelPendingDeviceDismiss() {
-    pendingDeviceDismissOpen = false
-    pendingDeviceDismissId = ""
-    pendingDeviceDismissName = ""
+  function confirmDeviceAction() {
+    var action = deviceConfirmAction
+    var id = deviceConfirmId
+    var name = deviceConfirmName
+    cancelDeviceAction()
+    if (!syncthing) return
+    if (action === "dismiss") syncthing.dismissPendingDevice(id, name)
+    else if (action === "remove") syncthing.removeDevice(id, name)
+  }
+
+  function cancelDeviceAction() {
+    deviceConfirmAction = ""
+    deviceConfirmId = ""
+    deviceConfirmName = ""
   }
 
   function pendingOfferOptions() {
@@ -407,9 +418,7 @@ Panel {
     addSubmissionPending = false
     forgetFolderId = ""
     forgetConfirmOpen = false
-    pendingDeviceDismissOpen = false
-    pendingDeviceDismissId = ""
-    pendingDeviceDismissName = ""
+    cancelDeviceAction()
     folderPickerError = ""
     popup.closeTransientPopups()
   }
