@@ -93,15 +93,15 @@ Column {
       anchors.rightMargin: hero.trailingInset
       anchors.bottom: hero.bottom
       height: Math.max(deviceNameText.implicitHeight,
-        copyHostIdButton.height)
+        copyDeviceIdButton.height)
 
       Text {
         id: deviceNameText
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         width: Math.min(implicitWidth, Math.max(0,
-          deviceMetaRow.width - (copyHostIdButton.visible
-            ? copyHostIdButton.width + Style.space(4) : 0)))
+          deviceMetaRow.width - (copyDeviceIdButton.visible
+            ? copyDeviceIdButton.width + Style.space(4) : 0)))
         text: root.controller.localDeviceName.toUpperCase()
         textFormat: Text.PlainText
         color: Qt.darker(root.foreground, 1.4)
@@ -113,16 +113,16 @@ Column {
       }
 
       IdCopyButton {
-        id: copyHostIdButton
+        id: copyDeviceIdButton
         anchors.left: deviceNameText.right
         anchors.leftMargin: Style.space(4)
         anchors.verticalCenter: parent.verticalCenter
         visible: root.syncthing && root.syncthing.displayDeviceId !== ""
         height: Math.round(deviceNameText.implicitHeight)
         value: root.syncthing ? root.syncthing.displayDeviceId : ""
-        notice: "Host ID copied"
-        text: "host ID"
-        helpText: "Copy host ID"
+        notice: "Device ID copied"
+        text: "device ID"
+        helpText: "Copy device ID"
         controller: root.controller
         foreground: root.foreground
         fontFamily: root.fontFamily
