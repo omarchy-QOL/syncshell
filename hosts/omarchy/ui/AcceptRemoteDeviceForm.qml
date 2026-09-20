@@ -28,7 +28,7 @@ BorderSurface {
   onVisibleChanged: if (visible) reset()
 
   width: parent ? parent.width : implicitWidth
-  implicitHeight: content.implicitHeight + Style.space(16)
+  implicitHeight: content.implicitHeight + Style.space(8)
   color: "transparent"
   borderSpec: Border.controlSpec("normal", foreground, Color.accent)
   radius: Style.cornerRadius
@@ -37,6 +37,7 @@ BorderSurface {
     id: content
     anchors.fill: parent
     anchors.margins: Style.space(8)
+    anchors.topMargin: 0
     spacing: Style.space(6)
 
     InlineFormHeader {

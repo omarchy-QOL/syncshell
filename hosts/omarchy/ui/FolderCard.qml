@@ -6,7 +6,6 @@ BorderSurface {
   id: root
 
   property var folder: ({})
-  property bool selected: false
   property bool online: false
   property bool mutationBusy: false
   property bool rescanning: false
@@ -20,9 +19,9 @@ BorderSurface {
   property color foreground: Color.foreground
   property color dim: Qt.darker(foreground, 1.5)
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
-  property color success: "#a3be8c"
-  property color syncColor: "#26B6DB"
+  required property color warning
+  required property color success
+  required property color syncColor
   property string fontFamily: Style.font.family
   property var controller
 
@@ -40,8 +39,7 @@ BorderSurface {
   implicitHeight: nameActions.implicitHeight + details.implicitHeight
     + Style.space(14)
   color: "transparent"
-  borderSpec: Border.controlSpec(
-    selected ? "focus" : "normal", cardBorderColor, Color.accent)
+  borderSpec: Border.controlSpec("normal", cardBorderColor, Color.accent)
   radius: Style.cornerRadius
 
   Row {
@@ -129,7 +127,6 @@ BorderSurface {
       dots: root.activityDots
       detail: root.activityDetail
       action: root.activityAction
-      foreground: root.foreground
       syncColor: root.syncColor
       removalColor: root.urgent
       uploadColor: root.success

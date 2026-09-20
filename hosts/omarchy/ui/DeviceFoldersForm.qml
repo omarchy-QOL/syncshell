@@ -12,7 +12,7 @@ BorderSurface {
   property var draftFolderIds: []
   property color foreground: Color.foreground
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
+  required property color warning
   property string fontFamily: Style.font.family
   readonly property bool popupOpen: folderPicker.popupOpen
 
@@ -51,7 +51,7 @@ BorderSurface {
   onVisibleChanged: if (visible) reset()
 
   width: parent ? parent.width : implicitWidth
-  implicitHeight: content.implicitHeight + Style.space(16)
+  implicitHeight: content.implicitHeight + Style.space(8)
   color: "transparent"
   borderSpec: Border.controlSpec("normal", foreground, Color.accent)
   radius: Style.cornerRadius
@@ -60,6 +60,7 @@ BorderSurface {
     id: content
     anchors.fill: parent
     anchors.margins: Style.space(8)
+    anchors.topMargin: 0
     spacing: Style.space(6)
 
     InlineFormHeader {
@@ -100,7 +101,7 @@ BorderSurface {
     Text {
       visible: root.folderOptions().length > 0
       width: parent.width
-      text: "  Use Share Folder to restore a removed share."
+      text: "  Use -button (share folder) to restore a folder."
       textFormat: Text.PlainText
       color: root.warning
       font.family: root.fontFamily

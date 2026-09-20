@@ -15,7 +15,7 @@ BorderSurface {
   property color foreground: Color.foreground
   property color dim: Qt.darker(foreground, 1.5)
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
+  required property color warning
   property string fontFamily: Style.font.family
   readonly property bool popupOpen: sourceSelector.popupOpen
 
@@ -44,7 +44,7 @@ BorderSurface {
   onVisibleChanged: if (visible) reset()
 
   width: parent ? parent.width : implicitWidth
-  implicitHeight: content.implicitHeight + Style.space(16)
+  implicitHeight: content.implicitHeight + Style.space(8)
   color: "transparent"
   borderSpec: Border.controlSpec("normal", foreground, Color.accent)
   radius: Style.cornerRadius
@@ -53,6 +53,7 @@ BorderSurface {
     id: content
     anchors.fill: parent
     anchors.margins: Style.space(8)
+    anchors.topMargin: 0
     spacing: Style.space(6)
 
     InlineFormHeader {
@@ -98,8 +99,7 @@ BorderSurface {
     Text {
       visible: root.controller.nearbyDeviceOptions().length === 1
       width: parent.width
-      text: "No nearby devices found. Paste the Device ID shown on the "
-        + "other device."
+      text: "  No nearby device found. Use the device ID."
       textFormat: Text.PlainText
       color: root.warning
       font.family: root.fontFamily

@@ -10,9 +10,9 @@ Column {
   property color foreground: Color.foreground
   property color dim: Qt.darker(foreground, 1.5)
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
-  property color success: "#a3be8c"
-  property color syncColor: "#26B6DB"
+  required property color warning
+  required property color success
+  required property color syncColor
   property string fontFamily: Style.font.family
 
   width: parent ? parent.width : implicitWidth
@@ -42,8 +42,6 @@ Column {
         width: parent.width
         folder: modelData
         controller: root.controller
-        selected: String(modelData.id || "")
-          === root.controller.displayedFolderId
         online: root.syncthing ? root.syncthing.online : false
         mutationBusy: root.syncthing
           ? root.syncthing.folderMutationBusy : false

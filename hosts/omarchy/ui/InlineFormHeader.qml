@@ -15,7 +15,7 @@ RowLayout {
 
   signal canceled()
 
-  width: parent ? parent.width : implicitWidth
+  width: parent ? parent.width + Style.space(8) : implicitWidth
 
   PanelSectionHeader {
     Layout.fillWidth: true
@@ -29,9 +29,9 @@ RowLayout {
     bordered: true
     foreground: root.cancelColor
     fontFamily: root.fontFamily
-    fontSize: Style.font.caption
+    fontSize: Style.font.body
     horizontalPadding: Style.space(6)
-    verticalPadding: Style.space(4)
+    verticalPadding: Style.space(2)
     enabled: root.cancelEnabled
     onClicked: root.canceled()
   }

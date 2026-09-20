@@ -13,8 +13,7 @@ BorderSurface {
   property color foreground: Color.foreground
   property color dim: Qt.darker(foreground, 1.5)
   property color urgent: Color.urgent
-  property color warning: "#ebcb8b"
-  property color success: "#a3be8c"
+  required property color warning
   property string fontFamily: Style.font.family
   property alias pathText: addPathField.text
   property alias labelText: addLabelField.text
@@ -40,7 +39,7 @@ BorderSurface {
   }
 
   width: parent ? parent.width : implicitWidth
-  implicitHeight: addColumn.implicitHeight + Style.space(16)
+  implicitHeight: addColumn.implicitHeight + Style.space(8)
   color: "transparent"
   borderSpec: Border.controlSpec("normal", foreground, Color.accent)
   radius: Style.cornerRadius
@@ -57,6 +56,7 @@ BorderSurface {
     anchors.right: parent.right
     anchors.top: parent.top
     anchors.margins: Style.space(8)
+    anchors.topMargin: 0
     spacing: Style.space(6)
 
     InlineFormHeader {
@@ -118,6 +118,7 @@ BorderSurface {
 
       TooltipButton {
         text: "BROWSE"
+        Layout.preferredHeight: addPathField.implicitHeight
         helpText: "Choose an existing local directory"
         bordered: true
         foreground: root.foreground
@@ -174,6 +175,7 @@ BorderSurface {
 
       TooltipButton {
         text: "NEW ID"
+        Layout.preferredHeight: addIdField.implicitHeight
         helpText: "Generate a new Syncthing folder ID"
         bordered: true
         foreground: root.foreground
