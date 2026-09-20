@@ -30,8 +30,7 @@ QtObject {
   signal actionFinished(string id, bool ok, var data, var error)
 
   function startupArguments() {
-    var args = ["--host-id", "standalone",
-      "--probe-interval-seconds", String(probeIntervalSeconds),
+    var args = ["--probe-interval-seconds", String(probeIntervalSeconds),
       "--desired-service-state", desiredServiceState]
     if (configPath) args.push("--config", configPath)
     if (endpoint) args.push("--endpoint", endpoint)
@@ -94,7 +93,7 @@ QtObject {
   property CoreProcess core: CoreProcess {
     pluginRoot: root.pluginRoot
     startupArguments: root.startupArguments()
-    onResultReceived: function(id, ok, revision, data, error) {
+    onResultReceived: function(id, ok, data, error) {
       root.actionFinished(id, ok, data, error)
     }
   }

@@ -258,7 +258,9 @@ type coreStream struct {
 }
 
 func (a *launcherAccount) core(environment ...string) (*coreStream, error) {
-	cmd := a.cmd(environment, "syncshell-core", "stream", "--host-id", "omarchy", "--lifecycle-kind", "systemd-user", "--lifecycle-authorized", "--lifecycle-unit", "syncthing.service")
+	cmd := a.cmd(environment, "syncshell-core", "stream", "--desktop-authorized",
+		"--lifecycle-kind", "systemd-user", "--lifecycle-authorized",
+		"--lifecycle-unit", "syncthing.service")
 	s := &coreStream{cmd: cmd, frames: make(chan coreFrame, 256)}
 	var err error
 	s.input, err = cmd.StdinPipe()
@@ -318,7 +320,7 @@ func (s *coreStream) await(ctx context.Context, predicate func(coreFrame) bool) 
 }
 
 func (s *coreStream) action(ctx context.Context, id, action string, args any, wantOK bool) error {
-	if err := json.NewEncoder(s.input).Encode(map[string]any{"v": 1, "type": "action", "id": id, "action": action, "args": args}); err != nil {
+	if err := json.NewEncoder(s.input).Encode(map[string]any{"v": 2, "type": "action", "id": id, "action": action, "args": args}); err != nil {
 		return err
 	}
 	frame, err := s.await(ctx, func(f coreFrame) bool { return f.Type == "result" && f.ID == id })

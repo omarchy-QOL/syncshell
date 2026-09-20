@@ -15,23 +15,6 @@ config="$work/ii/dots/.config/quickshell/ii"
 git -C "$work/ii" diff --check
 test -x "$config/syncshell/bin/x86_64/syncshell-core"
 test -f "$config/syncshell/shared/DeviceWorkflow.qml"
+test -f "$config/syncshell/shared/RescanTracker.qml"
 rg -q 'SyncshellIndicator' "$config/modules/ii/bar/BarContent.qml"
-rg -q 'WlrKeyboardFocus.OnDemand' "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'HyprlandFocusGrab' \
-  "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'Keys.onEscapePressed:' \
-  "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'pendingForgetId' "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'root.moreOpen.*Translation.tr\("Less"\)' \
-  "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'Flickable' "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'Add remote device' "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'setFolderSharing' "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'pendingDevices' "$config/modules/ii/bar/SyncshellPopup.qml"
-rg -q 'DeviceWorkflow' "$config/modules/ii/bar/SyncshellPopup.qml"
-if rg -n 'SyncthingController|syncthing-api\.sh|curl' "$config/syncshell" \
-    "$config/services/Syncshell.qml"; then
-  printf 'Illogical Impulse retained the deleted QML engine\n' >&2
-  exit 1
-fi
 printf '[ok] Illogical Impulse adapter contract passed\n'

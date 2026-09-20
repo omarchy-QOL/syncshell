@@ -68,8 +68,10 @@ func TestClientHealthStatusFoldersAndRescan(t *testing.T) {
 	if err != nil || len(folders) != 1 || folders[0].ID != "folder" {
 		t.Fatalf("unexpected folders: %#v %v", folders, err)
 	}
-	if err := client.Rescan(ctx, "folder"); err != nil {
+	if disposition, err := client.Rescan(ctx, "folder"); err != nil {
 		t.Fatal(err)
+	} else if disposition != RescanCompleted {
+		t.Fatalf("rescan disposition = %q, want %q", disposition, RescanCompleted)
 	}
 	if rescans.Load() != 1 {
 		t.Fatalf("got %d rescans, want 1", rescans.Load())
@@ -113,10 +115,13 @@ func TestRescanConfirmsLongRunningScanAfterTimeout(t *testing.T) {
 
 			client := testClient(t, server.URL, "", false)
 			client.http.Timeout = 50 * time.Millisecond
-			err := client.Rescan(context.Background(), test.folderID)
+			disposition, err := client.Rescan(context.Background(), test.folderID)
 			if test.wantOK {
 				if err != nil {
 					t.Fatalf("confirmed rescan failed: %v", err)
+				}
+				if disposition != RescanRunning {
+					t.Fatalf("rescan disposition = %q, want %q", disposition, RescanRunning)
 				}
 				return
 			}

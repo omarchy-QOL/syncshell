@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -62,6 +63,83 @@ func TestRefreshIsDeterministicAndRevisioned(t *testing.T) {
 	}
 	if third.Revision != first.Revision+1 || third.State.Folders[0].Status.GlobalFiles != 3 {
 		t.Fatalf("changed state did not advance revision: %#v", third)
+	}
+}
+
+func TestCurrentReturnsIsolatedState(t *testing.T) {
+	populated := PublishedSnapshot{Revision: 7, State: Snapshot{
+		Connection: Connection{Error: &Error{Code: "old", Message: "old"}},
+		Devices:    []Device{{ID: "device", Name: "device"}},
+		Folders: []Folder{{ID: "folder", Label: "folder",
+			Devices: []FolderDevice{{ID: "device"}},
+			Status:  FolderStatus{Errors: []FolderError{{Path: "old", Error: "old"}}},
+		}},
+		PendingFolders: map[string]PendingFolder{
+			"folder": {OfferedBy: map[string]FolderOffer{
+				"device": {Label: "old"},
+			}},
+		},
+		PendingDevices: []PendingDevice{{ID: "pending", Name: "old"}},
+		NearbyDevices: []NearbyDevice{{ID: "nearby",
+			Addresses: []string{"tcp://old"}}},
+		Activity: ActivityState{
+			Files:   []Activity{{FolderID: "folder", Path: "old"}},
+			Current: &Activity{FolderID: "folder", Path: "old"},
+		},
+	}}
+	tests := []struct {
+		name   string
+		mutate func(*PublishedSnapshot)
+	}{
+		{"connection error", func(value *PublishedSnapshot) {
+			value.State.Connection.Error.Message = "changed"
+		}},
+		{"devices", func(value *PublishedSnapshot) {
+			value.State.Devices[0].Name = "changed"
+		}},
+		{"folders", func(value *PublishedSnapshot) {
+			value.State.Folders[0].Label = "changed"
+		}},
+		{"folder devices", func(value *PublishedSnapshot) {
+			value.State.Folders[0].Devices[0].ID = "changed"
+		}},
+		{"folder errors", func(value *PublishedSnapshot) {
+			value.State.Folders[0].Status.Errors[0].Path = "changed"
+		}},
+		{"pending folder map", func(value *PublishedSnapshot) {
+			value.State.PendingFolders["new"] = PendingFolder{}
+		}},
+		{"pending offer map", func(value *PublishedSnapshot) {
+			folder := value.State.PendingFolders["folder"]
+			folder.OfferedBy["device"] = FolderOffer{Label: "changed"}
+		}},
+		{"pending devices", func(value *PublishedSnapshot) {
+			value.State.PendingDevices[0].Name = "changed"
+		}},
+		{"nearby devices", func(value *PublishedSnapshot) {
+			value.State.NearbyDevices[0].ID = "changed"
+		}},
+		{"nearby addresses", func(value *PublishedSnapshot) {
+			value.State.NearbyDevices[0].Addresses[0] = "changed"
+		}},
+		{"activity files", func(value *PublishedSnapshot) {
+			value.State.Activity.Files[0].Path = "changed"
+		}},
+		{"current activity", func(value *PublishedSnapshot) {
+			value.State.Activity.Current.Path = "changed"
+		}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			coreSession := &Session{current: populated}
+			before := coreSession.Current()
+			copy := coreSession.Current()
+			test.mutate(&copy)
+			if after := coreSession.Current(); !reflect.DeepEqual(after, before) {
+				t.Fatalf("Current shared mutable state:\nbefore=%#v\nafter=%#v",
+					before, after)
+			}
+		})
 	}
 }
 
@@ -124,7 +202,7 @@ printf '%s\n' 'LoadState=loaded' 'ActiveState=inactive' \
 		if state.CanControl || state.CanStart || state.TargetMatch {
 			t.Fatalf("Flatpak gained native service authority: %#v", state)
 		}
-		result := coreSession.Act(context.Background(), "lifecycle.start", ActionArguments{}, "test", nil)
+		result := coreSession.Act(context.Background(), "lifecycle.start", ActionArguments{})
 		if result.OK {
 			t.Fatal("Flatpak started the unrelated native service")
 		}
@@ -179,9 +257,9 @@ func TestUnauthorizedResponseIsSanitized(t *testing.T) {
 	}
 	api.unauthorized.Store(true)
 	result := coreSession.Act(context.Background(), "folder.rescan",
-		ActionArguments{FolderID: "folder"}, "unauthorized", nil)
+		ActionArguments{FolderID: "folder"})
 	if result.OK || result.Error == nil || result.Error.Code != "unauthorized" ||
-		api.rescans.Load() != 0 || coreSession.Current().State.Mutation.Busy {
+		api.rescans.Load() != 0 {
 		t.Fatalf("unauthorized action was not rejected cleanly: %#v", result)
 	}
 	published, err := coreSession.Refresh(context.Background())
@@ -197,7 +275,7 @@ func TestUnauthorizedResponseIsSanitized(t *testing.T) {
 		t.Fatal(err)
 	}
 	result = coreSession.Act(context.Background(), "folder.rescan",
-		ActionArguments{FolderID: "folder"}, "recovered", nil)
+		ActionArguments{FolderID: "folder"})
 	if !result.OK || api.rescans.Load() != 1 {
 		t.Fatalf("restored authorization did not recover: %#v", result)
 	}
@@ -210,7 +288,7 @@ func TestRescanIsValidatedAndSerialized(t *testing.T) {
 		t.Fatal(err)
 	}
 	if result := coreSession.Act(context.Background(), "folder.rescan",
-		ActionArguments{FolderID: "missing"}, "missing", nil); result.OK ||
+		ActionArguments{FolderID: "missing"}); result.OK ||
 		result.Error == nil || result.Error.Code != "folder_missing" {
 		t.Fatalf("missing folder result: %#v", result)
 	}
@@ -222,7 +300,7 @@ func TestRescanIsValidatedAndSerialized(t *testing.T) {
 		go func() {
 			defer wait.Done()
 			results <- coreSession.Act(context.Background(), "folder.rescan",
-				ActionArguments{FolderID: "folder"}, "concurrent", nil)
+				ActionArguments{FolderID: "folder"})
 		}()
 	}
 	wait.Wait()

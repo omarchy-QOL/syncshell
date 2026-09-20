@@ -199,7 +199,7 @@ done
 jq -e 'has("parity")' <<<"$pending" >/dev/null
 
 mkfifo "$fifo"
-"$SYNCSHELL_CORE_PATH" stream --host-id standalone \
+"$SYNCSHELL_CORE_PATH" stream \
   --config "$home_a/config.xml" --probe-interval-seconds 2 \
   <"$fifo" >"$stream" 2>"$test_root/core.stderr" &
 core_pid=$!
@@ -207,10 +207,10 @@ exec 9>"$fifo"
 wait_snapshot '.state.connection.online == true and
   (.state.pendingFolders | has("parity"))'
 
-send_json '{"v":1,"type":"configure","id":"1","config":{"probeIntervalSeconds":1,"desiredServiceState":"disabled"}}'
+send_json '{"v":2,"type":"configure","id":"1","config":{"probeIntervalSeconds":1,"desiredServiceState":"disabled"}}'
 wait_result 1 true
 add_request=$(jq -cn --arg path "$folder_a" --arg peer "$id_b" '
-  {v:1,type:"action",id:"2",action:"folder.add-existing",
+  {v:2,type:"action",id:"2",action:"folder.add-existing",
     args:{folderId:"parity",path:$path,label:"Native parity",
       deviceIds:[$peer],pendingDeviceId:$peer}}')
 send_json "$add_request"
@@ -222,16 +222,16 @@ wait_file_hash "$folder_a/from-b.txt" "$hash_b" 30
 
 printf '%s\n' 'from a to b' >"$folder_a/from-a.txt"
 hash_a=$(sha256sum "$folder_a/from-a.txt" | awk '{print $1}')
-send_json '{"v":1,"type":"action","id":"3","action":"folder.rescan","args":{"folderId":"parity"}}'
+send_json '{"v":2,"type":"action","id":"3","action":"folder.rescan","args":{"folderId":"parity"}}'
 wait_result 3 true
 wait_file_hash "$folder_b/from-a.txt" "$hash_a" 30
 
-send_json '{"v":1,"type":"action","id":"4","action":"folder.pause","args":{"folderId":"parity"}}'
+send_json '{"v":2,"type":"action","id":"4","action":"folder.pause","args":{"folderId":"parity"}}'
 wait_result 4 true
 printf '%s\n' 'blocked while paused' >"$folder_b/blocked.txt"
 sleep 3
 test ! -e "$folder_a/blocked.txt"
-send_json '{"v":1,"type":"action","id":"5","action":"folder.resume","args":{"folderId":"parity"}}'
+send_json '{"v":2,"type":"action","id":"5","action":"folder.resume","args":{"folderId":"parity"}}'
 wait_result 5 true
 blocked_hash=$(sha256sum "$folder_b/blocked.txt" | awk '{print $1}')
 wait_file_hash "$folder_a/blocked.txt" "$blocked_hash" 30
@@ -262,17 +262,17 @@ wait_snapshot ".revision > $recovery_revision and
   .state.connection.online == true and
   .state.connection.fresh == true" 20
 
-send_json '{"v":1,"type":"action","id":"6","action":"folder.rescan-all","args":{}}'
+send_json '{"v":2,"type":"action","id":"6","action":"folder.rescan-all","args":{}}'
 wait_result 6 true
-send_json '{"v":1,"type":"action","id":"7","action":"folder.suggest-id","args":{}}'
+send_json '{"v":2,"type":"action","id":"7","action":"folder.suggest-id","args":{}}'
 wait_result 7 true
-send_json '{"v":1,"type":"action","id":"8","action":"webui.set-theme","args":{"theme":"default"}}'
+send_json '{"v":2,"type":"action","id":"8","action":"webui.set-theme","args":{"theme":"default"}}'
 wait_result 8 true
 
-send_json '{"v":1,"type":"action","id":"9","action":"folder.pause","args":{"folderId":"parity"}}'
+send_json '{"v":2,"type":"action","id":"9","action":"folder.pause","args":{"folderId":"parity"}}'
 wait_result 9 true
 retained_hash=$(sha256sum "$folder_a/renamed.txt" | awk '{print $1}')
-send_json '{"v":1,"type":"action","id":"10","action":"folder.forget","args":{"folderId":"parity"}}'
+send_json '{"v":2,"type":"action","id":"10","action":"folder.forget","args":{"folderId":"parity"}}'
 wait_result 10 true
 wait_file_hash "$folder_a/renamed.txt" "$retained_hash" 5
 for _ in $(seq 1 100); do
@@ -285,7 +285,7 @@ if syncthing cli --home="$home_a" config folders list | grep -qx parity; then
   exit 1
 fi
 
-send_json '{"v":1,"type":"shutdown","id":"11"}'
+send_json '{"v":2,"type":"shutdown","id":"11"}'
 wait_result 11 true
 exec 9>&-
 wait "$core_pid"

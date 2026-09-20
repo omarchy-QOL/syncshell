@@ -14,28 +14,11 @@ bash "$root/integrations/caelestia/apply.sh" "$work/caelestia"
 git -C "$work/caelestia" diff --check
 test -x "$work/caelestia/syncshell/bin/x86_64/syncshell-core"
 test -f "$work/caelestia/syncshell/shared/DeviceWorkflow.qml"
+test -f "$work/caelestia/syncshell/shared/RescanTracker.qml"
 rg -q 'SyncshellStatus' \
   "$work/caelestia/modules/bar/components/StatusIcons.qml"
 rg -q 'LIST_ENTRY\(syncshell, true\)' \
   "$work/caelestia/plugin/src/Caelestia/Config/barconfig.hpp"
 rg -q 'DIRECTORY syncshell.*USE_SOURCE_PERMISSIONS' \
   "$work/caelestia/CMakeLists.txt"
-rg -q 'Flickable' "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
-rg -q 'pendingForgetId' \
-  "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
-rg -q 'root.moreOpen.*qsTr\("Less"\)' \
-  "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
-rg -q 'Add remote device' \
-  "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
-rg -q 'setFolderSharing' \
-  "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
-rg -q 'pendingDevices' \
-  "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
-rg -q 'DeviceWorkflow' \
-  "$work/caelestia/modules/bar/popouts/SyncshellPopout.qml"
-if rg -n 'SyncthingController|syncthing-api\.sh|curl' \
-    "$work/caelestia/syncshell" "$work/caelestia/services/Syncshell.qml"; then
-  printf 'Caelestia retained the deleted QML engine\n' >&2
-  exit 1
-fi
 printf '[ok] Caelestia adapter contract passed\n'

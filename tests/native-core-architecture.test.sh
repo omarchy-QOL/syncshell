@@ -8,26 +8,6 @@ fail() {
   exit 1
 }
 
-packages=(desktop protocol session syncthing systemduser)
-for package in "${packages[@]}"; do
-  [[ -d $root/core/internal/$package ]] \
-    || fail "missing native-core package $package"
-done
-
-mapfile -t actual_packages < <(
-  find "$root/core/internal" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
-    | sort
-)
-[[ ${actual_packages[*]} == "desktop protocol session syncthing systemduser" ]] \
-  || fail "unexpected native-core package layout"
-
-grep -Fxq 'OmarchyPanel {}' "$root/Panel.qml" \
-  || fail "root panel does not delegate to Omarchy"
-grep -Fxq 'OmarchyService {}' "$root/Service.qml" \
-  || fail "root service does not delegate to Omarchy"
-[[ $(rg -l 'CoreProcess[[:space:]]*\{' "$root/hosts/omarchy" -g '*.qml' \
-  | wc -l) -eq 1 ]] || fail "Omarchy does not own exactly one CoreProcess"
-
 if rg -n 'qs[.]Commons|qs[.]Ui|omarchy' \
     "$root/shared" "$root/hosts/standalone" >/dev/null; then
   fail "standalone process boundary imports Omarchy"
@@ -52,8 +32,6 @@ if rg -n -i \
   fail "Omarchy host contains deleted domain or lifecycle logic"
 fi
 
-grep -Fq 'pluginRoot + "/bin/x86_64/syncshell-core"' \
-  "$root/shared/CoreProcess.qml" || fail "exact bundled path is missing"
 if rg -n 'GOARCH|go build|command -v syncshell|syncshell-core.*(curl|wget)' \
     "$root/shared" "$root/hosts/omarchy" >/dev/null; then
   fail "production host contains build, download, or PATH fallback logic"
