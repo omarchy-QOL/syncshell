@@ -300,9 +300,10 @@ Syncshell does not restart it automatically.
 ## Remove
 
 Select **Cleanly remove Syncthing plugin** in settings. You can keep or delete
-plugin settings; both choices remove the custom Web UI profiles and restore
-Syncthing's default UI. Syncthing itself, its configuration and synced files
-remain intact.
+plugin settings. When Syncthing is reachable, both choices restore its default
+UI and remove the custom Web UI profiles. Otherwise those profiles are retained
+so removal never guesses their location. Syncthing itself, its configuration
+and synced files remain intact.
 
 To uninstall Syncthing separately:
 

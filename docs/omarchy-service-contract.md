@@ -185,8 +185,8 @@ not inferred.
 - `manualPortSettings()` opens the user file and temporary reference template.
 - `cancelSettingsMigration()` dismisses without writing; a warning remains.
 - `clearSettingsNotice()` clears the host settings notice.
-- `requestSelfRemoval(deleteSettings)` starts native removal after theme
-  restoration.
+- `requestSelfRemoval(deleteSettings)` starts native removal, restoring the
+  default Web UI first when Syncthing is reachable.
 
 Mutation methods and drift selection return whether work was accepted. Other
 methods are asynchronous fire-and-observe calls through the properties above.
