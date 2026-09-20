@@ -266,9 +266,11 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
-| 0.1.9   | TBD        | add remote-device setup and folder-sharing controls     |
+| 0.1.9   | 2026-09-21 | add remote-device setup and folder-sharing controls     |
+|         |            | confirm directory creation and folder/device removal    |
 |         |            | fix remote counts and keep rescan controls consistent   |
 |         |            | refine dropdowns, status, and installation feedback     |
+|         |            | allow plugin removal while Syncthing is unavailable     |
 | Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
 | 0.1.8   | 2026-09-13 | use one native core for the Omarchy panel               |
 |         |            | support healthy externally managed Syncthing instances  |

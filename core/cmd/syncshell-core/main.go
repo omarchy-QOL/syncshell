@@ -16,7 +16,7 @@ import (
 	"github.com/omarchy-QOL/syncshell/core/internal/systemduser"
 )
 
-var buildVersion = "0.1.8"
+var buildVersion = "0.1.9"
 
 type options struct {
 	session.Config

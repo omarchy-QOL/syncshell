@@ -2,7 +2,7 @@
   "id": "syncshell",
   "name": "Syncshell",
   "description": "Monitor Syncthing and safely manage synchronized folders",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "author": "ilyaZar",
   "type": "composite",
   "capabilities": ["daemon", "dankbar-widget", "monitoring"],

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.ilyazar.syncthing",
   "name": "Syncthing",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "author": "ilyaZar",
   "license": "MIT AND MPL-2.0 AND OFL-1.1 AND BSD-3-Clause",
   "description": "A Syncthing plugin with a bundled native core for monitoring file activity, safely managing folders, controlling the user service, and following the Omarchy theme.",

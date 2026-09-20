@@ -56,7 +56,7 @@ chmod 600 -- "$config"
 frames=$("$binary" stream --config "$config" \
   </dev/null 2>/dev/null || true)
 hello=$(sed -n '1p' <<<"$frames")
-jq -e '.v == 2 and .type == "hello" and .build.version == "0.1.8"' \
+jq -e '.v == 2 and .type == "hello" and .build.version == "0.1.9"' \
   <<<"$hello" >/dev/null \
   || fail "runtime version or protocol is unexpected"
 
