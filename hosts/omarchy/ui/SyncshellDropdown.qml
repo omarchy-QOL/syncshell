@@ -252,7 +252,7 @@ Item {
                         if (root.headerAccessoryOpen) {
                             root.closeHeaderAccessory();
                             optionList.forceActiveFocus();
-                        } else if (editing) {
+                        } else if (editing || searchField.text !== "") {
                             searchField.text = "";
                             optionList.forceActiveFocus();
                         } else
