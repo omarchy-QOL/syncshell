@@ -26,6 +26,9 @@ the Omarchy bar, manages local folders and opens a redesigned Web UI. Version
 - select **Web UI** for advanced Syncthing options
 - select the gear or press `s` for appearance settings and clean removal
 
+One or two folders appear as cards; larger collections use a searchable
+selector. Unshared and paused folders are included.
+
 ## Install
 
 ```bash
