@@ -14,9 +14,21 @@ Column {
   required property color success
   required property color syncColor
   property string fontFamily: Style.font.family
+  readonly property bool popupOpen: folderSelector.popupOpen
+
+  function closePopups() { folderSelector.close() }
 
   width: parent ? parent.width : implicitWidth
   spacing: Style.space(8)
+
+  FolderSelector {
+    id: folderSelector
+    visible: root.controller.compactFolders
+    width: parent.width
+    controller: root.controller
+    foreground: root.foreground
+    fontFamily: root.fontFamily
+  }
 
   Text {
     visible: root.controller.folderRows.length === 0

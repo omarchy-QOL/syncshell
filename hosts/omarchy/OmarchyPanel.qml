@@ -55,13 +55,9 @@ Panel {
   property bool noticeShown: false
   readonly property var folderRows: buildFolderRows()
   readonly property var currentFolderRow: folderById(currentFolderId)
-  readonly property bool compactFolders: folderRows.length >= 5
-  readonly property string displayedFolderId: compactFolders
-    && visibleSyncActivity !== "" && syncthing
-    && folderById(syncthing.syncActivityFolderId)
-    ? syncthing.syncActivityFolderId : currentFolderId
+  readonly property bool compactFolders: folderRows.length >= 3
   readonly property var visibleFolderRows: compactFolders
-    ? (folderById(displayedFolderId) ? [folderById(displayedFolderId)] : [])
+    ? (currentFolderRow ? [currentFolderRow] : [])
     : folderRows
   readonly property var pendingOfferRows: pendingOfferOptions()
   readonly property double trackedBytes: folderTotal("globalBytes")
@@ -277,7 +273,7 @@ Panel {
   }
 
   function ensureCurrentFolder() {
-    if (currentFolder()) return
+    if (folderById(currentFolderId)) return
     currentFolderId = folderRows.length > 0 ? folderRows[0].id : ""
   }
 
