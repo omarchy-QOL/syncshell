@@ -22,6 +22,7 @@ KeyboardPanel {
     }
 
     function closeTransientPopups() {
+        folderOverview.closePopups();
         moreDetails.closePopups();
     }
 
@@ -57,7 +58,8 @@ KeyboardPanel {
         id: keyCatcher
         anchors.fill: parent
         blocked: !root.controller.folderConfirmOpen
-            && (root.controller.addOpen || moreDetails.folderPopupOpen
+            && (root.controller.addOpen || folderOverview.popupOpen
+                || moreDetails.folderPopupOpen
                 || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen)
         onCloseRequested: {
             if (root.controller.settingsMigrationOpen) {
@@ -230,7 +232,7 @@ KeyboardPanel {
                 spacing: Style.space(8)
 
                 PanelSectionHeader {
-                    text: "FOLDERS"
+                    text: "FOLDERS (" + root.controller.folderRows.length + ")"
                     foreground: root.controller.foreground
                     fontFamily: root.controller.fontFamily
                 }

@@ -139,21 +139,26 @@ Column {
     width: parent.width
     spacing: Style.space(6)
 
-    SyncshellDropdown {
+    FolderSelector {
       id: folderSelector
       visible: root.controller.folderRows.length > 0
+        && !root.controller.compactFolders
       Layout.fillWidth: true
       Layout.preferredHeight: Style.spacing.controlHeight
-      showLabel: false
-      rowHeight: Style.spacing.controlHeight
-      value: root.controller.currentFolderId
-      options: root.controller.folderOptions()
+      controller: root.controller
       foreground: root.foreground
       fontFamily: root.fontFamily
-      onChanged: function(value) {
-        root.controller.currentFolderId = value
-        folderSelector.value = Qt.binding(function() { return root.controller.currentFolderId })
-      }
+    }
+
+    Text {
+      visible: root.controller.compactFolders
+      Layout.fillWidth: true
+      text: root.currentFolder ? root.currentFolder.label : ""
+      textFormat: Text.PlainText
+      color: root.foreground
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.body
+      elide: Text.ElideRight
     }
 
     TooltipButton {
