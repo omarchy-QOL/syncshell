@@ -14,14 +14,17 @@ import qs.Ui
 //
 // Keyboard: Tab to focus the trigger, Enter/Space opens, Esc closes,
 // j/k or Up/Down walks options inside the open popup, Enter selects.
-// A sibling SearchableDropdown reuses the same visuals but adds an
-// embedded filter input — keep the two separate so each stays simple.
 Item {
   id: root
 
   property string label: ""
   property string value: ""
   property var options: []
+  property bool searchable: false
+  readonly property var matchingOptions: searchable
+    ? options.filter(function(option) {
+        return matchesSearch(optionLabel(option), searchField.text)
+      }) : options
 
   property color foreground: Color.popups.text
   property color background: Color.popups.background
@@ -78,6 +81,18 @@ Item {
     return value
   }
 
+  function matchesSearch(label, query) {
+    var text = label.toLowerCase()
+    var needle = query.trim().toLowerCase()
+    var position = 0
+    for (var i = 0; i < needle.length; i++) {
+      position = text.indexOf(needle[i], position)
+      if (position < 0) return false
+      position++
+    }
+    return true
+  }
+
   implicitWidth: Style.spacing.dropdownWidth
   implicitHeight: showLabel && label !== "" ? rowHeight + Style.spacing.huge : rowHeight
 
@@ -115,7 +130,7 @@ Item {
         onHoveredChanged: root.hovered(hovered)
       }
       SyncshellToolTip {
-        visible: triggerHover.hovered && root.helpText !== ""
+        visible: triggerHover.hovered && !popup.opened && root.helpText !== ""
         text: root.helpText
         fontFamily: root.fontFamily
       }
@@ -191,7 +206,8 @@ Item {
         x: 0
         y: trigger.height + Style.spacing.xxs
         width: trigger.width
-        implicitHeight: Math.min(root.options.length * root.popupRowHeight + Math.max(0, root.options.length - 1) * Style.spacing.labelGap + Style.spacing.xxs,
+        implicitHeight: searchHeader.height
+          + Math.min(Math.max(1, root.matchingOptions.length) * root.popupRowHeight + Math.max(0, root.matchingOptions.length - 1) * Style.spacing.labelGap + Style.spacing.xxs,
                                  root.popupRowHeight * 8 + 7 * Style.spacing.labelGap + Style.spacing.xxs)
         padding: Style.spacing.hairline
         leftPadding: Border.left(root.popupBorderSpec) + Style.spacing.hairline
@@ -199,7 +215,27 @@ Item {
         topPadding: Border.top(root.popupBorderSpec) + Style.spacing.hairline
         bottomPadding: Border.bottom(root.popupBorderSpec) + Style.spacing.hairline
         focus: true
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+        closePolicy: Popup.CloseOnPressOutsideParent
+          | (searchField.activeFocus ? 0 : Popup.CloseOnEscape)
+
+        function handleKey(event, editing) {
+          if (event.key === Qt.Key_Escape) {
+            if (editing) {
+              searchField.text = ""
+              optionList.forceActiveFocus()
+            } else popup.close()
+          } else if (!editing && root.searchable && event.text === "/") {
+            searchField.forceActiveFocus()
+          } else if (event.key === Qt.Key_Down || (!editing && event.text === "j")) {
+            optionList.currentIndex = Math.min(optionList.count - 1,
+              optionList.currentIndex + 1)
+          } else if (event.key === Qt.Key_Up || (!editing && event.text === "k")) {
+            optionList.currentIndex = Math.max(0, optionList.currentIndex - 1)
+          } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            optionList.selectCurrent()
+          } else return
+          event.accepted = true
+        }
 
         background: BorderSurface {
           color: root.background
@@ -208,97 +244,130 @@ Item {
         }
 
         onOpened: {
+          searchField.text = ""
           optionList.currentIndex = Math.max(0, optionList.indexOfValue(root.value))
           optionList.forceActiveFocus()
         }
+        onClosed: searchField.text = ""
 
-        contentItem: ListView {
-          id: optionList
-          spacing: Style.spacing.labelGap
+        contentItem: Item {
+          Item {
+            id: searchHeader
+            width: parent.width
+            height: root.searchable ? root.popupRowHeight + Style.spacing.md : 0
+            visible: root.searchable
 
-          Keys.priority: Keys.BeforeItem
-          Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) { popup.close(); event.accepted = true }
-            else if (event.key === Qt.Key_Down || event.text === "j") {
-              optionList.currentIndex = Math.min(root.options.length - 1, optionList.currentIndex + 1)
-              event.accepted = true
-            } else if (event.key === Qt.Key_Up || event.text === "k") {
-              optionList.currentIndex = Math.max(0, optionList.currentIndex - 1)
-              event.accepted = true
-            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-              optionList.selectCurrent(); event.accepted = true
-            }
-          }
-          implicitHeight: contentHeight
-          clip: true
-          boundsBehavior: Flickable.StopAtBounds
-          model: root.options
-          currentIndex: -1
-
-          function indexOfValue(v) {
-            for (var i = 0; i < root.options.length; i++)
-              if (root.optionValue(root.options[i]) === v) return i
-            return -1
-          }
-
-          function selectCurrent() {
-            if (currentIndex < 0 || currentIndex >= root.options.length) return
-            var v = root.optionValue(root.options[currentIndex])
-            root.value = v
-            root.changed(v)
-            popup.close()
-          }
-
-          delegate: Rectangle {
-            required property var modelData
-            required property int index
-            width: optionList.width
-            height: root.popupRowHeight
-            color: index === optionList.currentIndex
-              ? Style.hoverFillFor(root.foreground, root.accent)
-              : "transparent"
-
-            Text {
-              textFormat: Text.PlainText
-              anchors.left: parent.left
-              anchors.right: optionStatus.visible
-                ? optionStatus.left : parent.right
-              anchors.verticalCenter: parent.verticalCenter
-              anchors.leftMargin: Style.spacing.controlPaddingX
-              anchors.rightMargin: Style.spacing.controlPaddingX
-              text: root.optionLabel(modelData)
-              color: index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
+            TextField {
+              id: searchField
+              anchors.fill: parent
+              anchors.margins: Style.spacing.xxs
+              placeholderText: activeFocus ? "" : "To search press '/'"
+              foreground: root.foreground
+              accent: root.accent
               font.family: root.fontFamily
               font.pixelSize: Style.font.body
-              elide: Text.ElideRight
+              onTextChanged: optionList.currentIndex = 0
+              Keys.priority: Keys.BeforeItem
+              Keys.onPressed: function(event) { popup.handleKey(event, true) }
+            }
+          }
+
+          Text {
+            visible: root.matchingOptions.length === 0
+            anchors.top: searchHeader.bottom
+            width: parent.width
+            height: root.popupRowHeight
+            text: "No matches"
+            textFormat: Text.PlainText
+            color: Qt.darker(root.foreground, 1.5)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+          }
+
+          ListView {
+            id: optionList
+            anchors.top: searchHeader.bottom
+            anchors.bottom: parent.bottom
+            width: parent.width
+            spacing: Style.spacing.labelGap
+
+            Keys.priority: Keys.BeforeItem
+            Keys.onPressed: function(event) { popup.handleKey(event, false) }
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            model: root.matchingOptions
+            currentIndex: -1
+
+            function indexOfValue(v) {
+              for (var i = 0; i < root.matchingOptions.length; i++)
+                if (root.optionValue(root.matchingOptions[i]) === v) return i
+              return -1
             }
 
-            Rectangle {
-              id: optionStatus
-              visible: root.optionStatusVisible(modelData)
-              anchors.right: parent.right
-              anchors.rightMargin: Style.spacing.controlPaddingX
-              anchors.verticalCenter: parent.verticalCenter
-              width: Style.space(7)
-              height: width
-              radius: width / 2
-              color: root.optionStatusColor(modelData)
+            function selectCurrent() {
+              if (currentIndex < 0 || currentIndex >= root.matchingOptions.length) return
+              var v = root.optionValue(root.matchingOptions[currentIndex])
+              root.value = v
+              root.changed(v)
+              popup.close()
+            }
 
-              HoverHandler { id: optionStatusHover }
-              SyncshellToolTip {
-                visible: optionStatusHover.hovered
-                  && root.optionStatusHelpText(modelData) !== ""
-                text: root.optionStatusHelpText(modelData)
-                fontFamily: root.fontFamily
+            delegate: Rectangle {
+              required property var modelData
+              required property int index
+              width: optionList.width
+              height: root.popupRowHeight
+              color: index === optionList.currentIndex
+                ? Style.hoverFillFor(root.foreground, root.accent)
+                : "transparent"
+
+              Text {
+                textFormat: Text.PlainText
+                anchors.left: parent.left
+                anchors.right: optionStatus.visible
+                  ? optionStatus.left : parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.leftMargin: Style.spacing.controlPaddingX
+                anchors.rightMargin: Style.spacing.controlPaddingX
+                text: root.optionLabel(modelData)
+                color: index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.body
+                elide: Text.ElideRight
               }
-            }
 
-            MouseArea {
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onPositionChanged: optionList.currentIndex = parent.index
-              onClicked: optionList.selectCurrent()
+              Rectangle {
+                id: optionStatus
+                visible: root.optionStatusVisible(modelData)
+                anchors.right: parent.right
+                anchors.rightMargin: Style.spacing.controlPaddingX
+                anchors.verticalCenter: parent.verticalCenter
+                width: Style.space(7)
+                height: width
+                radius: width / 2
+                color: root.optionStatusColor(modelData)
+
+                HoverHandler { id: optionStatusHover }
+                SyncshellToolTip {
+                  visible: optionStatusHover.hovered
+                    && root.optionStatusHelpText(modelData) !== ""
+                  text: root.optionStatusHelpText(modelData)
+                  fontFamily: root.fontFamily
+                }
+              }
+
+              MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onPositionChanged: optionList.currentIndex = parent.index
+                onClicked: {
+                  optionList.currentIndex = parent.index
+                  optionList.selectCurrent()
+                }
+              }
             }
           }
         }
