@@ -363,6 +363,9 @@ KeyboardPanel {
             }
 
             BusyButton {
+                id: refreshStatusButton
+                property bool refreshRequested: false
+
                 iconText: "\uf21e"
                 height: Style.spacing.controlHeight
                 text: "Refresh Sync.status"
@@ -377,11 +380,20 @@ KeyboardPanel {
                 iconSize: Style.font.body
                 horizontalPadding: Style.space(5)
                 verticalPadding: Style.space(4)
-                busy: root.refreshFeedbackTimer.running || (root.controller.syncthing && root.controller.syncthing.refreshing)
+                busy: refreshRequested || root.refreshFeedbackTimer.running
                 canActivate: root.controller.syncthing && root.controller.syncthing.canRefresh && !root.refreshFeedbackTimer.running
                 onClicked: {
-                    if (root.controller.syncthing.refresh(true))
+                    refreshRequested = root.controller.syncthing.refresh(true);
+                    if (refreshRequested)
                         root.refreshFeedbackTimer.restart();
+                }
+
+                Connections {
+                    target: root.controller.syncthing
+                    function onRefreshingChanged() {
+                        if (!root.controller.syncthing.refreshing)
+                            refreshStatusButton.refreshRequested = false;
+                    }
                 }
             }
 
