@@ -25,6 +25,15 @@ ShellRoot {
             searchable: true
             value: "docs"
             options: ["workflow", "work-notes", "docs", "project-k"]
+            searchHeaderAccessory: Component {
+                Item {
+                    property bool popupOpen: false
+                    implicitWidth: 1
+                    function close() {
+                        popupOpen = false;
+                    }
+                }
+            }
         }
 
         TestCase {
@@ -114,19 +123,27 @@ ShellRoot {
                 break;
             case 13:
                 root.check(dropdown.matchingOptions.length === 2, "multiple fuzzy results");
-                var children = root.searchInput.parent.parent.children;
-                for (var i = 0; i < children.length; i++) {
-                    if (typeof children[i].itemAtIndex === "function")
-                        input.mouseClick(children[i].itemAtIndex(1));
-                }
+                input.mouseClick(dropdown.optionItemAt(1));
                 break;
             case 14:
                 root.check(!dropdown.popupOpen && dropdown.value === "work-notes", "click selects its row immediately without confirmation");
                 root.check(dropdown.matchesSearch("WorkFlow", " WKFL ") && !dropdown.matchesSearch("workflow", "fwk"), "case and letter order");
-                dropdown.searchable = false;
                 dropdown.open();
                 break;
             case 15:
+                dropdown.headerAccessoryItem.popupOpen = true;
+                input.keyClick(Qt.Key_Escape);
+                break;
+            case 16:
+                root.check(dropdown.popupOpen && !dropdown.headerAccessoryOpen, "escape closes the header accessory first");
+                input.keyClick(Qt.Key_Escape);
+                break;
+            case 17:
+                root.check(!dropdown.popupOpen, "escape closes the dropdown after the accessory");
+                dropdown.searchable = false;
+                dropdown.open();
+                break;
+            case 18:
                 input.keyClick(Qt.Key_Slash);
                 break;
             default:

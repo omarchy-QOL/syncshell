@@ -37,6 +37,12 @@ Panel {
     property bool folderShareOpen: false
     property bool preserveStateForFolderPicker: false
     property string currentFolderId: ""
+    property bool folderShowReady: true
+    property bool folderShowActive: true
+    property bool folderShowErrors: true
+    property bool folderShowPaused: true
+    property bool folderShowUnknown: true
+    property string folderSortMode: "name"
     property string selectedPendingOffer: ""
     property string folderConfirmAction: ""
     property string folderConfirmId: ""
@@ -224,10 +230,14 @@ Panel {
         if (state === "SYNCING")
             return warning;
         if (state === "UNKNOWN")
-            return warning;
+            return Color.muted;
         if (state === "ERROR")
             return urgent;
         return success;
+    }
+
+    function folderStateHelpText(folder) {
+        return PanelModel.folderStateHelpText(folderState(folder));
     }
 
     function folderHasActivity(folder) {
@@ -273,6 +283,78 @@ Panel {
 
     function folderOptions() {
         return PanelModel.folderOptions(folderRows, homePath);
+    }
+
+    function folderDisplayLabel(folderId) {
+        var options = folderOptions();
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value === folderId)
+                return options[i].label;
+        }
+        var folder = folderById(folderId);
+        return folder ? folder.label : "";
+    }
+
+    function folderGroupVisible(group) {
+        if (group === "ready")
+            return folderShowReady;
+        if (group === "active")
+            return folderShowActive;
+        if (group === "errors")
+            return folderShowErrors;
+        if (group === "paused")
+            return folderShowPaused;
+        if (group === "unknown")
+            return folderShowUnknown;
+        return true;
+    }
+
+    function setFolderGroupVisible(group, visible) {
+        if (group === "ready")
+            folderShowReady = visible;
+        else if (group === "active")
+            folderShowActive = visible;
+        else if (group === "errors")
+            folderShowErrors = visible;
+        else if (group === "paused")
+            folderShowPaused = visible;
+        else if (group === "unknown")
+            folderShowUnknown = visible;
+    }
+
+    function setAllFolderGroups(visible) {
+        folderShowReady = visible;
+        folderShowActive = visible;
+        folderShowErrors = visible;
+        folderShowPaused = visible;
+        folderShowUnknown = visible;
+    }
+
+    function resetFolderView() {
+        setAllFolderGroups(true);
+        folderSortMode = "name";
+    }
+
+    function folderViewOptions() {
+        var labels = folderOptions();
+        var options = [];
+        for (var i = 0; i < labels.length; i++) {
+            var folder = folderById(labels[i].value);
+            var state = folderState(folder);
+            var group = PanelModel.folderStateGroup(state);
+            if (!folderGroupVisible(group))
+                continue;
+            options.push({
+                value: labels[i].value,
+                label: labels[i].label,
+                state: state,
+                group: group,
+                statusVisible: true,
+                statusColor: folderStateColor(folder),
+                statusHelpText: PanelModel.folderStateHelpText(state)
+            });
+        }
+        return PanelModel.sortFolderOptions(options, folderSortMode);
     }
 
     function deviceName(deviceId) {

@@ -1,5 +1,7 @@
 import QtQuick
+import QtQuick.Window
 import Quickshell
+import qs.Commons
 import "../hosts/omarchy"
 import "../hosts/omarchy/ui"
 import "../hosts/omarchy/models/PanelModel.js" as PanelModel
@@ -17,7 +19,8 @@ ShellRoot {
         }
     }
 
-    Item {
+    Window {
+        visible: true
         width: 400
         height: 600
 
@@ -79,6 +82,63 @@ ShellRoot {
         }, "/tmp");
     }
 
+    function viewRows(errorResolved) {
+        var configured = [
+            {
+                id: "ready",
+                path: "/tmp/alpha",
+                devices: []
+            },
+            {
+                id: "active",
+                path: "/tmp/beta",
+                devices: []
+            },
+            {
+                id: "errors",
+                path: "/tmp/gamma",
+                devices: []
+            },
+            {
+                id: "paused",
+                path: "/tmp/delta",
+                paused: true,
+                devices: []
+            }
+        ];
+        var statuses = {
+            ready: {
+                state: "idle"
+            },
+            active: {
+                state: "syncing",
+                needTotalItems: 2
+            },
+            errors: errorResolved ? {
+                state: "idle"
+            } : {
+                state: "error",
+                error: "boom",
+                errors: 1
+            },
+            paused: {
+                state: "idle"
+            }
+        };
+        return PanelModel.buildFolderRows({
+            folders: configured,
+            folderStatuses: statuses
+        }, "/tmp");
+    }
+
+    function optionByValue(options, value) {
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value === value)
+                return options[i];
+        }
+        return null;
+    }
+
     Timer {
         interval: 30
         running: true
@@ -123,6 +183,68 @@ ShellRoot {
             case 7:
                 root.check(shown.length === 2 && !picker.visible, "return to two cards");
                 root.check(panel.currentFolderId === "folder-0", "removed selection falls back");
+                root.rows = root.viewRows(false);
+                break;
+            case 8:
+                var initial = panel.folderViewOptions();
+                root.check(shown.length === 1 && picker.visible, "view rows use selector");
+                root.check(initial.length === 4, "default view includes every folder");
+                root.check(!picker.statusVisible, "selector trigger omits the redundant folder status");
+                root.check(root.optionByValue(initial, "ready").statusVisible, "selector results retain folder statuses");
+                root.check(root.optionByValue(initial, "ready").group === "ready" && root.optionByValue(initial, "active").group === "active" && root.optionByValue(initial, "errors").group === "errors" && root.optionByValue(initial, "paused").group === "paused", "badge states map to exclusive groups");
+                root.check(PanelModel.folderStateGroup("UNKNOWN") === "unknown" && PanelModel.folderStateHelpText("SCAN+SYNC") === "Folder is scanning and syncing", "state metadata");
+                root.check(String(panel.folderStateColor(null)) === String(Color.muted), "unknown state uses theme muted");
+                picker.open();
+                picker.headerAccessoryItem.toggle();
+                break;
+            case 9:
+                root.check(picker.popupOpen && picker.headerAccessoryOpen, "folder view options open inside the selector");
+                root.check(picker.headerAccessoryItem.resultCount === 4 && picker.headerAccessoryItem.totalCount === 4, "view options receive result counts");
+                picker.headerAccessoryItem.activateFilter("ready");
+                root.check(!panel.folderShowReady, "filter controls apply immediately");
+                picker.headerAccessoryItem.activateFilter("all");
+                root.check(panel.folderShowReady && panel.folderShowActive && panel.folderShowErrors && panel.folderShowPaused && panel.folderShowUnknown, "all restores every filter");
+                picker.headerAccessoryItem.close();
+                picker.close();
+                panel.setAllFolderGroups(false);
+                panel.setFolderGroupVisible("errors", true);
+                panel.setFolderGroupVisible("paused", true);
+                break;
+            case 10:
+                root.check(picker.options.length === 2 && picker.options[0].value === "paused" && picker.options[1].value === "errors", "filters combine with OR");
+                root.check(picker.headerAccessoryItem.resultCount === 2, "result count follows filters");
+                root.check(panel.currentFolderId === "ready" && shown[0].folder.id === "ready", "filtering preserves a nonmatching selection");
+                root.check(picker.currentText === "alpha", "filtered selection keeps its trigger label");
+                root.rows = root.viewRows(true);
+                break;
+            case 11:
+                root.check(picker.options.length === 1 && picker.options[0].value === "paused", "resolved error leaves the filtered list");
+                root.check(panel.currentFolderId === "ready", "live filtering does not switch the card");
+                panel.setFolderGroupVisible("paused", false);
+                break;
+            case 12:
+                root.check(picker.options.length === 0, "empty filtered results");
+                panel.resetFolderView();
+                panel.folderSortMode = "active";
+                break;
+            case 13:
+                root.check(picker.options[0].value === "active", "active sort prioritizes live work");
+                root.rows = root.viewRows(false);
+                panel.folderSortMode = "errors";
+                break;
+            case 14:
+                root.check(picker.options[0].value === "errors", "error sort prioritizes attention");
+                root.check(picker.options[1].label === "alpha" && picker.options[2].label === "beta" && picker.options[3].label === "delta", "priority ties remain alphabetical");
+                panel.folderShowReady = false;
+                panel.folderSortMode = "active";
+                panel.resetTransientState();
+                break;
+            case 15:
+                root.check(!panel.folderShowReady && panel.folderSortMode === "active", "view choices survive transient reset");
+                panel.resetFolderView();
+                break;
+            case 16:
+                root.check(panel.folderShowReady && panel.folderShowActive && panel.folderShowErrors && panel.folderShowPaused && panel.folderShowUnknown && panel.folderSortMode === "name", "reset restores folder view defaults");
                 root.rows = [];
                 break;
             default:

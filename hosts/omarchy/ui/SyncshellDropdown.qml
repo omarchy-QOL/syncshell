@@ -21,8 +21,11 @@ Item {
 
     property string label: ""
     property string value: ""
+    property string displayText: ""
     property var options: []
     property bool searchable: false
+    property Component searchHeaderAccessory: null
+    readonly property string currentText: displayText !== "" ? displayText : currentLabel()
     readonly property var matchingOptions: searchable ? options.filter(function (option) {
         return matchesSearch(optionLabel(option), searchField.text);
     }) : options
@@ -53,6 +56,8 @@ Item {
     // own keyCatcher so j/k inside the popup don't double-drive the panel
     // cursor.
     readonly property bool popupOpen: popup.opened
+    readonly property var headerAccessoryItem: searchAccessoryLoader.item
+    readonly property bool headerAccessoryOpen: headerAccessoryItem ? !!headerAccessoryItem.popupOpen : false
     function open() {
         if (interactive)
             popup.open();
@@ -62,6 +67,17 @@ Item {
     }
     function toggle() {
         popup.opened ? popup.close() : popup.open();
+    }
+    function focusResults() {
+        optionList.forceActiveFocus();
+    }
+    function optionItemAt(index) {
+        return optionList.itemAtIndex(index);
+    }
+    function closeHeaderAccessory() {
+        if (headerAccessoryItem && typeof headerAccessoryItem.close === "function") {
+            headerAccessoryItem.close();
+        }
     }
 
     signal changed(string value)
@@ -164,7 +180,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.leftMargin: trigger.borderLeft + Style.spacing.controlPaddingX
                 anchors.rightMargin: trigger.borderRight + Style.spacing.md
-                text: root.currentLabel()
+                text: root.currentText
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.body
@@ -226,11 +242,14 @@ Item {
                 topPadding: Border.top(root.popupBorderSpec) + Style.spacing.hairline
                 bottomPadding: Border.bottom(root.popupBorderSpec) + Style.spacing.hairline
                 focus: true
-                closePolicy: Popup.CloseOnPressOutsideParent | (searchField.activeFocus ? 0 : Popup.CloseOnEscape)
+                closePolicy: Popup.CloseOnPressOutsideParent | ((searchField.activeFocus || root.headerAccessoryOpen) ? 0 : Popup.CloseOnEscape)
 
                 function handleKey(event, editing) {
                     if (event.key === Qt.Key_Escape) {
-                        if (editing) {
+                        if (root.headerAccessoryOpen) {
+                            root.closeHeaderAccessory();
+                            optionList.forceActiveFocus();
+                        } else if (editing) {
                             searchField.text = "";
                             optionList.forceActiveFocus();
                         } else
@@ -256,10 +275,14 @@ Item {
 
                 onOpened: {
                     searchField.text = "";
-                    optionList.currentIndex = Math.max(0, optionList.indexOfValue(root.value));
+                    var selectedIndex = optionList.indexOfValue(root.value);
+                    optionList.currentIndex = selectedIndex >= 0 ? selectedIndex : (optionList.count > 0 ? 0 : -1);
                     optionList.forceActiveFocus();
                 }
-                onClosed: searchField.text = ""
+                onClosed: {
+                    root.closeHeaderAccessory();
+                    searchField.text = "";
+                }
 
                 contentItem: Item {
                     Item {
@@ -268,19 +291,33 @@ Item {
                         height: root.searchable ? root.popupRowHeight + Style.spacing.md : 0
                         visible: root.searchable
 
-                        TextField {
-                            id: searchField
+                        Row {
                             anchors.fill: parent
                             anchors.margins: Style.spacing.xxs
-                            placeholderText: activeFocus ? "" : "To search press '/'"
-                            foreground: root.foreground
-                            accent: root.accent
-                            font.family: root.fontFamily
-                            font.pixelSize: Style.font.body
-                            onTextChanged: optionList.currentIndex = 0
-                            Keys.priority: Keys.BeforeItem
-                            Keys.onPressed: function (event) {
-                                popup.handleKey(event, true);
+                            spacing: searchAccessoryLoader.visible ? Style.spacing.controlGap : 0
+
+                            TextField {
+                                id: searchField
+                                width: parent.width - searchAccessoryLoader.width - parent.spacing
+                                height: parent.height
+                                placeholderText: activeFocus ? "" : "To search press '/'"
+                                foreground: root.foreground
+                                accent: root.accent
+                                font.family: root.fontFamily
+                                font.pixelSize: Style.font.body
+                                onTextChanged: optionList.currentIndex = 0
+                                Keys.priority: Keys.BeforeItem
+                                Keys.onPressed: function (event) {
+                                    popup.handleKey(event, true);
+                                }
+                            }
+
+                            Loader {
+                                id: searchAccessoryLoader
+                                visible: root.searchHeaderAccessory !== null
+                                width: visible && root.headerAccessoryItem ? root.headerAccessoryItem.implicitWidth : 0
+                                height: parent.height
+                                sourceComponent: root.searchHeaderAccessory
                             }
                         }
                     }
@@ -332,13 +369,13 @@ Item {
                         }
 
                         delegate: Rectangle {
-                            id: optionRow
+                            id: option
 
                             required property var modelData
                             required property int index
                             width: optionList.width
                             height: root.popupRowHeight
-                            color: optionRow.index === optionList.currentIndex ? Style.hoverFillFor(root.foreground, root.accent) : "transparent"
+                            color: option.index === optionList.currentIndex ? Style.hoverFillFor(root.foreground, root.accent) : "transparent"
 
                             Text {
                                 textFormat: Text.PlainText
@@ -347,8 +384,8 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.leftMargin: Style.spacing.controlPaddingX
                                 anchors.rightMargin: Style.spacing.controlPaddingX
-                                text: root.optionLabel(optionRow.modelData)
-                                color: optionRow.index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
+                                text: root.optionLabel(option.modelData)
+                                color: option.index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
                                 font.family: root.fontFamily
                                 font.pixelSize: Style.font.body
                                 elide: Text.ElideRight
@@ -356,21 +393,21 @@ Item {
 
                             Rectangle {
                                 id: optionStatus
-                                visible: root.optionStatusVisible(optionRow.modelData)
+                                visible: root.optionStatusVisible(option.modelData)
                                 anchors.right: parent.right
                                 anchors.rightMargin: Style.spacing.controlPaddingX
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: Style.space(7)
                                 height: width
                                 radius: width / 2
-                                color: root.optionStatusColor(optionRow.modelData)
+                                color: root.optionStatusColor(option.modelData)
 
                                 HoverHandler {
                                     id: optionStatusHover
                                 }
                                 SyncshellToolTip {
-                                    visible: optionStatusHover.hovered && root.optionStatusHelpText(optionRow.modelData) !== ""
-                                    text: root.optionStatusHelpText(optionRow.modelData)
+                                    visible: optionStatusHover.hovered && root.optionStatusHelpText(option.modelData) !== ""
+                                    text: root.optionStatusHelpText(option.modelData)
                                     fontFamily: root.fontFamily
                                 }
                             }
@@ -379,9 +416,9 @@ Item {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onPositionChanged: optionList.currentIndex = optionRow.index
+                                onPositionChanged: optionList.currentIndex = option.index
                                 onClicked: {
-                                    optionList.currentIndex = optionRow.index;
+                                    optionList.currentIndex = option.index;
                                     optionList.selectCurrent();
                                 }
                             }
