@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.Commons
 import qs.Ui
@@ -10,10 +12,8 @@ FocusScope {
     property string error: ""
     property int selectedChoice: 2
     property string fontFamily: Style.font.family
-    readonly property var cardBorderSpec: Border.surfaceSpec(
-        "menu", "border", Color.menu.border, Math.max(1, Style.space(1)))
-    readonly property var selectedBorderSpec: Border.surfaceSpec(
-        "menu", "selected-border", Color.menu.selectedBorder, 0)
+    readonly property var cardBorderSpec: Border.surfaceSpec("menu", "border", Color.menu.border, Math.max(1, Style.space(1)))
+    readonly property var selectedBorderSpec: Border.surfaceSpec("menu", "selected-border", Color.menu.selectedBorder, 0)
 
     signal removeRequested(bool deletePluginSettings)
     signal canceled
@@ -87,8 +87,7 @@ FocusScope {
                         height: Style.space(40)
                         radius: Style.cornerRadius
                         color: root.selectedChoice === index ? Color.menu.selectedBackground : "transparent"
-                        borderSpec: root.selectedChoice === index
-                            ? root.selectedBorderSpec : Border.none()
+                        borderSpec: root.selectedChoice === index ? root.selectedBorderSpec : Border.none()
 
                         Rectangle {
                             visible: choiceRow.index === 2

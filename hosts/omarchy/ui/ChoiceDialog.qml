@@ -1,143 +1,143 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.Commons
 import qs.Ui
 
 FocusScope {
-  id: root
+    id: root
 
-  property bool opened: false
-  property bool busy: false
-  property int selectedChoice: 0
-  property string message: ""
-  property var choices: []
-  property var choiceEnabled: []
-  property int initialChoice: 0
-  property string busyText: "Applying Syncthing setting..."
-  property string fontFamily: Style.font.family
-  readonly property var cardBorderSpec: Border.surfaceSpec(
-    "menu", "border", Color.menu.border, Math.max(1, Style.space(1)))
-  readonly property var selectedBorderSpec: Border.surfaceSpec(
-    "menu", "selected-border", Color.menu.selectedBorder, 0)
+    property bool opened: false
+    property bool busy: false
+    property int selectedChoice: 0
+    property string message: ""
+    property var choices: []
+    property var choiceEnabled: []
+    property int initialChoice: 0
+    property string busyText: "Applying Syncthing setting..."
+    property string fontFamily: Style.font.family
+    readonly property var cardBorderSpec: Border.surfaceSpec("menu", "border", Color.menu.border, Math.max(1, Style.space(1)))
+    readonly property var selectedBorderSpec: Border.surfaceSpec("menu", "selected-border", Color.menu.selectedBorder, 0)
 
-  signal actionRequested(int index)
+    signal actionRequested(int index)
 
-  function choose() {
-    if (!busy && isEnabled(selectedChoice)) actionRequested(selectedChoice)
-  }
-
-  function isEnabled(index) {
-    return !choiceEnabled.length || choiceEnabled[index] === true
-  }
-
-  function moveChoice(direction) {
-    if (busy) return
-    for (var step = 1; step <= choices.length; step++) {
-      var index = (selectedChoice + (direction > 0 ? step : -step)
-        + choices.length) % choices.length
-      if (isEnabled(index)) { selectedChoice = index; return }
-    }
-  }
-
-  visible: opened
-  onOpenedChanged: if (opened) selectedChoice = initialChoice
-
-  Rectangle {
-    anchors.fill: parent
-    color: Color.menu.scrim
-
-    MouseArea {
-      anchors.fill: parent
+    function choose() {
+        if (!busy && isEnabled(selectedChoice))
+            actionRequested(selectedChoice);
     }
 
-    BorderSurface {
-      width: Math.min(parent.width - Style.spacing.panelPadding * 2,
-        Style.space(480))
-      height: content.implicitHeight + Style.spacing.panelPadding * 2
-      anchors.centerIn: parent
-      radius: Style.cornerRadius
-      color: Color.menu.background
-      borderSpec: root.cardBorderSpec
+    function isEnabled(index) {
+        return !choiceEnabled.length || choiceEnabled[index] === true;
+    }
 
-      MouseArea {
+    function moveChoice(direction) {
+        if (busy)
+            return;
+        for (var step = 1; step <= choices.length; step++) {
+            var index = (selectedChoice + (direction > 0 ? step : -step) + choices.length) % choices.length;
+            if (isEnabled(index)) {
+                selectedChoice = index;
+                return;
+            }
+        }
+    }
+
+    visible: opened
+    onOpenedChanged: if (opened)
+        selectedChoice = initialChoice
+
+    Rectangle {
         anchors.fill: parent
-        onClicked: {}
-      }
+        color: Color.menu.scrim
 
-      Column {
-        id: content
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: Style.spacing.panelPadding
-        spacing: Style.space(6)
-
-        Text {
-          width: parent.width
-          bottomPadding: Style.spacing.sm
-          text: root.message
-          textFormat: Text.PlainText
-          color: Color.menu.text
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.body
-          wrapMode: Text.Wrap
+        MouseArea {
+            anchors.fill: parent
         }
 
-        Repeater {
-          model: root.choices
-
-          delegate: BorderSurface {
-            id: choiceRow
-            required property int index
-            required property string modelData
-            opacity: root.isEnabled(index) ? 1 : 0.45
-
-            width: content.width
-            height: Math.max(Style.space(40), choiceText.implicitHeight
-              + Style.spacing.md * 2)
+        BorderSurface {
+            width: Math.min(parent.width - Style.spacing.panelPadding * 2, Style.space(480))
+            height: content.implicitHeight + Style.spacing.panelPadding * 2
+            anchors.centerIn: parent
             radius: Style.cornerRadius
-            color: root.selectedChoice === index
-              ? Color.menu.selectedBackground : "transparent"
-            borderSpec: root.selectedChoice === index
-              ? root.selectedBorderSpec : Border.none()
-
-            Text {
-              id: choiceText
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.verticalCenter: parent.verticalCenter
-              anchors.margins: Style.spacing.md
-              text: choiceRow.modelData
-              textFormat: Text.PlainText
-              color: root.selectedChoice === choiceRow.index
-                ? Color.menu.selectedText : Color.menu.text
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-              wrapMode: Text.Wrap
-            }
+            color: Color.menu.background
+            borderSpec: root.cardBorderSpec
 
             MouseArea {
-              anchors.fill: parent
-              enabled: !root.busy && root.isEnabled(choiceRow.index)
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onEntered: root.selectedChoice = index
-              onClicked: root.actionRequested(index)
+                anchors.fill: parent
+                onClicked: {}
             }
-          }
-        }
 
-        Text {
-          visible: root.busy
-          width: parent.width
-          topPadding: Style.spacing.sm
-          text: root.busyText
-          textFormat: Text.PlainText
-          color: Util.alpha(Color.menu.text, 0.66)
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.caption
-          horizontalAlignment: Text.AlignRight
+            Column {
+                id: content
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Style.spacing.panelPadding
+                spacing: Style.space(6)
+
+                Text {
+                    width: parent.width
+                    bottomPadding: Style.spacing.sm
+                    text: root.message
+                    textFormat: Text.PlainText
+                    color: Color.menu.text
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.body
+                    wrapMode: Text.Wrap
+                }
+
+                Repeater {
+                    model: root.choices
+
+                    delegate: BorderSurface {
+                        id: choiceRow
+                        required property int index
+                        required property string modelData
+                        opacity: root.isEnabled(index) ? 1 : 0.45
+
+                        width: content.width
+                        height: Math.max(Style.space(40), choiceText.implicitHeight + Style.spacing.md * 2)
+                        radius: Style.cornerRadius
+                        color: root.selectedChoice === index ? Color.menu.selectedBackground : "transparent"
+                        borderSpec: root.selectedChoice === index ? root.selectedBorderSpec : Border.none()
+
+                        Text {
+                            id: choiceText
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.margins: Style.spacing.md
+                            text: choiceRow.modelData
+                            textFormat: Text.PlainText
+                            color: root.selectedChoice === choiceRow.index ? Color.menu.selectedText : Color.menu.text
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption
+                            wrapMode: Text.Wrap
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: !root.busy && root.isEnabled(choiceRow.index)
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: root.selectedChoice = choiceRow.index
+                            onClicked: root.actionRequested(choiceRow.index)
+                        }
+                    }
+                }
+
+                Text {
+                    visible: root.busy
+                    width: parent.width
+                    topPadding: Style.spacing.sm
+                    text: root.busyText
+                    textFormat: Text.PlainText
+                    color: Util.alpha(Color.menu.text, 0.66)
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.caption
+                    horizontalAlignment: Text.AlignRight
+                }
+            }
         }
-      }
     }
-  }
 }

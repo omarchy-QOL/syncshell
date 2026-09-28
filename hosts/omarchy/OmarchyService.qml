@@ -6,652 +6,635 @@ import "ui/UiConstants.js" as UiConstants
 import "models/FacadeModel.js" as FacadeModel
 
 QtObject {
-  id: root
+    id: root
 
-  readonly property string pluginRoot: localPath(Qt.resolvedUrl("../.."))
-  readonly property var state: core.snapshot || ({})
-  readonly property var connection: state.connection || ({})
-  readonly property var identity: state.identity || ({})
-  readonly property var lifecycle: state.lifecycle || ({})
-  readonly property var activity: state.activity || ({})
-  readonly property var currentActivity: activity.current || ({})
-  readonly property var webUi: state.webUi || ({})
-  readonly property var coreInstallation: state.installation || ({})
-  readonly property var counts: state.counts || ({})
-  readonly property var truncation: state.truncation || ({})
-  readonly property var lifecyclePresentation:
-    FacadeModel.lifecyclePresentation(lifecycle)
+    readonly property string pluginRoot: localPath(Qt.resolvedUrl("../.."))
+    readonly property var state: core.snapshot || ({})
+    readonly property var connection: state.connection || ({})
+    readonly property var identity: state.identity || ({})
+    readonly property var lifecycle: state.lifecycle || ({})
+    readonly property var activity: state.activity || ({})
+    readonly property var currentActivity: activity.current || ({})
+    readonly property var webUi: state.webUi || ({})
+    readonly property var coreInstallation: state.installation || ({})
+    readonly property var counts: state.counts || ({})
+    readonly property var truncation: state.truncation || ({})
+    readonly property var lifecyclePresentation: FacadeModel.lifecyclePresentation(lifecycle)
 
-  readonly property string phase: core.starting ? "core-starting"
-    : core.incompatible ? "core-incompatible"
-    : core.unavailable && !core.running ? "core-unavailable"
-    : String(connection.phase || "discovering")
-  readonly property bool online: core.protocolReady && connection.online === true
-  property bool refreshing: false
-  readonly property bool canRefresh: core.protocolReady && !refreshing
-  readonly property bool statusFresh: core.protocolReady
-    && connection.fresh === true
-  readonly property string lastError: core.lastError
-    || String(connection.error && connection.error.message || "")
-  readonly property string recoveryWarning: core.starting
-    ? "Starting native core" : FacadeModel.truncationWarning(truncation)
-  readonly property string baseUrl: String(webUi.url || "")
-  readonly property string localDeviceId: String(identity.deviceId || "")
-  readonly property string displayDeviceId: localDeviceId
-    || identityState.localDeviceId
-  readonly property string displayDeviceName: currentLocalDeviceName()
-    || identityState.localDeviceName
-  readonly property var devices: FacadeModel.devices(state.devices)
-  readonly property var folders: FacadeModel.folders(state.folders)
-  readonly property var pendingFolders: state.pendingFolders || ({})
-  readonly property var pendingDevices: state.pendingDevices || []
-  readonly property var nearbyDevices: state.nearbyDevices || []
-  readonly property var folderStatuses:
-    FacadeModel.folderStatuses(state.folders)
-  readonly property var syncingFiles: FacadeModel.syncingFiles(activity)
-  readonly property int folderCount: Number(counts.folders || 0)
-  readonly property int deviceCount: Number(counts.devices || 0)
-  readonly property int connectedDeviceCount:
-    Number(counts.connectedDevices || 0)
-  readonly property int folderProblemCount:
-    Number(counts.folderProblems || 0)
-  readonly property int syncingFolderCount:
-    Number(counts.syncingFolders || 0)
-  readonly property string summaryText: summary()
+    readonly property string phase: core.starting ? "core-starting" : core.incompatible ? "core-incompatible" : core.unavailable && !core.running ? "core-unavailable" : String(connection.phase || "discovering")
+    readonly property bool online: core.protocolReady && connection.online === true
+    property bool refreshing: false
+    readonly property bool canRefresh: core.protocolReady && !refreshing
+    readonly property bool statusFresh: core.protocolReady && connection.fresh === true
+    readonly property string lastError: core.lastError || String(connection.error && connection.error.message || "")
+    readonly property string recoveryWarning: core.starting ? "Starting native core" : FacadeModel.truncationWarning(truncation)
+    readonly property string baseUrl: String(webUi.url || "")
+    readonly property string localDeviceId: String(identity.deviceId || "")
+    readonly property string displayDeviceId: localDeviceId || persistedIdentity.localDeviceId
+    readonly property string displayDeviceName: currentLocalDeviceName() || persistedIdentity.localDeviceName
+    readonly property var devices: FacadeModel.devices(state.devices)
+    readonly property var folders: FacadeModel.folders(state.folders)
+    readonly property var pendingFolders: state.pendingFolders || ({})
+    readonly property var pendingDevices: state.pendingDevices || []
+    readonly property var nearbyDevices: state.nearbyDevices || []
+    readonly property var folderStatuses: FacadeModel.folderStatuses(state.folders)
+    readonly property var syncingFiles: FacadeModel.syncingFiles(activity)
+    readonly property int folderCount: Number(counts.folders || 0)
+    readonly property int deviceCount: Number(counts.devices || 0)
+    readonly property int connectedDeviceCount: Number(counts.connectedDevices || 0)
+    readonly property int folderProblemCount: Number(counts.folderProblems || 0)
+    readonly property int syncingFolderCount: Number(counts.syncingFolders || 0)
+    readonly property string summaryText: summary()
 
-  readonly property string installationState: online
-    ? "existing" : packageController.state
-  readonly property string installationLabel: packageController.label
-  readonly property string executablePath:
-    String(coreInstallation.executablePath || packageController.executablePath)
-  readonly property bool canUseRuntime: coreInstallation.available === true
-    || online
-  readonly property bool canInstall: !online && packageController.canInstall
-  readonly property string packageStatus: packageController.packageStatus
-  readonly property string packageError: packageController.packageError
-  readonly property bool serviceAvailable: lifecyclePresentation.available
-  readonly property bool serviceActive: lifecycle.active === true
-  property bool serviceActionRunning: false
-  readonly property bool canControlService: core.protocolReady
-    && lifecyclePresentation.controllable
-  property string controlError: ""
-  readonly property string configuredServiceState: settings.serviceState
-  readonly property int probeIntervalSeconds: settings.probeIntervalSeconds
-  readonly property string serviceUnitFileState:
-    String(lifecycle.unitFileState || "")
-  readonly property var serviceStateDecision:
-    FacadeModel.driftDecision(configuredServiceState, lifecycle)
-  readonly property bool serviceStateDrift: settingsReady
-    && canControlService && serviceStateDecision.status === "drift"
-  readonly property bool serviceStateActionRunning:
-    settings.serviceStateActionRunning || serviceActionRunning
-  readonly property string serviceStateMessage: serviceStateDrift
-    ? serviceStateDecision.message : ""
-  readonly property string serviceStatePrimaryLabel: serviceStateDrift
-    ? serviceStateDecision.first.label : ""
-  readonly property string serviceStateSecondaryLabel: serviceStateDrift
-    ? serviceStateDecision.second.label : ""
-  readonly property string serviceStateWarning: settingsReady
-    && canControlService && serviceStateDecision.status === "unsupported"
-    && serviceUnitFileState !== "not-found"
-    ? serviceStateDecision.reason : ""
+    readonly property string installationState: online ? "existing" : packageController.state
+    readonly property string installationLabel: packageController.label
+    readonly property string executablePath: String(coreInstallation.executablePath || packageController.executablePath)
+    readonly property bool canUseRuntime: coreInstallation.available === true || online
+    readonly property bool canInstall: !online && packageController.canInstall
+    readonly property string packageStatus: packageController.packageStatus
+    readonly property string packageError: packageController.packageError
+    readonly property bool serviceAvailable: lifecyclePresentation.available
+    readonly property bool serviceActive: lifecycle.active === true
+    property bool serviceActionRunning: false
+    readonly property bool canControlService: core.protocolReady && lifecyclePresentation.controllable
+    property string controlError: ""
+    readonly property string configuredServiceState: settings.serviceState
+    readonly property int probeIntervalSeconds: settings.probeIntervalSeconds
+    readonly property string serviceUnitFileState: String(lifecycle.unitFileState || "")
+    readonly property var serviceStateDecision: FacadeModel.driftDecision(configuredServiceState, lifecycle)
+    readonly property bool serviceStateDrift: settingsReady && canControlService && serviceStateDecision.status === "drift"
+    readonly property bool serviceStateActionRunning: settings.serviceStateActionRunning || serviceActionRunning
+    readonly property string serviceStateMessage: serviceStateDrift ? serviceStateDecision.message : ""
+    readonly property string serviceStatePrimaryLabel: serviceStateDrift ? serviceStateDecision.first.label : ""
+    readonly property string serviceStateSecondaryLabel: serviceStateDrift ? serviceStateDecision.second.label : ""
+    readonly property string serviceStateWarning: settingsReady && canControlService && serviceStateDecision.status === "unsupported" && serviceUnitFileState !== "not-found" ? serviceStateDecision.reason : ""
 
-  property bool folderMutationBusy: false
-  property string folderMutationId: ""
-  property string folderMutationAction: ""
-  property string folderMutationError: ""
-  signal folderDirectoryRequired(var args)
-  property string folderMutationNotice: ""
-  property int folderMutationNoticeVisibleMs: UiConstants.NOTICE_VISIBLE_MS
-  property string recentlyLinkedFolderId: ""
-  property bool folderPreparationBusy: false
-  property string folderPreparationError: ""
-  property string folderIdSuggestion: ""
+    property bool folderMutationBusy: false
+    property string folderMutationId: ""
+    property string folderMutationAction: ""
+    property string folderMutationError: ""
+    signal folderDirectoryRequired(var args)
+    property string folderMutationNotice: ""
+    property int folderMutationNoticeVisibleMs: UiConstants.NOTICE_VISIBLE_MS
+    property string recentlyLinkedFolderId: ""
+    property bool folderPreparationBusy: false
+    property string folderPreparationError: ""
+    property string folderIdSuggestion: ""
 
-  readonly property string syncActivityDots: currentActivity.detail
-    ? ["   ", ".  ", ".. ", "..."][_activityDotIndex] : ""
-  readonly property string syncActivityFolderId:
-    String(currentActivity.folderId || "")
-  readonly property string syncActivityAction:
-    String(currentActivity.action || "")
-  readonly property string syncActivityDetail:
-    String(currentActivity.detail || "")
-  readonly property string syncActivity: syncActivityDetail
-    ? "File syncing" + syncActivityDots + " " + syncActivityDetail : ""
-  readonly property string iconStyle: settings.iconStyle
-  readonly property bool settingsReady: settings.settingsReady
-  readonly property bool settingsBusy: settings.busy
-  readonly property string settingsError: settings.error
-  readonly property string settingsNotice: settings.notice
-  readonly property bool settingsMigrationOpen: settings.migrationOpen
-  readonly property bool settingsCanAutoPort: settings.canAutoPort
-  readonly property string settingsMigrationMessage: settings.migrationMessage
-  readonly property color warning: settings.warning
-  readonly property color success: settings.success
-  readonly property color syncActivityColor: settings.syncActivity
+    readonly property string syncActivityDots: currentActivity.detail ? ["   ", ".  ", ".. ", "..."][_activityDotIndex] : ""
+    readonly property string syncActivityFolderId: String(currentActivity.folderId || "")
+    readonly property string syncActivityAction: String(currentActivity.action || "")
+    readonly property string syncActivityDetail: String(currentActivity.detail || "")
+    readonly property string syncActivity: syncActivityDetail ? "File syncing" + syncActivityDots + " " + syncActivityDetail : ""
+    readonly property string iconStyle: settings.iconStyle
+    readonly property bool settingsReady: settings.settingsReady
+    readonly property bool settingsBusy: settings.busy
+    readonly property string settingsError: settings.error
+    readonly property string settingsNotice: settings.notice
+    readonly property bool settingsMigrationOpen: settings.migrationOpen
+    readonly property bool settingsCanAutoPort: settings.canAutoPort
+    readonly property string settingsMigrationMessage: settings.migrationMessage
+    readonly property color warning: settings.warning
+    readonly property color success: settings.success
+    readonly property color syncActivityColor: settings.syncActivity
 
-  property int refreshIntervalSec: 60
-  property int _activityDotIndex: 0
+    property int refreshIntervalSec: 60
+    property int _activityDotIndex: 0
 
-  property PersistentProperties identityState: PersistentProperties {
-    reloadableId: "syncshell-local-device-identity"
-    property string localDeviceId: ""
-    property string localDeviceName: ""
-  }
+    property PersistentProperties identityState: PersistentProperties {
+        id: persistedIdentity
 
-  function localPath(url) {
-    var value = String(url || "")
-    if (value.indexOf("file://") === 0) value = value.slice(7)
-    return decodeURIComponent(value)
-  }
-
-  function currentLocalDeviceName() {
-    for (var i = 0; i < devices.length; i++) {
-      if (devices[i].deviceID === localDeviceId) return devices[i].name
+        reloadableId: "syncshell-local-device-identity"
+        property string localDeviceId: ""
+        property string localDeviceName: ""
     }
-    return ""
-  }
 
-  function rememberLocalIdentity() {
-    if (!localDeviceId) return
-    if (identityState.localDeviceId !== localDeviceId) {
-      identityState.localDeviceId = localDeviceId
-      identityState.localDeviceName = ""
+    function localPath(url) {
+        var value = String(url || "");
+        if (value.indexOf("file://") === 0)
+            value = value.slice(7);
+        return decodeURIComponent(value);
     }
-    var name = currentLocalDeviceName()
-    if (name) identityState.localDeviceName = name
-  }
 
-  function summary() {
-    if (installationState === "missing") return "Syncthing is not installed"
-    if (installationState === "incomplete") return "Installation needs cleanup"
-    if (serviceAvailable && !serviceActive) return "Syncing stopped"
-    if (phase === "core-starting") return "Starting Syncshell"
-    if (phase === "discovering") return "Finding Syncthing"
-    if (phase === "loading") return "Reading status"
-    if (phase === "error" || phase === "core-unavailable"
-        || phase === "core-incompatible") return "Syncthing unavailable"
-    if (folderProblemCount > 0) return folderProblemCount + " folder problem"
-      + (folderProblemCount === 1 ? "" : "s")
-    if (syncingFolderCount > 0) return syncingFolderCount + " folder"
-      + (syncingFolderCount === 1 ? "" : "s") + " syncing"
-    return "Up to date"
-  }
-
-  function setRefreshInterval(seconds) {
-    var value = parseInt(String(seconds), 10)
-    if (!isFinite(value)) value = 60
-    var next = Math.max(60, Math.min(3600, value))
-    if (refreshIntervalSec === next) return
-    refreshIntervalSec = next
-    configureCore()
-  }
-
-  function setLegacyThemedIcon(enabled) {
-    settings.setLegacyThemedIcon(enabled)
-  }
-
-  function openWebUi() {
-    if (!online) return
-    if (webUi.theme !== "syncshell-modern" && webUi.theme !== "syncthing-omarchy") {
-      Qt.openUrlExternally(baseUrl)
-      return
-    }
-    core.action("webui.open", {}, function(ok) {
-      if (!ok) Qt.openUrlExternally(root.baseUrl)
-    })
-  }
-
-  function refresh(recheckErrors) {
-    packageController.updateStatus()
-    if (!core.protocolReady || refreshing) return false
-    refreshing = true
-    if (recheckErrors === true) folderMutationError = ""
-    var callback = function(ok, data, error) {
-      root.refreshing = false
-      if (!ok && recheckErrors === true) {
-        root.folderMutationError = root.actionError(error,
-          "Could not recheck Syncthing errors")
-      }
-    }
-    var request = recheckErrors === true && folderProblemCount > 0
-      ? core.action("folder.recheck-errors", {}, callback)
-      : core.refresh(callback)
-    if (!request) refreshing = false
-    return !!request
-  }
-
-  function recoverCoreIfNeeded() {
-    if (packageController.state !== "existing" || core.running
-        || core.protocolReady || core.incompatible || !core.executableReady
-        || !core.unavailable || core.everProtocolReady) return false
-    return core.restart()
-  }
-
-  function configureCore() {
-    if (!core.protocolReady || !settingsReady) return
-    core.configure({
-      probeIntervalSeconds: probeIntervalSeconds,
-      refreshIntervalSeconds: refreshIntervalSec,
-      desiredServiceState: configuredServiceState
-    })
-  }
-
-  function actionError(error, fallback) {
-    return String(error && error.message || fallback || "Action failed")
-  }
-
-  function notify(message, visibleMs) {
-    if (!message) return
-    var args = ["omarchy-notification-send"]
-    if (Number(visibleMs) > 0)
-      args.push("-t", String(Math.round(Number(visibleMs))))
-    args.push("Syncthing", String(message))
-    Quickshell.execDetached(args)
-  }
-
-  function publishFolderNotice(notice, panelVisibleMs, desktopVisibleMs) {
-    folderMutationNoticeVisibleMs = Number(panelVisibleMs) > 0
-      ? Math.round(Number(panelVisibleMs)) : UiConstants.NOTICE_VISIBLE_MS
-    folderMutationNotice = String(notice || "")
-    if (!folderMutationNotice) return
-    noticeTimer.restart()
-    notify(folderMutationNotice, desktopVisibleMs)
-  }
-
-  function isRescanAction(action) {
-    return action === "rescan" || action === "rescan-all"
-  }
-
-  function scanningFolderIds() {
-    var result = []
-    for (var i = 0; i < folders.length; i++) {
-      var state = folderStatuses[String(folders[i].id || "")] || ({})
-      if (String(state.state || "").indexOf("scan") === 0)
-        result.push(String(folders[i].id || ""))
-    }
-    result.sort()
-    return result
-  }
-
-  function clearFolderAction() {
-    folderMutationBusy = false
-    folderMutationAction = ""
-    folderMutationId = ""
-    rescanTracker.reset()
-  }
-
-  function completeRescan() {
-    if (!folderMutationBusy) return
-    if (!isRescanAction(folderMutationAction)) return
-    var notice = folderMutationAction === "rescan-all"
-      ? "Rescan complete for all folders"
-      : "Rescan complete for " + folderLabel(folderMutationId)
-    clearFolderAction()
-    publishFolderNotice(notice)
-  }
-
-  function finishFolderAction(contractAction, folderId, notice) {
-    clearFolderAction()
-    if (contractAction === "link") {
-      recentlyLinkedFolderId = String(folderId || "")
-      linkedTimer.restart()
-    }
-    var deviceAdded = contractAction === "device-add"
-    publishFolderNotice(notice,
-      deviceAdded ? UiConstants.DEVICE_ADD_PANEL_NOTICE_MS : 0,
-      deviceAdded ? UiConstants.DEVICE_ADD_DESKTOP_NOTICE_MS : 0)
-  }
-
-  function failFolderAction(error, fallback) {
-    var notifyFailure = folderMutationAction === "rescan"
-      || folderMutationAction === "rescan-all"
-    clearFolderAction()
-    folderMutationError = actionError(error, fallback)
-    if (notifyFailure) notify(folderMutationError)
-  }
-
-  function runFolderAction(action, contractAction, folderId, args, notice) {
-    if (!online || folderMutationBusy) {
-      folderMutationError = online
-        ? "Another folder operation is already running"
-        : "Syncthing must be online to manage folders"
-      return false
-    }
-    folderMutationBusy = true
-    folderMutationAction = contractAction
-    folderMutationId = String(folderId || "")
-    folderMutationError = ""
-    noticeTimer.stop()
-    folderMutationNotice = ""
-    rescanTracker.reset()
-    var id = core.action(action, args || ({}), function(ok, data, error) {
-      if (!ok) {
-        if (action === "folder.add-existing" && error
-            && error.code === "path_missing" && !args.createDirectory) {
-          root.clearFolderAction()
-          root.folderDirectoryRequired(args)
-          return
+    function currentLocalDeviceName() {
+        for (var i = 0; i < devices.length; i++) {
+            if (devices[i].deviceID === localDeviceId)
+                return devices[i].name;
         }
-        root.failFolderAction(error,
-          "Could not complete the folder operation")
-        return
-      }
-      if (root.isRescanAction(contractAction)) {
-        if (!rescanTracker.acceptResult(data, root.scanningFolderIds())) {
-          root.failFolderAction({
-            code: "invalid_result",
-            message: "Native core returned an invalid rescan result"
-          }, "Could not complete the folder operation")
+        return "";
+    }
+
+    function rememberLocalIdentity() {
+        if (!localDeviceId)
+            return;
+        if (persistedIdentity.localDeviceId !== localDeviceId) {
+            persistedIdentity.localDeviceId = localDeviceId;
+            persistedIdentity.localDeviceName = "";
         }
-        return
-      }
-      root.finishFolderAction(contractAction, folderId, notice)
-    })
-    if (id) return true
-    failFolderAction(null, "Native core is not ready")
-    return false
-  }
-
-  function configuredFolder(folderId) {
-    var wanted = String(folderId || "")
-    for (var i = 0; i < folders.length; i++) {
-      if (String(folders[i].id || "") === wanted) return folders[i]
+        var name = currentLocalDeviceName();
+        if (name)
+            persistedIdentity.localDeviceName = name;
     }
-    return null
-  }
 
-  function folderLabel(folderId) {
-    var folder = configuredFolder(folderId)
-    return folder ? folder.label || folderId : folderId
-  }
-
-  function setFolderLinked(folderId, linked) {
-    var label = folderLabel(folderId)
-    return runFolderAction(linked ? "folder.resume" : "folder.pause",
-      linked ? "link" : "unlink", folderId, { folderId: folderId }, linked
-        ? "Linked " + label + ". Syncthing resumed the folder with its "
-          + "existing sharing configuration."
-        : "Synchronization for " + label + " paused. The folder ID, device "
-          + "associations, and data remain.")
-  }
-
-  function rescanFolder(folderId) {
-    var folder = configuredFolder(folderId)
-    if (!folder) {
-      folderMutationError = "The selected folder is no longer configured"
-      return false
+    function summary() {
+        if (installationState === "missing")
+            return "Syncthing is not installed";
+        if (installationState === "incomplete")
+            return "Installation needs cleanup";
+        if (serviceAvailable && !serviceActive)
+            return "Syncing stopped";
+        if (phase === "core-starting")
+            return "Starting Syncshell";
+        if (phase === "discovering")
+            return "Finding Syncthing";
+        if (phase === "loading")
+            return "Reading status";
+        if (phase === "error" || phase === "core-unavailable" || phase === "core-incompatible")
+            return "Syncthing unavailable";
+        if (folderProblemCount > 0)
+            return folderProblemCount + " folder problem" + (folderProblemCount === 1 ? "" : "s");
+        if (syncingFolderCount > 0)
+            return syncingFolderCount + " folder" + (syncingFolderCount === 1 ? "" : "s") + " syncing";
+        return "Up to date";
     }
-    if (folder.paused) {
-      folderMutationError = "Link the folder before rescanning it"
-      return false
+
+    function setRefreshInterval(seconds) {
+        var value = parseInt(String(seconds), 10);
+        if (!isFinite(value))
+            value = 60;
+        var next = Math.max(60, Math.min(3600, value));
+        if (refreshIntervalSec === next)
+            return;
+        refreshIntervalSec = next;
+        configureCore();
     }
-    return runFolderAction("folder.rescan", "rescan", folderId,
-      { folderId: folderId }, "Rescan complete for " + folderLabel(folderId))
-  }
 
-  function rescanAllFolders() {
-    if (folders.length === 0) {
-      folderMutationError = "No folders are configured"
-      return false
+    function setLegacyThemedIcon(enabled) {
+        settings.setLegacyThemedIcon(enabled);
     }
-    return runFolderAction("folder.rescan-all", "rescan-all", "", {},
-      "Rescan complete for all folders")
-  }
 
-  function forgetFolder(folderId) {
-    return runFolderAction("folder.forget", "forget", folderId,
-      { folderId: folderId }, "Removed from Syncthing configuration and the "
-        + "plugin view. The directory and its data files were not deleted. "
-        + "Re-add Folder ID " + folderId
-        + " to rejoin the same remote folder.")
-  }
-
-  function addFolder(path, label, folderId, selectedDeviceIds, pendingDeviceId,
-      createDirectory) {
-    var shared = (selectedDeviceIds || []).slice()
-    return runFolderAction("folder.add-existing", "add", folderId, {
-      folderId: folderId,
-      path: path,
-      createDirectory: createDirectory === true,
-      label: label,
-      deviceIds: shared,
-      pendingDeviceId: pendingDeviceId
-    }, shared.length > 0
-      ? "Remote devices may have to accept the folder."
-      : "Added " + (label || folderId) + " locally. It is linked but not "
-        + "shared with another device.")
-  }
-
-  function setFolderSharing(folderId, selectedDeviceIds) {
-    var shared = selectedDeviceIds || []
-    var folder = configuredFolder(folderId)
-    var previous = []
-    var members = folder && folder.devices ? folder.devices : []
-    for (var i = 0; i < members.length; i++) {
-      var memberId = String((members[i] || {}).deviceID || "")
-      if (memberId && memberId !== localDeviceId) previous.push(memberId)
-    }
-    var names = []
-    for (var j = 0; j < shared.length; j++) {
-      var name = ""
-      for (var k = 0; k < devices.length; k++) {
-        if (String(devices[k].deviceID || "") === String(shared[j])) {
-          name = String(devices[k].name || "")
-          break
+    function openWebUi() {
+        if (!online)
+            return;
+        if (webUi.theme !== "syncshell-modern" && webUi.theme !== "syncthing-omarchy") {
+            Qt.openUrlExternally(baseUrl);
+            return;
         }
-      }
-      names.push(name || "Device " + String(shared[j]).slice(0, 7))
+        core.action("webui.open", {}, function (ok) {
+            if (!ok)
+                Qt.openUrlExternally(root.baseUrl);
+        });
     }
-    var notice = "Folder sharing removed. The local folder remains configured."
-    if (shared.length > 0 && previous.length === 0) {
-      notice = folderLabel(folderId) + " shared with " + names.join(", ")
-        + "; waiting for " + names.join(", ") + " to accept."
-    } else if (shared.length > 0) {
-      notice = "Sharing with " + names.join(", ") + " updated."
+
+    function refresh(recheckErrors) {
+        packageController.updateStatus();
+        if (!core.protocolReady || refreshing)
+            return false;
+        refreshing = true;
+        if (recheckErrors === true)
+            folderMutationError = "";
+        var callback = function (ok, data, error) {
+            root.refreshing = false;
+            if (!ok && recheckErrors === true) {
+                root.folderMutationError = root.actionError(error, "Could not recheck Syncthing errors");
+            }
+        };
+        var request = recheckErrors === true && folderProblemCount > 0 ? core.action("folder.recheck-errors", {}, callback) : core.refresh(callback);
+        if (!request)
+            refreshing = false;
+        return !!request;
     }
-    return runFolderAction("folder.set-sharing", "share", folderId, {
-      folderId: folderId,
-      deviceIds: shared
-    }, notice)
-  }
 
-  function addDevice(deviceId, name) {
-    var label = String(name || "").trim()
-      || "Device " + String(deviceId || "").slice(0, 7)
-    return runFolderAction("device.add", "device-add", deviceId, {
-      deviceId: deviceId,
-      deviceName: name
-    }, label + " added. Add this device on " + label
-      + " to complete connection.")
-  }
-
-  function dismissPendingDevice(deviceId, name) {
-    var label = String(name || "").trim()
-      || String(deviceId || "").slice(0, 7)
-    return runFolderAction("device.dismiss-pending", "device-dismiss",
-      deviceId, { deviceId: deviceId }, "Dismissed pending request from "
-        + label + ".")
-  }
-
-  function removeDevice(deviceId, name) {
-    var label = String(name || "").trim()
-      || "Device " + String(deviceId || "").slice(0, 7)
-    return runFolderAction("device.remove", "device-remove", deviceId,
-      { deviceId: deviceId }, label + " removed from this device.")
-  }
-
-  function removeDeviceFolderShares(deviceId, folderIds, name) {
-    var label = String(name || "").trim()
-      || "Device " + String(deviceId || "").slice(0, 7)
-    return runFolderAction("device.remove-folder-shares",
-      "device-remove-shares",
-      deviceId, { deviceId: deviceId, folderIds: folderIds || [] },
-      "Selected folder shares removed from " + label + ".")
-  }
-
-  function requestFolderIdSuggestion() {
-    if (!online || folderPreparationBusy) return
-    folderPreparationBusy = true
-    folderPreparationError = ""
-    folderIdSuggestion = ""
-    var id = core.action("folder.suggest-id", {},
-      function(ok, data, error) {
-        root.folderPreparationBusy = false
-        if (ok) root.folderIdSuggestion = String(data && data.folderId || "")
-        else root.folderPreparationError = root.actionError(error,
-          "Could not generate a folder ID")
-      })
-    if (!id) {
-      folderPreparationBusy = false
-      folderPreparationError = "Native core is not ready"
+    function recoverCoreIfNeeded() {
+        if (packageController.state !== "existing" || core.running || core.protocolReady || core.incompatible || !core.executableReady || !core.unavailable || core.everProtocolReady)
+            return false;
+        return core.restart();
     }
-  }
 
-  function clearFolderMutationMessage() {
-    noticeTimer.stop()
-    folderMutationError = ""
-    folderMutationNotice = ""
-    folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
-  }
-
-  function clearFolderMutationNotice() {
-    noticeTimer.stop()
-    folderMutationNotice = ""
-    folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
-  }
-
-  function runLifecycle(action) {
-    if (!canControlService || serviceActionRunning) return false
-    serviceActionRunning = true
-    controlError = ""
-    var id = core.action("lifecycle." + action, {},
-      function(ok, data, error) {
-        root.serviceActionRunning = false
-        if (!ok) root.controlError = root.actionError(error,
-          "Could not update the Syncthing service")
-      })
-    if (id) return true
-    serviceActionRunning = false
-    controlError = "Native core is not ready"
-    return false
-  }
-
-  function toggleService() {
-    return runLifecycle(serviceActive ? "stop" : "start")
-  }
-
-  function chooseServiceStateAction(index) {
-    if (!serviceStateDrift || serviceStateActionRunning) return false
-    var selected = index === 0
-      ? serviceStateDecision.first : serviceStateDecision.second
-    return selected.side === "config"
-      ? settings.setServiceState(selected.value)
-      : runLifecycle(selected.value === "enabled" ? "enable" : "disable")
-  }
-
-  function selectTheme(theme, onSuccess, onError) {
-    var id = core.action("webui.set-theme", { theme: theme },
-      function(ok, data, error) {
-        if (ok) onSuccess()
-        else onError(error)
-      })
-    if (!id) onError({ message: "Native core is not ready" })
-  }
-
-  function installSyncthing() { packageController.install() }
-  function openSettings() { settings.openSettings() }
-  function recheckSettings() { settings.recheckSettings() }
-  function autoPortSettings() { settings.autoPort() }
-  function manualPortSettings() { settings.manualPort() }
-  function cancelSettingsMigration() { settings.cancelMigration() }
-  function clearSettingsNotice() { settings.clearNotice() }
-  function requestSelfRemoval(deletePluginSettings) {
-    if (packageController.packageActionRunning || packageController.operationRunning) {
-      settings.error = "Wait for Syncthing installation to finish before removing Syncshell"
-      return
+    function configureCore() {
+        if (!core.protocolReady || !settingsReady)
+            return;
+        core.configure({
+            probeIntervalSeconds: probeIntervalSeconds,
+            refreshIntervalSeconds: refreshIntervalSec,
+            desiredServiceState: configuredServiceState
+        });
     }
-    settings.requestSelfRemoval(deletePluginSettings)
-  }
 
-  onLocalDeviceIdChanged: rememberLocalIdentity()
-  onDevicesChanged: rememberLocalIdentity()
-  onFolderStatusesChanged: rescanTracker.reconcile(scanningFolderIds())
-  onOnlineChanged: {
-    if (!online && folderMutationBusy
-        && rescanTracker.runningFolderIds.length > 0) {
-      failFolderAction(null,
-        "Could not confirm rescan completion because Syncthing became unavailable")
+    function actionError(error, fallback) {
+        return String(error && error.message || fallback || "Action failed");
     }
-  }
 
-  property RescanTracker rescanTracker: RescanTracker {
-    onCompleted: root.completeRescan()
-  }
-
-  property CoreProcess core: CoreProcess {
-    pluginRoot: root.pluginRoot
-    startupArguments: [
-      "--desktop-authorized",
-      "--probe-interval-seconds", String(root.probeIntervalSeconds),
-      "--desired-service-state", root.configuredServiceState,
-      "--lifecycle-kind", "systemd-user",
-      "--lifecycle-authorized",
-      "--lifecycle-unit", "syncthing.service"
-    ]
-    onProtocolReadyChanged: if (protocolReady) root.configureCore()
-    onRunningChanged: {
-      if (!running && root.folderMutationBusy) {
-        root.failFolderAction(null,
-          "Folder operation stopped because native core became unavailable")
-      }
+    function notify(message, visibleMs) {
+        if (!message)
+            return;
+        var args = ["omarchy-notification-send"];
+        if (Number(visibleMs) > 0)
+            args.push("-t", String(Math.round(Number(visibleMs))));
+        args.push("Syncthing", String(message));
+        Quickshell.execDetached(args);
     }
-  }
 
-  property SettingsController settings: SettingsController {
-    runtimeReady: root.online
-    currentWebUiTheme: String(root.webUi.theme || "")
-    guiAssetsPath: String(root.webUi.guiAssets || "")
-    selectTheme: function(theme, onSuccess, onError) {
-      root.selectTheme(theme, onSuccess, onError)
+    function publishFolderNotice(notice, panelVisibleMs, desktopVisibleMs) {
+        folderMutationNoticeVisibleMs = Number(panelVisibleMs) > 0 ? Math.round(Number(panelVisibleMs)) : UiConstants.NOTICE_VISIBLE_MS;
+        folderMutationNotice = String(notice || "");
+        if (!folderMutationNotice)
+            return;
+        noticeTimer.restart();
+        notify(folderMutationNotice, desktopVisibleMs);
     }
-  }
 
-  property PackageController packageController: PackageController {
-    helperPath: root.pluginRoot
-      + "/hosts/omarchy/scripts/syncthing-install.sh"
-    probeIntervalSeconds: root.probeIntervalSeconds
-    onStatusApplied: root.recoverCoreIfNeeded()
-  }
-
-  property Connections settingsConnections: Connections {
-    target: root.settings
-    function onSettingsReadyChanged() { root.configureCore() }
-    function onProbeIntervalSecondsChanged() { root.configureCore() }
-    function onServiceStateChanged() { root.configureCore() }
-  }
-
-  property Timer activityTimer: Timer {
-    interval: 500
-    repeat: true
-    running: root.syncActivityDetail !== ""
-    onTriggered: root._activityDotIndex = (root._activityDotIndex + 1) % 4
-  }
-
-  property Timer noticeTimer: Timer {
-    // Allow the panel fade to clear the notice first.
-    interval: root.folderMutationNoticeVisibleMs
-      + UiConstants.NOTICE_FADE_MS + 50
-    repeat: false
-    onTriggered: {
-      root.folderMutationNotice = ""
-      root.folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS
+    function isRescanAction(action) {
+        return action === "rescan" || action === "rescan-all";
     }
-  }
 
-  property Timer linkedTimer: Timer {
-    interval: 10000
-    repeat: false
-    onTriggered: root.recentlyLinkedFolderId = ""
-  }
+    function scanningFolderIds() {
+        var result = [];
+        for (var i = 0; i < folders.length; i++) {
+            var state = folderStatuses[String(folders[i].id || "")] || ({});
+            if (String(state.state || "").indexOf("scan") === 0)
+                result.push(String(folders[i].id || ""));
+        }
+        result.sort();
+        return result;
+    }
+
+    function clearFolderAction() {
+        folderMutationBusy = false;
+        folderMutationAction = "";
+        folderMutationId = "";
+        rescanTracker.reset();
+    }
+
+    function completeRescan() {
+        if (!folderMutationBusy)
+            return;
+        if (!isRescanAction(folderMutationAction))
+            return;
+        var notice = folderMutationAction === "rescan-all" ? "Rescan complete for all folders" : "Rescan complete for " + folderLabel(folderMutationId);
+        clearFolderAction();
+        publishFolderNotice(notice);
+    }
+
+    function finishFolderAction(contractAction, folderId, notice) {
+        clearFolderAction();
+        if (contractAction === "link") {
+            recentlyLinkedFolderId = String(folderId || "");
+            linkedTimer.restart();
+        }
+        var deviceAdded = contractAction === "device-add";
+        publishFolderNotice(notice, deviceAdded ? UiConstants.DEVICE_ADD_PANEL_NOTICE_MS : 0, deviceAdded ? UiConstants.DEVICE_ADD_DESKTOP_NOTICE_MS : 0);
+    }
+
+    function failFolderAction(error, fallback) {
+        var notifyFailure = folderMutationAction === "rescan" || folderMutationAction === "rescan-all";
+        clearFolderAction();
+        folderMutationError = actionError(error, fallback);
+        if (notifyFailure)
+            notify(folderMutationError);
+    }
+
+    function runFolderAction(action, contractAction, folderId, args, notice) {
+        if (!online || folderMutationBusy) {
+            folderMutationError = online ? "Another folder operation is already running" : "Syncthing must be online to manage folders";
+            return false;
+        }
+        folderMutationBusy = true;
+        folderMutationAction = contractAction;
+        folderMutationId = String(folderId || "");
+        folderMutationError = "";
+        noticeTimer.stop();
+        folderMutationNotice = "";
+        rescanTracker.reset();
+        var id = core.action(action, args || ({}), function (ok, data, error) {
+            if (!ok) {
+                if (action === "folder.add-existing" && error && error.code === "path_missing" && !args.createDirectory) {
+                    root.clearFolderAction();
+                    root.folderDirectoryRequired(args);
+                    return;
+                }
+                root.failFolderAction(error, "Could not complete the folder operation");
+                return;
+            }
+            if (root.isRescanAction(contractAction)) {
+                if (!rescanTracker.acceptResult(data, root.scanningFolderIds())) {
+                    root.failFolderAction({
+                        code: "invalid_result",
+                        message: "Native core returned an invalid rescan result"
+                    }, "Could not complete the folder operation");
+                }
+                return;
+            }
+            root.finishFolderAction(contractAction, folderId, notice);
+        });
+        if (id)
+            return true;
+        failFolderAction(null, "Native core is not ready");
+        return false;
+    }
+
+    function configuredFolder(folderId) {
+        var wanted = String(folderId || "");
+        for (var i = 0; i < folders.length; i++) {
+            if (String(folders[i].id || "") === wanted)
+                return folders[i];
+        }
+        return null;
+    }
+
+    function folderLabel(folderId) {
+        var folder = configuredFolder(folderId);
+        return folder ? folder.label || folderId : folderId;
+    }
+
+    function setFolderLinked(folderId, linked) {
+        var label = folderLabel(folderId);
+        return runFolderAction(linked ? "folder.resume" : "folder.pause", linked ? "link" : "unlink", folderId, {
+            folderId: folderId
+        }, linked ? "Linked " + label + ". Syncthing resumed the folder with its " + "existing sharing configuration." : "Synchronization for " + label + " paused. The folder ID, device " + "associations, and data remain.");
+    }
+
+    function rescanFolder(folderId) {
+        var folder = configuredFolder(folderId);
+        if (!folder) {
+            folderMutationError = "The selected folder is no longer configured";
+            return false;
+        }
+        if (folder.paused) {
+            folderMutationError = "Link the folder before rescanning it";
+            return false;
+        }
+        return runFolderAction("folder.rescan", "rescan", folderId, {
+            folderId: folderId
+        }, "Rescan complete for " + folderLabel(folderId));
+    }
+
+    function rescanAllFolders() {
+        if (folders.length === 0) {
+            folderMutationError = "No folders are configured";
+            return false;
+        }
+        return runFolderAction("folder.rescan-all", "rescan-all", "", {}, "Rescan complete for all folders");
+    }
+
+    function forgetFolder(folderId) {
+        return runFolderAction("folder.forget", "forget", folderId, {
+            folderId: folderId
+        }, "Removed from Syncthing configuration and the " + "plugin view. The directory and its data files were not deleted. " + "Re-add Folder ID " + folderId + " to rejoin the same remote folder.");
+    }
+
+    function addFolder(path, label, folderId, selectedDeviceIds, pendingDeviceId, createDirectory) {
+        var shared = (selectedDeviceIds || []).slice();
+        return runFolderAction("folder.add-existing", "add", folderId, {
+            folderId: folderId,
+            path: path,
+            createDirectory: createDirectory === true,
+            label: label,
+            deviceIds: shared,
+            pendingDeviceId: pendingDeviceId
+        }, shared.length > 0 ? "Remote devices may have to accept the folder." : "Added " + (label || folderId) + " locally. It is linked but not " + "shared with another device.");
+    }
+
+    function setFolderSharing(folderId, selectedDeviceIds) {
+        var shared = selectedDeviceIds || [];
+        var folder = configuredFolder(folderId);
+        var previous = [];
+        var members = folder && folder.devices ? folder.devices : [];
+        for (var i = 0; i < members.length; i++) {
+            var memberId = String((members[i] || {}).deviceID || "");
+            if (memberId && memberId !== localDeviceId)
+                previous.push(memberId);
+        }
+        var names = [];
+        for (var j = 0; j < shared.length; j++) {
+            var name = "";
+            for (var k = 0; k < devices.length; k++) {
+                if (String(devices[k].deviceID || "") === String(shared[j])) {
+                    name = String(devices[k].name || "");
+                    break;
+                }
+            }
+            names.push(name || "Device " + String(shared[j]).slice(0, 7));
+        }
+        var notice = "Folder sharing removed. The local folder remains configured.";
+        if (shared.length > 0 && previous.length === 0) {
+            notice = folderLabel(folderId) + " shared with " + names.join(", ") + "; waiting for " + names.join(", ") + " to accept.";
+        } else if (shared.length > 0) {
+            notice = "Sharing with " + names.join(", ") + " updated.";
+        }
+        return runFolderAction("folder.set-sharing", "share", folderId, {
+            folderId: folderId,
+            deviceIds: shared
+        }, notice);
+    }
+
+    function addDevice(deviceId, name) {
+        var label = String(name || "").trim() || "Device " + String(deviceId || "").slice(0, 7);
+        return runFolderAction("device.add", "device-add", deviceId, {
+            deviceId: deviceId,
+            deviceName: name
+        }, label + " added. Add this device on " + label + " to complete connection.");
+    }
+
+    function dismissPendingDevice(deviceId, name) {
+        var label = String(name || "").trim() || String(deviceId || "").slice(0, 7);
+        return runFolderAction("device.dismiss-pending", "device-dismiss", deviceId, {
+            deviceId: deviceId
+        }, "Dismissed pending request from " + label + ".");
+    }
+
+    function removeDevice(deviceId, name) {
+        var label = String(name || "").trim() || "Device " + String(deviceId || "").slice(0, 7);
+        return runFolderAction("device.remove", "device-remove", deviceId, {
+            deviceId: deviceId
+        }, label + " removed from this device.");
+    }
+
+    function removeDeviceFolderShares(deviceId, folderIds, name) {
+        var label = String(name || "").trim() || "Device " + String(deviceId || "").slice(0, 7);
+        return runFolderAction("device.remove-folder-shares", "device-remove-shares", deviceId, {
+            deviceId: deviceId,
+            folderIds: folderIds || []
+        }, "Selected folder shares removed from " + label + ".");
+    }
+
+    function requestFolderIdSuggestion() {
+        if (!online || folderPreparationBusy)
+            return;
+        folderPreparationBusy = true;
+        folderPreparationError = "";
+        folderIdSuggestion = "";
+        var id = core.action("folder.suggest-id", {}, function (ok, data, error) {
+            root.folderPreparationBusy = false;
+            if (ok)
+                root.folderIdSuggestion = String(data && data.folderId || "");
+            else
+                root.folderPreparationError = root.actionError(error, "Could not generate a folder ID");
+        });
+        if (!id) {
+            folderPreparationBusy = false;
+            folderPreparationError = "Native core is not ready";
+        }
+    }
+
+    function clearFolderMutationMessage() {
+        noticeTimer.stop();
+        folderMutationError = "";
+        folderMutationNotice = "";
+        folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS;
+    }
+
+    function clearFolderMutationNotice() {
+        noticeTimer.stop();
+        folderMutationNotice = "";
+        folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS;
+    }
+
+    function runLifecycle(action) {
+        if (!canControlService || serviceActionRunning)
+            return false;
+        serviceActionRunning = true;
+        controlError = "";
+        var id = core.action("lifecycle." + action, {}, function (ok, data, error) {
+            root.serviceActionRunning = false;
+            if (!ok)
+                root.controlError = root.actionError(error, "Could not update the Syncthing service");
+        });
+        if (id)
+            return true;
+        serviceActionRunning = false;
+        controlError = "Native core is not ready";
+        return false;
+    }
+
+    function toggleService() {
+        return runLifecycle(serviceActive ? "stop" : "start");
+    }
+
+    function chooseServiceStateAction(index) {
+        if (!serviceStateDrift || serviceStateActionRunning)
+            return false;
+        var selected = index === 0 ? serviceStateDecision.first : serviceStateDecision.second;
+        return selected.side === "config" ? settings.setServiceState(selected.value) : runLifecycle(selected.value === "enabled" ? "enable" : "disable");
+    }
+
+    function selectTheme(theme, onSuccess, onError) {
+        var id = core.action("webui.set-theme", {
+            theme: theme
+        }, function (ok, data, error) {
+            if (ok)
+                onSuccess();
+            else
+                onError(error);
+        });
+        if (!id)
+            onError({
+                message: "Native core is not ready"
+            });
+    }
+
+    function installSyncthing() {
+        packageController.install();
+    }
+    function openSettings() {
+        settings.openSettings();
+    }
+    function recheckSettings() {
+        settings.recheckSettings();
+    }
+    function autoPortSettings() {
+        settings.autoPort();
+    }
+    function manualPortSettings() {
+        settings.manualPort();
+    }
+    function cancelSettingsMigration() {
+        settings.cancelMigration();
+    }
+    function clearSettingsNotice() {
+        settings.clearNotice();
+    }
+    function requestSelfRemoval(deletePluginSettings) {
+        if (packageController.packageActionRunning || packageController.operationRunning) {
+            settings.error = "Wait for Syncthing installation to finish before removing Syncshell";
+            return;
+        }
+        settings.requestSelfRemoval(deletePluginSettings);
+    }
+
+    onLocalDeviceIdChanged: rememberLocalIdentity()
+    onDevicesChanged: rememberLocalIdentity()
+    onFolderStatusesChanged: rescanTracker.reconcile(scanningFolderIds())
+    onOnlineChanged: {
+        if (!online && folderMutationBusy && rescanTracker.runningFolderIds.length > 0) {
+            failFolderAction(null, "Could not confirm rescan completion because Syncthing became unavailable");
+        }
+    }
+
+    property RescanTracker rescanTracker: RescanTracker {
+        onCompleted: root.completeRescan()
+    }
+
+    property CoreProcess core: CoreProcess {
+        pluginRoot: root.pluginRoot
+        startupArguments: ["--desktop-authorized", "--probe-interval-seconds", String(root.probeIntervalSeconds), "--desired-service-state", root.configuredServiceState, "--lifecycle-kind", "systemd-user", "--lifecycle-authorized", "--lifecycle-unit", "syncthing.service"]
+        onProtocolReadyChanged: if (protocolReady)
+            root.configureCore()
+        onRunningChanged: {
+            if (!running && root.folderMutationBusy) {
+                root.failFolderAction(null, "Folder operation stopped because native core became unavailable");
+            }
+        }
+    }
+
+    property SettingsController settings: SettingsController {
+        runtimeReady: root.online
+        currentWebUiTheme: String(root.webUi.theme || "")
+        guiAssetsPath: String(root.webUi.guiAssets || "")
+        selectTheme: function (theme, onSuccess, onError) {
+            root.selectTheme(theme, onSuccess, onError);
+        }
+    }
+
+    property PackageController packageController: PackageController {
+        helperPath: root.pluginRoot + "/hosts/omarchy/scripts/syncthing-install.sh"
+        probeIntervalSeconds: root.probeIntervalSeconds
+        onStatusApplied: root.recoverCoreIfNeeded()
+    }
+
+    property Connections settingsConnections: Connections {
+        target: root.settings
+        function onSettingsReadyChanged() {
+            root.configureCore();
+        }
+        function onProbeIntervalSecondsChanged() {
+            root.configureCore();
+        }
+        function onServiceStateChanged() {
+            root.configureCore();
+        }
+    }
+
+    property Timer activityTimer: Timer {
+        interval: 500
+        repeat: true
+        running: root.syncActivityDetail !== ""
+        onTriggered: root._activityDotIndex = (root._activityDotIndex + 1) % 4
+    }
+
+    property Timer noticeTimer: Timer {
+        // Allow the panel fade to clear the notice first.
+        interval: root.folderMutationNoticeVisibleMs + UiConstants.NOTICE_FADE_MS + 50
+        repeat: false
+        onTriggered: {
+            root.folderMutationNotice = "";
+            root.folderMutationNoticeVisibleMs = UiConstants.NOTICE_VISIBLE_MS;
+        }
+    }
+
+    property Timer linkedTimer: Timer {
+        interval: 10000
+        repeat: false
+        onTriggered: root.recentlyLinkedFolderId = ""
+    }
 }

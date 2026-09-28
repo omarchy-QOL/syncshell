@@ -159,6 +159,46 @@ function folderState(folder, recentlyLinkedFolderId, hasActivity, rescanning) {
   return "SYNCED"
 }
 
+function folderStateGroup(state) {
+  if (state === "SYNCING" || state === "SCANNING"
+      || state === "SCAN+SYNC") return "active"
+  if (state === "ERROR") return "errors"
+  if (state === "UNLINKED") return "paused"
+  if (state === "UNKNOWN") return "unknown"
+  return "ready"
+}
+
+function folderStateHelpText(state) {
+  if (state === "LINKED") return "Folder is linked"
+  if (state === "SYNCING") return "Folder is syncing"
+  if (state === "SCANNING") return "Folder is scanning"
+  if (state === "SCAN+SYNC") return "Folder is scanning and syncing"
+  if (state === "UNLINKED") return "Folder syncing is paused"
+  if (state === "UNKNOWN") return "Folder status is unavailable"
+  if (state === "ERROR") return "Folder needs attention"
+  return "Folder is synced"
+}
+
+function sortFolderOptions(options, mode) {
+  var selectedMode = mode === "active" || mode === "errors" ? mode : "name"
+  var sorted = (options || []).slice()
+  sorted.sort(function(left, right) {
+    var leftPriority = selectedMode !== "name"
+      && left.group === selectedMode ? 0 : 1
+    var rightPriority = selectedMode !== "name"
+      && right.group === selectedMode ? 0 : 1
+    if (leftPriority !== rightPriority) return leftPriority - rightPriority
+    var leftLabel = String(left.label || "").toLowerCase()
+    var rightLabel = String(right.label || "").toLowerCase()
+    if (leftLabel < rightLabel) return -1
+    if (leftLabel > rightLabel) return 1
+    var leftValue = String(left.value || "")
+    var rightValue = String(right.value || "")
+    return leftValue < rightValue ? -1 : (leftValue > rightValue ? 1 : 0)
+  })
+  return sorted
+}
+
 function folderById(rows, folderId) {
   for (var i = 0; i < rows.length; i++) {
     if (rows[i].id === folderId) return rows[i]
