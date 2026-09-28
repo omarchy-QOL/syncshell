@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
@@ -37,8 +39,7 @@ KeyboardPanel {
     function scrollToMore() {
         moreDetails.forceLayout();
         content.forceLayout();
-        panelFlick.contentY = Math.max(0, Math.min(moreButton.y,
-            panelFlick.contentHeight - panelFlick.height));
+        panelFlick.contentY = Math.max(0, Math.min(moreButton.y, panelFlick.contentHeight - panelFlick.height));
     }
 
     function scrollToTop() {
@@ -47,20 +48,12 @@ KeyboardPanel {
 
     focusTarget: keyCatcher
     contentWidth: fittedContentWidth(Style.space(400))
-    contentHeight: root.controller.settingsMigrationOpen
-        ? fittedContentHeight(Style.space(520), Style.space(560))
-        : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12),
-        Style.space(root.controller.moreOpen
-            && root.controller.currentFolderRow
-            && root.controller.currentFolderRow.problem ? 760 : 560))
+    contentHeight: root.controller.settingsMigrationOpen ? fittedContentHeight(Style.space(520), Style.space(560)) : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12), Style.space(root.controller.moreOpen && root.controller.currentFolderRow && root.controller.currentFolderRow.problem ? 760 : 560))
 
     PanelKeyCatcher {
         id: keyCatcher
         anchors.fill: parent
-        blocked: !root.controller.folderConfirmOpen
-            && (root.controller.addOpen || folderOverview.popupOpen
-                || moreDetails.folderPopupOpen
-                || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen)
+        blocked: !root.controller.folderConfirmOpen && (root.controller.addOpen || folderOverview.popupOpen || moreDetails.folderPopupOpen || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen)
         onCloseRequested: {
             if (root.controller.settingsMigrationOpen) {
                 root.controller.chooseSettingsPort(2);
@@ -89,11 +82,9 @@ KeyboardPanel {
             } else if (root.controller.settingsMenuOpen) {
                 root.controller.moveSettingsSelection(direction);
             } else if (root.controller.folderConfirmOpen) {
-                folderConfirmDialog.selectedIndex =
-                    folderConfirmDialog.selectedIndex === 0 ? 1 : 0;
+                folderConfirmDialog.selectedIndex = folderConfirmDialog.selectedIndex === 0 ? 1 : 0;
             } else if (root.controller.deviceConfirmOpen) {
-                deviceConfirmDialog.selectedIndex =
-                    deviceConfirmDialog.selectedIndex === 0 ? 1 : 0;
+                deviceConfirmDialog.selectedIndex = deviceConfirmDialog.selectedIndex === 0 ? 1 : 0;
             } else
                 root.controller.switchPanel(direction);
         }
@@ -106,14 +97,10 @@ KeyboardPanel {
                 removalDialog.selectedChoice = (removalDialog.selectedChoice + (dy > 0 ? 1 : 2)) % 3;
             } else if (root.controller.settingsMenuOpen && dy !== 0) {
                 root.controller.moveSettingsSelection(dy);
-            } else if (root.controller.folderConfirmOpen
-                    && (dx !== 0 || dy !== 0)) {
-                folderConfirmDialog.selectedIndex =
-                    folderConfirmDialog.selectedIndex === 0 ? 1 : 0;
-            } else if (root.controller.deviceConfirmOpen
-                    && (dx !== 0 || dy !== 0)) {
-                deviceConfirmDialog.selectedIndex =
-                    deviceConfirmDialog.selectedIndex === 0 ? 1 : 0;
+            } else if (root.controller.folderConfirmOpen && (dx !== 0 || dy !== 0)) {
+                folderConfirmDialog.selectedIndex = folderConfirmDialog.selectedIndex === 0 ? 1 : 0;
+            } else if (root.controller.deviceConfirmOpen && (dx !== 0 || dy !== 0)) {
+                deviceConfirmDialog.selectedIndex = deviceConfirmDialog.selectedIndex === 0 ? 1 : 0;
             } else if (!root.controller.addOpen && dx !== 0) {
                 root.controller.cycleCurrentFolder(dx);
             }
@@ -142,7 +129,8 @@ KeyboardPanel {
         onTextKey: function (text) {
             var key = text.toLowerCase();
             if (root.controller.settingsMigrationOpen) {
-                if (key === "q") root.controller.chooseSettingsPort(2);
+                if (key === "q")
+                    root.controller.chooseSettingsPort(2);
                 return;
             }
             if (root.controller.serviceStateDialogOpen) {
@@ -182,8 +170,7 @@ KeyboardPanel {
         parent: keyCatcher
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.rightMargin: interactive
-            ? scrollBar.implicitWidth + Style.spacing.sm : 0
+        anchors.rightMargin: interactive ? scrollBar.implicitWidth + Style.spacing.sm : 0
         anchors.bottom: fixedActions.top
         anchors.bottomMargin: Style.space(12)
         anchors.left: parent.left
@@ -319,8 +306,7 @@ KeyboardPanel {
                 fontSize: Style.font.body
                 horizontalPadding: Style.space(6)
                 verticalPadding: Style.space(4)
-                enabled: root.controller.syncthing !== null
-                    && root.controller.syncthing.online
+                enabled: root.controller.syncthing !== null && root.controller.syncthing.online
                 onClicked: root.controller.openWebUi()
             }
 
@@ -354,9 +340,7 @@ KeyboardPanel {
                 text: "Rescan all folders"
                 busyText: "Rescanning..."
                 tooltipText: "Rescan all folders for local changes."
-                busy: root.controller.syncthing
-                    && root.controller.syncthing.folderMutationAction
-                        === "rescan-all"
+                busy: root.controller.syncthing && root.controller.syncthing.folderMutationAction === "rescan-all"
                 bordered: true
                 foreground: root.controller.foreground
                 busyForeground: root.controller.warning
@@ -365,11 +349,7 @@ KeyboardPanel {
                 iconSize: Style.font.body
                 horizontalPadding: Style.space(5)
                 verticalPadding: Style.space(4)
-                canActivate: root.controller.syncthing
-                    && root.controller.syncthing.online
-                    && root.controller.rescannableFolderCount > 0
-                    && !root.controller.syncthing.refreshing
-                    && !root.controller.syncthing.folderMutationBusy
+                canActivate: root.controller.syncthing && root.controller.syncthing.online && root.controller.rescannableFolderCount > 0 && !root.controller.syncthing.refreshing && !root.controller.syncthing.folderMutationBusy
                 onClicked: root.controller.syncthing.rescanAllFolders()
             }
 
@@ -379,9 +359,7 @@ KeyboardPanel {
                 text: "Refresh Sync.status"
                 busyText: "Rechecking Syncthing"
                 pulseBusyIcon: true
-                tooltipText: "Request latest Syncthing state.\n"
-                    + "Active folders with current errors\n"
-                    + "rescanned and errors rechecked."
+                tooltipText: "Request latest Syncthing state.\n" + "Active folders with current errors\n" + "rescanned and errors rechecked."
                 bordered: true
                 foreground: root.controller.foreground
                 busyForeground: root.controller.warning
@@ -390,15 +368,11 @@ KeyboardPanel {
                 iconSize: Style.font.body
                 horizontalPadding: Style.space(5)
                 verticalPadding: Style.space(4)
-                busy: refreshFeedbackTimer.running
-                    || (root.controller.syncthing
-                        && root.controller.syncthing.refreshing)
-                canActivate: root.controller.syncthing
-                    && root.controller.syncthing.canRefresh
-                    && !refreshFeedbackTimer.running
+                busy: root.refreshFeedbackTimer.running || (root.controller.syncthing && root.controller.syncthing.refreshing)
+                canActivate: root.controller.syncthing && root.controller.syncthing.canRefresh && !root.refreshFeedbackTimer.running
                 onClicked: {
                     if (root.controller.syncthing.refresh(true))
-                        refreshFeedbackTimer.restart();
+                        root.refreshFeedbackTimer.restart();
                 }
             }
 
@@ -416,7 +390,6 @@ KeyboardPanel {
                 onClicked: root.controller.openSettingsMenu()
             }
         }
-
     }
 
     Text {
@@ -425,9 +398,7 @@ KeyboardPanel {
         z: root.controller.removalConfirmOpen ? 12 : 0
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        text: root.controller.settingsMenuOpen || root.controller.settingsMigrationOpen
-            ? "MOVE (j/k or Up/Down)  SELECT (Enter)  BACK (q/Esc)"
-            : "[r]escan all  [w]ebUI  [p]ause/continue  [s]ettings"
+        text: root.controller.settingsMenuOpen || root.controller.settingsMigrationOpen ? "MOVE (j/k or Up/Down)  SELECT (Enter)  BACK (q/Esc)" : "[r]escan all  [w]ebUI  [p]ause/continue  [s]ettings"
         textFormat: Text.PlainText
         color: root.controller.dim
         font.family: root.controller.fontFamily
@@ -441,15 +412,9 @@ KeyboardPanel {
         parent: keyCatcher
         anchors.fill: parent
         opened: root.controller.serviceStateDialogOpen
-        busy: root.controller.syncthing
-            ? root.controller.syncthing.serviceStateActionRunning : false
-        message: root.controller.syncthing
-            ? [root.controller.syncthing.serviceStateMessage,
-               root.controller.syncthing.controlError,
-               root.controller.syncthing.settingsError].filter(Boolean).join("\n\n") : ""
-        choices: root.controller.syncthing
-            ? [root.controller.syncthing.serviceStatePrimaryLabel,
-               root.controller.syncthing.serviceStateSecondaryLabel] : []
+        busy: root.controller.syncthing ? root.controller.syncthing.serviceStateActionRunning : false
+        message: root.controller.syncthing ? [root.controller.syncthing.serviceStateMessage, root.controller.syncthing.controlError, root.controller.syncthing.settingsError].filter(Boolean).join("\n\n") : ""
+        choices: root.controller.syncthing ? [root.controller.syncthing.serviceStatePrimaryLabel, root.controller.syncthing.serviceStateSecondaryLabel] : []
         fontFamily: root.controller.fontFamily
         z: 12
         onActionRequested: function (index) {
@@ -470,7 +435,9 @@ KeyboardPanel {
         busyText: "Preparing settings..."
         fontFamily: root.controller.fontFamily
         z: 13
-        onActionRequested: function(index) { root.controller.chooseSettingsPort(index); }
+        onActionRequested: function (index) {
+            root.controller.chooseSettingsPort(index);
+        }
     }
 
     CompactConfirmDialog {
@@ -484,36 +451,21 @@ KeyboardPanel {
         equalWidthActions: true
         message: {
             if (root.controller.folderConfirmAction === "create")
-                return "Create " + root.controller.folderCreationArgs.path
-                    + " and add the folder?";
-            var folder = root.controller.folderById(
-                root.controller.folderConfirmId);
+                return "Create " + root.controller.folderCreationArgs.path + " and add the folder?";
+            var folder = root.controller.folderById(root.controller.folderConfirmId);
             if (!folder)
                 return "Change this folder?";
             if (root.controller.folderConfirmAction === "link")
-                return "Link " + folder.label + " (" + folder.id
-                    + ")?\n\nSyncthing will resume synchronization for this folder.";
+                return "Link " + folder.label + " (" + folder.id + ")?\n\nSyncthing will resume synchronization for this folder.";
             if (root.controller.folderConfirmAction === "unlink")
-                return "Unlink " + folder.label + " (" + folder.id
-                    + ")?\n\nSyncthing will pause synchronization. Its configuration "
-                    + "and local files remain.";
-            return "Forget " + folder.label + " (" + folder.id + ")?\n\n"
-                + "This removes only its Syncthing configuration. The "
-                + "directory and data files will not be deleted. "
-                + (folder.markerName === ".stfolder"
-                    ? "Syncthing will also attempt to remove its internal "
-                        + ".stfolder marker. " : "")
-                + "Rejoining the same remote folder requires this exact "
-                + "Folder ID.";
+                return "Unlink " + folder.label + " (" + folder.id + ")?\n\nSyncthing will pause synchronization. Its configuration " + "and local files remain.";
+            return "Forget " + folder.label + " (" + folder.id + ")?\n\n" + "This removes only its Syncthing configuration. The " + "directory and data files will not be deleted. " + (folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal " + ".stfolder marker. " : "") + "Rejoining the same remote folder requires this exact " + "Folder ID.";
         }
-        confirmText: root.controller.folderConfirmAction === "create"
-            ? "Create and add" : "Yes"
-        cancelText: root.controller.folderConfirmAction === "create"
-            ? "Cancel" : "No"
+        confirmText: root.controller.folderConfirmAction === "create" ? "Create and add" : "Yes"
+        cancelText: root.controller.folderConfirmAction === "create" ? "Cancel" : "No"
         background: Color.popups.background
         foreground: Color.popups.text
-        selectedText: root.controller.folderConfirmAction === "create"
-            ? root.controller.foreground : root.controller.urgent
+        selectedText: root.controller.folderConfirmAction === "create" ? root.controller.foreground : root.controller.urgent
         fontFamily: root.controller.fontFamily
         onCanceled: root.controller.cancelFolderAction()
         onConfirmed: root.controller.confirmFolderAction()
@@ -521,22 +473,14 @@ KeyboardPanel {
 
     CompactConfirmDialog {
         id: deviceConfirmDialog
-        implicitWidth: Style.space(root.controller.deviceConfirmAction === "remove"
-            ? 320 : 390)
+        implicitWidth: Style.space(root.controller.deviceConfirmAction === "remove" ? 320 : 390)
         parent: keyCatcher
         anchors.fill: parent
         opened: root.controller.deviceConfirmOpen
         z: 10
         confirmFirst: true
         equalWidthActions: true
-        message: root.controller.deviceConfirmAction === "dismiss"
-            ? "Dismiss pending request from "
-                + root.controller.deviceConfirmName + "?\n\n"
-                + "It can reappear if the device connects again."
-            : "Remove " + root.controller.deviceConfirmName
-                + " from this device?\n\nFolder sharing with it will be "
-                + "removed locally. Local folders and files remain.\n"
-                + "The other device is unchanged."
+        message: root.controller.deviceConfirmAction === "dismiss" ? "Dismiss pending request from " + root.controller.deviceConfirmName + "?\n\n" + "It can reappear if the device connects again." : "Remove " + root.controller.deviceConfirmName + " from this device?\n\nFolder sharing with it will be " + "removed locally. Local folders and files remain.\n" + "The other device is unchanged."
         confirmText: "Yes"
         cancelText: "No"
         background: Color.popups.background

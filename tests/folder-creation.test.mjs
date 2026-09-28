@@ -7,9 +7,9 @@ const service = readFileSync(new URL(
 const panel = readFileSync(new URL(
   "../hosts/omarchy/OmarchyPanel.qml", import.meta.url), "utf8");
 
-function method(source, name, indent = "  ") {
+function method(source, name) {
   const pattern = new RegExp(
-    "^" + indent + "function " + name + "\\([^]*?^" + indent + "}", "m");
+    "^(\\s*)function " + name + "\\([^]*?^\\1}", "m");
   const match = source.match(pattern);
   assert.ok(match, name);
   return match[0];
@@ -69,7 +69,7 @@ const controller = vm.createContext({
   syncthing: { addFolder(...args) { submitted = args; return true; } },
 });
 controller.root = controller;
-vm.runInContext(method(panel, "onFolderDirectoryRequired", "    ") + "\n"
+vm.runInContext(method(panel, "onFolderDirectoryRequired") + "\n"
   + method(panel, "cancelFolderAction") + "\n"
   + method(panel, "confirmFolderAction"), controller);
 const original = {

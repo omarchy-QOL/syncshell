@@ -2,19 +2,19 @@ import QtQuick
 import qs.Ui as Ui
 
 Ui.PanelActionButton {
-  id: root
+    id: root
 
-  property string helpText: ""
+    property string helpText: ""
 
-  tooltipText: ""
+    tooltipText: ""
 
-  HoverHandler {
-    id: tooltipHover
-  }
+    HoverHandler {
+        id: tooltipHover
+    }
 
-  SyncshellToolTip {
-    visible: root.enabled && root.helpText !== "" && tooltipHover.hovered
-    text: root.helpText
-    fontFamily: root.fontFamily
-  }
+    SyncshellToolTip {
+        visible: root.enabled && root.helpText !== "" && tooltipHover.hovered
+        text: root.helpText
+        fontFamily: root.fontFamily
+    }
 }

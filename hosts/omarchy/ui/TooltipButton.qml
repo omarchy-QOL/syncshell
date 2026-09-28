@@ -2,22 +2,22 @@ import QtQuick
 import qs.Ui as Ui
 
 Ui.Button {
-  id: root
+    id: root
 
-  property string helpText: ""
+    property string helpText: ""
 
-  tooltipText: ""
+    tooltipText: ""
 
-  HoverHandler {
-    id: tooltipHover
-  }
+    HoverHandler {
+        id: tooltipHover
+    }
 
-  SyncshellToolTip {
-    visible: root.helpText !== "" && tooltipHover.hovered
-    text: root.helpText
-    tooltipBackground: root.tooltipBackground
-    tooltipForeground: root.tooltipForeground
-    tooltipBorder: root.tooltipBorder
-    fontFamily: root.fontFamily
-  }
+    SyncshellToolTip {
+        visible: root.helpText !== "" && tooltipHover.hovered
+        text: root.helpText
+        tooltipBackground: root.tooltipBackground
+        tooltipForeground: root.tooltipForeground
+        tooltipBorder: root.tooltipBorder
+        fontFamily: root.fontFamily
+    }
 }

@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs.Commons
 import qs.Ui
@@ -8,10 +10,8 @@ Item {
     property int selectedIndex: 0
     property string fontFamily: Style.font.family
     readonly property color foreground: Color.popups.text
-    readonly property color selectedBackground: Style.selectedFillFor(
-        foreground, Color.accent, Color.urgent)
-    readonly property color selectedText: Style.selectedStateColor(
-        foreground, Color.accent, Color.urgent)
+    readonly property color selectedBackground: Style.selectedFillFor(foreground, Color.accent, Color.urgent)
+    readonly property color selectedText: Style.selectedStateColor(foreground, Color.accent, Color.urgent)
     signal highlightRequested(int index)
     signal activated(int index)
 
@@ -62,8 +62,7 @@ Item {
                 width: menuColumn.width
                 height: Style.space(60)
                 radius: Style.cornerRadius
-                color: root.selectedIndex === index
-                    ? root.selectedBackground : "transparent"
+                color: root.selectedIndex === index ? root.selectedBackground : "transparent"
 
                 Rectangle {
                     visible: menuRow.modelData.separatorBefore
@@ -86,10 +85,7 @@ Item {
                         width: parent.width
                         text: menuRow.modelData.title
                         textFormat: Text.PlainText
-                        color: root.selectedIndex === menuRow.index
-                            ? root.selectedText
-                            : (menuRow.modelData.dangerous
-                                ? Color.urgent : root.foreground)
+                        color: root.selectedIndex === menuRow.index ? root.selectedText : (menuRow.modelData.dangerous ? Color.urgent : root.foreground)
                         font.family: root.fontFamily
                         font.pixelSize: Style.font.title
                         font.bold: true
@@ -100,8 +96,7 @@ Item {
                         width: parent.width
                         text: menuRow.modelData.description
                         textFormat: Text.PlainText
-                        color: root.selectedIndex === menuRow.index
-                            ? root.selectedText : root.foreground
+                        color: root.selectedIndex === menuRow.index ? root.selectedText : root.foreground
                         opacity: 0.65
                         font.family: root.fontFamily
                         font.pixelSize: Style.font.body
