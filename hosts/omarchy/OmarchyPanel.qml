@@ -194,11 +194,7 @@ Panel {
     function showBarTooltip() {
         if (!bar || !button.tooltipHovered || tooltip === "")
             return;
-        bar.clearTooltip();
-        bar.tooltipRequest += 1;
-        bar.tooltipTarget = button;
-        bar.tooltipText = tooltip;
-        bar.tooltipShown = true;
+        bar.showTooltip(button, tooltip);
     }
 
     function folderMeta(folder) {
