@@ -165,6 +165,14 @@ KeyboardPanel {
         }
     }
 
+    // Side cards meet the panel border, outside its content padding.
+    Item {
+        id: sideCardAnchor
+        parent: keyCatcher
+        x: -root.padding - Border.left(root.borderSpec)
+        width: keyCatcher.width
+    }
+
     Flickable {
         id: panelFlick
         parent: keyCatcher
@@ -252,6 +260,7 @@ KeyboardPanel {
 
             MoreDetails {
                 id: moreDetails
+                cardAnchor: sideCardAnchor
                 visible: !root.controller.settingsMenuOpen && root.controller.moreOpen
                 controller: root.controller
                 syncthing: root.controller.syncthing

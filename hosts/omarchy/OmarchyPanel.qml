@@ -180,10 +180,6 @@ Panel {
         });
     }
 
-    function scrollToMore() {
-        popup.scrollToMore();
-    }
-
     function scrollToTop() {
         popup.scrollToTop();
     }
@@ -193,10 +189,6 @@ Panel {
         if (opening && addOpen)
             closeAddFolder();
         folderShareOpen = opening;
-        if (folderShareOpen)
-            Qt.callLater(function () {
-                popup.scrollToMore();
-            });
     }
 
     function showBarTooltip() {
@@ -541,7 +533,6 @@ Panel {
             return;
         popup.pendingFolderValue = selected;
         applyPendingFolder(selected);
-        popup.scrollToMore();
         Qt.callLater(function () {
             popup.focusAddPath();
         });

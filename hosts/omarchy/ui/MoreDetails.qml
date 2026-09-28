@@ -8,6 +8,8 @@ Column {
     id: root
 
     property var controller
+    required property Item cardAnchor
+    property Item addTrigger: addFolderButton
     property var syncthing
     property color foreground: Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
@@ -157,6 +159,7 @@ Column {
         }
 
         TooltipButton {
+            id: addFolderButton
             iconText: "\uf067"
             Layout.preferredWidth: Style.spacing.controlHeight
             Layout.preferredHeight: Style.spacing.controlHeight
@@ -169,10 +172,14 @@ Column {
             horizontalPadding: Style.space(7)
             verticalPadding: Style.space(3)
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
-            onClicked: root.controller.addOpen ? root.controller.closeAddFolder() : root.controller.openAddFolder()
+            onClicked: {
+                root.addTrigger = addFolderButton;
+                root.controller.addOpen ? root.controller.closeAddFolder() : root.controller.openAddFolder();
+            }
         }
 
         TooltipButton {
+            id: shareFolderButton
             visible: root.controller.folderRows.length > 0
             iconText: "\uf1e0"
             Layout.preferredWidth: Style.spacing.controlHeight
@@ -211,15 +218,21 @@ Column {
         }
     }
 
-    FolderSharingForm {
-        id: folderSharingForm
-        visible: root.controller.folderShareOpen
-        controller: root.controller
-        syncthing: root.syncthing
-        foreground: root.foreground
-        urgent: root.urgent
-        warning: root.controller.warning
-        fontFamily: root.fontFamily
+    SideCardMenu {
+        panel: root.cardAnchor
+        trigger: shareFolderButton
+        shown: root.controller.folderShareOpen && root.visible && root.controller.opened
+        onClosed: root.controller.folderShareOpen = false
+
+        contentItem: FolderSharingForm {
+            id: folderSharingForm
+            controller: root.controller
+            syncthing: root.syncthing
+            foreground: root.foreground
+            urgent: root.urgent
+            warning: root.controller.warning
+            fontFamily: root.fontFamily
+        }
     }
 
     PanelSectionHeader {
@@ -253,6 +266,7 @@ Column {
         }
 
         TooltipButton {
+            id: acceptFolderButton
             text: "ACCEPT"
             Layout.preferredHeight: Style.spacing.controlHeight
             helpText: "Configure offered folder request"
@@ -263,21 +277,31 @@ Column {
             horizontalPadding: Style.space(6)
             verticalPadding: Style.space(4)
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy && root.controller.selectedPendingOffer !== ""
-            onClicked: root.controller.acceptPendingFolderOffer(root.controller.selectedPendingOffer)
+            onClicked: {
+                root.addTrigger = acceptFolderButton;
+                root.controller.acceptPendingFolderOffer(root.controller.selectedPendingOffer);
+            }
         }
     }
 
-    AddFolderForm {
-        id: addForm
-        visible: root.controller.addOpen
-        controller: root.controller
-        syncthing: root.syncthing
-        folderPickerRunning: root.controller.folderPickerRunning
-        foreground: root.foreground
-        dim: root.dim
-        urgent: root.urgent
-        warning: root.controller.warning
-        fontFamily: root.fontFamily
+    SideCardMenu {
+        panel: root.cardAnchor
+        trigger: root.addTrigger
+        shown: root.controller.addOpen && root.visible && root.controller.opened
+        onClosed: if (!root.controller.preserveStateForFolderPicker)
+            root.controller.closeAddFolder()
+
+        contentItem: AddFolderForm {
+            id: addForm
+            controller: root.controller
+            syncthing: root.syncthing
+            folderPickerRunning: root.controller.folderPickerRunning
+            foreground: root.foreground
+            dim: root.dim
+            urgent: root.urgent
+            warning: root.controller.warning
+            fontFamily: root.fontFamily
+        }
     }
 
     PanelSeparator {
@@ -286,6 +310,7 @@ Column {
 
     RemoteDevices {
         id: remoteDevices
+        cardAnchor: root.cardAnchor
         width: parent.width
         controller: root.controller
         syncthing: root.syncthing

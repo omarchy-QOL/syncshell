@@ -7,6 +7,7 @@ Column {
     id: root
 
     property var controller
+    required property Item cardAnchor
     property var syncthing
     property color foreground: Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
@@ -74,9 +75,6 @@ Column {
         foldersOpen = false;
         if (syncthing)
             syncthing.refresh();
-        Qt.callLater(function () {
-            controller.scrollToMore();
-        });
     }
 
     function openAccept() {
@@ -85,9 +83,6 @@ Column {
         acceptOpen = true;
         addOpen = false;
         foldersOpen = false;
-        Qt.callLater(function () {
-            controller.scrollToMore();
-        });
     }
 
     function openFolders() {
@@ -96,9 +91,6 @@ Column {
         foldersOpen = true;
         addOpen = false;
         acceptOpen = false;
-        Qt.callLater(function () {
-            controller.scrollToMore();
-        });
     }
 
     function closePopups() {
@@ -179,6 +171,7 @@ Column {
         }
 
         TooltipButton {
+            id: addDeviceButton
             iconText: "\uf067"
             Layout.preferredWidth: Style.spacing.controlHeight
             Layout.preferredHeight: Style.spacing.controlHeight
@@ -197,6 +190,7 @@ Column {
         }
 
         TooltipButton {
+            id: deviceFoldersButton
             visible: root.remoteRows.length > 0
             iconText: "󰉓"
             Layout.preferredWidth: Style.spacing.controlHeight
@@ -240,37 +234,49 @@ Column {
         wrapMode: Text.WordWrap
     }
 
-    DeviceFoldersForm {
-        id: foldersForm
-        visible: root.foldersOpen && root.selectedDevice
-        controller: root.controller
-        syncthing: root.syncthing
-        device: root.selectedDevice
-        submitting: root.submitting
-        foreground: root.foreground
-        urgent: root.urgent
-        warning: root.warning
-        fontFamily: root.fontFamily
-        onCanceled: root.foldersOpen = false
-        onSubmissionStarted: function (started) {
-            root.submitting = started;
+    SideCardMenu {
+        panel: root.cardAnchor
+        trigger: deviceFoldersButton
+        shown: root.foldersOpen && root.selectedDevice && root.visible && root.controller.opened
+        onClosed: root.foldersOpen = false
+
+        contentItem: DeviceFoldersForm {
+            id: foldersForm
+            controller: root.controller
+            syncthing: root.syncthing
+            device: root.selectedDevice
+            submitting: root.submitting
+            foreground: root.foreground
+            urgent: root.urgent
+            warning: root.warning
+            fontFamily: root.fontFamily
+            onCanceled: root.foldersOpen = false
+            onSubmissionStarted: function (started) {
+                root.submitting = started;
+            }
         }
     }
 
-    AddRemoteDeviceForm {
-        id: addForm
-        visible: root.addOpen
-        controller: root.controller
-        syncthing: root.syncthing
-        submitting: root.submitting
-        foreground: root.foreground
-        dim: root.dim
-        urgent: root.urgent
-        warning: root.warning
-        fontFamily: root.fontFamily
-        onCanceled: root.addOpen = false
-        onSubmissionStarted: function (started) {
-            root.submitting = started;
+    SideCardMenu {
+        panel: root.cardAnchor
+        trigger: addDeviceButton
+        shown: root.addOpen && root.visible && root.controller.opened
+        onClosed: root.addOpen = false
+
+        contentItem: AddRemoteDeviceForm {
+            id: addForm
+            controller: root.controller
+            syncthing: root.syncthing
+            submitting: root.submitting
+            foreground: root.foreground
+            dim: root.dim
+            urgent: root.urgent
+            warning: root.warning
+            fontFamily: root.fontFamily
+            onCanceled: root.addOpen = false
+            onSubmissionStarted: function (started) {
+                root.submitting = started;
+            }
         }
     }
 
@@ -310,6 +316,7 @@ Column {
             }
 
             TooltipButton {
+                id: acceptDeviceButton
                 iconText: "\uf00c"
                 Layout.preferredWidth: Style.spacing.controlHeight
                 Layout.preferredHeight: Style.spacing.controlHeight
@@ -337,20 +344,26 @@ Column {
         }
     }
 
-    AcceptRemoteDeviceForm {
-        id: acceptForm
-        visible: root.acceptOpen && root.selectedPending
-        controller: root.controller
-        syncthing: root.syncthing
-        device: root.selectedPending
-        submitting: root.submitting
-        foreground: root.foreground
-        dim: root.dim
-        urgent: root.urgent
-        fontFamily: root.fontFamily
-        onCanceled: root.acceptOpen = false
-        onSubmissionStarted: function (started) {
-            root.submitting = started;
+    SideCardMenu {
+        panel: root.cardAnchor
+        trigger: acceptDeviceButton
+        shown: root.acceptOpen && root.selectedPending && root.visible && root.controller.opened
+        onClosed: root.acceptOpen = false
+
+        contentItem: AcceptRemoteDeviceForm {
+            id: acceptForm
+            controller: root.controller
+            syncthing: root.syncthing
+            device: root.selectedPending
+            submitting: root.submitting
+            foreground: root.foreground
+            dim: root.dim
+            urgent: root.urgent
+            fontFamily: root.fontFamily
+            onCanceled: root.acceptOpen = false
+            onSubmissionStarted: function (started) {
+                root.submitting = started;
+            }
         }
     }
 }

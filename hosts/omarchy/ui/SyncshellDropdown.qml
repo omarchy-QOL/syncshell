@@ -55,6 +55,9 @@ Item {
     // dropdown owns keys (its embedded ListView is active) and suspend its
     // own keyCatcher so j/k inside the popup don't double-drive the panel
     // cursor.
+    onVisibleChanged: if (!visible)
+        close()
+
     readonly property bool popupOpen: popup.opened
     readonly property var headerAccessoryItem: searchAccessoryLoader.item
     readonly property bool headerAccessoryOpen: headerAccessoryItem ? !!headerAccessoryItem.popupOpen : false

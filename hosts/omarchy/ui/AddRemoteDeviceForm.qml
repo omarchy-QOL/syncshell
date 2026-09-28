@@ -3,7 +3,7 @@ import QtQuick.Controls
 import qs.Commons
 import qs.Ui
 
-BorderSurface {
+Item {
     id: root
 
     property var controller
@@ -51,9 +51,6 @@ BorderSurface {
 
     width: parent ? parent.width : implicitWidth
     implicitHeight: content.implicitHeight + Style.space(8)
-    color: "transparent"
-    borderSpec: Border.controlSpec("normal", foreground, Color.accent)
-    radius: Style.cornerRadius
 
     Column {
         id: content

@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import qs.Commons
 import qs.Ui
 
-BorderSurface {
+Item {
     id: root
 
     property var controller
@@ -41,9 +41,6 @@ BorderSurface {
 
     width: parent ? parent.width : implicitWidth
     implicitHeight: addColumn.implicitHeight + Style.space(8)
-    color: "transparent"
-    borderSpec: Border.controlSpec("normal", foreground, Color.accent)
-    radius: Style.cornerRadius
     Keys.onPressed: function (event) {
         if (event.key === Qt.Key_Escape) {
             controller.closeAddFolder();

@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls as QQC
-import QtQuick.Window
 import qs.Commons
 import qs.Ui
 
@@ -155,6 +154,9 @@ Item {
         recomputeFiltered();
     }
 
+    onVisibleChanged: if (!visible)
+        close()
+
     onOptionsChanged: rebuildFromStatic()
     Component.onCompleted: rebuildFromStatic()
 
@@ -177,8 +179,6 @@ Item {
 
         BorderSurface {
             id: trigger
-
-            readonly property Item hostContentItem: Window.window ? Window.window.contentItem : null
 
             width: parent.width
             height: root.rowHeight
@@ -244,33 +244,11 @@ Item {
 
             QQC.Popup {
                 id: popup
-                // Reparent to the window's content item so the popup is free of any
-                // clipping ancestor. Position
-                // and available height are recomputed on open and any time the
-                // trigger's geometry changes, since a binding on mapToItem alone
-                // won't reliably re-evaluate when ancestors scroll or resize.
-                parent: trigger.hostContentItem || trigger
-                property real _anchorX: 0
-                property real _anchorY: 0
-                property real _availableBelow: 0
-                readonly property real _windowHeight: parent ? parent.height : 0
-                readonly property real _idealContent: resultList.contentHeight + Style.space(50)
-                readonly property real _maxRowsHeight: root.popupRowHeight * 6 + 5 * Style.spacing.labelGap + Style.space(50)
-
-                function reposition() {
-                    if (!parent)
-                        return;
-                    var p = trigger.mapToItem(parent, 0, trigger.height + Style.spacing.xxs);
-                    _anchorX = p.x;
-                    _anchorY = p.y;
-                    _availableBelow = Math.max(0, _windowHeight - _anchorY - Style.space(12));
-                }
-
-                x: _anchorX
-                y: _anchorY
+                x: 0
+                y: trigger.height + Style.spacing.xxs
                 width: trigger.width
-                // Keep the popup inside the window when little space remains.
-                implicitHeight: Math.min(_availableBelow, _idealContent, _maxRowsHeight)
+                margins: Style.space(12)
+                implicitHeight: Math.min(resultList.contentHeight + Style.space(50), root.popupRowHeight * 6 + 5 * Style.spacing.labelGap + Style.space(50))
                 padding: Style.spacing.hairline
                 leftPadding: Border.left(root.popupBorderSpec) + Style.spacing.hairline
                 rightPadding: Border.right(root.popupBorderSpec) + Style.spacing.hairline
@@ -279,22 +257,6 @@ Item {
                 focus: true
                 closePolicy: QQC.Popup.CloseOnEscape | QQC.Popup.CloseOnPressOutsideParent
 
-                Connections {
-                    target: trigger
-                    function onXChanged() {
-                        popup.reposition();
-                    }
-                    function onYChanged() {
-                        popup.reposition();
-                    }
-                    function onWidthChanged() {
-                        popup.reposition();
-                    }
-                    function onHeightChanged() {
-                        popup.reposition();
-                    }
-                }
-
                 background: BorderSurface {
                     color: root.background
                     borderSpec: root.popupBorderSpec
@@ -302,7 +264,6 @@ Item {
                 }
 
                 onOpened: {
-                    reposition();
                     searchField.text = "";
                     root.recomputeFiltered();
                     Qt.callLater(function () {
