@@ -7,6 +7,7 @@ SyncshellDropdown {
   required property var controller
 
   showLabel: false
+  searchable: true
   rowHeight: Style.spacing.controlHeight
   value: controller.currentFolderId
   options: controller.folderOptions()
