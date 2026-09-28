@@ -18,16 +18,20 @@ the Omarchy bar, manages local folders and opens a redesigned Web UI. Version
 ## Quick start
 
 - select the switch/toggle in the top right to start or stop the user service
-- select a folder card to open its directory
-- select **+** to configure a local directory
-- expand **More**, then use **Remote Devices** to add a device or manage its
-  shared folders
+- the folder icon in the top-left of the folder card opens its directory
+- expand **More**, then
+  - **FOLDERS** section:
+    - select **+** to configure a local directory
+    - share icon: choose which configured devices share this folder
+    - unlink icon: pause synchronization for this folder; keep its configuration
+      and files
+  - **REMOTE DEVICES** section: add a device / manage its shared folders
 - select **RESCAN** on a folder or **Rescan all folders** for linked folders
 - select **Web UI** for advanced Syncthing options
 - select the gear or press `s` for appearance settings and clean removal
 
 One or two folders appear as cards; larger collections use a searchable
-selector. Unshared and paused folders are included.
+selector; unshared and paused folders are included.
 
 ## Install
 
@@ -39,8 +43,8 @@ Open the widget and expand **More**. If Syncthing is missing, select **Install
 Syncthing** to install the package and start the user service. Existing
 installations are detected automatically.
 
-If UFW is enabled, run `sudo ufw allow syncthing` to allow
-[device discovery and synchronization][firewall].
+If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
+synchronization][firewall].
 
 The released plugin supports Omarchy on Linux x86_64. Alpha adapters for
 DankMaterialShell, Illogical Impulse, Caelestia, and Waybar are under
@@ -251,9 +255,9 @@ in [Syncshell Web provenance][webui-provenance].
   sharing.
 - **FORGET** removes an unlinked folder from Syncthing's configuration while
   keeping its files.
-- **Add** requires a unique Folder ID. Missing directories can be created
-  after confirmation. Overlapping paths are rejected. Select remote devices
-  explicitly to share the folder.
+- **Add** requires a unique Folder ID. Missing directories can be created after
+  confirmation. Overlapping paths are rejected. Select remote devices explicitly
+  to share the folder.
 - Use **FOLDERS** to choose a folder's devices or review and remove the selected
   device's existing shares.
 
@@ -311,8 +315,8 @@ Syncshell does not restart it automatically.
 Select **Cleanly remove Syncthing plugin** in settings. You can keep or delete
 plugin settings. When Syncthing is reachable, both choices restore its default
 UI and remove the custom Web UI profiles. Otherwise those profiles are retained
-so removal never guesses their location. Syncthing itself, its configuration
-and synced files remain intact.
+so removal never guesses their location. Syncthing itself, its configuration and
+synced files remain intact.
 
 To uninstall Syncthing separately:
 
