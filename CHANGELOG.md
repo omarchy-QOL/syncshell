@@ -49,8 +49,8 @@ Notable changes to Syncshell for Omarchy are documented here.
   user, without changing permissions or replacing an existing destination
 - label conflict resolution as beta and use a themed Syncshell header
 
-- add a Preact Web UI with grouped folders/devices, notifications and
-  API-based conflict discovery and rescans
+- add a Preact Web UI with grouped folders/devices, notifications and API-based
+  conflict discovery and rescans
 - refine the 400-pixel panel action area, keep current and planned interface
   entries visible, standardize tooltips and acknowledge status refreshes
 - migrate older plugin settings with a preview and an exact backup while
@@ -62,8 +62,8 @@ Notable changes to Syncshell for Omarchy are documented here.
   recovery, and disable unavailable actions after the core stops
 - check existing tilde folder paths for overlap using Syncthing's own home
   directory; require absolute paths when their location cannot be determined
-- resume file activity when Syncthing's event sequence resets on reconnect
-  while preserving unread events from a surviving daemon
+- resume file activity when Syncthing's event sequence resets on reconnect while
+  preserving unread events from a surviving daemon
 - match Syncthing home and config directory options consistently so service
   controls cannot target another instance through short option spellings
 - replace the QML Syncthing engine with one parent-bound native Go core
@@ -74,11 +74,11 @@ Notable changes to Syncshell for Omarchy are documented here.
 - make accepted single and global rescans visible immediately with rotating,
   inert controls and explicit optimistic folder state
 - keep long-running accepted rescans from surfacing a false request timeout
-- wait until targeted folders leave scanning before reporting rescan
-  completion, so notices and the all-folders control follow the last folder
-  rather than the HTTP accept
-- show the bar sync overlay as soon as a plugin rescan is busy, not only
-  after snapshot scanning arrives
+- wait until targeted folders leave scanning before reporting rescan completion,
+  so notices and the all-folders control follow the last folder rather than the
+  HTTP accept
+- show the bar sync overlay as soon as a plugin rescan is busy, not only after
+  snapshot scanning arrives
 - distinguish plain `SCANNING` from concurrent `SCAN+SYNC` during an accepted
   rescan
 - require a shell restart after updating to load the current plugin while
