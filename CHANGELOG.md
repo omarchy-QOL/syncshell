@@ -6,6 +6,9 @@ Notable changes to Syncshell for Omarchy are documented here.
   larger collections, including paused and unshared folders
 - add direct fuzzy folder search with status dots, result counts, filtering, and
   sorting without changing the selected folder as the view changes
+- explain folder and device statuses through delayed full-row dropdown tooltips
+- navigate panel actions and nested folder view controls with arrow or Vim keys,
+  while Escape or `q` dismisses one layer at a time
 - open folder and device setup, acceptance, sharing, and management forms in
   anchored side cards so the main panel stays in place
 - keep background status refreshes from showing feedback reserved for manual
