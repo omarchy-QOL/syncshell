@@ -2,6 +2,19 @@
 
 Notable changes to Syncshell for Omarchy are documented here.
 
+- keep one or two folders visible as cards and use a stable compact selector for
+  larger collections, including paused and unshared folders
+- add direct fuzzy folder search with status dots, result counts, filtering, and
+  sorting without changing the selected folder as the view changes
+- open folder and device setup, acceptance, sharing, and management forms in
+  anchored side cards so the main panel stays in place
+- keep background status refreshes from showing feedback reserved for manual
+  refreshes
+- restore bar hover tooltips with Omarchy's current plugin API; thanks to
+  [@sherajdev](https://github.com/sherajdev) for reporting, diagnosing, and
+  verifying the fix in
+  [#103](https://github.com/omarchy-QOL/syncshell/issues/103)
+
 ## 0.1.9 - 2026-09-21
 
 - add remote-device discovery and setup to the Omarchy panel, including nearby
