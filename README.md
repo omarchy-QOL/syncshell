@@ -1,17 +1,48 @@
 <h1 align="center">Syncshell = <strong>Sync</strong>thing + quick<strong>shell</strong></h1>
 
 <p align="center">
-  <a href="https://github.com/omarchy-QOL/syncshell/actions/workflows/test.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/omarchy-QOL/syncshell/test.yml?branch=main&amp;style=flat-square&amp;logo=github&amp;logoColor=white&amp;label=CI&amp;labelColor=2e3440"></a>
-  <a href="https://app.codecov.io/gh/omarchy-QOL/syncshell"><img alt="Go core coverage" src="https://img.shields.io/codecov/c/github/omarchy-QOL/syncshell/main?flag=core&amp;style=flat-square&amp;logo=codecov&amp;logoColor=white&amp;label=core%20coverage&amp;labelColor=2e3440&amp;color=88c0d0"></a>
-  <a href="https://github.com/omarchy-QOL/syncshell/releases"><img alt="Latest version" src="https://img.shields.io/github/v/tag/omarchy-QOL/syncshell?sort=semver&amp;style=flat-square&amp;label=version&amp;logo=git&amp;logoColor=white&amp;labelColor=2e3440&amp;color=5e81ac"></a>
-  <a href="https://omarchy.org"><img alt="Omarchy plugin" src="https://img.shields.io/badge/Omarchy-plugin-b48ead?style=flat-square&amp;logo=archlinux&amp;logoColor=white&amp;labelColor=2e3440"></a>
-  <a href="https://github.com/syncthing/syncthing/releases/tag/v2.1.3"><img alt="Tested with Syncthing v2.1.3" src="https://img.shields.io/badge/tested%20Syncthing-v2.1.3-26b6db?style=flat-square&amp;logo=syncthing&amp;logoColor=white&amp;labelColor=2e3440"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/omarchy-QOL/syncshell?style=flat-square&amp;logo=opensourceinitiative&amp;logoColor=white&amp;labelColor=2e3440&amp;color=ebcb8b"></a>
+  <a href="https://github.com/omarchy-QOL/syncshell/actions/workflows/test.yml">
+    <img
+      alt="CI"
+      src="https://img.shields.io/github/actions/workflow/status/omarchy-QOL/syncshell/test.yml?branch=main&amp;style=flat-square&amp;logo=github&amp;logoColor=white&amp;label=CI&amp;labelColor=2e3440"
+    >
+  </a>
+  <a href="https://app.codecov.io/gh/omarchy-QOL/syncshell">
+    <img
+      alt="Go core coverage"
+      src="https://img.shields.io/codecov/c/github/omarchy-QOL/syncshell/main?flag=core&amp;style=flat-square&amp;logo=codecov&amp;logoColor=white&amp;label=core%20coverage&amp;labelColor=2e3440&amp;color=88c0d0"
+    >
+  </a>
+  <a href="https://github.com/omarchy-QOL/syncshell/releases">
+    <img
+      alt="Latest version"
+      src="https://img.shields.io/github/v/tag/omarchy-QOL/syncshell?sort=semver&amp;style=flat-square&amp;label=version&amp;logo=git&amp;logoColor=white&amp;labelColor=2e3440&amp;color=5e81ac"
+    >
+  </a>
+  <a href="https://omarchy.org">
+    <img
+      alt="Omarchy plugin"
+      src="https://img.shields.io/badge/Omarchy-plugin-b48ead?style=flat-square&amp;logo=archlinux&amp;logoColor=white&amp;labelColor=2e3440"
+    >
+  </a>
+  <a href="https://github.com/syncthing/syncthing/releases/tag/v2.1.3">
+    <img
+      alt="Tested with Syncthing v2.1.3"
+      src="https://img.shields.io/badge/tested%20Syncthing-v2.1.3-26b6db?style=flat-square&amp;logo=syncthing&amp;logoColor=white&amp;labelColor=2e3440"
+    >
+  </a>
+  <a href="LICENSE">
+    <img
+      alt="License"
+      src="https://img.shields.io/github/license/omarchy-QOL/syncshell?style=flat-square&amp;logo=opensourceinitiative&amp;logoColor=white&amp;labelColor=2e3440&amp;color=ebcb8b"
+    >
+  </a>
 </p>
 
 Syncshell shows [Syncthing](https://github.com/syncthing/syncthing) activity in
-the Omarchy bar, manages local folders and opens a redesigned Web UI. Versions
->= 0.1.8 use a bundled Go core since other Linux shell adapters are planned.
+the Omarchy bar, manages local folders and opens a redesigned Web UI.
+Versions >= 0.1.8 use a bundled Go core since other Linux shell adapters are
+planned.
 
 ![Syncthing status and installation controls](preview.png)
 
@@ -40,49 +71,18 @@ omarchy plugin add https://github.com/omarchy-QOL/syncshell.git --enable
 ```
 
 Open the widget and expand **More**. If Syncthing is missing, select **Install
-Syncthing** to install the package and start the user service. Existing
-installations are detected automatically.
+Syncthing** to install the package and start the user service. On Omarchy, this
+uses `omarchy pkg add`, the same mechanism that manual package installation
+would normally use. Existing installations are detected automatically.
 
 If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
 synchronization][firewall].
 
 The released plugin supports Omarchy on Linux x86_64. Alpha adapters for
 DankMaterialShell, Illogical Impulse, Caelestia, and Waybar are under
-development; they are not part of the supported release. ARM and daemon mode
-remain future work.
-
-## Keybindings
-
-Also shown in the panel footer.
-
-| Key     | Action                    |
-| ------- | ------------------------- |
-| `r`     | rescan all folders        |
-| `w`     | open the Web UI           |
-| `p`     | start or stop the service |
-| `s`     | open plugin settings      |
-| `q/esc` | close the panel           |
-
-## Settings
-
-Settings opens `~/.config/omarchy/ilyazar.syncthing/settings.toml` in your
-editor. Saves are validated; invalid edits show an error and leave the session's
-last valid settings active.
-
-Older settings offer **Auto-port**, **Manual port** and **Cancel**. Auto-port
-previews the migration to schema `2`, preserves valid preferences and comments,
-and keeps an exact backup beside the original. Unrecognized or invalid settings
-need manual correction.
-
-- `style.icon_style = "themed"` follows the bar foreground. Use `"branded"` for
-  the classic Syncthing icon.
-- `style.web_ui_theme = "default"` uses Syncthing's own Web UI.
-- `style.web_ui_theme = "modern"` uses the bundled Syncshell Web UI.
-- `style.web_ui_theme = "omarchy"` applies the Omarchy palette to that same UI.
-  This is the default.
-
-Omarchy theme changes apply live. Reload the page when switching Web UI
-profiles; `modern` keeps its own appearance.
+development; they are not officially part of the release yet, but can be tested
+via manual installation on those systems. ARM and daemon mode remain future
+work.
 
 ## Demo videos
 
@@ -170,6 +170,39 @@ The plugin reports only state exposed by Syncthing:
 Syncthing does not expose a reliable source-to-destination relationship for a
 rename or move, so the plugin does not guess one from nearby additions and
 deletions.
+
+## Keybindings
+
+Also shown in the panel footer.
+
+| Key     | Action                    |
+| ------- | ------------------------- |
+| `r`     | rescan all folders        |
+| `w`     | open the Web UI           |
+| `p`     | start or stop the service |
+| `s`     | open plugin settings      |
+| `q/esc` | close the panel           |
+
+## Settings
+
+Settings opens `~/.config/omarchy/ilyazar.syncthing/settings.toml` in your
+editor. Saves are validated; invalid edits show an error and leave the session's
+last valid settings active.
+
+Older settings offer **Auto-port**, **Manual port** and **Cancel**. Auto-port
+previews the migration to schema `2`, preserves valid preferences and comments,
+and keeps an exact backup beside the original. Unrecognized or invalid settings
+need manual correction.
+
+- `style.icon_style = "themed"` follows the bar foreground. Use `"branded"` for
+  the classic Syncthing icon.
+- `style.web_ui_theme = "default"` uses Syncthing's own Web UI.
+- `style.web_ui_theme = "modern"` uses the bundled Syncshell Web UI.
+- `style.web_ui_theme = "omarchy"` applies the Omarchy palette to that same UI.
+  This is the default.
+
+Omarchy theme changes apply live. Reload the page when switching Web UI
+profiles; `modern` keeps its own appearance.
 
 ## New Web UI
 

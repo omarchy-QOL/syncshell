@@ -1,5 +1,18 @@
 {
   "MD013": {
     "tables": false
+  },
+  "MD033": {
+    "allowed_elements": [
+      "a",
+      "h1",
+      "h4",
+      "img",
+      "p",
+      "strong",
+      "table",
+      "td",
+      "tr"
+    ]
   }
 }
