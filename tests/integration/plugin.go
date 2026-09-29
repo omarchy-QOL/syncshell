@@ -55,6 +55,10 @@ func (a *launcherAccount) qml(plugin, control, omarchy string, missing bool) (*q
 				q.lines <- line
 			}
 		}
+		if err := scanner.Err(); err != nil {
+			fmt.Fprintln(q.log, err)
+			q.lines <- "PLUGIN_FAILED: reading QML output: " + err.Error()
+		}
 	}()
 	return q, nil
 }
@@ -127,7 +131,17 @@ func runPlugin(ctx context.Context, root, source, qmlFile, omarchy string, port 
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(plugin, "shell.qml"), fixture, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(plugin, "tests/plugin-acceptance.qml"), fixture, 0644); err != nil {
+		return err
+	}
+	wrapper := []byte(`import Quickshell
+
+LazyLoader {
+    active: true
+    source: "tests/plugin-acceptance.qml"
+}
+`)
+	if err := os.WriteFile(filepath.Join(plugin, "shell.qml"), wrapper, 0644); err != nil {
 		return err
 	}
 	settings := filepath.Join(a.home, ".config/omarchy/ilyazar.syncthing")

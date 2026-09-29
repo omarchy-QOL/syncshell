@@ -53,7 +53,7 @@ Column {
                 label: remoteRows[i].label,
                 statusVisible: true,
                 statusColor: connected ? root.success : Color.muted,
-                statusHelpText: connected ? "Device is connected" : "Device is disconnected"
+                statusHelpText: connected ? "CONNECTED · Available" : "DISCONNECTED · Not connected"
             });
         }
         return options;

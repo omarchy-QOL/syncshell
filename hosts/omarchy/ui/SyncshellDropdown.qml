@@ -404,18 +404,17 @@ Item {
                                 height: width
                                 radius: width / 2
                                 color: root.optionStatusColor(option.modelData)
+                            }
 
-                                HoverHandler {
-                                    id: optionStatusHover
-                                }
-                                SyncshellToolTip {
-                                    visible: optionStatusHover.hovered && root.optionStatusHelpText(option.modelData) !== ""
-                                    text: root.optionStatusHelpText(option.modelData)
-                                    fontFamily: root.fontFamily
-                                }
+                            SyncshellToolTip {
+                                visible: optionMouse.containsMouse && root.optionStatusHelpText(option.modelData) !== ""
+                                text: root.optionStatusHelpText(option.modelData)
+                                tooltipForeground: root.optionStatusColor(option.modelData)
+                                fontFamily: root.fontFamily
                             }
 
                             MouseArea {
+                                id: optionMouse
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor

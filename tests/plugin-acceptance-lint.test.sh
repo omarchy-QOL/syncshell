@@ -17,9 +17,6 @@ fi
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-cp -- "$repo_root/tests/plugin-acceptance.qml" "$tmp/shell.qml"
-ln -s -- "$repo_root/hosts" "$tmp/hosts"
-ln -s -- "$repo_root/shared" "$tmp/shared"
 mkdir -p -- "$tmp/imports"
 ln -s -- /usr/share/omarchy/shell "$tmp/imports/qs"
 
@@ -28,8 +25,8 @@ if ! output=$(
     -I "$qt_qml" \
     -I "$tmp/imports" \
     -I /usr/share/omarchy/shell \
-    -I "$tmp" \
-    "$tmp/shell.qml" 2>&1
+    -I "$repo_root" \
+    "$repo_root/tests/plugin-acceptance.qml" 2>&1
 ); then
   printf '%s\n' "$output" >&2
   exit 1
@@ -38,4 +35,4 @@ if [[ -n $output ]]; then
   printf '%s\n' "$output" >&2
   exit 1
 fi
-printf '[ok] staged plugin acceptance QML lint passed\n'
+printf '[ok] plugin acceptance QML lint passed\n'

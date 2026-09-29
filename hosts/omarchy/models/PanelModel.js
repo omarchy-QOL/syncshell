@@ -169,14 +169,14 @@ function folderStateGroup(state) {
 }
 
 function folderStateHelpText(state) {
-  if (state === "LINKED") return "Folder is linked"
-  if (state === "SYNCING") return "Folder is syncing"
-  if (state === "SCANNING") return "Folder is scanning"
-  if (state === "SCAN+SYNC") return "Folder is scanning and syncing"
-  if (state === "UNLINKED") return "Folder syncing is paused"
-  if (state === "UNKNOWN") return "Folder status is unavailable"
-  if (state === "ERROR") return "Folder needs attention"
-  return "Folder is synced"
+  if (state === "LINKED") return "LINKED · Newly linked"
+  if (state === "SYNCING") return "SYNCING · Applying changes"
+  if (state === "SCANNING") return "SCANNING · Rescanning local files"
+  if (state === "SCAN+SYNC") return "SCAN+SYNC · Rescanning and syncing"
+  if (state === "UNLINKED") return "UNLINKED · Syncing paused"
+  if (state === "UNKNOWN") return "UNKNOWN · Status unavailable"
+  if (state === "ERROR") return "ERROR · Needs attention"
+  return "SYNCED · Up to date"
 }
 
 function sortFolderOptions(options, mode) {

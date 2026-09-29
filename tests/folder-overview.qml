@@ -192,7 +192,7 @@ ShellRoot {
                 root.check(!picker.statusVisible, "selector trigger omits the redundant folder status");
                 root.check(root.optionByValue(initial, "ready").statusVisible, "selector results retain folder statuses");
                 root.check(root.optionByValue(initial, "ready").group === "ready" && root.optionByValue(initial, "active").group === "active" && root.optionByValue(initial, "errors").group === "errors" && root.optionByValue(initial, "paused").group === "paused", "badge states map to exclusive groups");
-                root.check(PanelModel.folderStateGroup("UNKNOWN") === "unknown" && PanelModel.folderStateHelpText("SCAN+SYNC") === "Folder is scanning and syncing", "state metadata");
+                root.check(PanelModel.folderStateGroup("UNKNOWN") === "unknown" && PanelModel.folderStateHelpText("SCAN+SYNC") === "SCAN+SYNC · Rescanning and syncing", "state metadata");
                 root.check(String(panel.folderStateColor(null)) === String(Color.muted), "unknown state uses theme muted");
                 picker.open();
                 picker.headerAccessoryItem.toggle();
