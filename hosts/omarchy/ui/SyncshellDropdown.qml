@@ -61,6 +61,12 @@ Item {
     readonly property bool popupOpen: popup.opened
     readonly property var headerAccessoryItem: searchAccessoryLoader.item
     readonly property bool headerAccessoryOpen: headerAccessoryItem ? !!headerAccessoryItem.popupOpen : false
+    function activate() {
+        if (!interactive)
+            return false;
+        toggle();
+        return true;
+    }
     function open() {
         if (interactive)
             popup.open();
@@ -248,7 +254,8 @@ Item {
                 closePolicy: Popup.CloseOnPressOutsideParent | ((searchField.activeFocus || root.headerAccessoryOpen) ? 0 : Popup.CloseOnEscape)
 
                 function handleKey(event, editing) {
-                    if (event.key === Qt.Key_Escape) {
+                    var key = event.text.toLowerCase();
+                    if (event.key === Qt.Key_Escape || (!editing && key === "q")) {
                         if (root.headerAccessoryOpen) {
                             root.closeHeaderAccessory();
                             optionList.forceActiveFocus();
@@ -259,9 +266,12 @@ Item {
                             popup.close();
                     } else if (!editing && root.searchable && event.text === "/") {
                         searchField.forceActiveFocus();
-                    } else if (event.key === Qt.Key_Down || (!editing && event.text === "j")) {
+                    } else if (!editing && root.headerAccessoryItem && (event.key === Qt.Key_Right || key === "l")) {
+                        if (typeof root.headerAccessoryItem.open === "function")
+                            root.headerAccessoryItem.open();
+                    } else if (event.key === Qt.Key_Down || (!editing && key === "j")) {
                         optionList.currentIndex = Math.min(optionList.count - 1, optionList.currentIndex + 1);
-                    } else if (event.key === Qt.Key_Up || (!editing && event.text === "k")) {
+                    } else if (event.key === Qt.Key_Up || (!editing && key === "k")) {
                         optionList.currentIndex = Math.max(0, optionList.currentIndex - 1);
                     } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                         optionList.selectCurrent();

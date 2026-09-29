@@ -14,6 +14,7 @@ Item {
     property bool canActivate: true
     property bool bordered: false
     property bool focusable: false
+    property bool hasCursor: false
     property color foreground: Color.foreground
     property color busyForeground: foreground
     property color disabledForeground: Qt.darker(foreground, 1.6)
@@ -34,6 +35,7 @@ Item {
     readonly property real busyIconScale: inertIcon.scale
     readonly property real inertContentWidth: inertIcon.implicitWidth + inertLabel.implicitWidth + (iconText !== "" && inertText !== "" ? Style.spacing.controlGap : 0)
     signal clicked
+    signal hovered(bool isHovered)
 
     function activate() {
         if (!interactive)
@@ -47,6 +49,7 @@ Item {
 
     HoverHandler {
         id: tooltipHover
+        onHoveredChanged: root.hovered(hovered)
     }
 
     SyncshellToolTip {
@@ -67,6 +70,7 @@ Item {
         tooltipText: ""
         bordered: root.bordered
         focusable: root.focusable
+        hasCursor: root.hasCursor
         foreground: root.foreground
         fontFamily: root.fontFamily
         fontSize: root.fontSize

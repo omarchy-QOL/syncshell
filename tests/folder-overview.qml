@@ -5,6 +5,7 @@ import qs.Commons
 import "../hosts/omarchy"
 import "../hosts/omarchy/ui"
 import "../hosts/omarchy/models/PanelModel.js" as PanelModel
+import "../hosts/omarchy/models/PanelNavigation.js" as PanelNavigation
 
 ShellRoot {
     id: root
@@ -154,6 +155,7 @@ ShellRoot {
             case 1:
                 root.check(shown.length === 1 && !picker.visible, "one folder card");
                 root.check(shown[0].folder.sharedDeviceCount === 0, "unshared folder must remain visible");
+                root.check(PanelNavigation.first(overview.keyboardRows, overview) !== picker, "hidden selector is not a keyboard target");
                 root.rows = root.folders(2);
                 break;
             case 2:
@@ -164,6 +166,10 @@ ShellRoot {
             case 3:
                 root.check(shown.length === 1 && picker.visible, "three folder selector");
                 root.check(picker.options.length === 3, "selector includes every folder");
+                root.check(PanelNavigation.first(overview.keyboardRows, overview) === picker, "visible selector starts keyboard navigation");
+                overview.keyboardCursor = picker;
+                root.check(picker.hasCursor, "keyboard cursor reaches selector visuals");
+                root.check(PanelNavigation.move(overview.keyboardRows, picker, 0, 1, overview) !== picker, "vertical motion advances to folder actions");
                 picker.value = "folder-1";
                 picker.changed("folder-1");
                 break;
@@ -200,8 +206,11 @@ ShellRoot {
             case 9:
                 root.check(picker.popupOpen && picker.headerAccessoryOpen, "folder view options open inside the selector");
                 root.check(picker.headerAccessoryItem.resultCount === 4 && picker.headerAccessoryItem.totalCount === 4, "view options receive result counts");
-                picker.headerAccessoryItem.activateFilter("ready");
-                root.check(!panel.folderShowReady, "filter controls apply immediately");
+                root.check(picker.headerAccessoryItem.keyboardIndex === 0, "view options start at the first keyboard choice");
+                picker.headerAccessoryItem.moveKeyboardCursor(1, 0);
+                root.check(picker.headerAccessoryItem.keyboardIndex === 1, "horizontal motion crosses the filter grid");
+                picker.headerAccessoryItem.activateKeyboardChoice();
+                root.check(!panel.folderShowReady, "keyboard activation applies filters immediately");
                 picker.headerAccessoryItem.activateFilter("all");
                 root.check(panel.folderShowReady && panel.folderShowActive && panel.folderShowErrors && panel.folderShowPaused && panel.folderShowUnknown, "all restores every filter");
                 picker.headerAccessoryItem.close();

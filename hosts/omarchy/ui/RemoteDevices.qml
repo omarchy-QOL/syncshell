@@ -15,6 +15,7 @@ Column {
     required property color warning
     required property color success
     property string fontFamily: Style.font.family
+    property Item keyboardCursor: null
 
     property string selectedDeviceId: ""
     property string selectedPendingId: ""
@@ -28,6 +29,9 @@ Column {
     readonly property var selectedDevice: rowById(remoteRows, selectedDeviceId)
     readonly property var selectedPending: rowById(pendingRows, selectedPendingId)
     readonly property bool popupOpen: deviceSelector.popupOpen || pendingSelector.popupOpen || addForm.popupOpen || foldersForm.popupOpen
+    readonly property var keyboardRows: [[deviceSelector, addDeviceButton, deviceFoldersButton, removeDeviceButton], [pendingSelector, acceptDeviceButton, dismissDeviceButton]]
+
+    signal actionHovered(Item action)
 
     function rowById(rows, id) {
         for (var i = 0; i < rows.length; i++) {
@@ -152,6 +156,11 @@ Column {
             statusHelpText: root.selectedDevice && root.selectedDevice.connected ? "Device is connected" : "Device is disconnected"
             foreground: root.foreground
             fontFamily: root.fontFamily
+            hasCursor: root.keyboardCursor === deviceSelector
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(deviceSelector);
+            }
             onChanged: function (value) {
                 root.selectedDeviceId = value;
                 deviceSelector.value = Qt.binding(function () {
@@ -181,6 +190,11 @@ Column {
             fontFamily: root.fontFamily
             iconSize: Style.font.icon
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
+            hasCursor: root.keyboardCursor === addDeviceButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(addDeviceButton);
+            }
             onClicked: {
                 if (root.addOpen)
                     root.addOpen = false;
@@ -201,6 +215,11 @@ Column {
             fontFamily: root.fontFamily
             iconSize: Style.font.icon
             enabled: root.selectedDevice && !root.syncthing.folderMutationBusy
+            hasCursor: root.keyboardCursor === deviceFoldersButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(deviceFoldersButton);
+            }
             onClicked: {
                 if (root.foldersOpen)
                     root.foldersOpen = false;
@@ -210,6 +229,7 @@ Column {
         }
 
         TooltipButton {
+            id: removeDeviceButton
             iconText: "\uf00d"
             Layout.preferredWidth: Style.spacing.controlHeight
             Layout.preferredHeight: Style.spacing.controlHeight
@@ -219,6 +239,11 @@ Column {
             foreground: root.urgent
             fontFamily: root.fontFamily
             iconSize: Style.font.icon
+            hasCursor: root.keyboardCursor === removeDeviceButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(removeDeviceButton);
+            }
             onClicked: root.controller.requestDeviceRemoval(root.selectedDevice)
         }
     }
@@ -307,6 +332,11 @@ Column {
                 helpText: root.selectedPending ? "Remote device " + (root.selectedPending.name || root.selectedPending.shortId) + " attempted to connect." : ""
                 foreground: root.foreground
                 fontFamily: root.fontFamily
+                hasCursor: root.keyboardCursor === pendingSelector
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.actionHovered(pendingSelector);
+                }
                 onChanged: function (value) {
                     root.selectedPendingId = value;
                     pendingSelector.value = Qt.binding(function () {
@@ -326,10 +356,16 @@ Column {
                 fontFamily: root.fontFamily
                 iconSize: Style.font.icon
                 enabled: root.selectedPending && !root.syncthing.folderMutationBusy
+                hasCursor: root.keyboardCursor === acceptDeviceButton
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.actionHovered(acceptDeviceButton);
+                }
                 onClicked: root.openAccept()
             }
 
             TooltipButton {
+                id: dismissDeviceButton
                 iconText: "\uf00d"
                 Layout.preferredWidth: Style.spacing.controlHeight
                 Layout.preferredHeight: Style.spacing.controlHeight
@@ -339,6 +375,11 @@ Column {
                 fontFamily: root.fontFamily
                 iconSize: Style.font.icon
                 enabled: root.selectedPending && !root.syncthing.folderMutationBusy
+                hasCursor: root.keyboardCursor === dismissDeviceButton
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.actionHovered(dismissDeviceButton);
+                }
                 onClicked: root.controller.requestPendingDeviceDismiss(root.selectedPending)
             }
         }

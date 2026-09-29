@@ -24,12 +24,15 @@ BorderSurface {
     required property color syncColor
     property string fontFamily: Style.font.family
     property var controller
+    property Item keyboardCursor: null
 
     readonly property bool problem: folder && folder.problem
     readonly property bool syncing: folder && folder.syncing
     readonly property bool canOpen: folder && String(folder.path || "") !== ""
     readonly property color cardBorderColor: rescanning ? warning : (problem ? urgent : (syncing ? foreground : dim))
+    readonly property var keyboardRows: [[openFolderButton, copyIdButton], [errorHint, folderActionButton]]
 
+    signal actionHovered(Item action)
     signal openRequested
     signal forgetRequested
     signal errorDetailsRequested(string folderId)
@@ -63,6 +66,11 @@ BorderSurface {
             horizontalPadding: Style.space(6)
             verticalPadding: Style.space(2)
             enabled: root.canOpen
+            hasCursor: root.keyboardCursor === openFolderButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(openFolderButton);
+            }
             onClicked: root.openRequested()
         }
 
@@ -77,6 +85,11 @@ BorderSurface {
             foreground: root.foreground
             fontFamily: root.fontFamily
             fontSize: Style.font.caption
+            hasCursor: root.keyboardCursor === copyIdButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(copyIdButton);
+            }
         }
     }
 
@@ -151,6 +164,11 @@ BorderSurface {
                 fontSize: Style.font.caption
                 horizontalPadding: 0
                 verticalPadding: 0
+                hasCursor: root.keyboardCursor === errorHint
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.actionHovered(errorHint);
+                }
                 onClicked: root.errorDetailsRequested(root.folder.id)
             }
         }
@@ -189,6 +207,11 @@ BorderSurface {
         horizontalPadding: Style.space(6)
         verticalPadding: Style.space(2)
         canActivate: root.online && !root.mutationBusy
+        hasCursor: root.keyboardCursor === folderActionButton
+        onHovered: function (hovered) {
+            if (hovered)
+                root.actionHovered(folderActionButton);
+        }
         onClicked: {
             if (root.folder.paused)
                 root.forgetRequested();

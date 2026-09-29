@@ -719,6 +719,7 @@ Panel {
                 syncthing.refresh();
             }
             ensureCurrentFolder();
+            popup.resetKeyboardCursor();
             popup.scrollToTop();
             Qt.callLater(function () {
                 popup.focusPanel();

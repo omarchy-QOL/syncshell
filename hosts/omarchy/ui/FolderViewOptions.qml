@@ -70,14 +70,50 @@ Item {
         }
     ]
     readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Color.popups.border, Style.normalBorderWidth)
+    property int keyboardIndex: 0
 
     signal closed
 
+    function open() {
+        popup.open();
+    }
     function close() {
         popup.close();
     }
     function toggle() {
         popup.opened ? popup.close() : popup.open();
+    }
+    function moveKeyboardCursor(dx, dy) {
+        if (dx !== 0 && keyboardIndex < filterRows.length) {
+            var rowStart = Math.floor(keyboardIndex / 2) * 2;
+            keyboardIndex = rowStart + ((keyboardIndex - rowStart + (dx > 0 ? 1 : -1) + 2) % 2);
+        } else if (dy > 0) {
+            if (keyboardIndex < filterRows.length - 2)
+                keyboardIndex += 2;
+            else if (keyboardIndex < filterRows.length)
+                keyboardIndex = filterRows.length;
+            else if (keyboardIndex < filterRows.length + sortRows.length)
+                keyboardIndex++;
+            else
+                keyboardIndex = 0;
+        } else if (dy < 0) {
+            if (keyboardIndex < 2)
+                keyboardIndex = filterRows.length + sortRows.length;
+            else if (keyboardIndex < filterRows.length)
+                keyboardIndex -= 2;
+            else if (keyboardIndex === filterRows.length)
+                keyboardIndex = filterRows.length - 2;
+            else
+                keyboardIndex--;
+        }
+    }
+    function activateKeyboardChoice() {
+        if (keyboardIndex < filterRows.length) {
+            activateFilter(filterRows[keyboardIndex].key);
+        } else if (keyboardIndex < filterRows.length + sortRows.length) {
+            controller.folderSortMode = sortRows[keyboardIndex - filterRows.length].key;
+        } else
+            controller.resetFolderView();
     }
     function allGroupsEnabled() {
         return filtersDefault;
@@ -105,9 +141,11 @@ Item {
 
         required property string label
         required property string helpText
+        required property int navigationIndex
         property bool checked: false
         property bool mixed: false
         property bool radio: false
+        readonly property bool hasCursor: root.keyboardIndex === navigationIndex
 
         signal activated
 
@@ -115,7 +153,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: choiceHover.hovered ? Style.hoverFillFor(root.foreground, root.accent) : "transparent"
+            color: choiceHover.hovered || choice.hasCursor ? Style.hoverFillFor(root.foreground, root.accent) : "transparent"
             radius: Style.cornerRadius
         }
 
@@ -161,7 +199,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: choice.label
                 textFormat: Text.PlainText
-                color: choiceHover.hovered ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
+                color: choiceHover.hovered || choice.hasCursor ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.body
                 elide: Text.ElideRight
@@ -170,6 +208,8 @@ Item {
 
         HoverHandler {
             id: choiceHover
+            onHoveredChanged: if (hovered)
+                root.keyboardIndex = choice.navigationIndex
         }
         SyncshellToolTip {
             visible: choiceHover.hovered
@@ -233,11 +273,35 @@ Item {
             radius: Style.cornerRadius
         }
 
+        onOpened: {
+            root.keyboardIndex = 0;
+            content.forceActiveFocus();
+        }
         onClosed: root.closed()
 
         contentItem: Column {
             id: content
             spacing: Style.space(6)
+
+            Keys.priority: Keys.BeforeItem
+            Keys.onPressed: function (event) {
+                var key = event.text.toLowerCase();
+                if (event.key === Qt.Key_Escape || key === "q")
+                    popup.close();
+                else if (event.key === Qt.Key_Down || key === "j")
+                    root.moveKeyboardCursor(0, 1);
+                else if (event.key === Qt.Key_Up || key === "k")
+                    root.moveKeyboardCursor(0, -1);
+                else if (event.key === Qt.Key_Right || key === "l")
+                    root.moveKeyboardCursor(1, 0);
+                else if (event.key === Qt.Key_Left || key === "h")
+                    root.moveKeyboardCursor(-1, 0);
+                else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)
+                    root.activateKeyboardChoice();
+                else
+                    return;
+                event.accepted = true;
+            }
 
             InlineFormHeader {
                 width: parent.width
@@ -266,7 +330,9 @@ Item {
 
                     delegate: ChoiceRow {
                         required property var modelData
+                        required property int index
                         width: (filterGrid.width - filterGrid.columnSpacing) / 2
+                        navigationIndex: index
                         label: modelData.label
                         helpText: modelData.help
                         checked: root.filterChecked(modelData.key)
@@ -295,7 +361,9 @@ Item {
 
                     delegate: ChoiceRow {
                         required property var modelData
+                        required property int index
                         width: parent.width
+                        navigationIndex: root.filterRows.length + index
                         label: modelData.label
                         helpText: modelData.help
                         checked: root.controller.folderSortMode === modelData.key
@@ -319,11 +387,16 @@ Item {
                     text: "Reset defaults"
                     helpText: "Show all folders\nand sort by name"
                     bordered: true
+                    hasCursor: root.keyboardIndex === root.filterRows.length + root.sortRows.length
                     foreground: root.foreground
                     fontFamily: root.fontFamily
                     fontSize: Style.font.body
                     horizontalPadding: Style.space(6)
                     verticalPadding: Style.space(3)
+                    onHovered: function (hovered) {
+                        if (hovered)
+                            root.keyboardIndex = root.filterRows.length + root.sortRows.length;
+                    }
                     onClicked: root.controller.resetFolderView()
                 }
             }

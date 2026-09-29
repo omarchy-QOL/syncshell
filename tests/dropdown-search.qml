@@ -29,6 +29,9 @@ ShellRoot {
                 Item {
                     property bool popupOpen: false
                     implicitWidth: 1
+                    function open() {
+                        popupOpen = true;
+                    }
                     function close() {
                         popupOpen = false;
                     }
@@ -62,7 +65,7 @@ ShellRoot {
             var focused = window.activeFocusItem;
             switch (root.step++) {
             case 0:
-                dropdown.open();
+                root.check(dropdown.activate(), "dropdown accepts panel activation");
                 break;
             case 1:
                 root.check(dropdown.popupOpen, "dropdown opens");
@@ -140,10 +143,23 @@ ShellRoot {
                 break;
             case 17:
                 root.check(!dropdown.popupOpen, "escape closes the dropdown after the accessory");
-                dropdown.searchable = false;
                 dropdown.open();
                 break;
             case 18:
+                input.keyClick(Qt.Key_L);
+                break;
+            case 19:
+                root.check(dropdown.popupOpen && dropdown.headerAccessoryOpen, "l opens the header accessory");
+                input.keyClick(Qt.Key_Q);
+                break;
+            case 20:
+                root.check(dropdown.popupOpen && !dropdown.headerAccessoryOpen, "q closes the header accessory first");
+                input.keyClick(Qt.Key_Q);
+                break;
+            case 21:
+                root.check(!dropdown.popupOpen, "q closes the dropdown after the accessory");
+                dropdown.searchable = false;
+                dropdown.open();
                 input.keyClick(Qt.Key_Slash);
                 break;
             default:

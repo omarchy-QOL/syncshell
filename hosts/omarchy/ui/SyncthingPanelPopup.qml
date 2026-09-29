@@ -5,6 +5,7 @@ import QtQuick.Controls
 import qs.Commons
 import qs.Ui
 import "UiConstants.js" as UiConstants
+import "../models/PanelNavigation.js" as PanelNavigation
 
 KeyboardPanel {
     id: root
@@ -17,6 +18,81 @@ KeyboardPanel {
     property alias pendingFolderValue: moreDetails.pendingFolderValue
     property Timer refreshFeedbackTimer: Timer {
         interval: UiConstants.REFRESH_FEEDBACK_MIN_MS
+    }
+    property bool cursorActive: false
+    property var cursorAction: null
+    readonly property var controlRows: {
+        var rows = folderOverview.keyboardRows.slice();
+        rows.push([moreButton]);
+        rows = rows.concat(moreDetails.keyboardRows);
+        rows.push([webUiButton]);
+        rows.push([rescanAllButton, refreshStatusButton, settingsButton]);
+        return rows;
+    }
+
+    function resetKeyboardCursor() {
+        cursorActive = false;
+        cursorAction = null;
+    }
+
+    function ensureKeyboardCursor() {
+        if (!cursorActive)
+            return;
+        if (!PanelNavigation.isAvailable(cursorAction, keyCatcher))
+            cursorAction = PanelNavigation.first(controlRows, keyCatcher);
+        if (!cursorAction)
+            cursorActive = false;
+    }
+
+    function selectKeyboardAction(action) {
+        if (!PanelNavigation.isAvailable(action, keyCatcher))
+            return;
+        cursorActive = true;
+        cursorAction = action;
+        scrollActionIntoView(action);
+    }
+
+    function moveKeyboardCursor(dx, dy) {
+        if (!cursorActive) {
+            cursorActive = true;
+            cursorAction = PanelNavigation.first(controlRows, keyCatcher);
+        } else
+            cursorAction = PanelNavigation.move(controlRows, cursorAction, dx, dy, keyCatcher);
+        if (!cursorAction)
+            cursorActive = false;
+        else
+            scrollActionIntoView(cursorAction);
+    }
+
+    function activateKeyboardAction() {
+        ensureKeyboardCursor();
+        var action = cursorAction;
+        if (!action)
+            return;
+        if (typeof action.activate === "function")
+            action.activate();
+        else if (typeof action.toggle === "function")
+            action.toggle();
+        else if (typeof action.clicked === "function")
+            action.clicked();
+    }
+
+    function scrollActionIntoView(action) {
+        if (!PanelNavigation.contains(action, content))
+            return;
+        Qt.callLater(function () {
+            if (!action || !PanelNavigation.contains(action, content))
+                return;
+            var point = action.mapToItem(panelFlick.contentItem, 0, 0);
+            var top = point.y;
+            var bottom = top + action.height;
+            var margin = Style.space(6);
+            var maxY = Math.max(0, panelFlick.contentHeight - panelFlick.height);
+            if (top < panelFlick.contentY + margin)
+                panelFlick.contentY = Math.max(0, top - margin);
+            else if (bottom > panelFlick.contentY + panelFlick.height - margin)
+                panelFlick.contentY = Math.min(maxY, bottom + margin - panelFlick.height);
+        });
     }
 
     function resetAddForm() {
@@ -101,8 +177,8 @@ KeyboardPanel {
                 folderConfirmDialog.selectedIndex = folderConfirmDialog.selectedIndex === 0 ? 1 : 0;
             } else if (root.controller.deviceConfirmOpen && (dx !== 0 || dy !== 0)) {
                 deviceConfirmDialog.selectedIndex = deviceConfirmDialog.selectedIndex === 0 ? 1 : 0;
-            } else if (!root.controller.addOpen && dx !== 0) {
-                root.controller.cycleCurrentFolder(dx);
+            } else if (!root.controller.addOpen && (dx !== 0 || dy !== 0)) {
+                root.moveKeyboardCursor(dx, dy);
             }
         }
         onActivateRequested: {
@@ -124,7 +200,8 @@ KeyboardPanel {
                     root.controller.confirmDeviceAction();
                 else
                     root.controller.cancelDeviceAction();
-            }
+            } else
+                root.activateKeyboardAction();
         }
         onTextKey: function (text) {
             var key = text.toLowerCase();
@@ -243,6 +320,10 @@ KeyboardPanel {
                     success: root.controller.success
                     syncColor: root.controller.syncActivityColor
                     fontFamily: root.controller.fontFamily
+                    keyboardCursor: root.cursorActive ? root.cursorAction : null
+                    onActionHovered: function (action) {
+                        root.selectKeyboardAction(action);
+                    }
                 }
             }
 
@@ -253,8 +334,13 @@ KeyboardPanel {
                 text: root.controller.moreOpen ? "Less" : "More"
                 iconText: root.controller.moreOpen ? "\uf077" : "\uf078"
                 leftAlign: true
+                hasCursor: root.cursorActive && root.cursorAction === moreButton
                 foreground: root.controller.foreground
                 fontFamily: root.controller.fontFamily
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.selectKeyboardAction(moreButton);
+                }
                 onClicked: root.controller.moreOpen = !root.controller.moreOpen
             }
 
@@ -270,6 +356,10 @@ KeyboardPanel {
                 warning: root.controller.warning
                 success: root.controller.success
                 fontFamily: root.controller.fontFamily
+                keyboardCursor: root.cursorActive ? root.cursorAction : null
+                onActionHovered: function (action) {
+                    root.selectKeyboardAction(action);
+                }
             }
 
             SettingsMenu {
@@ -307,6 +397,7 @@ KeyboardPanel {
             spacing: Style.space(6)
 
             Button {
+                id: webUiButton
                 text: "Web UI"
                 height: Style.spacing.controlHeight
                 bordered: true
@@ -316,6 +407,11 @@ KeyboardPanel {
                 horizontalPadding: Style.space(6)
                 verticalPadding: Style.space(4)
                 enabled: root.controller.syncthing !== null && root.controller.syncthing.online
+                hasCursor: root.cursorActive && root.cursorAction === webUiButton
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.selectKeyboardAction(webUiButton);
+                }
                 onClicked: root.controller.openWebUi()
             }
 
@@ -359,6 +455,11 @@ KeyboardPanel {
                 horizontalPadding: Style.space(5)
                 verticalPadding: Style.space(4)
                 canActivate: root.controller.syncthing && root.controller.syncthing.online && root.controller.rescannableFolderCount > 0 && !root.controller.syncthing.refreshing && !root.controller.syncthing.folderMutationBusy
+                hasCursor: root.cursorActive && root.cursorAction === rescanAllButton
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.selectKeyboardAction(rescanAllButton);
+                }
                 onClicked: root.controller.syncthing.rescanAllFolders()
             }
 
@@ -382,6 +483,11 @@ KeyboardPanel {
                 verticalPadding: Style.space(4)
                 busy: refreshRequested || root.refreshFeedbackTimer.running
                 canActivate: root.controller.syncthing && root.controller.syncthing.canRefresh && !root.refreshFeedbackTimer.running
+                hasCursor: root.cursorActive && root.cursorAction === refreshStatusButton
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.selectKeyboardAction(refreshStatusButton);
+                }
                 onClicked: {
                     refreshRequested = root.controller.syncthing.refresh(true);
                     if (refreshRequested)
@@ -408,6 +514,11 @@ KeyboardPanel {
                 fontFamily: root.controller.fontFamily
                 iconSize: Style.font.body
                 enabled: root.controller.syncthing !== null
+                hasCursor: root.cursorActive && root.cursorAction === settingsButton
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.selectKeyboardAction(settingsButton);
+                }
                 onClicked: root.controller.openSettingsMenu()
             }
         }
@@ -419,7 +530,7 @@ KeyboardPanel {
         z: root.controller.removalConfirmOpen ? 12 : 0
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        text: root.controller.settingsMenuOpen || root.controller.settingsMigrationOpen ? "MOVE (j/k or Up/Down)  SELECT (Enter)  BACK (q/Esc)" : "[r]escan all  [w]ebUI  [p]ause/continue  [s]ettings"
+        text: root.controller.settingsMenuOpen || root.controller.settingsMigrationOpen ? "MOVE (j/k or Up/Down)  SELECT (Enter)  BACK (q/Esc)" : "MOVE h/j/k/l  SELECT Enter  BACK q/Esc\n[r]escan  [w]ebUI  [p]ause/continue  [s]ettings"
         textFormat: Text.PlainText
         color: root.controller.dim
         font.family: root.controller.fontFamily

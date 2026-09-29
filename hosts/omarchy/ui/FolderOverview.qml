@@ -15,7 +15,19 @@ Column {
     required property color success
     required property color syncColor
     property string fontFamily: Style.font.family
+    property Item keyboardCursor: null
     readonly property bool popupOpen: folderSelector.popupOpen
+    readonly property var keyboardRows: {
+        var rows = folderSelector.visible ? [[folderSelector]] : [];
+        for (var i = 0; i < folderCards.count; i++) {
+            var card = folderCards.itemAt(i) as FolderCard;
+            if (card)
+                rows = rows.concat(card.keyboardRows);
+        }
+        return rows;
+    }
+
+    signal actionHovered(Item action)
 
     function closePopups() {
         folderSelector.close();
@@ -31,6 +43,11 @@ Column {
         controller: root.controller
         foreground: root.foreground
         fontFamily: root.fontFamily
+        hasCursor: root.keyboardCursor === folderSelector
+        onHovered: function (hovered) {
+            if (hovered)
+                root.actionHovered(folderSelector);
+        }
     }
 
     Text {
@@ -49,6 +66,7 @@ Column {
         spacing: Style.space(6)
 
         Repeater {
+            id: folderCards
             model: root.controller.visibleFolderRows
 
             FolderCard {
@@ -73,6 +91,10 @@ Column {
                 success: root.success
                 syncColor: root.syncColor
                 fontFamily: root.fontFamily
+                keyboardCursor: root.keyboardCursor
+                onActionHovered: function (action) {
+                    root.actionHovered(action);
+                }
                 onOpenRequested: root.controller.openFolder(modelData)
                 onForgetRequested: root.controller.requestForget(modelData)
                 onRescanRequested: root.syncthing.rescanFolder(modelData.id)

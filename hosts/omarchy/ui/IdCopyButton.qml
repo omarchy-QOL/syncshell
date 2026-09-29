@@ -19,7 +19,17 @@ Item {
     property int iconSize: Style.font.caption
     property int horizontalPadding: Style.space(4)
     property int verticalPadding: 0
+    property bool hasCursor: false
     property var controller
+
+    signal hovered(bool isHovered)
+
+    function activate() {
+        if (!root.enabled || !root.value)
+            return false;
+        root.copy();
+        return true;
+    }
 
     function copy() {
         if (!value)
@@ -48,9 +58,13 @@ Item {
             iconText: "󰆏"
             helpText: root.helpText
             bordered: true
+            hasCursor: root.hasCursor
             foreground: root.foreground
             fontFamily: root.fontFamily
             fontSize: root.fontSize
+            onHovered: function (hovered) {
+                root.hovered(hovered);
+            }
             onClicked: root.copy()
         }
     }
@@ -63,12 +77,16 @@ Item {
             iconText: "󰆏"
             helpText: root.helpText
             bordered: true
+            hasCursor: root.hasCursor
             foreground: root.foreground
             fontFamily: root.fontFamily
             fontSize: root.fontSize
             iconSize: root.iconSize
             horizontalPadding: root.horizontalPadding
             verticalPadding: root.verticalPadding
+            onHovered: function (hovered) {
+                root.hovered(hovered);
+            }
             onClicked: root.copy()
         }
     }

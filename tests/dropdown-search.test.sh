@@ -2,5 +2,5 @@
 set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/qml-test-helper.sh"
-stage_omarchy_test dropdown-search hosts/omarchy/ui
+stage_omarchy_test dropdown-search hosts/omarchy/ui hosts/omarchy/models
 timeout 10s quickshell --no-color -p "$test_root/shell.qml"

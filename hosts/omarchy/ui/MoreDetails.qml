@@ -17,6 +17,7 @@ Column {
     required property color warning
     required property color success
     property string fontFamily: Style.font.family
+    property Item keyboardCursor: null
     property alias addPathText: addForm.pathText
     property alias addLabelText: addForm.labelText
     property alias addIdText: addForm.idText
@@ -28,6 +29,15 @@ Column {
     readonly property bool folderPopupOpen: folderSelector.popupOpen
     readonly property bool pendingPopupOpen: pendingOfferSelector.popupOpen
     readonly property bool childPopupOpen: folderSharingForm.popupOpen || remoteDevices.popupOpen
+    readonly property var keyboardRows: {
+        var rows = [[folderSelector, addFolderButton, shareFolderButton, linkFolderButton], [pendingOfferSelector, acceptFolderButton]];
+        rows = rows.concat(remoteDevices.keyboardRows);
+        rows.push([installationHelp]);
+        rows.push([installButton]);
+        return rows;
+    }
+
+    signal actionHovered(Item action)
 
     function closePopups() {
         if (folderSelector.popupOpen)
@@ -145,6 +155,11 @@ Column {
             controller: root.controller
             foreground: root.foreground
             fontFamily: root.fontFamily
+            hasCursor: root.keyboardCursor === folderSelector
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(folderSelector);
+            }
         }
 
         Text {
@@ -172,6 +187,11 @@ Column {
             horizontalPadding: Style.space(7)
             verticalPadding: Style.space(3)
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
+            hasCursor: root.keyboardCursor === addFolderButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(addFolderButton);
+            }
             onClicked: {
                 root.addTrigger = addFolderButton;
                 root.controller.addOpen ? root.controller.closeAddFolder() : root.controller.openAddFolder();
@@ -192,10 +212,16 @@ Column {
             horizontalPadding: Style.space(7)
             verticalPadding: Style.space(3)
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
+            hasCursor: root.keyboardCursor === shareFolderButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(shareFolderButton);
+            }
             onClicked: root.controller.toggleFolderSharing()
         }
 
         BusyButton {
+            id: linkFolderButton
             readonly property var targetFolder: root.controller.currentFolder()
             readonly property bool mutationBusy: root.syncthing && root.syncthing.folderMutationBusy
             readonly property bool targetBusy: mutationBusy && root.syncthing.folderMutationId === root.controller.currentFolderId && (root.syncthing.folderMutationAction === "link" || root.syncthing.folderMutationAction === "unlink")
@@ -214,6 +240,11 @@ Column {
             horizontalPadding: Style.space(6)
             verticalPadding: Style.space(4)
             canActivate: targetFolder && root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
+            hasCursor: root.keyboardCursor === linkFolderButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(linkFolderButton);
+            }
             onClicked: root.controller.requestFolderLinkChange(targetFolder, targetFolder.paused)
         }
     }
@@ -257,6 +288,11 @@ Column {
             options: root.controller.pendingOfferRows
             foreground: root.foreground
             fontFamily: root.fontFamily
+            hasCursor: root.keyboardCursor === pendingOfferSelector
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(pendingOfferSelector);
+            }
             onChanged: function (value) {
                 root.controller.selectedPendingOffer = value;
                 pendingOfferSelector.value = Qt.binding(function () {
@@ -277,6 +313,11 @@ Column {
             horizontalPadding: Style.space(6)
             verticalPadding: Style.space(4)
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy && root.controller.selectedPendingOffer !== ""
+            hasCursor: root.keyboardCursor === acceptFolderButton
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(acceptFolderButton);
+            }
             onClicked: {
                 root.addTrigger = acceptFolderButton;
                 root.controller.acceptPendingFolderOffer(root.controller.selectedPendingOffer);
@@ -320,6 +361,10 @@ Column {
         warning: root.controller.warning
         success: root.success
         fontFamily: root.fontFamily
+        keyboardCursor: root.keyboardCursor
+        onActionHovered: function (action) {
+            root.actionHovered(action);
+        }
     }
 
     PanelSeparator {
@@ -371,6 +416,11 @@ Column {
             verticalPadding: Style.space(3)
             bordered: true
             focusable: true
+            hasCursor: root.keyboardCursor === installationHelp
+            onHovered: function (hovered) {
+                if (hovered)
+                    root.actionHovered(installationHelp);
+            }
             onClicked: root.controller.openSyncthingPackageDocumentation()
         }
     }
@@ -420,12 +470,18 @@ Column {
     }
 
     Button {
+        id: installButton
         visible: root.syncthing && root.syncthing.canInstall
         text: "Install Syncthing"
         bordered: true
         foreground: root.foreground
         fontFamily: root.fontFamily
         enabled: root.syncthing && root.syncthing.canInstall
+        hasCursor: root.keyboardCursor === installButton
+        onHovered: function (hovered) {
+            if (hovered)
+                root.actionHovered(installButton);
+        }
         onClicked: root.controller.installationAction()
     }
 }
