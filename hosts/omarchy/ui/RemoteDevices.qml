@@ -263,7 +263,11 @@ Column {
         panel: root.cardAnchor
         trigger: deviceFoldersButton
         shown: root.foldersOpen && root.selectedDevice && root.visible && root.controller.opened
-        onClosed: root.foldersOpen = false
+        onOpened: foldersForm.reset()
+        onClosed: {
+            root.foldersOpen = false;
+            foldersForm.reset();
+        }
 
         contentItem: DeviceFoldersForm {
             id: foldersForm
@@ -286,7 +290,11 @@ Column {
         panel: root.cardAnchor
         trigger: addDeviceButton
         shown: root.addOpen && root.visible && root.controller.opened
-        onClosed: root.addOpen = false
+        onOpened: addForm.reset()
+        onClosed: {
+            root.addOpen = false;
+            addForm.reset();
+        }
 
         contentItem: AddRemoteDeviceForm {
             id: addForm
@@ -389,7 +397,11 @@ Column {
         panel: root.cardAnchor
         trigger: acceptDeviceButton
         shown: root.acceptOpen && root.selectedPending && root.visible && root.controller.opened
-        onClosed: root.acceptOpen = false
+        onOpened: acceptForm.reset()
+        onClosed: {
+            root.acceptOpen = false;
+            acceptForm.reset();
+        }
 
         contentItem: AcceptRemoteDeviceForm {
             id: acceptForm

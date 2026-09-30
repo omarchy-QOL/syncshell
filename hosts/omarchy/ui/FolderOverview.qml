@@ -160,8 +160,13 @@ Column {
         panel: root.cardAnchor
         trigger: root.addTrigger
         shown: root.controller.addOpen && root.visible && root.controller.opened
-        onClosed: if (!root.controller.preserveStateForFolderPicker)
-            root.controller.closeAddFolder()
+        onClosed: {
+            if (!root.controller.preserveStateForFolderPicker) {
+                root.controller.closeAddFolder();
+                if (!root.controller.addOpen)
+                    addForm.reset();
+            }
+        }
 
         contentItem: AddFolderForm {
             id: addForm
@@ -180,7 +185,11 @@ Column {
         panel: root.cardAnchor
         trigger: shareFolderButton
         shown: root.controller.folderShareOpen && root.visible && root.controller.opened
-        onClosed: root.controller.folderShareOpen = false
+        onOpened: folderSharingForm.resetDraft()
+        onClosed: {
+            root.controller.folderShareOpen = false;
+            folderSharingForm.resetDraft();
+        }
 
         contentItem: FolderSharingForm {
             id: folderSharingForm

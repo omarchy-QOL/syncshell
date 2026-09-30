@@ -7,7 +7,7 @@ import qs.Ui
 
 // Searchable multi-select for static Syncshell options.
 //
-// `values` is the persisted selection — always an array of strings.
+// `values` is the current selection — always an array of strings.
 // Emits `changed(values)` whenever the selection mutates.
 Item {
     id: root
@@ -280,71 +280,38 @@ Item {
                         width: parent.width
                         height: root.popupRowHeight + Style.spacing.controlPaddingX
 
-                        Row {
+                        TextField {
+                            id: searchField
                             anchors.fill: parent
                             anchors.margins: Style.spacing.md
-                            spacing: Style.spacing.rowGap
+                            placeholderText: root.placeholderText
+                            foreground: root.foreground
+                            accent: root.accent
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.body
 
-                            TextField {
-                                id: searchField
-                                width: parent.width - doneButton.width - parent.spacing
-                                height: parent.height
-                                placeholderText: root.placeholderText
-                                foreground: root.foreground
-                                accent: root.accent
-                                font.family: root.fontFamily
-                                font.pixelSize: Style.font.body
-
-                                onTextChanged: {
-                                    root.recomputeFiltered();
-                                    if (resultList.count > 0)
-                                        resultList.currentIndex = 0;
-                                }
-
-                                Keys.onPressed: function (event) {
-                                    if (event.key === Qt.Key_Escape) {
-                                        popup.close();
-                                        event.accepted = true;
-                                    } else if (event.key === Qt.Key_Down) {
-                                        if (resultList.count > 0) {
-                                            resultList.currentIndex = 0;
-                                            resultList.forceActiveFocus();
-                                        }
-                                        event.accepted = true;
-                                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                        if (resultList.count > 0) {
-                                            resultList.currentIndex = 0;
-                                            resultList.toggleCurrent();
-                                        }
-                                        event.accepted = true;
-                                    }
-                                }
+                            onTextChanged: {
+                                root.recomputeFiltered();
+                                if (resultList.count > 0)
+                                    resultList.currentIndex = 0;
                             }
 
-                            BorderSurface {
-                                id: doneButton
-                                width: parent.height
-                                height: parent.height
-                                radius: Style.cornerRadius
-                                color: doneHover.hovered ? Style.hoverFillFor(root.foreground, root.accent) : Style.normalFillFor(root.foreground, root.accent)
-                                borderSpec: doneHover.hovered ? Border.controlSpec("hover-cursor", root.foreground, root.accent) : Border.controlSpec("normal", root.foreground, root.accent)
-
-                                Text {
-                                    textFormat: Text.PlainText
-                                    anchors.centerIn: parent
-                                    text: "OK"
-                                    color: root.foreground
-                                    font.family: root.fontFamily
-                                    font.pixelSize: Style.font.body
-                                }
-
-                                HoverHandler {
-                                    id: doneHover
-                                }
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: popup.close()
+                            Keys.onPressed: function (event) {
+                                if (event.key === Qt.Key_Escape) {
+                                    popup.close();
+                                    event.accepted = true;
+                                } else if (event.key === Qt.Key_Down) {
+                                    if (resultList.count > 0) {
+                                        resultList.currentIndex = 0;
+                                        resultList.forceActiveFocus();
+                                    }
+                                    event.accepted = true;
+                                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    if (resultList.count > 0) {
+                                        resultList.currentIndex = 0;
+                                        resultList.toggleCurrent();
+                                    }
+                                    event.accepted = true;
                                 }
                             }
                         }
