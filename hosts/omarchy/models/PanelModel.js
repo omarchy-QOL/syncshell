@@ -380,7 +380,8 @@ function pendingOfferOptions(syncthing) {
             var offer = offeredBy[deviceIds[offerIndex]] || ({});
             options.push({
                 value: JSON.stringify([ids[i], deviceIds[offerIndex]]),
-                label: String(offer.label || ids[i]) + " from " + deviceName(devices, deviceIds[offerIndex])
+                label: String(offer.label || ids[i]),
+                trailingText: "(by " + deviceName(devices, deviceIds[offerIndex]) + ")"
             });
         }
     }

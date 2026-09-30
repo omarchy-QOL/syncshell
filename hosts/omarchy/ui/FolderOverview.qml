@@ -25,7 +25,7 @@ Column {
     property alias addIdText: addForm.idText
     property alias selectedDeviceIds: addForm.selectedDeviceIds
     property alias pendingFolderValue: addForm.pendingFolderValue
-    readonly property bool popupOpen: folderSelector.popupOpen
+    readonly property bool popupOpen: folderSelector.popupOpen || pendingOfferSelector.popupOpen
     readonly property bool childPopupOpen: folderSharingForm.popupOpen
     readonly property var keyboardRows: {
         var rows = [[folderSelector, addFolderButton, shareFolderButton, linkFolderButton]];
@@ -34,6 +34,8 @@ Column {
             if (card)
                 rows = rows.concat(card.keyboardRows);
         }
+        if (pendingOfferSelector.visible)
+            rows.push([pendingOfferSelector, acceptFolderButton, rejectFolderButton]);
         return rows;
     }
 
@@ -41,6 +43,7 @@ Column {
 
     function closePopups() {
         folderSelector.close();
+        pendingOfferSelector.close();
         addForm.closePopups();
         folderSharingForm.closePopups();
     }
@@ -233,6 +236,88 @@ Column {
                 onErrorDetailsRequested: function (folderId) {
                     root.controller.showFolderErrors(folderId);
                 }
+            }
+        }
+    }
+
+    Column {
+        visible: root.controller.pendingOfferRows.length > 0
+        width: parent.width
+        spacing: Style.space(6)
+
+        PanelSectionHeader {
+            text: "PENDING FOLDER REQUESTS"
+            foreground: root.foreground
+            fontFamily: root.fontFamily
+        }
+
+        RowLayout {
+            width: parent.width
+            spacing: Style.space(6)
+
+            SyncshellDropdown {
+                id: pendingOfferSelector
+                Layout.fillWidth: true
+                Layout.preferredHeight: Style.spacing.controlHeight
+                showLabel: false
+                rowHeight: Style.spacing.controlHeight
+                value: root.controller.selectedPendingOffer
+                options: root.controller.pendingOfferRows
+                interactive: options.length > 1
+                foreground: root.foreground
+                fontFamily: root.fontFamily
+                hasCursor: root.keyboardCursor === pendingOfferSelector
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.actionHovered(pendingOfferSelector);
+                }
+                onChanged: function (value) {
+                    root.controller.selectedPendingOffer = value;
+                    pendingOfferSelector.value = Qt.binding(function () {
+                        return root.controller.selectedPendingOffer;
+                    });
+                }
+            }
+
+            TooltipButton {
+                id: acceptFolderButton
+                iconText: "\uf00c"
+                Layout.preferredWidth: Style.spacing.controlHeight
+                Layout.preferredHeight: Style.spacing.controlHeight
+                helpText: "Accept folder request"
+                bordered: true
+                foreground: root.success
+                fontFamily: root.fontFamily
+                iconSize: Style.font.icon
+                enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy && root.controller.selectedPendingOffer !== ""
+                hasCursor: root.keyboardCursor === acceptFolderButton
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.actionHovered(acceptFolderButton);
+                }
+                onClicked: {
+                    root.addTrigger = acceptFolderButton;
+                    root.controller.acceptPendingFolderOffer(root.controller.selectedPendingOffer);
+                }
+            }
+
+            TooltipButton {
+                id: rejectFolderButton
+                iconText: "\uf00d"
+                Layout.preferredWidth: Style.spacing.controlHeight
+                Layout.preferredHeight: Style.spacing.controlHeight
+                helpText: "Reject folder request"
+                bordered: true
+                foreground: root.urgent
+                fontFamily: root.fontFamily
+                iconSize: Style.font.icon
+                enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy && root.controller.selectedPendingOffer !== ""
+                hasCursor: root.keyboardCursor === rejectFolderButton
+                onHovered: function (hovered) {
+                    if (hovered)
+                        root.actionHovered(rejectFolderButton);
+                }
+                onClicked: root.controller.requestPendingFolderDismiss(root.controller.selectedPendingOffer)
             }
         }
     }

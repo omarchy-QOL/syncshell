@@ -169,6 +169,33 @@ func TestFolderActions(t *testing.T) {
 	}
 }
 
+func TestDismissPendingFolder(t *testing.T) {
+	remoteID := "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH"
+	api := &actionAPI{
+		folders: map[string]syncthing.Folder{},
+		devices: []syncthing.Device{{DeviceID: "LOCAL"}, {DeviceID: remoteID}},
+		pending: syncthing.PendingFolders{"offered": {
+			OfferedBy: map[string]syncthing.FolderOffer{remoteID: {Label: "Offered"}},
+		}},
+		theme: "default",
+	}
+	coreSession := newActionSession(t, api)
+	if _, err := coreSession.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	result := coreSession.Act(context.Background(), "folder.dismiss-pending",
+		ActionArguments{FolderID: "offered", PendingDeviceID: remoteID})
+	if !result.OK || len(api.pending) != 0 ||
+		len(coreSession.Current().State.PendingFolders) != 0 {
+		t.Fatalf("dismiss pending folder failed: %#v %#v", result, api.pending)
+	}
+	result = coreSession.Act(context.Background(), "folder.dismiss-pending",
+		ActionArguments{FolderID: "offered", PendingDeviceID: remoteID})
+	if result.OK || result.Error == nil || result.Error.Code != "pending_folder_missing" {
+		t.Fatalf("missing pending folder was dismissed: %#v", result)
+	}
+}
+
 func TestRescanAllSelectsEndpointAndSortedTargets(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -576,6 +603,9 @@ func TestActionArgumentShapesRejectUnrelatedFields(t *testing.T) {
 		{"folder.set-sharing", ActionArguments{FolderID: "folder",
 			DeviceIDs: []string{"REMOTE"}},
 			map[string]bool{"folderId": true, "deviceIds": true}},
+		{"folder.dismiss-pending", ActionArguments{FolderID: "folder",
+			PendingDeviceID: "REMOTE"},
+			map[string]bool{"folderId": true, "pendingDeviceId": true}},
 		{"device.add", ActionArguments{DeviceID: "REMOTE", DeviceName: "Remote"},
 			map[string]bool{"deviceId": true, "deviceName": true}},
 		{"device.pause", ActionArguments{DeviceID: "REMOTE"},
@@ -870,8 +900,23 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		a.writeValue(writer, status)
 	case request.URL.Path == "/rest/folder/errors":
 		a.writeValue(writer, syncthing.FolderErrors{Errors: a.errors})
-	case request.URL.Path == "/rest/cluster/pending/folders":
+	case request.URL.Path == "/rest/cluster/pending/folders" &&
+		request.Method == http.MethodGet:
 		a.writeValue(writer, a.pending)
+	case request.URL.Path == "/rest/cluster/pending/folders" &&
+		request.Method == http.MethodDelete:
+		folderID := request.URL.Query().Get("folder")
+		deviceID := request.URL.Query().Get("device")
+		folder, exists := a.pending[folderID]
+		if exists {
+			delete(folder.OfferedBy, deviceID)
+			if len(folder.OfferedBy) == 0 {
+				delete(a.pending, folderID)
+			} else {
+				a.pending[folderID] = folder
+			}
+		}
+		writer.WriteHeader(http.StatusOK)
 	case request.URL.Path == "/rest/cluster/pending/devices" &&
 		request.Method == http.MethodGet:
 		a.writeValue(writer, a.pendingDevices)

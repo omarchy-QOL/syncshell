@@ -111,7 +111,6 @@ KeyboardPanel {
     function closeTransientPopups() {
         folderOverview.closePopups();
         remoteDevices.closePopups();
-        moreDetails.closePopups();
     }
 
     function selectSection(section) {
@@ -148,7 +147,7 @@ KeyboardPanel {
     PanelKeyCatcher {
         id: keyCatcher
         anchors.fill: parent
-        blocked: !root.controller.folderConfirmOpen && (root.controller.addOpen || folderOverview.popupOpen || folderOverview.childPopupOpen || remoteDevices.popupOpen || moreDetails.pendingPopupOpen)
+        blocked: !root.controller.folderConfirmOpen && (root.controller.addOpen || folderOverview.popupOpen || folderOverview.childPopupOpen || remoteDevices.popupOpen)
         onCloseRequested: {
             if (root.controller.settingsMigrationOpen) {
                 root.controller.chooseSettingsPort(2);
@@ -404,7 +403,6 @@ KeyboardPanel {
 
             MoreDetails {
                 id: moreDetails
-                folderActions: folderOverview
                 visible: !root.controller.settingsMenuOpen && root.controller.moreOpen
                 controller: root.controller
                 syncthing: root.controller.syncthing
@@ -656,6 +654,8 @@ KeyboardPanel {
         message: {
             if (root.controller.folderConfirmAction === "create")
                 return "Create " + root.controller.folderCreationArgs.path + " and add the folder?";
+            if (root.controller.folderConfirmAction === "dismiss-offer")
+                return "Reject folder request for " + root.controller.folderConfirmLabel + "?\n\nThis removes the pending announcement without adding the folder.";
             var folder = root.controller.folderById(root.controller.folderConfirmId);
             if (!folder)
                 return "Change this folder?";

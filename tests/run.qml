@@ -133,7 +133,8 @@ QtObject {
         compare(PanelModel.pendingOfferOptions(service), [
             {
                 value: JSON.stringify(["plain", "remote"]),
-                label: "Documents from Phone"
+                label: "Documents",
+                trailingText: "(by Phone)"
             }
         ], "only unencrypted offers are actionable");
         compare(PanelModel.encryptedPendingOfferCount(service), 2, "encrypted count matches hidden offers");

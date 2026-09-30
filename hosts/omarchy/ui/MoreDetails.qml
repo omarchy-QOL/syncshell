@@ -8,7 +8,6 @@ Column {
     id: root
 
     property var controller
-    required property var folderActions
     property var syncthing
     property color foreground: Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
@@ -23,20 +22,9 @@ Column {
             return folder && folder.problem;
         });
     }
-    readonly property bool pendingPopupOpen: pendingOfferSelector.popupOpen
-    readonly property var keyboardRows: {
-        var rows = [[pendingOfferSelector, acceptFolderButton]];
-        rows.push([installationHelp]);
-        rows.push([installButton]);
-        return rows;
-    }
+    readonly property var keyboardRows: [[installationHelp], [installButton]]
 
     signal actionHovered(Item action)
-
-    function closePopups() {
-        if (pendingOfferSelector.popupOpen)
-            pendingOfferSelector.close();
-    }
 
     function installationStatusText() {
         if (!syncthing)
@@ -116,24 +104,14 @@ Column {
                 spacing: Style.space(4)
 
                 Text {
-                    width: parent.width
-                    text: "Affected folder"
-                    textFormat: Text.PlainText
-                    color: root.dim
-                    font.family: root.fontFamily
-                    font.pixelSize: Style.font.caption
-                    font.bold: true
-                }
-
-                Text {
                     visible: parent.modelData.path !== ""
                     width: parent.width
-                    text: "\uf07b  " + String(parent.modelData.path || "")
+                    text: "\uf07b  affected: " + String(parent.modelData.path || "")
                     textFormat: Text.PlainText
                     color: root.dim
                     font.family: root.fontFamily
                     font.pixelSize: Style.font.caption
-                    elide: Text.ElideLeft
+                    elide: Text.ElideMiddle
                 }
 
                 Text {
@@ -162,65 +140,6 @@ Column {
                     width: parent.width
                     foreground: root.foreground
                 }
-            }
-        }
-    }
-
-    PanelSectionHeader {
-        visible: root.controller.pendingOfferRows.length > 0
-        text: "PENDING FOLDER REQUESTS"
-        foreground: root.foreground
-        fontFamily: root.fontFamily
-    }
-
-    RowLayout {
-        visible: root.controller.pendingOfferRows.length > 0
-        width: parent.width
-        spacing: Style.space(6)
-
-        SyncshellDropdown {
-            id: pendingOfferSelector
-            Layout.fillWidth: true
-            Layout.preferredHeight: Style.spacing.controlHeight
-            showLabel: false
-            rowHeight: Style.spacing.controlHeight
-            value: root.controller.selectedPendingOffer
-            options: root.controller.pendingOfferRows
-            foreground: root.foreground
-            fontFamily: root.fontFamily
-            hasCursor: root.keyboardCursor === pendingOfferSelector
-            onHovered: function (hovered) {
-                if (hovered)
-                    root.actionHovered(pendingOfferSelector);
-            }
-            onChanged: function (value) {
-                root.controller.selectedPendingOffer = value;
-                pendingOfferSelector.value = Qt.binding(function () {
-                    return root.controller.selectedPendingOffer;
-                });
-            }
-        }
-
-        TooltipButton {
-            id: acceptFolderButton
-            text: "ACCEPT"
-            Layout.preferredHeight: Style.spacing.controlHeight
-            helpText: "Configure offered folder request"
-            bordered: true
-            foreground: root.success
-            fontFamily: root.fontFamily
-            fontSize: Style.font.caption
-            horizontalPadding: Style.space(6)
-            verticalPadding: Style.space(4)
-            enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy && root.controller.selectedPendingOffer !== ""
-            hasCursor: root.keyboardCursor === acceptFolderButton
-            onHovered: function (hovered) {
-                if (hovered)
-                    root.actionHovered(acceptFolderButton);
-            }
-            onClicked: {
-                root.folderActions.addTrigger = acceptFolderButton;
-                root.controller.acceptPendingFolderOffer(root.controller.selectedPendingOffer);
             }
         }
     }

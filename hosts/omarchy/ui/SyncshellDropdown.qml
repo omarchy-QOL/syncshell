@@ -11,8 +11,8 @@ import qs.Ui
 // platform-native ComboBox look.
 //
 // `options` accepts either a plain string[] or an array of
-// { value, label } objects (label is what we render; value is what we
-// emit). Mixing is fine — each row is interpreted independently.
+// { value, label, trailingText } objects (label is what we render; value is
+// what we emit). Mixing is fine — each row is interpreted independently.
 //
 // Keyboard: Tab to focus the trigger, Enter/Space opens, Esc closes,
 // j/k or Up/Down walks options inside the open popup, Enter selects.
@@ -26,6 +26,7 @@ Item {
     property bool searchable: false
     property Component searchHeaderAccessory: null
     readonly property string currentText: displayText !== "" ? displayText : currentLabel()
+    readonly property string currentTrailingText: displayText === "" ? currentTrailingLabel() : ""
     readonly property var matchingOptions: searchable ? options.filter(function (option) {
         return matchesSearch(optionLabel(option), searchField.text);
     }) : options
@@ -98,6 +99,9 @@ Item {
     function optionLabel(o) {
         return (o && typeof o === "object") ? String(o.label) : String(o);
     }
+    function optionTrailingText(o) {
+        return (o && typeof o === "object") ? String(o.trailingText || "") : "";
+    }
     function optionStatusVisible(o) {
         return o && typeof o === "object" && !!o.statusVisible;
     }
@@ -113,6 +117,13 @@ Item {
                 return optionLabel(options[i]);
         }
         return value;
+    }
+    function currentTrailingLabel() {
+        for (var i = 0; i < options.length; i++) {
+            if (optionValue(options[i]) === value)
+                return optionTrailingText(options[i]);
+        }
+        return "";
     }
 
     function matchesSearch(label, query) {
@@ -185,14 +196,30 @@ Item {
             Text {
                 textFormat: Text.PlainText
                 anchors.left: parent.left
-                anchors.right: root.statusVisible ? statusDot.left : chevron.left
+                anchors.right: currentTrailing.visible ? currentTrailing.left : (root.statusVisible ? statusDot.left : chevron.left)
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.leftMargin: trigger.borderLeft + Style.spacing.controlPaddingX
-                anchors.rightMargin: trigger.borderRight + Style.spacing.md
+                anchors.rightMargin: Style.spacing.controlGap
                 text: root.currentText
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.body
+                elide: Text.ElideRight
+            }
+
+            Text {
+                id: currentTrailing
+                visible: root.currentTrailingText !== ""
+                anchors.right: root.statusVisible ? statusDot.left : chevron.left
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.rightMargin: trigger.borderRight + Style.spacing.md
+                width: visible ? trigger.width * 0.45 : 0
+                text: root.currentTrailingText
+                textFormat: Text.PlainText
+                color: Qt.darker(root.foreground, 1.4)
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.caption
+                horizontalAlignment: Text.AlignRight
                 elide: Text.ElideRight
             }
 
@@ -393,14 +420,30 @@ Item {
                             Text {
                                 textFormat: Text.PlainText
                                 anchors.left: parent.left
-                                anchors.right: optionStatus.visible ? optionStatus.left : parent.right
+                                anchors.right: optionTrailing.visible ? optionTrailing.left : (optionStatus.visible ? optionStatus.left : parent.right)
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.leftMargin: Style.spacing.controlPaddingX
-                                anchors.rightMargin: Style.spacing.controlPaddingX
+                                anchors.rightMargin: optionTrailing.visible ? Style.spacing.controlGap : Style.spacing.controlPaddingX
                                 text: root.optionLabel(option.modelData)
                                 color: option.index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
                                 font.family: root.fontFamily
                                 font.pixelSize: Style.font.body
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                id: optionTrailing
+                                visible: root.optionTrailingText(option.modelData) !== ""
+                                anchors.right: optionStatus.visible ? optionStatus.left : parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.rightMargin: Style.spacing.controlPaddingX
+                                width: visible ? option.width * 0.45 : 0
+                                text: root.optionTrailingText(option.modelData)
+                                textFormat: Text.PlainText
+                                color: option.index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : Qt.darker(root.foreground, 1.4)
+                                font.family: root.fontFamily
+                                font.pixelSize: Style.font.caption
+                                horizontalAlignment: Text.AlignRight
                                 elide: Text.ElideRight
                             }
 

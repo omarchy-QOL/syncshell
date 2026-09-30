@@ -39,6 +39,8 @@ func (s *Session) Act(ctx context.Context, action string, arguments ActionArgume
 		return s.recheckFolderErrors(ctx)
 	case "folder.forget":
 		return s.forgetFolder(ctx, arguments.FolderID)
+	case "folder.dismiss-pending":
+		return s.dismissPendingFolder(ctx, arguments.FolderID, arguments.PendingDeviceID)
 	case "folder.add-existing":
 		return s.addExistingFolder(ctx, arguments)
 	case "folder.set-sharing":
@@ -83,6 +85,11 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
 		len(arguments.FolderIDs) == 0 && arguments.PendingDeviceID == "" &&
 		arguments.Theme == ""
+	pendingFolderOnly := arguments.FolderID != "" &&
+		arguments.PendingDeviceID != "" && arguments.Path == "" &&
+		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
+		len(arguments.FolderIDs) == 0 && arguments.DeviceID == "" &&
+		arguments.DeviceName == "" && arguments.Theme == ""
 	empty := arguments.FolderID == "" && arguments.Path == "" &&
 		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
 		len(arguments.FolderIDs) == 0 &&
@@ -92,6 +99,8 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 	switch action {
 	case "folder.pause", "folder.resume", "folder.rescan", "folder.forget":
 		valid = folderOnly
+	case "folder.dismiss-pending":
+		valid = pendingFolderOnly
 	case "folder.recheck-errors", "folder.rescan-all", "folder.suggest-id",
 		"lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
 		valid = empty
@@ -132,6 +141,39 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 	}
 	result := rejected("invalid_action", "action arguments are invalid")
 	return &result
+}
+
+func (s *Session) dismissPendingFolder(
+	ctx context.Context,
+	rawFolderID string,
+	rawDeviceID string,
+) ActionResult {
+	if result := s.requireOnline(); result != nil {
+		return *result
+	}
+	folderID := strings.TrimSpace(rawFolderID)
+	deviceID := strings.ToUpper(strings.TrimSpace(rawDeviceID))
+	if folderID == "" {
+		return rejected("folder_id_invalid", "folder ID is invalid")
+	}
+	if !deviceIDPattern.MatchString(deviceID) {
+		return rejected("device_id_invalid", "device ID is invalid")
+	}
+	pending, err := s.client.PendingFolders(ctx)
+	if err != nil {
+		return ActionResult{Error: publicError(err)}
+	}
+	folder, exists := pending[folderID]
+	if !exists {
+		return rejected("pending_folder_missing", "pending folder is no longer available")
+	}
+	if _, exists := folder.OfferedBy[deviceID]; !exists {
+		return rejected("pending_folder_missing", "pending folder offer is no longer available")
+	}
+	if err := s.client.DismissPendingFolder(ctx, folderID, deviceID); err != nil {
+		return s.afterAmbiguousMutation(ctx, err)
+	}
+	return s.refreshAfterMutation(ctx)
 }
 
 func (s *Session) setFolderPaused(ctx context.Context, folderID string, paused bool) ActionResult {

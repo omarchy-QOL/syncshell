@@ -116,6 +116,13 @@ func (c *Client) PendingFolders(ctx context.Context) (PendingFolders, error) {
 	return response, err
 }
 
+// DismissPendingFolder rejects one folder offer from one device.
+func (c *Client) DismissPendingFolder(ctx context.Context, folderID, deviceID string) error {
+	path := "/rest/cluster/pending/folders?folder=" + url.QueryEscape(folderID) +
+		"&device=" + url.QueryEscape(deviceID)
+	return c.request(ctx, http.MethodDelete, path, nil, true, nil)
+}
+
 // GUIConfig reads the current Syncthing GUI theme.
 func (c *Client) GUIConfig(ctx context.Context) (GUIConfig, error) {
 	var response GUIConfig

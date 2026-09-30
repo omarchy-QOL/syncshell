@@ -47,6 +47,8 @@ Panel {
     property string selectedPendingOffer: ""
     property string folderConfirmAction: ""
     property string folderConfirmId: ""
+    property string folderConfirmDeviceId: ""
+    property string folderConfirmLabel: ""
     property var folderCreationArgs: null
     readonly property bool folderConfirmOpen: folderConfirmAction !== ""
     property string deviceConfirmAction: ""
@@ -172,10 +174,12 @@ Panel {
 
     function showFolderErrors(folderId) {
         currentFolderId = folderId;
-        moreOpen = true;
-        Qt.callLater(function () {
-            popup.scrollToMore();
-        });
+        moreOpen = !moreOpen;
+        if (moreOpen) {
+            Qt.callLater(function () {
+                popup.scrollToMore();
+            });
+        }
     }
 
     function scrollToTop() {
@@ -395,7 +399,7 @@ Panel {
         for (var i = 0; i < pendingOfferRows.length; i++) {
             options.push({
                 value: pendingOfferRows[i].value,
-                label: "Accept " + pendingOfferRows[i].label
+                label: "Accept " + pendingOfferRows[i].label + (pendingOfferRows[i].trailingText ? " " + pendingOfferRows[i].trailingText : "")
             });
         }
         return options;
@@ -503,6 +507,31 @@ Panel {
         });
     }
 
+    function requestPendingFolderDismiss(value) {
+        var selected = String(value || "");
+        if (!selected || !syncthing || syncthing.folderMutationBusy)
+            return;
+        var choice;
+        try {
+            choice = JSON.parse(selected);
+        } catch (error) {
+            return;
+        }
+        if (!(choice instanceof Array) || choice.length !== 2)
+            return;
+        folderConfirmId = String(choice[0] || "");
+        folderConfirmDeviceId = String(choice[1] || "");
+        folderConfirmLabel = folderConfirmId;
+        for (var i = 0; i < pendingOfferRows.length; i++) {
+            if (pendingOfferRows[i].value === selected) {
+                folderConfirmLabel = pendingOfferRows[i].label + (pendingOfferRows[i].trailingText ? " " + pendingOfferRows[i].trailingText : "");
+                break;
+            }
+        }
+        if (folderConfirmId && folderConfirmDeviceId)
+            folderConfirmAction = "dismiss-offer";
+    }
+
     function selectedPendingDeviceId() {
         var value = String(popup.pendingFolderValue || "");
         if (!value)
@@ -547,13 +576,17 @@ Panel {
     function confirmFolderAction() {
         var action = folderConfirmAction;
         var id = folderConfirmId;
+        var deviceId = folderConfirmDeviceId;
+        var label = folderConfirmLabel;
         var creation = folderCreationArgs;
         cancelFolderAction();
         if (!syncthing)
             return;
         if (action === "create" && creation) {
             addSubmissionPending = syncthing.addFolder(creation.path, creation.label, creation.folderId, creation.deviceIds, creation.pendingDeviceId, true);
-        } else if (action === "forget")
+        } else if (action === "dismiss-offer")
+            syncthing.dismissPendingFolder(id, deviceId, label);
+        else if (action === "forget")
             syncthing.forgetFolder(id);
         else
             syncthing.setFolderLinked(id, action === "link");
@@ -562,6 +595,8 @@ Panel {
     function cancelFolderAction() {
         folderConfirmAction = "";
         folderConfirmId = "";
+        folderConfirmDeviceId = "";
+        folderConfirmLabel = "";
         folderCreationArgs = null;
     }
 

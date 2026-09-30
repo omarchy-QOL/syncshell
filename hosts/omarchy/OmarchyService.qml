@@ -391,6 +391,14 @@ QtObject {
         }, shared.length > 0 ? "Remote devices may have to accept the folder." : "Added " + (label || folderId) + " locally. It is linked but not " + "shared with another device.");
     }
 
+    function dismissPendingFolder(folderId, pendingDeviceId, label) {
+        var name = String(label || "").trim() || String(folderId || "");
+        return runFolderAction("folder.dismiss-pending", "folder-dismiss", folderId, {
+            folderId: folderId,
+            pendingDeviceId: pendingDeviceId
+        }, "Rejected folder request for " + name + ".");
+    }
+
     function setFolderSharing(folderId, selectedDeviceIds) {
         var shared = selectedDeviceIds || [];
         var folder = configuredFolder(folderId);
