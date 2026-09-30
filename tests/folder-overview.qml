@@ -171,25 +171,25 @@ ShellRoot {
                 root.rows = root.folders(1);
                 break;
             case 1:
-                root.check(shown.length === 1 && !picker.visible, "one folder card");
+                root.check(shown.length === 1 && picker.visible && !picker.interactive, "one folder uses a fixed selector and one card");
                 root.check(shown[0].folder.sharedDeviceCount === 0, "unshared folder must remain visible");
-                root.check(PanelNavigation.first(overview.keyboardRows, overview) !== picker, "hidden selector is not a keyboard target");
+                root.check(PanelNavigation.first(overview.keyboardRows, overview) !== picker, "fixed selector is not a keyboard target");
                 root.rows = root.folders(2);
                 break;
             case 2:
-                root.check(shown.length === 2 && !picker.visible, "two folder cards");
-                root.check(shown[1].folder.paused, "paused folder must remain visible");
+                root.check(shown.length === 1 && picker.visible && picker.interactive, "two folders use a selector and one card");
+                root.check(picker.options.length === 2, "selector includes both folders");
+                picker.value = "folder-1";
+                picker.changed("folder-1");
                 root.rows = root.folders(3);
                 break;
             case 3:
-                root.check(shown.length === 1 && picker.visible, "three folder selector");
-                root.check(picker.options.length === 3, "selector includes every folder");
-                root.check(PanelNavigation.first(overview.keyboardRows, overview) === picker, "visible selector starts keyboard navigation");
+                root.check(shown.length === 1 && shown[0].folder.paused, "selection preserves the paused folder");
+                root.check(picker.visible && picker.options.length === 3, "selector includes every folder");
+                root.check(PanelNavigation.first(overview.keyboardRows, overview) === picker, "interactive selector starts keyboard navigation");
                 overview.keyboardCursor = picker;
                 root.check(picker.hasCursor, "keyboard cursor reaches selector visuals");
                 root.check(PanelNavigation.move(overview.keyboardRows, picker, 0, 1, overview) !== picker, "vertical motion advances to folder actions");
-                picker.value = "folder-1";
-                picker.changed("folder-1");
                 break;
             case 4:
                 root.check(shown[0].folder.id === "folder-1", "selection updates card");
@@ -207,7 +207,7 @@ ShellRoot {
                 root.rows = root.folders(2);
                 break;
             case 7:
-                root.check(shown.length === 2 && !picker.visible, "return to two cards");
+                root.check(shown.length === 1 && picker.visible && picker.options.length === 2, "return to two folders keeps the selector and one card");
                 root.check(panel.currentFolderId === "folder-0", "removed selection falls back");
                 root.rows = root.viewRows(false);
                 break;
@@ -284,8 +284,8 @@ ShellRoot {
             }
             inspection.pause(({
                 0: "one folder card",
-                1: "two cards including a paused folder",
-                2: "three folders switch to a selector",
+                1: "two folders use the same selector and card layout",
+                2: "three folders preserve the selected card",
                 4: "folder selector open",
                 5: "40 folders preserve the selected card",
                 8: "folder view controls inside the selector",

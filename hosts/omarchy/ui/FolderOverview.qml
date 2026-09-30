@@ -62,7 +62,7 @@ Column {
 
         FolderSelector {
             id: folderSelector
-            visible: root.controller.compactFolders
+            visible: root.controller.folderRows.length > 0
             Layout.fillWidth: true
             Layout.preferredHeight: Style.spacing.controlHeight
             controller: root.controller

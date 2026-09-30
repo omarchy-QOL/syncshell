@@ -11,6 +11,7 @@ SyncshellDropdown {
 
     showLabel: false
     searchable: true
+    interactive: controller.folderRows.length > 1
     rowHeight: Style.spacing.controlHeight
     value: controller.currentFolderId
     displayText: currentFolder ? controller.folderDisplayLabel(controller.currentFolderId) : ""
