@@ -11,8 +11,8 @@ import qs.Ui
 // platform-native ComboBox look.
 //
 // `options` accepts either a plain string[] or an array of
-// { value, label } objects (label is what we render; value is what we
-// emit). Mixing is fine — each row is interpreted independently.
+// { value, label, trailingText } objects (label is what we render; value is
+// what we emit). Mixing is fine — each row is interpreted independently.
 //
 // Keyboard: Tab to focus the trigger, Enter/Space opens, Esc closes,
 // j/k or Up/Down walks options inside the open popup, Enter selects.
@@ -98,6 +98,9 @@ Item {
     function optionLabel(o) {
         return (o && typeof o === "object") ? String(o.label) : String(o);
     }
+    function optionTrailingText(o) {
+        return (o && typeof o === "object") ? String(o.trailingText || "") : "";
+    }
     function optionStatusVisible(o) {
         return o && typeof o === "object" && !!o.statusVisible;
     }
@@ -107,12 +110,16 @@ Item {
     function optionStatusHelpText(o) {
         return optionStatusVisible(o) ? String(o.statusHelpText || "") : "";
     }
-    function currentLabel() {
+    function currentOption() {
         for (var i = 0; i < options.length; i++) {
             if (optionValue(options[i]) === value)
-                return optionLabel(options[i]);
+                return options[i];
         }
-        return value;
+        return null;
+    }
+    function currentLabel() {
+        var option = currentOption();
+        return option === null ? value : optionLabel(option);
     }
 
     function matchesSearch(label, query) {
@@ -185,7 +192,7 @@ Item {
             Text {
                 textFormat: Text.PlainText
                 anchors.left: parent.left
-                anchors.right: root.statusVisible ? statusDot.left : chevron.left
+                anchors.right: triggerTrailing.visible ? triggerTrailing.left : (root.statusVisible ? statusDot.left : chevron.left)
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.leftMargin: trigger.borderLeft + Style.spacing.controlPaddingX
                 anchors.rightMargin: trigger.borderRight + Style.spacing.md
@@ -194,6 +201,21 @@ Item {
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.body
                 elide: Text.ElideRight
+            }
+
+            Text {
+                id: triggerTrailing
+                readonly property var selectedOption: root.currentOption()
+
+                visible: text !== ""
+                anchors.right: root.statusVisible ? statusDot.left : chevron.left
+                anchors.rightMargin: Style.spacing.controlGap
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.optionTrailingText(selectedOption)
+                textFormat: Text.PlainText
+                color: root.foreground
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.body
             }
 
             Rectangle {
@@ -393,7 +415,7 @@ Item {
                             Text {
                                 textFormat: Text.PlainText
                                 anchors.left: parent.left
-                                anchors.right: optionStatus.visible ? optionStatus.left : parent.right
+                                anchors.right: optionTrailing.visible ? optionTrailing.left : (optionStatus.visible ? optionStatus.left : parent.right)
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.leftMargin: Style.spacing.controlPaddingX
                                 anchors.rightMargin: Style.spacing.controlPaddingX
@@ -402,6 +424,19 @@ Item {
                                 font.family: root.fontFamily
                                 font.pixelSize: Style.font.body
                                 elide: Text.ElideRight
+                            }
+
+                            Text {
+                                id: optionTrailing
+                                visible: text !== ""
+                                anchors.right: optionStatus.visible ? optionStatus.left : parent.right
+                                anchors.rightMargin: optionStatus.visible ? Style.spacing.controlGap : Style.spacing.controlPaddingX
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: root.optionTrailingText(option.modelData)
+                                textFormat: Text.PlainText
+                                color: option.index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
+                                font.family: root.fontFamily
+                                font.pixelSize: Style.font.body
                             }
 
                             Rectangle {
@@ -419,7 +454,6 @@ Item {
                             SyncshellToolTip {
                                 visible: optionMouse.containsMouse && root.optionStatusHelpText(option.modelData) !== ""
                                 text: root.optionStatusHelpText(option.modelData)
-                                tooltipForeground: root.optionStatusColor(option.modelData)
                                 fontFamily: root.fontFamily
                             }
 

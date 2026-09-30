@@ -73,7 +73,7 @@ Column {
             return "PAUSED · Connections disabled";
         if (state === "CONNECTED")
             return "CONNECTED · Available";
-        return "DISCONNECTED · Not connected";
+        return "DISCONNECTED";
     }
 
     function deviceOptions() {
@@ -82,7 +82,8 @@ Column {
             var device = remoteRows[i];
             options.push({
                 value: device.id,
-                label: device.label,
+                label: device.name,
+                trailingText: "(" + device.folderIds.length + " folder" + (device.folderIds.length === 1 ? "" : "s") + ")",
                 statusVisible: true,
                 statusColor: deviceStateColor(device),
                 statusHelpText: deviceStateHelp(device)

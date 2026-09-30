@@ -149,7 +149,7 @@ BorderSurface {
 
         Text {
             width: parent.width
-            text: String(root.device.address || "Address unavailable")
+            text: "\uf0e8  " + String(root.device.address || "Address unavailable")
             textFormat: Text.PlainText
             color: root.dim
             font.family: root.fontFamily
