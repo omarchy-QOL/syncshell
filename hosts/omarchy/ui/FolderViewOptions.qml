@@ -131,7 +131,7 @@ Item {
     }
     function activateFilter(key) {
         if (key === "all")
-            controller.setAllFolderGroups(true);
+            controller.setAllFolderGroups(!allGroupsEnabled());
         else
             controller.setFolderGroupVisible(key, !controller.folderGroupVisible(key));
     }
