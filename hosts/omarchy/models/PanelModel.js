@@ -142,10 +142,9 @@ function folderMeta(folder, rescanning) {
         var remaining = formatCount(folder.needItems) + " item" + (folder.needItems === 1 ? "" : "s") + " remaining";
         return folder.needBytes > 0 ? remaining + " · " + formatBytes(folder.needBytes) + suffix : remaining + suffix;
     }
-    if (folder.sharedDeviceCount === 0) {
-        return formatCount(folder.globalFiles) + " files · local only" + suffix;
-    }
-    return formatCount(folder.globalFiles) + " files · " + formatBytes(folder.globalBytes) + suffix;
+    if (folder.sharedDeviceCount === 0)
+        return formatCount(folder.globalFiles) + " files · local only";
+    return formatCount(folder.globalFiles) + " files · " + formatBytes(folder.globalBytes);
 }
 
 function folderState(folder, recentlyLinkedFolderId, hasActivity, rescanning) {

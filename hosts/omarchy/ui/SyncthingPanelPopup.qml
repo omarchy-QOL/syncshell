@@ -532,7 +532,7 @@ KeyboardPanel {
         z: root.controller.removalConfirmOpen ? 12 : 0
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        text: root.controller.settingsMenuOpen || root.controller.settingsMigrationOpen ? "MOVE (j/k or Up/Down)  SELECT (Enter)  BACK (q/Esc)" : "MOVE h/j/k/l  SELECT Enter  BACK q/Esc\n[r]escan  [w]ebUI  [p]ause/continue  [s]ettings"
+        text: root.controller.settingsMenuOpen || root.controller.settingsMigrationOpen ? "" : "[r]escan  [w]ebUI  [p]ause/continue  [s]ettings"
         textFormat: Text.PlainText
         color: root.controller.dim
         font.family: root.controller.fontFamily
