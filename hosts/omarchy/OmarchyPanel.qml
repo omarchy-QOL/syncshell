@@ -390,19 +390,12 @@ Panel {
     }
 
     function pendingFolderOptions() {
-        var options = [
+        return [
             {
                 value: "",
                 label: "Create a new folder identity"
             }
-        ];
-        for (var i = 0; i < pendingOfferRows.length; i++) {
-            options.push({
-                value: pendingOfferRows[i].value,
-                label: "Accept " + pendingOfferRows[i].label + (pendingOfferRows[i].trailingText ? " " + pendingOfferRows[i].trailingText : "")
-            });
-        }
-        return options;
+        ].concat(pendingOfferRows);
     }
 
     function ensurePendingOfferSelection() {
