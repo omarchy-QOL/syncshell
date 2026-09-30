@@ -571,6 +571,11 @@ Panel {
             syncthing.openWebUi();
     }
 
+    function openDeviceInWebUi(deviceId) {
+        if (syncthing && syncthing.online)
+            syncthing.openWebUi(deviceId);
+    }
+
     function openSettingsMenu() {
         closeTransientViews();
         settingsSelectedIndex = 0;

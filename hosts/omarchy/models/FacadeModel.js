@@ -8,8 +8,12 @@ function devices(values) {
     projected.push({
       deviceID: String(device.id || ""),
       name: String(device.name || ""),
+      address: String(device.address || ""),
+      paused: device.paused === true,
       untrusted: device.untrusted === true,
-      connected: device.connected === true
+      connected: device.connected === true,
+      downloadBps: Number(device.downloadBps || 0),
+      uploadBps: Number(device.uploadBps || 0)
     })
   }
   return projected

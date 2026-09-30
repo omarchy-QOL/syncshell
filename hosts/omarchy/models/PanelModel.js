@@ -304,7 +304,11 @@ function remoteDeviceRows(syncthing) {
         rows.push({
             id: id,
             name: name,
+            address: String(device.address || ""),
+            paused: device.paused === true,
             connected: device.connected === true,
+            downloadBps: Number(device.downloadBps || 0),
+            uploadBps: Number(device.uploadBps || 0),
             folderIds: folderIds,
             label: name + " · " + count + " folder" + (count === 1 ? "" : "s")
         });

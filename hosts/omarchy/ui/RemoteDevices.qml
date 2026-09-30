@@ -29,7 +29,14 @@ Column {
     readonly property var selectedDevice: rowById(remoteRows, selectedDeviceId)
     readonly property var selectedPending: rowById(pendingRows, selectedPendingId)
     readonly property bool popupOpen: deviceSelector.popupOpen || pendingSelector.popupOpen || addForm.popupOpen || foldersForm.popupOpen
-    readonly property var keyboardRows: [[deviceSelector, addDeviceButton, deviceFoldersButton, removeDeviceButton], [pendingSelector, acceptDeviceButton, dismissDeviceButton]]
+    readonly property var keyboardRows: {
+        var rows = [[deviceSelector, addDeviceButton, deviceFoldersButton, removeDeviceButton]];
+        if (deviceCard.visible)
+            rows = rows.concat(deviceCard.keyboardRows);
+        if (pendingSelector.visible)
+            rows.push([pendingSelector, acceptDeviceButton, dismissDeviceButton]);
+        return rows;
+    }
 
     signal actionHovered(Item action)
 
@@ -48,16 +55,37 @@ Column {
             selectedPendingId = pendingRows.length > 0 ? pendingRows[0].id : "";
     }
 
+    function deviceState(device) {
+        if (device && device.paused)
+            return "PAUSED";
+        return device && device.connected ? "CONNECTED" : "DISCONNECTED";
+    }
+
+    function deviceStateColor(device) {
+        if (device && device.paused)
+            return warning;
+        return device && device.connected ? success : Color.muted;
+    }
+
+    function deviceStateHelp(device) {
+        var state = deviceState(device);
+        if (state === "PAUSED")
+            return "PAUSED · Connections disabled";
+        if (state === "CONNECTED")
+            return "CONNECTED · Available";
+        return "DISCONNECTED · Not connected";
+    }
+
     function deviceOptions() {
         var options = [];
         for (var i = 0; i < remoteRows.length; i++) {
-            var connected = remoteRows[i].connected;
+            var device = remoteRows[i];
             options.push({
-                value: remoteRows[i].id,
-                label: remoteRows[i].label,
+                value: device.id,
+                label: device.label,
                 statusVisible: true,
-                statusColor: connected ? root.success : Color.muted,
-                statusHelpText: connected ? "CONNECTED · Available" : "DISCONNECTED · Not connected"
+                statusColor: deviceStateColor(device),
+                statusHelpText: deviceStateHelp(device)
             });
         }
         return options;
@@ -146,8 +174,8 @@ Column {
             value: root.selectedDeviceId
             options: root.deviceOptions()
             statusVisible: true
-            statusColor: root.selectedDevice && root.selectedDevice.connected ? root.success : Color.muted
-            statusHelpText: root.selectedDevice && root.selectedDevice.connected ? "Device is connected" : "Device is disconnected"
+            statusColor: root.deviceStateColor(root.selectedDevice)
+            statusHelpText: root.deviceStateHelp(root.selectedDevice)
             foreground: root.foreground
             fontFamily: root.fontFamily
             hasCursor: root.keyboardCursor === deviceSelector
@@ -227,6 +255,32 @@ Column {
                     root.actionHovered(removeDeviceButton);
             }
             onClicked: root.controller.requestDeviceRemoval(root.selectedDevice)
+        }
+    }
+
+    DeviceCard {
+        id: deviceCard
+        visible: !!root.selectedDevice
+        width: parent.width
+        device: root.selectedDevice || ({})
+        controller: root.controller
+        online: root.syncthing ? root.syncthing.online : false
+        mutationBusy: root.syncthing ? root.syncthing.folderMutationBusy : false
+        actionBusy: root.syncthing && root.syncthing.folderMutationBusy && root.syncthing.folderMutationId === root.selectedDeviceId && (root.syncthing.folderMutationAction === "device-pause" || root.syncthing.folderMutationAction === "device-resume")
+        stateLabel: root.deviceState(root.selectedDevice)
+        stateColor: root.deviceStateColor(root.selectedDevice)
+        foreground: root.foreground
+        dim: root.dim
+        warning: root.warning
+        fontFamily: root.fontFamily
+        keyboardCursor: root.keyboardCursor
+        onActionHovered: function (action) {
+            root.actionHovered(action);
+        }
+        onEditRequested: root.controller.openDeviceInWebUi(root.selectedDeviceId)
+        onPauseRequested: function (paused) {
+            if (root.syncthing && root.selectedDevice)
+                root.syncthing.setDevicePaused(root.selectedDevice.id, paused, root.selectedDevice.name);
         }
     }
 

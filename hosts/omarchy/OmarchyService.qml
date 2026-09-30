@@ -164,14 +164,18 @@ QtObject {
         configureCore();
     }
 
-    function openWebUi() {
+    function openWebUi(deviceId) {
         if (!online)
             return;
-        if (webUi.theme !== "syncshell-modern" && webUi.theme !== "syncthing-omarchy") {
+        var customTheme = webUi.theme === "syncshell-modern" || webUi.theme === "syncthing-omarchy";
+        if (!customTheme) {
             Qt.openUrlExternally(baseUrl);
             return;
         }
-        core.action("webui.open", {}, function (ok) {
+        var args = String(deviceId || "") ? {
+            deviceId: String(deviceId)
+        } : ({});
+        core.action("webui.open", args, function (ok) {
             if (!ok)
                 Qt.openUrlExternally(root.baseUrl);
         });
@@ -432,6 +436,13 @@ QtObject {
         return runFolderAction("device.dismiss-pending", "device-dismiss", deviceId, {
             deviceId: deviceId
         }, "Dismissed pending request from " + label + ".");
+    }
+
+    function setDevicePaused(deviceId, paused, name) {
+        var label = String(name || "").trim() || "Device " + String(deviceId || "").slice(0, 7);
+        return runFolderAction(paused ? "device.pause" : "device.resume", paused ? "device-pause" : "device-resume", deviceId, {
+            deviceId: deviceId
+        }, paused ? "Paused synchronization with " + label + "." : "Resumed synchronization with " + label + ".");
     }
 
     function removeDevice(deviceId, name) {
