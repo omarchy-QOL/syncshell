@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.Commons
+import "UiConstants.js" as UiConstants
 
 Item {
     id: root
@@ -36,7 +37,7 @@ Item {
             return;
         Quickshell.execDetached(["wl-copy", "--", value]);
         if (controller)
-            controller.showNotice(notice);
+            controller.showNotice(notice, UiConstants.ID_COPY_NOTICE_VISIBLE_MS);
     }
 
     readonly property Item loadedButton: buttonLoader.item as Item
