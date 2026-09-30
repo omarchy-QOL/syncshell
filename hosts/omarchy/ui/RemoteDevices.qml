@@ -173,9 +173,6 @@ Column {
             rowHeight: Style.spacing.controlHeight
             value: root.selectedDeviceId
             options: root.deviceOptions()
-            statusVisible: true
-            statusColor: root.deviceStateColor(root.selectedDevice)
-            statusHelpText: root.deviceStateHelp(root.selectedDevice)
             foreground: root.foreground
             fontFamily: root.fontFamily
             hasCursor: root.keyboardCursor === deviceSelector
