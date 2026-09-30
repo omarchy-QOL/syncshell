@@ -795,7 +795,7 @@ Panel {
             onStreamFinished: root.folderPickerOutput = text
         }
 
-        onExited: function (exitCode) {
+        onExited: function (exitCode, exitStatus) {
             var selected = String(root.folderPickerOutput || folderPickerStdout.text || "").trim();
             if (exitCode === 0 && selected) {
                 var path = Paths.localFilePath(selected);
