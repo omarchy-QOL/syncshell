@@ -155,7 +155,6 @@ not inferred.
   publishing the latest Syncthing state.
 - `setRefreshInterval(seconds)` clamps native reconciliation to 60-3600
   seconds.
-- `setLegacyThemedIcon(enabled)` seeds the implicit icon preference only.
 - `toggleService()` starts or stops an authorized unit.
 - `chooseServiceStateAction(index)` applies the selected drift resolution.
 - `installSyncthing()` opens the host-owned Omarchy installer.

@@ -23,7 +23,8 @@ install -d -- "$config_root/syncshell/shared" \
 install -m 0644 -- "$repo_root/shared/CoreProcess.qml" \
   "$repo_root/shared/AdapterService.qml" \
   "$repo_root/shared/DeviceWorkflow.qml" \
-  "$repo_root/shared/RescanTracker.qml" "$config_root/syncshell/shared/"
+  "$repo_root/shared/RescanTracker.qml" \
+  "$repo_root/shared/Paths.js" "$config_root/syncshell/shared/"
 install -m 0755 -- "$repo_root/bin/x86_64/syncshell-core" \
   "$config_root/syncshell/bin/x86_64/syncshell-core"
 install -m 0644 -- "$integration_root/files/SyncshellService.qml.in" \

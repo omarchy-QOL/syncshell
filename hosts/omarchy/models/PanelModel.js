@@ -366,6 +366,13 @@ function nearbyDeviceOptions(syncthing) {
     return options;
 }
 
+function hasEncryptedOffer(offeredBy) {
+    return Object.keys(offeredBy).some(function (deviceId) {
+        var offer = offeredBy[deviceId] || ({});
+        return offer.receiveEncrypted === true || offer.remoteEncrypted === true;
+    });
+}
+
 function pendingOfferOptions(syncthing) {
     var options = [];
     var pending = syncthing && syncthing.pendingFolders ? syncthing.pendingFolders : ({});
@@ -374,13 +381,7 @@ function pendingOfferOptions(syncthing) {
     for (var i = 0; i < ids.length; i++) {
         var offeredBy = (pending[ids[i]] || {}).offeredBy || ({});
         var deviceIds = Object.keys(offeredBy);
-        var encrypted = false;
-        for (var j = 0; j < deviceIds.length; j++) {
-            var candidate = offeredBy[deviceIds[j]] || ({});
-            if (candidate.receiveEncrypted === true || candidate.remoteEncrypted === true)
-                encrypted = true;
-        }
-        if (encrypted)
+        if (hasEncryptedOffer(offeredBy))
             continue;
         for (var offerIndex = 0; offerIndex < deviceIds.length; offerIndex++) {
             var offer = offeredBy[deviceIds[offerIndex]] || ({});
@@ -399,15 +400,7 @@ function encryptedPendingOfferCount(syncthing) {
     var ids = Object.keys(pending);
     for (var i = 0; i < ids.length; i++) {
         var offeredBy = (pending[ids[i]] || {}).offeredBy || ({});
-        var deviceIds = Object.keys(offeredBy);
-        var encrypted = false;
-        for (var j = 0; j < deviceIds.length; j++) {
-            var offer = offeredBy[deviceIds[j]] || ({});
-            if (offer.receiveEncrypted === true || offer.remoteEncrypted === true) {
-                encrypted = true;
-            }
-        }
-        if (encrypted)
+        if (hasEncryptedOffer(offeredBy))
             count++;
     }
     return count;

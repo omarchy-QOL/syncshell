@@ -226,9 +226,9 @@ function migrate(raw) {
     };
 }
 
-function defaults(legacyThemedIcon) {
+function defaults() {
     return {
-        iconStyle: legacyThemedIcon === true ? "themed" : DefaultIconStyle,
+        iconStyle: DefaultIconStyle,
         webUiTheme: DefaultWebUiTheme,
         serviceState: DefaultServiceState,
         probeIntervalSeconds: DefaultProbeIntervalSeconds

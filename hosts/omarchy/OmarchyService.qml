@@ -4,11 +4,12 @@ import "../../shared"
 import "controllers"
 import "ui/UiConstants.js" as UiConstants
 import "models/FacadeModel.js" as FacadeModel
+import "../../shared/Paths.js" as Paths
 
 QtObject {
     id: root
 
-    readonly property string pluginRoot: localPath(Qt.resolvedUrl("../.."))
+    readonly property string pluginRoot: Paths.localPath(Qt.resolvedUrl("../.."))
     readonly property var state: core.snapshot || ({})
     readonly property var connection: state.connection || ({})
     readonly property var identity: state.identity || ({})
@@ -109,13 +110,6 @@ QtObject {
         property string localDeviceName: ""
     }
 
-    function localPath(url) {
-        var value = String(url || "");
-        if (value.indexOf("file://") === 0)
-            value = value.slice(7);
-        return decodeURIComponent(value);
-    }
-
     function currentLocalDeviceName() {
         for (var i = 0; i < devices.length; i++) {
             if (devices[i].deviceID === localDeviceId)
@@ -167,10 +161,6 @@ QtObject {
             return;
         refreshIntervalSec = next;
         configureCore();
-    }
-
-    function setLegacyThemedIcon(enabled) {
-        settings.setLegacyThemedIcon(enabled);
     }
 
     function openWebUi() {

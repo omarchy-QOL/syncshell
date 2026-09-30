@@ -9,6 +9,7 @@ import "ui"
 import "ui/UiConstants.js" as UiConstants
 import "models/PanelModel.js" as PanelModel
 import "models/ThemePaletteModel.js" as ThemePaletteModel
+import "../../shared/Paths.js" as Paths
 
 Panel {
     id: root
@@ -24,7 +25,7 @@ Panel {
     readonly property color dim: Qt.darker(foreground, 1.5)
     readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
     readonly property string homePath: Quickshell.env("HOME")
-    readonly property string folderPickerScript: localPathFromUrl(Qt.resolvedUrl("scripts/syncthing-folder-picker.sh"))
+    readonly property string folderPickerScript: Paths.localPath(Qt.resolvedUrl("scripts/syncthing-folder-picker.sh"))
     readonly property bool folderPickerRunning: folderPickerProcess.running
     property bool moreOpen: false
     property bool settingsMenuOpen: false
@@ -81,8 +82,7 @@ Panel {
             return "sync";
         return "default";
     }
-    readonly property bool legacyThemedIcon: setting("themedIcon", true) === true
-    readonly property bool themedIcon: syncthing ? syncthing.iconStyle === "themed" : legacyThemedIcon
+    readonly property bool themedIcon: !syncthing || syncthing.iconStyle === "themed"
     readonly property url syncthingIconSource: Qt.resolvedUrl("../../assets/status-" + iconVariant + ".svg")
     readonly property url themedIconSource: Qt.resolvedUrl("../../assets/mono/status-" + iconVariant + ".svg")
     readonly property string tooltip: {
@@ -145,7 +145,6 @@ Panel {
         if (!syncthing)
             return;
         syncthing.setRefreshInterval(setting("refreshIntervalSec", 60));
-        syncthing.setLegacyThemedIcon(legacyThemedIcon);
     }
 
     function buildFolderRows() {
@@ -224,10 +223,6 @@ Panel {
         return success;
     }
 
-    function folderStateHelpText(folder) {
-        return PanelModel.folderStateHelpText(folderState(folder));
-    }
-
     function folderHasActivity(folder) {
         return folder && syncthing && visibleSyncActivity !== "" && syncthing.syncActivityFolderId === folder.id;
     }
@@ -258,15 +253,6 @@ Panel {
         if (folderById(currentFolderId))
             return;
         currentFolderId = folderRows.length > 0 ? folderRows[0].id : "";
-    }
-
-    function cycleCurrentFolder(offset) {
-        if (folderRows.length < 2 || offset === 0)
-            return;
-        var current = currentFolder();
-        var index = current ? folderRows.indexOf(current) : 0;
-        index = (index + (offset > 0 ? 1 : -1) + folderRows.length) % folderRows.length;
-        currentFolderId = folderRows[index].id;
     }
 
     function folderOptions() {
@@ -343,11 +329,6 @@ Panel {
             });
         }
         return PanelModel.sortFolderOptions(options, folderSortMode);
-    }
-
-    function deviceName(deviceId) {
-        var devices = syncthing && syncthing.devices ? syncthing.devices : [];
-        return PanelModel.deviceName(devices, deviceId);
     }
 
     function deviceOptions() {
@@ -435,17 +416,6 @@ Panel {
 
     function pathLabel(path) {
         return PanelModel.pathLabel(path);
-    }
-
-    function pathParentName(path) {
-        return PanelModel.pathParentName(path, homePath);
-    }
-
-    function localPathFromUrl(url) {
-        var value = String(url || "");
-        if (value.indexOf("file://") === 0)
-            value = value.slice(7);
-        return decodeURIComponent(value);
     }
 
     function openAddFolder() {
@@ -674,14 +644,7 @@ Panel {
     }
 
     function resolveFolderPath(value) {
-        var path = String(value || "");
-        if (path === "~")
-            return homePath;
-        if (path.indexOf("~/") === 0)
-            return homePath + path.slice(1);
-        if (path.charAt(0) === "/" || !homePath)
-            return path;
-        return homePath + "/" + path;
+        return PanelModel.resolveFolderPath(value, homePath);
     }
 
     function toggleSyncing() {
@@ -807,7 +770,7 @@ Panel {
         onExited: function (exitCode) {
             var selected = String(root.folderPickerOutput || folderPickerStdout.text || "").trim();
             if (exitCode === 0 && selected) {
-                var path = root.localPathFromUrl(selected);
+                var path = Paths.localPath(selected);
                 popup.addPathText = path;
                 if (!popup.addLabelText)
                     popup.addLabelText = root.pathLabel(path);

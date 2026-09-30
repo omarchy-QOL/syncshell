@@ -8,6 +8,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import "shared"
+import "shared/Paths.js" as Paths
 
 ShellRoot {
     id: root
@@ -22,20 +23,13 @@ ShellRoot {
     }
     property string lastStatus: ""
     property string barPosition: "top"
-    readonly property string pluginRoot: localPath(Qt.resolvedUrl("."))
+    readonly property string pluginRoot: Paths.localPath(Qt.resolvedUrl("."))
 
     onPopupOpenChanged: {
         if (popupOpen)
             Qt.callLater(function () {
                 background.forceActiveFocus();
             });
-    }
-
-    function localPath(url) {
-        var value = String(url || "");
-        if (value.indexOf("file://") === 0)
-            value = value.slice(7);
-        return decodeURIComponent(value);
     }
 
     function requestForget(folder) {

@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Commons
 import "../models/SettingsModel.js" as SettingsModel
+import "../../../shared/Paths.js" as Paths
 
 QtObject {
     id: root
@@ -10,15 +11,14 @@ QtObject {
     readonly property string homePath: Quickshell.env("HOME")
     readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME") || homePath + "/.config"
     readonly property string settingsPath: configHome + "/omarchy/ilyazar.syncthing/settings.toml"
-    readonly property string settingsTemplatePath: localPath(Qt.resolvedUrl("../config/settings.toml"))
-    readonly property string settingsHelperPath: localPath(Qt.resolvedUrl("../scripts/syncthing-settings.sh"))
-    readonly property string themeHelperPath: localPath(Qt.resolvedUrl("../scripts/syncthing-theme.sh"))
-    readonly property string removeHelperPath: localPath(Qt.resolvedUrl("../scripts/syncthing-remove.sh"))
-    readonly property string pluginRoot: localPath(Qt.resolvedUrl("../../.."))
+    readonly property string settingsTemplatePath: Paths.localPath(Qt.resolvedUrl("../config/settings.toml"))
+    readonly property string settingsHelperPath: Paths.localPath(Qt.resolvedUrl("../scripts/syncthing-settings.sh"))
+    readonly property string themeHelperPath: Paths.localPath(Qt.resolvedUrl("../scripts/syncthing-theme.sh"))
+    readonly property string removeHelperPath: Paths.localPath(Qt.resolvedUrl("../scripts/syncthing-remove.sh"))
+    readonly property string pluginRoot: Paths.localPath(Qt.resolvedUrl("../../.."))
 
     property var selectTheme
     property bool runtimeReady: false
-    property bool legacyThemedIcon: false
     property bool settingsExists: false
     property string iconStyle: SettingsModel.DefaultIconStyle
     property string webUiTheme: SettingsModel.DefaultWebUiTheme
@@ -71,13 +71,6 @@ QtObject {
     readonly property color success: themePalette.success
     readonly property color syncActivity: themePalette.syncActivity
 
-    function localPath(url) {
-        var value = String(url || "");
-        if (value.indexOf("file://") === 0)
-            value = value.slice(7);
-        return decodeURIComponent(value);
-    }
-
     function loadSettings(raw) {
         var parsed = SettingsModel.parse(raw);
         _settingsValid = false;
@@ -114,7 +107,7 @@ QtObject {
     }
 
     function useImplicitDefaults() {
-        var values = SettingsModel.defaults(legacyThemedIcon);
+        var values = SettingsModel.defaults();
         settingsExists = false;
         settingsVersion = SettingsModel.SupportedVersion;
         migrationOpen = false;
@@ -131,12 +124,6 @@ QtObject {
         probeIntervalSeconds = values.probeIntervalSeconds;
         error = "";
         scheduleReconcile();
-    }
-
-    function setLegacyThemedIcon(enabled) {
-        legacyThemedIcon = enabled === true;
-        if (!settingsExists)
-            iconStyle = SettingsModel.defaults(legacyThemedIcon).iconStyle;
     }
 
     function openSettings() {
@@ -345,10 +332,6 @@ QtObject {
     onRuntimeReadyChanged: scheduleReconcile()
     onCurrentWebUiThemeChanged: scheduleReconcile()
     onGuiAssetsPathChanged: scheduleReconcile()
-    onLegacyThemedIconChanged: {
-        if (!settingsExists)
-            iconStyle = SettingsModel.defaults(legacyThemedIcon).iconStyle;
-    }
 
     Component.onCompleted: themePalette.refreshNow()
 

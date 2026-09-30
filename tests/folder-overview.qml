@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Window
+import QtTest
 import Quickshell
 import qs.Commons
 import "../hosts/omarchy"
@@ -24,6 +25,11 @@ ShellRoot {
         visible: true
         width: 400
         height: 600
+
+        TestCase {
+            id: input
+            when: false
+        }
 
         FolderOverview {
             id: overview
@@ -175,10 +181,12 @@ ShellRoot {
                 break;
             case 4:
                 root.check(shown[0].folder.id === "folder-1", "selection updates card");
-                panel.cycleCurrentFolder(1);
+                picker.open();
                 break;
             case 5:
-                root.check(picker.value === "folder-2" && shown[0].folder.id === "folder-2", "keyboard selection stays bound");
+                input.keyClick(Qt.Key_Down);
+                input.keyClick(Qt.Key_Return);
+                root.check(picker.value === "folder-2" && panel.currentFolderId === "folder-2", "keyboard selection stays bound");
                 root.rows = root.folders(40);
                 break;
             case 6:

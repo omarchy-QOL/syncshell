@@ -4,6 +4,7 @@ import "../hosts/omarchy/models/SettingsModel.js" as SettingsModel
 import "../hosts/omarchy/models/ThemePaletteModel.js" as ThemePaletteModel
 import "../hosts/omarchy/models/FacadeModel.js" as FacadeModel
 import "../shared"
+import "../shared/Paths.js" as Paths
 
 QtObject {
     id: root
@@ -17,6 +18,15 @@ QtObject {
         if (JSON.stringify(actual) !== JSON.stringify(expected)) {
             throw new Error(name + ": expected " + JSON.stringify(expected) + ", got " + JSON.stringify(actual));
         }
+    }
+
+    function testPaths() {
+        compare(Paths.localPath("file:///tmp/a%20b%23c"), "/tmp/a b#c", "decoded file URL");
+        compare(Paths.localPath("/tmp/folder"), "/tmp/folder", "plain local path");
+        compare(PanelModel.resolveFolderPath("~", "/home/test"), "/home/test", "home path");
+        compare(PanelModel.resolveFolderPath("~/docs", "/home/test"), "/home/test/docs", "home-relative path");
+        compare(PanelModel.resolveFolderPath("docs", "/home/test"), "/home/test/docs", "relative path");
+        compare(PanelModel.resolveFolderPath("/tmp/docs", "/home/test"), "/tmp/docs", "absolute path");
     }
 
     function testPanelModel() {
@@ -199,6 +209,48 @@ QtObject {
         }, "nearby device source");
     }
 
+    function testPendingOffers() {
+        var service = {
+            pendingFolders: {
+                plain: {
+                    offeredBy: {
+                        remote: {
+                            label: "Documents"
+                        }
+                    }
+                },
+                encrypted: {
+                    offeredBy: {
+                        remote: {
+                            receiveEncrypted: true
+                        }
+                    }
+                },
+                mixed: {
+                    offeredBy: {
+                        a: {},
+                        b: {
+                            remoteEncrypted: true
+                        }
+                    }
+                }
+            },
+            devices: [
+                {
+                    deviceID: "remote",
+                    name: "Phone"
+                }
+            ]
+        };
+        compare(PanelModel.pendingOfferOptions(service), [
+            {
+                value: JSON.stringify(["plain", "remote"]),
+                label: "Documents from Phone"
+            }
+        ], "only unencrypted offers are actionable");
+        compare(PanelModel.encryptedPendingOfferCount(service), 2, "encrypted count matches hidden offers");
+    }
+
     function testSettingsModel() {
         var current = 'version = 2\n[style]\nicon_style = "themed"\n' + 'web_ui_theme = "default"\n[service]\nservice_state = "disabled"\n' + 'probe_interval_seconds = 27\n';
         var expected = {
@@ -210,7 +262,7 @@ QtObject {
             probeIntervalSeconds: 27
         };
         compare(SettingsModel.parse(current), expected, "current settings");
-        compare(SettingsModel.defaults(false), {
+        compare(SettingsModel.defaults(), {
             iconStyle: "themed",
             webUiTheme: "omarchy",
             serviceState: "enabled",
@@ -382,9 +434,11 @@ QtObject {
 
     Component.onCompleted: {
         try {
+            testPaths();
             testPanelModel();
             testFolderErrorDetails();
             testDeviceModels();
+            testPendingOffers();
             testSettingsModel();
             testThemePaletteModel();
             testFacadeProjection();
