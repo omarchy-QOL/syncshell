@@ -83,7 +83,7 @@ Column {
         SquareActionButton {
             id: addFolderButton
             glyph: "\uf067"
-            helpText: "Add folder"
+            helpText: "Add folder (locally)"
             foreground: root.foreground
             fontFamily: root.fontFamily
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
@@ -102,7 +102,7 @@ Column {
             id: shareFolderButton
             visible: root.controller.folderRows.length > 0
             glyph: "\uf1e0"
-            helpText: "Share folder"
+            helpText: "Share folder\n(other device)"
             foreground: root.foreground
             fontFamily: root.fontFamily
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
@@ -122,7 +122,7 @@ Column {
             visible: root.controller.folderRows.length > 0
             glyph: targetFolder && targetFolder.paused ? "\uf0c1" : "\uf00d"
             busy: targetBusy
-            helpText: targetFolder ? (targetFolder.paused ? "Link folder" : "Unlink folder") : "Select a folder"
+            helpText: targetFolder ? (targetFolder.paused ? "Link folder" : "Unlink folder (locally)") : "Select a folder"
             foreground: targetFolder && targetFolder.paused ? root.success : root.urgent
             disabledForeground: root.dim
             fontFamily: root.fontFamily
