@@ -8,7 +8,6 @@ Column {
     id: root
 
     property var controller
-    required property Item cardAnchor
     required property var folderActions
     property var syncthing
     property color foreground: Color.foreground
@@ -22,10 +21,8 @@ Column {
     readonly property int shownErrorCount: currentFolder ? (currentFolder.errorDetails || []).length : 0
     readonly property int totalErrorCount: currentFolder ? Math.max(shownErrorCount, Number(currentFolder.errorCount || 0)) : 0
     readonly property bool pendingPopupOpen: pendingOfferSelector.popupOpen
-    readonly property bool childPopupOpen: remoteDevices.popupOpen
     readonly property var keyboardRows: {
         var rows = [[pendingOfferSelector, acceptFolderButton]];
-        rows = rows.concat(remoteDevices.keyboardRows);
         rows.push([installationHelp]);
         rows.push([installButton]);
         return rows;
@@ -36,7 +33,6 @@ Column {
     function closePopups() {
         if (pendingOfferSelector.popupOpen)
             pendingOfferSelector.close();
-        remoteDevices.closePopups();
     }
 
     function installationStatusText() {
@@ -175,28 +171,6 @@ Column {
                 root.folderActions.addTrigger = acceptFolderButton;
                 root.controller.acceptPendingFolderOffer(root.controller.selectedPendingOffer);
             }
-        }
-    }
-
-    PanelSeparator {
-        foreground: root.foreground
-    }
-
-    RemoteDevices {
-        id: remoteDevices
-        cardAnchor: root.cardAnchor
-        width: parent.width
-        controller: root.controller
-        syncthing: root.syncthing
-        foreground: root.foreground
-        dim: root.dim
-        urgent: root.urgent
-        warning: root.controller.warning
-        success: root.success
-        fontFamily: root.fontFamily
-        keyboardCursor: root.keyboardCursor
-        onActionHovered: function (action) {
-            root.actionHovered(action);
         }
     }
 

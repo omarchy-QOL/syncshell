@@ -80,19 +80,12 @@ Column {
             Layout.fillWidth: true
         }
 
-        TooltipButton {
+        SquareActionButton {
             id: addFolderButton
-            iconText: "\uf067"
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
+            glyph: "\uf067"
             helpText: "Add folder"
-            bordered: true
             foreground: root.foreground
             fontFamily: root.fontFamily
-            fontSize: Style.font.body
-            iconSize: Style.font.icon
-            horizontalPadding: Style.space(7)
-            verticalPadding: Style.space(3)
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
             hasCursor: root.keyboardCursor === addFolderButton
             onHovered: function (hovered) {
@@ -105,19 +98,13 @@ Column {
             }
         }
 
-        TooltipButton {
+        SquareActionButton {
             id: shareFolderButton
             visible: root.controller.folderRows.length > 0
-            iconText: "\uf1e0"
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
+            glyph: "\uf1e0"
             helpText: "Share folder"
-            bordered: true
             foreground: root.foreground
             fontFamily: root.fontFamily
-            iconSize: Style.font.icon
-            horizontalPadding: Style.space(7)
-            verticalPadding: Style.space(3)
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
             hasCursor: root.keyboardCursor === shareFolderButton
             onHovered: function (hovered) {
@@ -127,25 +114,18 @@ Column {
             onClicked: root.controller.toggleFolderSharing()
         }
 
-        BusyButton {
+        SquareActionButton {
             id: linkFolderButton
             readonly property var targetFolder: root.controller.currentFolder()
             readonly property bool mutationBusy: root.syncthing && root.syncthing.folderMutationBusy
             readonly property bool targetBusy: mutationBusy && root.syncthing.folderMutationId === root.controller.currentFolderId && (root.syncthing.folderMutationAction === "link" || root.syncthing.folderMutationAction === "unlink")
             visible: root.controller.folderRows.length > 0
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
-            iconText: targetBusy ? "\uf110" : (targetFolder && targetFolder.paused ? "\uf0c1" : "\uf00d")
+            glyph: targetFolder && targetFolder.paused ? "\uf0c1" : "\uf00d"
             busy: targetBusy
-            tooltipText: targetFolder ? (targetFolder.paused ? "Link folder" : "Unlink folder") : "Select a folder"
-            bordered: true
+            helpText: targetFolder ? (targetFolder.paused ? "Link folder" : "Unlink folder") : "Select a folder"
             foreground: targetFolder && targetFolder.paused ? root.success : root.urgent
             disabledForeground: root.dim
             fontFamily: root.fontFamily
-            fontSize: Style.font.body
-            iconSize: Style.font.icon
-            horizontalPadding: Style.space(6)
-            verticalPadding: Style.space(4)
             canActivate: targetFolder && root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
             hasCursor: root.keyboardCursor === linkFolderButton
             onHovered: function (hovered) {

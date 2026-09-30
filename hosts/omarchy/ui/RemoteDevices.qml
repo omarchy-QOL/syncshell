@@ -132,12 +132,6 @@ Column {
     width: parent ? parent.width : implicitWidth
     spacing: Style.space(8)
 
-    PanelSectionHeader {
-        text: "REMOTE DEVICES"
-        foreground: root.foreground
-        fontFamily: root.fontFamily
-    }
-
     RowLayout {
         width: parent.width
         spacing: Style.space(6)
@@ -179,16 +173,12 @@ Column {
             font.pixelSize: Style.font.bodySmall
         }
 
-        TooltipButton {
+        SquareActionButton {
             id: addDeviceButton
-            iconText: "\uf067"
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
+            glyph: "\uf067"
             helpText: "Add device"
-            bordered: true
             foreground: root.foreground
             fontFamily: root.fontFamily
-            iconSize: Style.font.icon
             enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
             hasCursor: root.keyboardCursor === addDeviceButton
             onHovered: function (hovered) {
@@ -203,17 +193,13 @@ Column {
             }
         }
 
-        TooltipButton {
+        SquareActionButton {
             id: deviceFoldersButton
             visible: root.remoteRows.length > 0
-            iconText: "󰉓"
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
+            glyph: "󰉓"
             helpText: "View folder shared\nwith selected device"
-            bordered: true
             foreground: root.foreground
             fontFamily: root.fontFamily
-            iconSize: Style.font.icon
             enabled: root.selectedDevice && !root.syncthing.folderMutationBusy
             hasCursor: root.keyboardCursor === deviceFoldersButton
             onHovered: function (hovered) {
@@ -228,17 +214,13 @@ Column {
             }
         }
 
-        TooltipButton {
+        SquareActionButton {
             id: removeDeviceButton
-            iconText: "\uf00d"
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
+            glyph: "\uf00d"
             helpText: "Remove selected device"
             enabled: root.selectedDevice && root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
-            bordered: true
             foreground: root.urgent
             fontFamily: root.fontFamily
-            iconSize: Style.font.icon
             hasCursor: root.keyboardCursor === removeDeviceButton
             onHovered: function (hovered) {
                 if (hovered)

@@ -16,13 +16,16 @@ KeyboardPanel {
     property alias addIdText: folderOverview.addIdText
     property alias selectedDeviceIds: folderOverview.selectedDeviceIds
     property alias pendingFolderValue: folderOverview.pendingFolderValue
+    property string activeSection: "folders"
     property Timer refreshFeedbackTimer: Timer {
         interval: UiConstants.REFRESH_FEEDBACK_MIN_MS
     }
     property bool cursorActive: false
     property var cursorAction: null
+    property int sectionCursorIndex: 0
     readonly property var controlRows: {
-        var rows = folderOverview.keyboardRows.slice();
+        var rows = [[sectionTabs]];
+        rows = rows.concat(activeSection === "devices" ? remoteDevices.keyboardRows : folderOverview.keyboardRows);
         rows.push([moreButton]);
         rows = rows.concat(moreDetails.keyboardRows);
         rows.push([webUiButton]);
@@ -33,6 +36,7 @@ KeyboardPanel {
     function resetKeyboardCursor() {
         cursorActive = false;
         cursorAction = null;
+        sectionCursorIndex = activeSection === "devices" ? 1 : 0;
     }
 
     function ensureKeyboardCursor() {
@@ -53,6 +57,10 @@ KeyboardPanel {
     }
 
     function moveKeyboardCursor(dx, dy) {
+        if (cursorActive && cursorAction === sectionTabs && dx !== 0) {
+            selectSection(dx > 0 ? "devices" : "folders");
+            return;
+        }
         if (!cursorActive) {
             cursorActive = true;
             cursorAction = PanelNavigation.first(controlRows, keyCatcher);
@@ -101,7 +109,17 @@ KeyboardPanel {
 
     function closeTransientPopups() {
         folderOverview.closePopups();
+        remoteDevices.closePopups();
         moreDetails.closePopups();
+    }
+
+    function selectSection(section) {
+        sectionCursorIndex = section === "devices" ? 1 : 0;
+        if (section === activeSection)
+            return;
+        closeTransientPopups();
+        activeSection = section;
+        panelFlick.contentY = 0;
     }
 
     function focusAddPath() {
@@ -129,7 +147,7 @@ KeyboardPanel {
     PanelKeyCatcher {
         id: keyCatcher
         anchors.fill: parent
-        blocked: !root.controller.folderConfirmOpen && (root.controller.addOpen || folderOverview.popupOpen || folderOverview.childPopupOpen || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen)
+        blocked: !root.controller.folderConfirmOpen && (root.controller.addOpen || folderOverview.popupOpen || folderOverview.childPopupOpen || remoteDevices.popupOpen || moreDetails.pendingPopupOpen)
         onCloseRequested: {
             if (root.controller.settingsMigrationOpen) {
                 root.controller.chooseSettingsPort(2);
@@ -303,14 +321,33 @@ KeyboardPanel {
                 width: parent.width
                 spacing: Style.space(8)
 
-                PanelSectionHeader {
-                    text: "FOLDERS (" + root.controller.folderRows.length + ")"
+                ButtonGroup {
+                    id: sectionTabs
+                    options: [
+                        { value: "folders", label: "FOLDERS (" + root.controller.folderRows.length + ")" },
+                        { value: "devices", label: "DEVICES (" + remoteDevices.remoteRows.length + ")" }
+                    ]
+                    value: root.activeSection
                     foreground: root.controller.foreground
+                    background: "transparent"
                     fontFamily: root.controller.fontFamily
+                    fontSize: Style.font.caption
+                    focusable: false
+                    cursorIndex: root.cursorActive && root.cursorAction === sectionTabs ? root.sectionCursorIndex : -1
+                    onChanged: function (value) {
+                        root.selectSection(value);
+                    }
+                    onHovered: function (index, hovered) {
+                        if (hovered) {
+                            root.sectionCursorIndex = index;
+                            root.selectKeyboardAction(sectionTabs);
+                        }
+                    }
                 }
 
                 FolderOverview {
                     id: folderOverview
+                    visible: root.activeSection === "folders"
                     cardAnchor: sideCardAnchor
                     controller: root.controller
                     syncthing: root.controller.syncthing
@@ -320,6 +357,25 @@ KeyboardPanel {
                     warning: root.controller.warning
                     success: root.controller.success
                     syncColor: root.controller.syncActivityColor
+                    fontFamily: root.controller.fontFamily
+                    keyboardCursor: root.cursorActive ? root.cursorAction : null
+                    onActionHovered: function (action) {
+                        root.selectKeyboardAction(action);
+                    }
+                }
+
+                RemoteDevices {
+                    id: remoteDevices
+                    visible: root.activeSection === "devices"
+                    cardAnchor: sideCardAnchor
+                    width: parent.width
+                    controller: root.controller
+                    syncthing: root.controller.syncthing
+                    foreground: root.controller.foreground
+                    dim: root.controller.dim
+                    urgent: root.controller.urgent
+                    warning: root.controller.warning
+                    success: root.controller.success
                     fontFamily: root.controller.fontFamily
                     keyboardCursor: root.cursorActive ? root.cursorAction : null
                     onActionHovered: function (action) {
@@ -347,7 +403,6 @@ KeyboardPanel {
 
             MoreDetails {
                 id: moreDetails
-                cardAnchor: sideCardAnchor
                 folderActions: folderOverview
                 visible: !root.controller.settingsMenuOpen && root.controller.moreOpen
                 controller: root.controller
