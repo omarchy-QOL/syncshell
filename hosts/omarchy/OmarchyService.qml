@@ -9,7 +9,7 @@ import "../../shared/Paths.js" as Paths
 QtObject {
     id: root
 
-    readonly property string pluginRoot: Paths.localPath(Qt.resolvedUrl("../.."))
+    readonly property string pluginRoot: Paths.localFilePath(Qt.resolvedUrl("../.."))
     readonly property var state: core.snapshot || ({})
     readonly property var connection: state.connection || ({})
     readonly property var identity: state.identity || ({})
@@ -577,6 +577,7 @@ QtObject {
     }
 
     property SettingsController settings: SettingsController {
+        pluginRoot: root.pluginRoot
         runtimeReady: root.online
         currentWebUiTheme: String(root.webUi.theme || "")
         guiAssetsPath: String(root.webUi.guiAssets || "")

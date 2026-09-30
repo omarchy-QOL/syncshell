@@ -3,19 +3,19 @@ import Quickshell
 import Quickshell.Io
 import qs.Commons
 import "../models/SettingsModel.js" as SettingsModel
-import "../../../shared/Paths.js" as Paths
 
 QtObject {
     id: root
 
+    required property string pluginRoot
     readonly property string homePath: Quickshell.env("HOME")
     readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME") || homePath + "/.config"
     readonly property string settingsPath: configHome + "/omarchy/ilyazar.syncthing/settings.toml"
-    readonly property string settingsTemplatePath: Paths.localPath(Qt.resolvedUrl("../config/settings.toml"))
-    readonly property string settingsHelperPath: Paths.localPath(Qt.resolvedUrl("../scripts/syncthing-settings.sh"))
-    readonly property string themeHelperPath: Paths.localPath(Qt.resolvedUrl("../scripts/syncthing-theme.sh"))
-    readonly property string removeHelperPath: Paths.localPath(Qt.resolvedUrl("../scripts/syncthing-remove.sh"))
-    readonly property string pluginRoot: Paths.localPath(Qt.resolvedUrl("../../.."))
+    readonly property string omarchyRoot: pluginRoot + "/hosts/omarchy"
+    readonly property string settingsTemplatePath: omarchyRoot + "/config/settings.toml"
+    readonly property string settingsHelperPath: omarchyRoot + "/scripts/syncthing-settings.sh"
+    readonly property string themeHelperPath: omarchyRoot + "/scripts/syncthing-theme.sh"
+    readonly property string removeHelperPath: omarchyRoot + "/scripts/syncthing-remove.sh"
 
     property var selectTheme
     property bool runtimeReady: false

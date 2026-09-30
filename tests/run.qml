@@ -19,9 +19,13 @@ QtObject {
         }
     }
 
-    function testPaths() {
-        compare(Paths.localPath("file:///tmp/a%20b%23c"), "/tmp/a b#c", "decoded file URL");
-        compare(Paths.localPath("/tmp/folder"), "/tmp/folder", "plain local path");
+    function testLocalFilePath() {
+        compare(Paths.localFilePath("file:///tmp/a%20b%23c"), "/tmp/a b#c", "decoded file URL");
+        compare(Paths.localFilePath("/tmp/folder"), "/tmp/folder", "plain local path");
+        compare(Paths.localFilePath("file://remote/tmp/folder"), "", "remote file URL refused");
+    }
+
+    function testFolderPathResolution() {
         compare(PanelModel.resolveFolderPath("~", "/home/test"), "/home/test", "home path");
         compare(PanelModel.resolveFolderPath("~/docs", "/home/test"), "/home/test/docs", "home-relative path");
         compare(PanelModel.resolveFolderPath("docs", "/home/test"), "/home/test/docs", "relative path");
@@ -228,7 +232,8 @@ QtObject {
 
     Component.onCompleted: {
         try {
-            testPaths();
+            testLocalFilePath();
+            testFolderPathResolution();
             testFolderErrorDetails();
             testPendingOffers();
             testSettingsModel();

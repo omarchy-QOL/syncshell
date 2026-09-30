@@ -25,7 +25,7 @@ Panel {
     readonly property color dim: Qt.darker(foreground, 1.5)
     readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
     readonly property string homePath: Quickshell.env("HOME")
-    readonly property string folderPickerScript: Paths.localPath(Qt.resolvedUrl("scripts/syncthing-folder-picker.sh"))
+    readonly property string folderPickerScript: Paths.localFilePath(Qt.resolvedUrl("scripts/syncthing-folder-picker.sh"))
     readonly property bool folderPickerRunning: folderPickerProcess.running
     property bool moreOpen: false
     property bool settingsMenuOpen: false
@@ -526,7 +526,8 @@ Panel {
         if (!label)
             label = pathLabel(popup.addPathText);
         currentFolderId = String(popup.addIdText || "").trim();
-        addSubmissionPending = syncthing.addFolder(resolveFolderPath(String(popup.addPathText || "").trim()), label, popup.addIdText, popup.selectedDeviceIds, selectedPendingDeviceId());
+        var path = PanelModel.resolveFolderPath(String(popup.addPathText || "").trim(), homePath);
+        addSubmissionPending = syncthing.addFolder(path, label, popup.addIdText, popup.selectedDeviceIds, selectedPendingDeviceId());
     }
 
     function requestForget(folder) {
@@ -626,7 +627,7 @@ Panel {
     }
 
     function openFolder(folder) {
-        var path = resolveFolderPath(folder ? folder.path : "");
+        var path = PanelModel.resolveFolderPath(folder ? folder.path : "", homePath);
         if (!path)
             return;
         Quickshell.execDetached(["uwsm-app", "--", "xdg-open", path]);
@@ -641,10 +642,6 @@ Panel {
         preserveStateForFolderPicker = true;
         close();
         folderPickerProcess.running = true;
-    }
-
-    function resolveFolderPath(value) {
-        return PanelModel.resolveFolderPath(value, homePath);
     }
 
     function toggleSyncing() {
@@ -770,7 +767,7 @@ Panel {
         onExited: function (exitCode) {
             var selected = String(root.folderPickerOutput || folderPickerStdout.text || "").trim();
             if (exitCode === 0 && selected) {
-                var path = Paths.localPath(selected);
+                var path = Paths.localFilePath(selected);
                 popup.addPathText = path;
                 if (!popup.addLabelText)
                     popup.addLabelText = root.pathLabel(path);

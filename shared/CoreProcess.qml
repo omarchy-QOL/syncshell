@@ -7,7 +7,7 @@ QtObject {
 
     property var startupArguments: []
     property string architecture: ""
-    readonly property string corePath: Paths.localPath(Qt.resolvedUrl("../bin/x86_64/syncshell-core"))
+    readonly property string corePath: Paths.localFilePath(Qt.resolvedUrl("../bin/x86_64/syncshell-core"))
     property bool executableReady: false
     property bool starting: true
     property bool desiredRunning: true
