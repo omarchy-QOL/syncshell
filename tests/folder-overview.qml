@@ -14,6 +14,8 @@ ShellRoot {
     property var rows: []
     property int step: 0
 
+    VisualPause { id: inspection }
+
     OmarchyPanel {
         id: panel
         function buildFolderRows() {
@@ -147,9 +149,10 @@ ShellRoot {
     }
 
     Timer {
+        id: scenarioTimer
         interval: 30
         running: true
-        repeat: true
+        repeat: false
         onTriggered: {
             var picker = root.selector();
             var shown = root.cards();
@@ -268,7 +271,20 @@ ShellRoot {
                 root.check(shown.length === 0 && panel.currentFolderId === "", "remove last folder");
                 console.log("folder overview tests passed");
                 Qt.quit();
+                return;
             }
+            inspection.pause(({
+                0: "one folder card",
+                1: "two cards including a paused folder",
+                2: "three folders switch to a selector",
+                4: "folder selector open",
+                5: "40 folders preserve the selected card",
+                8: "folder view controls inside the selector",
+                9: "errors and paused filters preserve the selected card",
+                11: "empty filtered results preserve the selected card",
+                13: "error-first sort",
+                16: "last folder removed"
+            })[root.step - 1], function () { scenarioTimer.start(); });
         }
     }
 }

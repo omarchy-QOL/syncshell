@@ -9,6 +9,11 @@ trap 'rm -rf -- "$stage"' EXIT
 (
   cd -- "$root"
   git ls-files --cached --others --exclude-standard --deduplicate -z \
+    | while IFS= read -r -d '' file; do
+        if [[ -e $file || -L $file ]]; then
+          printf '%s\0' "$file"
+        fi
+      done \
     | tar --null -T - -cf -
 ) | tar -C "$stage" -xf -
 omarchy plugin validate "$stage"

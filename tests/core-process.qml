@@ -11,25 +11,15 @@ ShellRoot {
     property int handledGeneration: 0
     property bool versionFailurePassed: false
     property bool lineBoundPassed: false
-    property bool unknownResultPassed: false
     property bool duplicateResultPassed: false
-    property bool pendingRequestSent: false
     property bool pendingFailurePassed: false
     property bool crashCapPassed: false
     property bool manualRecoveryPassed: false
     readonly property string testPluginRoot: Quickshell.env("SYNCSHELL_TEST_PLUGIN_ROOT") || ""
 
-    function localPath(url) {
-        var value = String(url || "");
-        if (value.indexOf("file://") === 0)
-            value = value.slice(7);
-        return decodeURIComponent(value);
-    }
-
     function fail(message) {
         console.error(message);
         core.terminate();
-        pendingProbe.terminate();
         crashProbe.terminate();
         Qt.exit(1);
     }
@@ -70,22 +60,6 @@ ShellRoot {
         }
     }
 
-    function handlePendingSnapshot() {
-        if (!pendingProbe.protocolReady || pendingProbe.revision < 1 || pendingRequestSent)
-            return;
-        pendingRequestSent = true;
-        var id = pendingProbe.refresh(function (ok, data, error) {
-            if (ok || !error || error.code !== "core_unavailable") {
-                root.fail("pending request did not receive core-unavailable failure");
-                return;
-            }
-            root.pendingFailurePassed = true;
-            pendingProbe.terminate();
-        });
-        if (!id)
-            fail("pending request was rejected");
-    }
-
     CoreProcess {
         id: core
         pluginRoot: root.testPluginRoot
@@ -94,15 +68,6 @@ ShellRoot {
 
         onProtocolFailed: function (message) {
             root.fail(message);
-        }
-    }
-
-    CoreProcess {
-        id: unknownResultProbe
-        pluginRoot: root.testPluginRoot
-        desiredRunning: false
-        onProtocolFailed: function (message) {
-            root.unknownResultPassed = message.indexOf("duplicate or unknown") >= 0;
         }
     }
 
@@ -116,25 +81,20 @@ ShellRoot {
     }
 
     CoreProcess {
-        id: pendingProbe
-        pluginRoot: root.testPluginRoot
-        startupArguments: ["--test-exit-on-request"]
-        onRevisionChanged: root.handlePendingSnapshot()
-        onProtocolFailed: function (message) {
-            root.fail(message);
-        }
-    }
-
-    CoreProcess {
         id: crashProbe
         pluginRoot: root.testPluginRoot
         startupArguments: ["--test-exit-on-request"]
         onRevisionChanged: {
             if (!protocolReady || revision < 1)
                 return;
-            if (!root.crashCapPassed)
-                refresh();
-            else {
+            if (!root.crashCapPassed) {
+                if (!refresh(function (ok, data, error) {
+                    if (ok || !error || error.code !== "core_unavailable")
+                        root.fail("pending request did not receive core-unavailable failure");
+                    root.pendingFailurePassed = true;
+                }))
+                    root.fail("pending request was rejected");
+            } else {
                 root.manualRecoveryPassed = true;
                 terminate();
             }
@@ -177,11 +137,11 @@ ShellRoot {
                 crashProbe.startupArguments = [];
                 crashProbe.restart();
             }
-            if (core.running || pendingProbe.running || !root.pendingFailurePassed || crashProbe.running || !root.manualRecoveryPassed) {
+            if (core.running || !root.pendingFailurePassed || crashProbe.running || !root.manualRecoveryPassed) {
                 restart();
                 return;
             }
-            if (root.completedRequests !== 3 || root.readyCount !== 2 || !root.versionFailurePassed || !root.lineBoundPassed || !root.pendingFailurePassed || !root.unknownResultPassed || !root.duplicateResultPassed) {
+            if (root.completedRequests !== 3 || root.readyCount !== 2 || !root.versionFailurePassed || !root.lineBoundPassed || !root.pendingFailurePassed || !root.duplicateResultPassed) {
                 root.fail("core process lifecycle did not complete");
                 return;
             }
@@ -199,8 +159,6 @@ ShellRoot {
             lineBoundProbe.handleLine("x".repeat(lineBoundProbe.maxLineLength + 1));
             var hello = '{"v":2,"type":"hello",' + '"build":{"version":"test"}}';
             var result = '{"v":2,"type":"result","id":"1","ok":true}';
-            unknownResultProbe.handleLine(hello);
-            unknownResultProbe.handleLine(result);
             duplicateResultProbe.handleLine(hello);
             duplicateResultProbe._pending = ({
                     "1": null

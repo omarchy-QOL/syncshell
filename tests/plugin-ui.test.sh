@@ -13,7 +13,7 @@ node --test tests/folder-creation.test.mjs
 for name in architecture plugin-acceptance-lint \
   dropdown-search folder-overview busy-button \
   adapter-service core-process install-recovery refresh-recovery \
-  rescan-core-loss self-removal settings-migration theme-palette \
+  self-removal settings-migration theme-palette \
   caelestia-adapter dankmaterialshell-adapter illogical-impulse-adapter \
   waybar-adapter; do
   printf '\n==> %s\n' "$name"

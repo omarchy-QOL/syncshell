@@ -41,6 +41,7 @@ Keep these behavioral tests:
 - busy button: disabled and pending actions must not issue duplicate requests
 - recovery fixtures: installation recovery, refresh serialization, protocol
   failure, and loss of a core process during a rescan are different failures
+  (refresh recovery also exercises rescan API and process loss)
 - settings, removal, and palette fixtures: user-file preservation, explicit
   migration, destructive-operation boundaries, and theme refresh
 - adapter scripts: execute assembly or patching, rather than merely matching

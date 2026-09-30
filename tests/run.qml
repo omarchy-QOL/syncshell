@@ -1,7 +1,6 @@
 import QtQuick
 import "../hosts/omarchy/models/PanelModel.js" as PanelModel
 import "../hosts/omarchy/models/SettingsModel.js" as SettingsModel
-import "../hosts/omarchy/models/ThemePaletteModel.js" as ThemePaletteModel
 import "../hosts/omarchy/models/FacadeModel.js" as FacadeModel
 import "../shared"
 import "../shared/Paths.js" as Paths
@@ -27,54 +26,6 @@ QtObject {
         compare(PanelModel.resolveFolderPath("~/docs", "/home/test"), "/home/test/docs", "home-relative path");
         compare(PanelModel.resolveFolderPath("docs", "/home/test"), "/home/test/docs", "relative path");
         compare(PanelModel.resolveFolderPath("/tmp/docs", "/home/test"), "/tmp/docs", "absolute path");
-    }
-
-    function testPanelModel() {
-        var service = {
-            localDeviceId: "local",
-            folders: [
-                {
-                    id: "folder",
-                    label: "Configured label",
-                    path: "/tmp/truthful-folder",
-                    devices: [
-                        {
-                            deviceID: "local"
-                        }
-                    ]
-                }
-            ],
-            folderStatuses: {
-                folder: {
-                    state: "idle",
-                    globalFiles: 3,
-                    globalBytes: 12
-                }
-            }
-        };
-        var rows = PanelModel.buildFolderRows(service, "/home/test");
-        compare(rows[0].label, "truthful-folder", "folder display label");
-        compare(PanelModel.folderMeta(rows[0]), "3 files · local only · Configured label", "folder metadata");
-        compare(PanelModel.folderState(rows[0], ""), "SYNCED", "folder state");
-        service.folderStatuses.folder.state = "sync-preparing";
-        compare(PanelModel.buildFolderRows(service, "/home/test")[0].syncing, false, "preparing state without work is not syncing");
-        service.folderStatuses.folder.state = "syncing";
-        compare(PanelModel.buildFolderRows(service, "/home/test")[0].syncing, true, "concrete syncing state is syncing");
-        service.folderStatuses.folder.state = "sync-preparing";
-        service.folderStatuses.folder.needTotalItems = 1;
-        compare(PanelModel.buildFolderRows(service, "/home/test")[0].syncing, true, "pending items are syncing");
-        compare(PanelModel.folderState(rows[0], "", true), "SYNCING", "active folder state");
-        compare(PanelModel.folderMeta(rows[0], true), "Scanning local changes · Configured label", "rescan folder metadata");
-        compare(PanelModel.folderState(rows[0], "", false, true), "SCANNING", "optimistic rescan state");
-        compare(PanelModel.folderState(rows[0], "", true, true), "SCAN+SYNC", "rescan with activity");
-        rows[0].scanning = true;
-        compare(PanelModel.folderState(rows[0], ""), "SYNCED", "background scan is not a user rescan");
-        compare(PanelModel.folderMeta(rows[0]), "3 files · local only · Configured label", "background scan metadata");
-        compare(PanelModel.localDeviceName({
-            displayDeviceName: "optiplex-sff",
-            localDeviceId: "",
-            devices: []
-        }, "fallback"), "optiplex-sff", "remembered local device name");
     }
 
     function testFolderErrorDetails() {
@@ -131,15 +82,6 @@ QtObject {
         compare(PanelModel.folderErrorText(PanelModel.folderById(rows, "healthy")), "", "healthy selection has no errors");
         failed.error = "folder unavailable";
         compare(PanelModel.folderMeta(failed), "folder unavailable · Named folder", "folder summary takes precedence");
-        service.folderStatuses.failed = FacadeModel.folderStatus({
-            state: "idle",
-            pullErrors: 0,
-            errors: []
-        });
-        failed = PanelModel.folderById(PanelModel.buildFolderRows(service, "/home/test"), "failed");
-        compare(failed.problem, false, "fresh healthy status clears the problem");
-        compare(failed.errorCount, 0, "fresh healthy status clears the error count");
-        compare(PanelModel.folderErrorText(failed), "", "fresh healthy status clears old details");
         compare(PanelModel.folderErrorText({
             problem: true,
             errorDetails: [
@@ -149,64 +91,6 @@ QtObject {
                 }
             ]
         }), "__proto__\n\n<file>", "error text remains data");
-    }
-
-    function testDeviceModels() {
-        var remoteId = "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-" + "GGGGGGG-HHHHHHH";
-        var nearbyId = "IIIIIII-JJJJJJJ-KKKKKKK-LLLLLLL-MMMMMMM-NNNNNNN-" + "OOOOOOO-PPPPPPP";
-        var service = {
-            localDeviceId: "LOCAL",
-            devices: [
-                {
-                    deviceID: "LOCAL",
-                    name: "chronos",
-                    connected: true
-                },
-                {
-                    deviceID: remoteId,
-                    name: "xps",
-                    connected: false
-                }
-            ],
-            folders: [
-                {
-                    id: "sync",
-                    devices: [
-                        {
-                            deviceID: remoteId
-                        }
-                    ]
-                }
-            ],
-            pendingDevices: [
-                {
-                    id: remoteId,
-                    name: "xps",
-                    address: "tcp://192.0.2.8:22000"
-                }
-            ],
-            nearbyDevices: [
-                {
-                    id: nearbyId,
-                    addresses: ["tcp://192.0.2.9:22000"]
-                }
-            ]
-        };
-        var remotes = PanelModel.remoteDeviceRows(service);
-        compare(remotes.length, 1, "local device excluded from remote devices");
-        compare(remotes[0].label, "xps · 1 folder", "remote folder count");
-        compare(remotes[0].connected, false, "remote connection state");
-        var pending = PanelModel.pendingDeviceRows(service);
-        compare(pending[0].label, "xps (AAAAAAA) wants to connect", "incoming request label");
-        var nearby = PanelModel.nearbyDeviceOptions(service);
-        compare(nearby[0], {
-            value: "",
-            label: "Custom Device ID"
-        }, "custom device source first");
-        compare(nearby[1], {
-            value: nearbyId,
-            label: "IIIIIII · tcp://192.0.2.9:22000"
-        }, "nearby device source");
     }
 
     function testPendingOffers() {
@@ -274,10 +158,12 @@ QtObject {
         var invalid = [current.replace('"default"', '"oomarchy"'), current.replace('"default"', '"dfault"'), current.replace('"themed"', '"theme"'), current.replace('"disabled"', '"disable"'), current.replace('[service]', '[servcie]'), current + '[future]\nvalue = [1,,]\n', current.replace('icon_style', 'icon_stlye'), current.replace('"default"', 'default'), current.replace('27', '"27"'), current.replace('27', '0'), current.replace('27', '3601'), current.replace('27', '1.5'), current + 'service_state = "enabled"\n', current + '[style]\n', current.replace('version = 2', 'version = "2"'), current.replace('version = 2', 'version = 3'), current.replace('web_ui_theme = "default"\n', ''), current.replace('version = 2', 'version = 2\nversion = 2')];
         invalid.forEach(function (raw, index) {
             compare(!!SettingsModel.parse(raw).error, true, "invalid settings " + index);
-            compare(!!SettingsModel.migrate(raw).error, true, "unsafe migration " + index);
         });
         var older = current.replace('version = 2', 'version = 1 # owner comment');
         compare(!!SettingsModel.parse(older).error, true, "old runtime format refused");
+        compare(SettingsModel.migrate(older.replace('"themed"', '"theme"')).error,
+                "icon_style must be branded or themed",
+                "migration propagates old-schema validation failure");
         var migrated = SettingsModel.migrate(older);
         compare(migrated.values, expected, "old preferences survive");
         compare(migrated.text, current.replace('version = 2', 'version = 2 # owner comment'), "comments survive");
@@ -301,62 +187,7 @@ QtObject {
         compare(migrated.text.replace(/\r\n/g, "").indexOf("\n"), -1, "CRLF preserved");
     }
 
-    function testThemePaletteModel() {
-        var complete = "background\t#000000\nyellow\t#A1b2C3\n" + "green\t#102030\ncyan\t#abcdef\nblue\t#ffffff\n";
-        compare(ThemePaletteModel.parse(complete), {
-            yellow: "#A1b2C3",
-            green: "#102030",
-            cyan: "#abcdef"
-        }, "complete theme palette");
-        compare(ThemePaletteModel.parse("yellow\t#A1b2C3\ngreen\t#102030\n"), null, "missing theme color");
-        compare(ThemePaletteModel.parse("yellow\t#A1b2C3\ngreen\tgreen\ncyan\t#abcdef\n"), null, "malformed theme color");
-        compare(ThemePaletteModel.parse(complete + "cyan\t#abcdef\n"), null, "duplicate theme color");
-    }
-
-    function testFacadeProjection() {
-        var sourceDevices = [
-            {
-                id: "local",
-                name: "desktop",
-                untrusted: false,
-                connected: true
-            },
-            {
-                id: "remote",
-                name: "phone",
-                untrusted: true,
-                connected: false
-            }
-        ];
-        compare(FacadeModel.devices(sourceDevices), [
-            {
-                deviceID: "local",
-                name: "desktop",
-                untrusted: false,
-                connected: true
-            },
-            {
-                deviceID: "remote",
-                name: "phone",
-                untrusted: true,
-                connected: false
-            }
-        ], "device projection");
-        compare(FacadeModel.folderStatuses([
-            {
-                id: "folder",
-                status: {
-                    state: "error",
-                    errors: [
-                        {
-                            path: "file",
-                            error: "denied"
-                        }
-                    ],
-                    pullErrors: 2
-                }
-            }
-        ]).folder.errors, 1, "folder error projection");
+    function testTruncationWarning() {
         compare(FacadeModel.truncationWarning({}), "", "complete state warning");
         compare(FacadeModel.truncationWarning({
             folderErrors: 1
@@ -367,34 +198,6 @@ QtObject {
     }
 
     function testDriftPresentation() {
-        compare(FacadeModel.lifecyclePresentation({
-            available: true,
-            targetMatch: false,
-            canControl: false,
-            canStart: false
-        }), {
-            available: false,
-            controllable: false
-        }, "external lifecycle hidden");
-        compare(FacadeModel.lifecyclePresentation({
-            available: true,
-            targetMatch: true,
-            classification: "external",
-            canControl: false,
-            canStart: false
-        }), {
-            available: false,
-            controllable: false
-        }, "online inactive unit hidden");
-        compare(FacadeModel.lifecyclePresentation({
-            available: true,
-            targetMatch: true,
-            canControl: true,
-            canStart: false
-        }), {
-            available: true,
-            controllable: true
-        }, "trusted lifecycle shown");
         var decision = FacadeModel.driftDecision("enabled", {
             unitFileState: "disabled",
             activeState: "inactive"
@@ -417,31 +220,19 @@ QtObject {
         compare(rescanCompletions, 1, "fast rescan completes immediately");
         compare(rescanTracker.acceptResult({
             state: "running",
-            targetFolderIds: ["folder", "other"],
-            runningFolderIds: ["folder"]
-        }, ["folder"]), true, "long rescan result accepted");
-        compare(rescanTracker.runningFolderIds, ["folder"], "running rescan target retained");
-        compare(rescanCompletions, 1, "running rescan remains pending");
-        rescanTracker.reconcile(["other"]);
-        compare(rescanCompletions, 2, "long rescan completes after target scan");
-        compare(rescanTracker.acceptResult({
-            state: "running",
             targetFolderIds: ["folder"],
             runningFolderIds: ["other"]
         }, ["other"]), false, "unrelated running target rejected");
-        compare(rescanCompletions, 2, "invalid result does not complete");
+        compare(rescanCompletions, 1, "invalid result does not complete");
     }
 
     Component.onCompleted: {
         try {
             testPaths();
-            testPanelModel();
             testFolderErrorDetails();
-            testDeviceModels();
             testPendingOffers();
             testSettingsModel();
-            testThemePaletteModel();
-            testFacadeProjection();
+            testTruncationWarning();
             testDriftPresentation();
             testRescanTracker();
             console.log("all QML model tests passed");

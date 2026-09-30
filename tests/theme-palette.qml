@@ -8,7 +8,6 @@ ShellRoot {
 
     property int stage: 0
     property int starts: 0
-    property int finishes: 0
     property int debounceStarts: 0
     property int queueFinishes: 0
 
@@ -46,7 +45,6 @@ ShellRoot {
         }
 
         onRefreshFinished: function (applied) {
-            root.finishes++;
             if (root.stage === 0) {
                 root.check(applied, "valid startup palette was rejected");
                 root.checkPalette("#112233", "#445566", "#778899", "startup palette was not applied");

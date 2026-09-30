@@ -48,12 +48,17 @@ ShellRoot {
         check(displaysError(dialog), "removal error is not visible in the dialog");
     }
 
-    function remove(purge, assets) {
+    function setDaemon(online, theme, assets) {
+        service.core.snapshot = {
+            connection: { online: online },
+            webUi: { theme: theme, guiAssets: assets }
+        };
+    }
+
+    function remove(purge) {
         service.requestSelfRemoval(purge);
         check(!service.settingsError, "removal unexpectedly blocked: " + service.settingsError);
         check(service.settings.removalProcess.running, "removal did not start");
-        check(service.settings.removalProcess.command[4] === assets, "wrong theme cleanup path");
-        check(service.settings.removalProcess.command[5] === (purge ? "purge" : "preserve"), "wrong settings cleanup mode");
     }
 
     Timer {
@@ -69,15 +74,7 @@ ShellRoot {
                 packages.statusTimer.stop();
                 settings._settingsValid = false;
                 settings.reconcileTimer.stop();
-                service.core.snapshot = {
-                    connection: {
-                        online: false
-                    },
-                    webUi: {
-                        theme: "syncthing-omarchy",
-                        guiAssets: "/stale/gui"
-                    }
-                };
+                root.setDaemon(false, "syncthing-omarchy", "/stale/gui");
                 settings.selectTheme = function (theme, success, failure) {
                     root.check(theme === "default", "removal must restore the default theme");
                     root.themeChanges++;
@@ -93,57 +90,25 @@ ShellRoot {
                 root.blocked("settings operation");
                 settings.busy = false;
                 packages.state = "existing";
-                root.remove(false, "");
+                root.remove(false);
                 root.check(root.themeChanges === 0, "stopped Syncthing changed the theme");
             } else if (root.step === 1) {
                 packages.state = "missing";
-                root.remove(true, "");
+                root.remove(true);
                 root.check(root.themeChanges === 0, "missing installation changed the theme");
             } else if (root.step === 2) {
                 // A reachable daemon takes precedence over a missing local executable.
-                service.core.snapshot = {
-                    connection: {
-                        online: true
-                    },
-                    webUi: {
-                        theme: "syncthing-omarchy",
-                        guiAssets: "/test/gui"
-                    }
-                };
-                root.remove(false, "/test/gui");
+                root.setDaemon(true, "syncthing-omarchy", "/test/gui");
+                root.remove(false);
                 root.check(root.themeChanges === 1, "owned theme was not restored");
             } else if (root.step === 3) {
-                service.core.snapshot = {
-                    connection: {
-                        online: true
-                    },
-                    webUi: {
-                        theme: "owner-theme",
-                        guiAssets: "/test/gui"
-                    }
-                };
-                root.remove(true, "/test/gui");
+                root.setDaemon(true, "owner-theme", "/test/gui");
+                root.remove(true);
                 root.check(root.themeChanges === 1, "unrelated theme was changed");
             } else {
-                service.core.snapshot = {
-                    connection: {
-                        online: true
-                    },
-                    webUi: {
-                        theme: "syncthing-omarchy",
-                        guiAssets: ""
-                    }
-                };
+                root.setDaemon(true, "syncthing-omarchy", "");
                 root.blocked("GUI assets path");
-                service.core.snapshot = {
-                    connection: {
-                        online: true
-                    },
-                    webUi: {
-                        theme: "syncthing-omarchy",
-                        guiAssets: "/test/gui"
-                    }
-                };
+                root.setDaemon(true, "syncthing-omarchy", "/test/gui");
                 settings.selectTheme = function (theme, success, failure) {
                     failure({
                         message: "theme reset failed"

@@ -10,6 +10,8 @@ ShellRoot {
     property int step: 0
     property QQC.TextField searchInput
 
+    VisualPause { id: inspection }
+
     Window {
         id: window
         visible: true
@@ -58,9 +60,10 @@ ShellRoot {
     }
 
     Timer {
+        id: scenarioTimer
         interval: 100
         running: true
-        repeat: true
+        repeat: false
         onTriggered: {
             var focused = window.activeFocusItem;
             switch (root.step++) {
@@ -168,7 +171,17 @@ ShellRoot {
                 root.check(!dropdown.popupOpen, "ordinary dropdown escape");
                 console.log("dropdown search tests passed");
                 Qt.quit();
+                return;
             }
+            inspection.pause(({
+                0: "dropdown open",
+                2: "fuzzy search: wkfl matches workflow",
+                6: "search with no results",
+                8: "j and k typed into search",
+                12: "mouse search with two matching rows",
+                18: "header accessory open",
+                21: "ordinary dropdown without search"
+            })[root.step - 1], function () { scenarioTimer.start(); });
         }
     }
 }
