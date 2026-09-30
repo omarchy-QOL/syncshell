@@ -598,9 +598,9 @@ Panel {
             syncthing.openWebUi();
     }
 
-    function openDeviceInWebUi(deviceId) {
+    function openDeviceInWebUi() {
         if (syncthing && syncthing.online)
-            syncthing.openWebUi(deviceId);
+            syncthing.openWebUi();
     }
 
     function openSettingsMenu() {

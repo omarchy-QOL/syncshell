@@ -275,7 +275,7 @@ Column {
         onActionHovered: function (action) {
             root.actionHovered(action);
         }
-        onEditRequested: root.controller.openDeviceInWebUi(root.selectedDeviceId)
+        onEditRequested: root.controller.openDeviceInWebUi()
         onPauseRequested: function (paused) {
             if (root.syncthing && root.selectedDevice)
                 root.syncthing.setDevicePaused(root.selectedDevice.id, paused, root.selectedDevice.name);
