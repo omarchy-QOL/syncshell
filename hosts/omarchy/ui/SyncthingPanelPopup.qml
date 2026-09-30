@@ -19,6 +19,7 @@ KeyboardPanel {
     property string activeSection: "folders"
     property Timer refreshFeedbackTimer: Timer {
         interval: UiConstants.REFRESH_FEEDBACK_MIN_MS
+        onTriggered: Qt.callLater(refreshStatusButton.finishRefreshFeedback)
     }
     property bool cursorActive: false
     property var cursorAction: null
@@ -523,6 +524,14 @@ KeyboardPanel {
             BusyButton {
                 id: refreshStatusButton
                 property bool refreshRequested: false
+                property bool refreshSucceeded: false
+
+                function finishRefreshFeedback() {
+                    if (!refreshSucceeded || refreshRequested || root.refreshFeedbackTimer.running)
+                        return;
+                    refreshSucceeded = false;
+                    root.controller.showNotice("Syncthing status refreshed", UiConstants.BRIEF_NOTICE_VISIBLE_MS);
+                }
 
                 iconText: "\uf21e"
                 height: Style.spacing.controlHeight
@@ -546,7 +555,11 @@ KeyboardPanel {
                         root.selectKeyboardAction(refreshStatusButton);
                 }
                 onClicked: {
-                    refreshRequested = root.controller.syncthing.refresh(true);
+                    refreshSucceeded = false;
+                    refreshRequested = root.controller.syncthing.refresh(true, function (ok) {
+                        refreshStatusButton.refreshSucceeded = ok;
+                        refreshStatusButton.finishRefreshFeedback();
+                    });
                     if (refreshRequested)
                         root.refreshFeedbackTimer.restart();
                 }
@@ -554,8 +567,10 @@ KeyboardPanel {
                 Connections {
                     target: root.controller.syncthing
                     function onRefreshingChanged() {
-                        if (!root.controller.syncthing.refreshing)
+                        if (!root.controller.syncthing.refreshing) {
                             refreshStatusButton.refreshRequested = false;
+                            refreshStatusButton.finishRefreshFeedback();
+                        }
                     }
                 }
             }

@@ -181,7 +181,7 @@ QtObject {
         });
     }
 
-    function refresh(recheckErrors) {
+    function refresh(recheckErrors, completed) {
         packageController.updateStatus();
         if (!core.protocolReady || refreshing)
             return false;
@@ -190,9 +190,10 @@ QtObject {
             folderMutationError = "";
         var callback = function (ok, data, error) {
             root.refreshing = false;
-            if (!ok && recheckErrors === true) {
+            if (!ok && recheckErrors === true)
                 root.folderMutationError = root.actionError(error, "Could not recheck Syncthing errors");
-            }
+            if (typeof completed === "function")
+                completed(ok, error);
         };
         var request = recheckErrors === true && folderProblemCount > 0 ? core.action("folder.recheck-errors", {}, callback) : core.refresh(callback);
         if (!request)

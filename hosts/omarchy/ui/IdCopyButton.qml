@@ -37,7 +37,7 @@ Item {
             return;
         Quickshell.execDetached(["wl-copy", "--", value]);
         if (controller)
-            controller.showNotice(notice, UiConstants.ID_COPY_NOTICE_VISIBLE_MS);
+            controller.showNotice(notice, UiConstants.BRIEF_NOTICE_VISIBLE_MS);
     }
 
     readonly property Item loadedButton: buttonLoader.item as Item
