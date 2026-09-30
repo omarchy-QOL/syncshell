@@ -1,5 +1,7 @@
 import QtQuick
+import Quickshell
 import "../../shared"
+import "../../shared/Paths.js" as Paths
 
 QtObject {
     id: root
@@ -15,6 +17,7 @@ QtObject {
     property int refreshIntervalSeconds: 60
     property string desiredServiceState: "enabled"
 
+    readonly property string homePath: Quickshell.env("HOME") || ""
     readonly property bool processRunning: core.running
     readonly property bool protocolReady: core.protocolReady
     readonly property string processError: core.lastError
@@ -85,7 +88,9 @@ QtObject {
     }
 
     function addExisting(arguments) {
-        return core.action("folder.add-existing", arguments || ({}));
+        var input = Object.assign({}, arguments || ({}));
+        input.path = Paths.resolveFolderPath(input.path, homePath);
+        return core.action("folder.add-existing", input);
     }
 
     function suggestFolderId() {

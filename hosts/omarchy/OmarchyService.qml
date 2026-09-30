@@ -10,6 +10,7 @@ QtObject {
     id: root
 
     readonly property string pluginRoot: Paths.localFilePath(Qt.resolvedUrl("../.."))
+    readonly property string homePath: Quickshell.env("HOME") || ""
     readonly property var state: core.snapshot || ({})
     readonly property var connection: state.connection || ({})
     readonly property var identity: state.identity || ({})
@@ -377,7 +378,7 @@ QtObject {
         var shared = (selectedDeviceIds || []).slice();
         return runFolderAction("folder.add-existing", "add", folderId, {
             folderId: folderId,
-            path: path,
+            path: Paths.resolveFolderPath(path, homePath),
             createDirectory: createDirectory === true,
             label: label,
             deviceIds: shared,

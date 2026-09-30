@@ -9,3 +9,14 @@ function localFilePath(value) {
         return "";
     return decodeURIComponent(url.pathname);
 }
+
+function resolveFolderPath(value, homePath) {
+    var path = String(value || "");
+    if (path === "~")
+        return homePath;
+    if (path.indexOf("~/") === 0)
+        return homePath + path.slice(1);
+    if (path.charAt(0) === "/" || !homePath)
+        return path;
+    return homePath + "/" + path;
+}

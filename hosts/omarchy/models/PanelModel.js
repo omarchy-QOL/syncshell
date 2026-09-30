@@ -1,15 +1,5 @@
 .pragma library
-
-function resolveFolderPath(value, homePath) {
-    var path = String(value || "");
-    if (path === "~")
-        return homePath;
-    if (path.indexOf("~/") === 0)
-        return homePath + path.slice(1);
-    if (path.charAt(0) === "/" || !homePath)
-        return path;
-    return homePath + "/" + path;
-}
+.import "../../../shared/Paths.js" as Paths
 
 function pathLabel(path) {
     var value = String(path || "").replace(/\/+$/, "");
@@ -20,7 +10,7 @@ function pathLabel(path) {
 }
 
 function pathParentName(path, homePath) {
-    var value = resolveFolderPath(path, homePath).replace(/\/+$/, "");
+    var value = Paths.resolveFolderPath(path, homePath).replace(/\/+$/, "");
     if (!value || value === "/")
         return "/";
     var parts = value.split("/");
@@ -50,7 +40,7 @@ function buildFolderRows(syncthing, homePath) {
         }
         rows.push({
             id: id,
-            label: pathLabel(resolveFolderPath(folder.path, homePath)) || configuredLabel || id || "Unnamed folder",
+            label: pathLabel(Paths.resolveFolderPath(folder.path, homePath)) || configuredLabel || id || "Unnamed folder",
             configuredLabel: configuredLabel,
             markerName: String(folder.markerName || ".stfolder"),
             path: String(folder.path || ""),

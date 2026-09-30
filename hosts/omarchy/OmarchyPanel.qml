@@ -526,8 +526,7 @@ Panel {
         if (!label)
             label = pathLabel(popup.addPathText);
         currentFolderId = String(popup.addIdText || "").trim();
-        var path = PanelModel.resolveFolderPath(String(popup.addPathText || "").trim(), homePath);
-        addSubmissionPending = syncthing.addFolder(path, label, popup.addIdText, popup.selectedDeviceIds, selectedPendingDeviceId());
+        addSubmissionPending = syncthing.addFolder(String(popup.addPathText || "").trim(), label, popup.addIdText, popup.selectedDeviceIds, selectedPendingDeviceId());
     }
 
     function requestForget(folder) {
@@ -627,7 +626,7 @@ Panel {
     }
 
     function openFolder(folder) {
-        var path = PanelModel.resolveFolderPath(folder ? folder.path : "", homePath);
+        var path = Paths.resolveFolderPath(folder ? folder.path : "", homePath);
         if (!path)
             return;
         Quickshell.execDetached(["uwsm-app", "--", "xdg-open", path]);

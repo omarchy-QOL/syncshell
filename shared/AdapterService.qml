@@ -1,11 +1,14 @@
 import QtQuick
+import Quickshell
 import "."
+import "Paths.js" as Paths
 
 QtObject {
     id: root
 
     property int probeIntervalSeconds: 15
     property int refreshIntervalSeconds: 60
+    readonly property string homePath: Quickshell.env("HOME") || ""
 
     readonly property var state: core.snapshot || ({})
     readonly property var connection: state.connection || ({})
@@ -279,7 +282,7 @@ QtObject {
         var input = values || ({});
         return runAction("folder.add-existing", {
             folderId: String(input.folderId || input.id || ""),
-            path: String(input.path || ""),
+            path: Paths.resolveFolderPath(input.path, homePath),
             label: String(input.label || ""),
             deviceIds: input.deviceIds || input.selectedDeviceIds || [],
             pendingDeviceId: String(input.pendingDeviceId || "")

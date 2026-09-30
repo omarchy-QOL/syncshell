@@ -26,10 +26,10 @@ QtObject {
     }
 
     function testFolderPathResolution() {
-        compare(PanelModel.resolveFolderPath("~", "/home/test"), "/home/test", "home path");
-        compare(PanelModel.resolveFolderPath("~/docs", "/home/test"), "/home/test/docs", "home-relative path");
-        compare(PanelModel.resolveFolderPath("docs", "/home/test"), "/home/test/docs", "relative path");
-        compare(PanelModel.resolveFolderPath("/tmp/docs", "/home/test"), "/tmp/docs", "absolute path");
+        compare(Paths.resolveFolderPath("~", "/home/test"), "/home/test", "home path");
+        compare(Paths.resolveFolderPath("~/docs", "/home/test"), "/home/test/docs", "home-relative path");
+        compare(Paths.resolveFolderPath("docs", "/home/test"), "/home/test/docs", "relative path");
+        compare(Paths.resolveFolderPath("/tmp/docs", "/home/test"), "/tmp/docs", "absolute path");
     }
 
     function testFolderErrorDetails() {

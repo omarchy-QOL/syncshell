@@ -22,6 +22,8 @@ let failure;
 const context = vm.createContext({
   online: true,
   folderMutationBusy: false,
+  homePath: "/home/test",
+  Paths: { resolveFolderPath(path) { return path; } },
   noticeTimer: { stop() {} },
   rescanTracker: { reset() {} },
   core: { action(action, args, reply) {
