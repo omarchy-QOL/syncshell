@@ -36,6 +36,7 @@ ShellRoot {
         FolderOverview {
             id: overview
             width: parent.width
+            cardAnchor: parent
             controller: panel
             warning: "#ebcb8b"
             success: "#a3be8c"
@@ -64,11 +65,19 @@ ShellRoot {
     }
 
     function selector() {
-        for (var i = 0; i < overview.children.length; i++) {
-            var child = overview.children[i];
-            if (child.options !== undefined)
-                return child;
+        function visit(item) {
+            if (item.options !== undefined)
+                return item;
+            for (var i = 0; i < item.children.length; i++) {
+                var found = visit(item.children[i]);
+                if (found)
+                    return found;
+            }
+            return null;
         }
+        var found = visit(overview);
+        if (found)
+            return found;
         throw new Error("folder selector missing");
     }
 

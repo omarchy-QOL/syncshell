@@ -11,11 +11,11 @@ KeyboardPanel {
     id: root
 
     property var controller
-    property alias addPathText: moreDetails.addPathText
-    property alias addLabelText: moreDetails.addLabelText
-    property alias addIdText: moreDetails.addIdText
-    property alias selectedDeviceIds: moreDetails.selectedDeviceIds
-    property alias pendingFolderValue: moreDetails.pendingFolderValue
+    property alias addPathText: folderOverview.addPathText
+    property alias addLabelText: folderOverview.addLabelText
+    property alias addIdText: folderOverview.addIdText
+    property alias selectedDeviceIds: folderOverview.selectedDeviceIds
+    property alias pendingFolderValue: folderOverview.pendingFolderValue
     property Timer refreshFeedbackTimer: Timer {
         interval: UiConstants.REFRESH_FEEDBACK_MIN_MS
     }
@@ -96,7 +96,7 @@ KeyboardPanel {
     }
 
     function resetAddForm() {
-        moreDetails.resetAddForm();
+        folderOverview.resetAddForm();
     }
 
     function closeTransientPopups() {
@@ -105,7 +105,7 @@ KeyboardPanel {
     }
 
     function focusAddPath() {
-        moreDetails.focusAddPath();
+        folderOverview.focusAddPath();
     }
 
     function focusPanel() {
@@ -129,7 +129,7 @@ KeyboardPanel {
     PanelKeyCatcher {
         id: keyCatcher
         anchors.fill: parent
-        blocked: !root.controller.folderConfirmOpen && (root.controller.addOpen || folderOverview.popupOpen || moreDetails.folderPopupOpen || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen)
+        blocked: !root.controller.folderConfirmOpen && (root.controller.addOpen || folderOverview.popupOpen || folderOverview.childPopupOpen || moreDetails.pendingPopupOpen || moreDetails.childPopupOpen)
         onCloseRequested: {
             if (root.controller.settingsMigrationOpen) {
                 root.controller.chooseSettingsPort(2);
@@ -311,6 +311,7 @@ KeyboardPanel {
 
                 FolderOverview {
                     id: folderOverview
+                    cardAnchor: sideCardAnchor
                     controller: root.controller
                     syncthing: root.controller.syncthing
                     foreground: root.controller.foreground
@@ -347,6 +348,7 @@ KeyboardPanel {
             MoreDetails {
                 id: moreDetails
                 cardAnchor: sideCardAnchor
+                folderActions: folderOverview
                 visible: !root.controller.settingsMenuOpen && root.controller.moreOpen
                 controller: root.controller
                 syncthing: root.controller.syncthing

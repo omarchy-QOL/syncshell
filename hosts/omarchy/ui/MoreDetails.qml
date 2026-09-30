@@ -9,7 +9,7 @@ Column {
 
     property var controller
     required property Item cardAnchor
-    property Item addTrigger: addFolderButton
+    required property var folderActions
     property var syncthing
     property color foreground: Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
@@ -18,19 +18,13 @@ Column {
     required property color success
     property string fontFamily: Style.font.family
     property Item keyboardCursor: null
-    property alias addPathText: addForm.pathText
-    property alias addLabelText: addForm.labelText
-    property alias addIdText: addForm.idText
-    property alias selectedDeviceIds: addForm.selectedDeviceIds
-    property alias pendingFolderValue: addForm.pendingFolderValue
     readonly property var currentFolder: root.controller.currentFolderRow
     readonly property int shownErrorCount: currentFolder ? (currentFolder.errorDetails || []).length : 0
     readonly property int totalErrorCount: currentFolder ? Math.max(shownErrorCount, Number(currentFolder.errorCount || 0)) : 0
-    readonly property bool folderPopupOpen: folderSelector.popupOpen
     readonly property bool pendingPopupOpen: pendingOfferSelector.popupOpen
-    readonly property bool childPopupOpen: folderSharingForm.popupOpen || remoteDevices.popupOpen
+    readonly property bool childPopupOpen: remoteDevices.popupOpen
     readonly property var keyboardRows: {
-        var rows = [[folderSelector, addFolderButton, shareFolderButton, linkFolderButton], [pendingOfferSelector, acceptFolderButton]];
+        var rows = [[pendingOfferSelector, acceptFolderButton]];
         rows = rows.concat(remoteDevices.keyboardRows);
         rows.push([installationHelp]);
         rows.push([installButton]);
@@ -40,12 +34,8 @@ Column {
     signal actionHovered(Item action)
 
     function closePopups() {
-        if (folderSelector.popupOpen)
-            folderSelector.close();
         if (pendingOfferSelector.popupOpen)
             pendingOfferSelector.close();
-        addForm.closePopups();
-        folderSharingForm.closePopups();
         remoteDevices.closePopups();
     }
 
@@ -71,14 +61,6 @@ Column {
         if (syncthing.installationState === "missing")
             return warning;
         return dim;
-    }
-
-    function resetAddForm() {
-        addForm.reset();
-    }
-
-    function focusAddPath() {
-        addForm.focusPath();
     }
 
     width: parent ? parent.width : implicitWidth
@@ -138,135 +120,6 @@ Column {
     }
 
     PanelSectionHeader {
-        text: "FOLDERS"
-        foreground: root.foreground
-        fontFamily: root.fontFamily
-    }
-
-    RowLayout {
-        width: parent.width
-        spacing: Style.space(6)
-
-        FolderSelector {
-            id: folderSelector
-            visible: root.controller.folderRows.length > 0 && !root.controller.compactFolders
-            Layout.fillWidth: true
-            Layout.preferredHeight: Style.spacing.controlHeight
-            controller: root.controller
-            foreground: root.foreground
-            fontFamily: root.fontFamily
-            hasCursor: root.keyboardCursor === folderSelector
-            onHovered: function (hovered) {
-                if (hovered)
-                    root.actionHovered(folderSelector);
-            }
-        }
-
-        Text {
-            visible: root.controller.compactFolders
-            Layout.fillWidth: true
-            text: root.currentFolder ? root.currentFolder.label : ""
-            textFormat: Text.PlainText
-            color: root.foreground
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.body
-            elide: Text.ElideRight
-        }
-
-        TooltipButton {
-            id: addFolderButton
-            iconText: "\uf067"
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
-            helpText: "Add folder"
-            bordered: true
-            foreground: root.foreground
-            fontFamily: root.fontFamily
-            fontSize: Style.font.body
-            iconSize: Style.font.icon
-            horizontalPadding: Style.space(7)
-            verticalPadding: Style.space(3)
-            enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
-            hasCursor: root.keyboardCursor === addFolderButton
-            onHovered: function (hovered) {
-                if (hovered)
-                    root.actionHovered(addFolderButton);
-            }
-            onClicked: {
-                root.addTrigger = addFolderButton;
-                root.controller.addOpen ? root.controller.closeAddFolder() : root.controller.openAddFolder();
-            }
-        }
-
-        TooltipButton {
-            id: shareFolderButton
-            visible: root.controller.folderRows.length > 0
-            iconText: "\uf1e0"
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
-            helpText: "Share folder"
-            bordered: true
-            foreground: root.foreground
-            fontFamily: root.fontFamily
-            iconSize: Style.font.icon
-            horizontalPadding: Style.space(7)
-            verticalPadding: Style.space(3)
-            enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
-            hasCursor: root.keyboardCursor === shareFolderButton
-            onHovered: function (hovered) {
-                if (hovered)
-                    root.actionHovered(shareFolderButton);
-            }
-            onClicked: root.controller.toggleFolderSharing()
-        }
-
-        BusyButton {
-            id: linkFolderButton
-            readonly property var targetFolder: root.controller.currentFolder()
-            readonly property bool mutationBusy: root.syncthing && root.syncthing.folderMutationBusy
-            readonly property bool targetBusy: mutationBusy && root.syncthing.folderMutationId === root.controller.currentFolderId && (root.syncthing.folderMutationAction === "link" || root.syncthing.folderMutationAction === "unlink")
-            visible: root.controller.folderRows.length > 0
-            Layout.preferredWidth: Style.spacing.controlHeight
-            Layout.preferredHeight: Style.spacing.controlHeight
-            iconText: targetBusy ? "\uf110" : (targetFolder && targetFolder.paused ? "\uf0c1" : "\uf00d")
-            busy: targetBusy
-            tooltipText: targetFolder ? (targetFolder.paused ? "Link folder" : "Unlink folder") : "Select a folder"
-            bordered: true
-            foreground: targetFolder && targetFolder.paused ? root.success : root.urgent
-            disabledForeground: root.dim
-            fontFamily: root.fontFamily
-            fontSize: Style.font.body
-            iconSize: Style.font.icon
-            horizontalPadding: Style.space(6)
-            verticalPadding: Style.space(4)
-            canActivate: targetFolder && root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy
-            hasCursor: root.keyboardCursor === linkFolderButton
-            onHovered: function (hovered) {
-                if (hovered)
-                    root.actionHovered(linkFolderButton);
-            }
-            onClicked: root.controller.requestFolderLinkChange(targetFolder, targetFolder.paused)
-        }
-    }
-
-    SideCardMenu {
-        panel: root.cardAnchor
-        trigger: shareFolderButton
-        shown: root.controller.folderShareOpen && root.visible && root.controller.opened
-        onClosed: root.controller.folderShareOpen = false
-
-        contentItem: FolderSharingForm {
-            id: folderSharingForm
-            controller: root.controller
-            syncthing: root.syncthing
-            foreground: root.foreground
-            urgent: root.urgent
-            warning: root.controller.warning
-            fontFamily: root.fontFamily
-        }
-    }
-
-    PanelSectionHeader {
         visible: root.controller.pendingOfferRows.length > 0
         text: "PENDING FOLDER REQUESTS"
         foreground: root.foreground
@@ -319,29 +172,9 @@ Column {
                     root.actionHovered(acceptFolderButton);
             }
             onClicked: {
-                root.addTrigger = acceptFolderButton;
+                root.folderActions.addTrigger = acceptFolderButton;
                 root.controller.acceptPendingFolderOffer(root.controller.selectedPendingOffer);
             }
-        }
-    }
-
-    SideCardMenu {
-        panel: root.cardAnchor
-        trigger: root.addTrigger
-        shown: root.controller.addOpen && root.visible && root.controller.opened
-        onClosed: if (!root.controller.preserveStateForFolderPicker)
-            root.controller.closeAddFolder()
-
-        contentItem: AddFolderForm {
-            id: addForm
-            controller: root.controller
-            syncthing: root.syncthing
-            folderPickerRunning: root.controller.folderPickerRunning
-            foreground: root.foreground
-            dim: root.dim
-            urgent: root.urgent
-            warning: root.controller.warning
-            fontFamily: root.fontFamily
         }
     }
 
