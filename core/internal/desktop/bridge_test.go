@@ -66,7 +66,7 @@ func TestBridgeOpenUsesPrivateLaunchPage(t *testing.T) {
 		launched = target
 		return nil
 	}
-	if err := bridge.Open(context.Background()); err != nil {
+	if err := bridge.Open(context.Background(), ""); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.HasPrefix(launched, "file://") {

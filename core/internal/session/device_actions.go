@@ -197,6 +197,69 @@ func (s *Session) addDevice(ctx context.Context, arguments ActionArguments) Acti
 	return s.refreshAfterMutation(ctx)
 }
 
+func (s *Session) setDevicePaused(
+	ctx context.Context,
+	rawDeviceID string,
+	paused bool,
+) ActionResult {
+	snapshot, current, result := s.verifiedDevice(ctx, rawDeviceID)
+	if result.Error != nil {
+		return result
+	}
+	if snapshot.Paused != current.Paused {
+		return rejected("device_changed", "device changed before the action")
+	}
+	if current.Paused == paused {
+		if paused {
+			return rejected("device_paused", "device is already paused")
+		}
+		return rejected("device_active", "device is already active")
+	}
+	if err := s.client.SetDevicePaused(ctx, current.DeviceID, paused); err != nil {
+		return s.afterAmbiguousMutation(ctx, err)
+	}
+	return s.refreshAfterMutation(ctx)
+}
+
+func (s *Session) verifiedDevice(
+	ctx context.Context,
+	rawDeviceID string,
+) (*Device, syncthing.Device, ActionResult) {
+	if result := s.requireOnline(); result != nil {
+		return nil, syncthing.Device{}, *result
+	}
+	deviceID := strings.ToUpper(strings.TrimSpace(rawDeviceID))
+	currentState := s.Current().State
+	if deviceID == currentState.Identity.DeviceID {
+		return nil, syncthing.Device{}, rejected("device_self",
+			"this device cannot be paused")
+	}
+	snapshot := findDevice(currentState.Devices, deviceID)
+	if snapshot == nil {
+		return nil, syncthing.Device{}, rejected("device_missing",
+			"device is no longer configured")
+	}
+	current, err := s.client.Device(ctx, deviceID)
+	if err != nil {
+		return nil, syncthing.Device{}, ActionResult{Error: publicError(err)}
+	}
+	if current.DeviceID != snapshot.ID {
+		return nil, syncthing.Device{}, rejected("device_changed",
+			"device changed before the action")
+	}
+	return snapshot, current, ActionResult{}
+}
+
+func findDevice(devices []Device, deviceID string) *Device {
+	for index := range devices {
+		if devices[index].ID == deviceID {
+			copy := devices[index]
+			return &copy
+		}
+	}
+	return nil
+}
+
 func (s *Session) removeDevice(ctx context.Context, rawDeviceID string) ActionResult {
 	if result := s.requireOnline(); result != nil {
 		return *result

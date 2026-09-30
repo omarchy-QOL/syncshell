@@ -21,6 +21,12 @@ type Config struct {
 	DesiredServiceState string
 }
 
+type deviceTransferSample struct {
+	at       time.Time
+	download int64
+	upload   int64
+}
+
 type hydratedState struct {
 	identity       Identity
 	devices        []Device
@@ -54,11 +60,13 @@ type Session struct {
 	desiredServiceState string
 	configChanged       chan struct{}
 
-	eventsOnce      sync.Once
-	activityMu      sync.Mutex
-	activityRecords map[string]activityRecord
-	activityIndex   int
-	externalLatched bool
+	eventsOnce          sync.Once
+	activityMu          sync.Mutex
+	activityRecords     map[string]activityRecord
+	activityIndex       int
+	externalLatched     bool
+	deviceSamples       map[string]deviceTransferSample
+	deviceConfigAddress map[string]string
 }
 
 // New discovers exactly one target and constructs its sole session.
@@ -90,6 +98,8 @@ func New(ctx context.Context, config Config) (*Session, error) {
 		desiredServiceState: desired,
 		configChanged:       make(chan struct{}, 1),
 		activityRecords:     make(map[string]activityRecord),
+		deviceSamples:       make(map[string]deviceTransferSample),
+		deviceConfigAddress: make(map[string]string),
 	}, nil
 }
 
@@ -249,7 +259,7 @@ func (s *Session) loadAuthenticated(
 	return hydratedState{
 		identity: Identity{DeviceID: boundedIdentifier(status.MyID),
 			Version: boundedLabel(version.Version)},
-		devices:        normalizeDevices(devices, connections),
+		devices:        s.normalizeDevices(devices, connections, time.Now()),
 		folders:        normalizedFolders,
 		pendingFolders: normalizePendingFolders(pending),
 		pendingDevices: normalizePendingDevices(pendingDevices),
@@ -258,6 +268,87 @@ func (s *Session) loadAuthenticated(
 			GUIAssets: boundedPath(paths.GUIAssets)},
 		truncation: truncation,
 	}, nil
+}
+
+func (s *Session) normalizeDevices(
+	configured []syncthing.Device,
+	connections syncthing.Connections,
+	now time.Time,
+) []Device {
+	devices := normalizeDevices(configured, connections)
+	addresses := make(map[string]string, len(devices))
+	for _, device := range configured[:min(len(configured), maxDevices)] {
+		addresses[boundedIdentifier(device.DeviceID)] =
+			boundedLabel(preferredDeviceAddress(device.Addresses))
+	}
+	s.deviceConfigAddress = addresses
+	s.applyDeviceConnections(devices, connections, now)
+	return devices
+}
+
+func (s *Session) applyDeviceConnections(
+	devices []Device,
+	connections syncthing.Connections,
+	now time.Time,
+) {
+	if s.deviceSamples == nil {
+		s.deviceSamples = make(map[string]deviceTransferSample)
+	}
+	next := make(map[string]deviceTransferSample, len(devices))
+	for index := range devices {
+		device := &devices[index]
+		connection := connections.Connections[device.ID]
+		device.Connected = connection.Connected
+		device.Address = boundedLabel(connection.Address)
+		if device.Address == "" {
+			device.Address = s.deviceConfigAddress[device.ID]
+		}
+		device.DownloadBps = 0
+		device.UploadBps = 0
+		if !connection.Connected {
+			continue
+		}
+		current := deviceTransferSample{at: now, download: connection.InBytesTotal,
+			upload: connection.OutBytesTotal}
+		if previous, exists := s.deviceSamples[device.ID]; exists {
+			seconds := now.Sub(previous.at).Seconds()
+			if seconds > 0 && current.download >= previous.download &&
+				current.upload >= previous.upload {
+				device.DownloadBps = int64(float64(current.download-previous.download) / seconds)
+				device.UploadBps = int64(float64(current.upload-previous.upload) / seconds)
+			}
+		}
+		next[device.ID] = current
+	}
+	s.deviceSamples = next
+}
+
+func (s *Session) refreshDeviceTelemetry(ctx context.Context) PublishedSnapshot {
+	s.refreshMu.Lock()
+	defer s.refreshMu.Unlock()
+
+	current := s.Current()
+	if current.Revision == 0 || !current.State.Connection.Online {
+		return current
+	}
+	connections, err := s.client.Connections(ctx)
+	if err != nil {
+		return current
+	}
+	devices := append([]Device(nil), current.State.Devices...)
+	s.applyDeviceConnections(devices, connections, time.Now())
+	counts := normalizedCounts(devices, current.State.Folders,
+		current.State.Identity.DeviceID)
+	if reflect.DeepEqual(devices, current.State.Devices) &&
+		reflect.DeepEqual(counts, current.State.Counts) {
+		return current
+	}
+	s.stateMu.Lock()
+	defer s.stateMu.Unlock()
+	s.current.State.Devices = devices
+	s.current.State.Counts = counts
+	s.current.Revision++
+	return clonePublished(s.current)
 }
 
 func (s *Session) loadFolders(

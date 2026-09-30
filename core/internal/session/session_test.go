@@ -150,7 +150,7 @@ func TestCurrentReturnsIsolatedState(t *testing.T) {
 
 func TestDesktopRequiresExplicitAuthority(t *testing.T) {
 	coreSession := &Session{}
-	result := coreSession.openWebUI(context.Background())
+	result := coreSession.openWebUI(context.Background(), "")
 	if result.OK || result.Error == nil || result.Error.Code != "desktop_unavailable" {
 		t.Fatalf("desktop action without authority = %#v", result)
 	}
@@ -169,7 +169,7 @@ func TestDesktopRequiresExplicitAuthority(t *testing.T) {
 	}
 	coreSession.client = client
 	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "")
-	result = coreSession.openWebUI(context.Background())
+	result = coreSession.openWebUI(context.Background(), "")
 	if result.OK || result.Error == nil || result.Error.Code != "desktop_unavailable" {
 		t.Fatalf("desktop action without a session bus = %#v", result)
 	}

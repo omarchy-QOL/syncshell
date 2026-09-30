@@ -16,13 +16,28 @@ func normalizeDevices(
 	result := make([]Device, 0, limit)
 	for _, device := range wire[:limit] {
 		connection := connections.Connections[device.DeviceID]
+		address := connection.Address
+		if address == "" {
+			address = preferredDeviceAddress(device.Addresses)
+		}
 		result = append(result, Device{ID: boundedIdentifier(device.DeviceID),
 			Name:      boundedLabel(device.Name),
+			Address:   boundedLabel(address),
+			Paused:    device.Paused,
 			Untrusted: device.Untrusted,
 			Connected: connection.Connected})
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].ID < result[j].ID })
 	return result
+}
+
+func preferredDeviceAddress(addresses []string) string {
+	for _, address := range addresses {
+		if strings.TrimSpace(address) != "" {
+			return address
+		}
+	}
+	return ""
 }
 
 func normalizedCounts(devices []Device, folders []Folder, localDeviceID string) Counts {

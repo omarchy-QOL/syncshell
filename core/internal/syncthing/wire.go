@@ -18,9 +18,11 @@ type SystemVersion struct {
 
 // Device is the configured-device wire shape used by the client.
 type Device struct {
-	DeviceID  string `json:"deviceID"`
-	Name      string `json:"name"`
-	Untrusted bool   `json:"untrusted"`
+	DeviceID  string   `json:"deviceID"`
+	Name      string   `json:"name"`
+	Addresses []string `json:"addresses"`
+	Paused    bool     `json:"paused"`
+	Untrusted bool     `json:"untrusted"`
 }
 
 // FolderDevice is a folder-sharing relationship that preserves server fields.
@@ -93,9 +95,12 @@ type Connections struct {
 	Connections map[string]Connection `json:"connections"`
 }
 
-// Connection contains only the fields needed for aggregate state.
+// Connection contains the fields needed for device status and transfer rates.
 type Connection struct {
-	Connected bool `json:"connected"`
+	Connected     bool   `json:"connected"`
+	Address       string `json:"address"`
+	InBytesTotal  int64  `json:"inBytesTotal"`
+	OutBytesTotal int64  `json:"outBytesTotal"`
 }
 
 // PendingFolders maps offered folder IDs to their offering devices.

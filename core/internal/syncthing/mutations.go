@@ -54,6 +54,21 @@ func (c *Client) AddFolder(ctx context.Context, config FolderConfig) error {
 	return c.jsonRequest(ctx, http.MethodPost, "/rest/config/folders", config, nil)
 }
 
+// Device reads one current device configuration.
+func (c *Client) Device(ctx context.Context, deviceID string) (Device, error) {
+	var response Device
+	path := "/rest/config/devices/" + url.PathEscape(deviceID)
+	err := c.request(ctx, http.MethodGet, path, nil, true, &response)
+	return response, err
+}
+
+// SetDevicePaused changes only one device's pause state.
+func (c *Client) SetDevicePaused(ctx context.Context, deviceID string, paused bool) error {
+	return c.jsonRequest(ctx, http.MethodPatch,
+		"/rest/config/devices/"+url.PathEscape(deviceID),
+		map[string]bool{"paused": paused}, nil)
+}
+
 // DefaultDevice reads the server's complete current device template.
 func (c *Client) DefaultDevice(ctx context.Context) (DeviceConfig, error) {
 	var response DeviceConfig

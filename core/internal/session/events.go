@@ -7,10 +7,14 @@ import (
 	"github.com/omarchy-QOL/syncshell/core/internal/syncthing"
 )
 
-const eventPollSeconds = 1
+const (
+	eventPollSeconds        = 1
+	deviceTelemetryInterval = 10 * time.Second
+)
 
 var eventTypes = []string{
-	"ConfigSaved", "DeviceConnected", "DeviceDisconnected", "DownloadProgress",
+	"ConfigSaved", "DeviceConnected", "DeviceDisconnected", "DevicePaused",
+	"DeviceResumed", "DownloadProgress",
 	"FolderErrors", "FolderPaused", "FolderResumed", "FolderScanProgress",
 	"FolderSummary", "ItemFinished", "ItemStarted", "LocalIndexUpdated",
 	"PendingDevicesChanged", "PendingFoldersChanged", "DeviceDiscovered",
@@ -40,6 +44,7 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 	}
 	nextRefresh := time.Now().Add(s.RefreshInterval())
 	nextLifecycle := time.Now().Add(s.ProbeInterval())
+	nextTelemetry := time.Now().Add(deviceTelemetryInterval)
 	nextActivity := time.Now().Add(activityCycle)
 	for {
 		since, limit := cursor, 256
@@ -55,7 +60,7 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 			delay := retryDelay(retry)
 			now := time.Now()
 			for _, deadline := range []time.Time{
-				nextRefresh, nextLifecycle, nextActivity,
+				nextRefresh, nextLifecycle, nextTelemetry, nextActivity,
 			} {
 				if remaining := deadline.Sub(now); remaining < delay {
 					delay = max(0, remaining)
@@ -66,7 +71,7 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 			}
 			retry++
 			s.reconcileScheduled(ctx, updates, time.Now(),
-				&nextRefresh, &nextLifecycle, &nextActivity)
+				&nextRefresh, &nextLifecycle, &nextTelemetry, &nextActivity)
 			continue
 		}
 		if retry > 0 { // preserve unread activity when the old sequence survives
@@ -77,6 +82,7 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 			emitLatest(updates, published)
 			nextRefresh = time.Now().Add(s.RefreshInterval())
 			nextLifecycle = time.Now().Add(s.ProbeInterval())
+			nextTelemetry = time.Now().Add(deviceTelemetryInterval)
 			retry = 0
 			continue
 		}
@@ -88,13 +94,14 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 				emitLatest(updates, published)
 				nextRefresh = time.Now().Add(s.RefreshInterval())
 				nextLifecycle = time.Now().Add(s.ProbeInterval())
+				nextTelemetry = time.Now().Add(deviceTelemetryInterval)
 			}
 			if s.processActivityEvents(ctx, events, time.Now()) {
 				emitLatest(updates, s.publishActivity(false, time.Now()))
 			}
 		}
 		s.reconcileScheduled(ctx, updates, time.Now(),
-			&nextRefresh, &nextLifecycle, &nextActivity)
+			&nextRefresh, &nextLifecycle, &nextTelemetry, &nextActivity)
 	}
 }
 
@@ -102,12 +109,13 @@ func (s *Session) reconcileScheduled(
 	ctx context.Context,
 	updates chan PublishedSnapshot,
 	now time.Time,
-	nextRefresh, nextLifecycle, nextActivity *time.Time,
+	nextRefresh, nextLifecycle, nextTelemetry, nextActivity *time.Time,
 ) {
 	select {
 	case <-s.configChanged:
 		*nextRefresh = now
 		*nextLifecycle = now
+		*nextTelemetry = now
 	default:
 	}
 	if !now.Before(*nextActivity) {
@@ -119,9 +127,16 @@ func (s *Session) reconcileScheduled(
 		emitLatest(updates, published)
 		*nextRefresh = now.Add(s.RefreshInterval())
 		*nextLifecycle = now.Add(s.ProbeInterval())
-	} else if !now.Before(*nextLifecycle) {
-		emitLatest(updates, s.refreshLifecycle(ctx))
-		*nextLifecycle = now.Add(s.ProbeInterval())
+		*nextTelemetry = now.Add(deviceTelemetryInterval)
+	} else {
+		if !now.Before(*nextTelemetry) {
+			emitLatest(updates, s.refreshDeviceTelemetry(ctx))
+			*nextTelemetry = now.Add(deviceTelemetryInterval)
+		}
+		if !now.Before(*nextLifecycle) {
+			emitLatest(updates, s.refreshLifecycle(ctx))
+			*nextLifecycle = now.Add(s.ProbeInterval())
+		}
 	}
 }
 

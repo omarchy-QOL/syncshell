@@ -47,6 +47,10 @@ func (s *Session) Act(ctx context.Context, action string, arguments ActionArgume
 		return s.suggestFolderID(ctx)
 	case "device.add":
 		return s.addDevice(ctx, arguments)
+	case "device.pause":
+		return s.setDevicePaused(ctx, arguments.DeviceID, true)
+	case "device.resume":
+		return s.setDevicePaused(ctx, arguments.DeviceID, false)
 	case "device.remove":
 		return s.removeDevice(ctx, arguments.DeviceID)
 	case "device.dismiss-pending":
@@ -56,7 +60,7 @@ func (s *Session) Act(ctx context.Context, action string, arguments ActionArgume
 	case "lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
 		return s.lifecycleAction(ctx, strings.TrimPrefix(action, "lifecycle."))
 	case "webui.open":
-		return s.openWebUI(ctx)
+		return s.openWebUI(ctx, arguments.DeviceID)
 	case "webui.set-theme":
 		return s.setWebUITheme(ctx, arguments.Theme)
 	default:
@@ -74,6 +78,11 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 		len(arguments.FolderIDs) == 0 &&
 		arguments.PendingDeviceID == "" && arguments.DeviceID == "" &&
 		arguments.DeviceName == "" && arguments.Theme == ""
+	deviceOnly := arguments.DeviceID != "" && arguments.DeviceName == "" &&
+		arguments.FolderID == "" && arguments.Path == "" &&
+		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
+		len(arguments.FolderIDs) == 0 && arguments.PendingDeviceID == "" &&
+		arguments.Theme == ""
 	empty := arguments.FolderID == "" && arguments.Path == "" &&
 		arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
 		len(arguments.FolderIDs) == 0 &&
@@ -100,17 +109,15 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 			arguments.Path == "" && arguments.Label == "" &&
 			len(arguments.DeviceIDs) == 0 && arguments.PendingDeviceID == "" &&
 			len(arguments.FolderIDs) == 0 && arguments.Theme == ""
-	case "device.remove", "device.dismiss-pending":
-		valid = arguments.DeviceID != "" && arguments.DeviceName == "" &&
-			arguments.FolderID == "" && arguments.Path == "" &&
-			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
-			len(arguments.FolderIDs) == 0 && arguments.PendingDeviceID == "" &&
-			arguments.Theme == ""
+	case "device.pause", "device.resume", "device.remove", "device.dismiss-pending":
+		valid = deviceOnly
 	case "device.remove-folder-shares":
 		valid = arguments.DeviceID != "" && arguments.DeviceName == "" &&
 			arguments.FolderID == "" && arguments.Path == "" &&
 			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&
 			arguments.PendingDeviceID == "" && arguments.Theme == ""
+	case "webui.open":
+		valid = empty || deviceOnly
 	case "webui.set-theme":
 		valid = arguments.Theme != "" && arguments.FolderID == "" && arguments.Path == "" &&
 			arguments.Label == "" && len(arguments.DeviceIDs) == 0 &&

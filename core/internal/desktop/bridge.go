@@ -90,11 +90,15 @@ func (b *Bridge) Close() {
 }
 
 // Open grants only this tab access, without putting a secret into GUI assets.
-func (b *Bridge) Open(ctx context.Context) error {
+func (b *Bridge) Open(ctx context.Context, deviceID string) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	endpoint, _ := url.Parse(b.client.Endpoint())
 	endpoint.Fragment = "syncshell-desktop=" + b.address + "/" + b.token
+	if deviceID != "" {
+		endpoint.Fragment += "&syncshell-action=edit-device&device=" +
+			url.QueryEscape(deviceID)
+	}
 	if b.launchDir == "" {
 		directory, err := os.MkdirTemp(os.Getenv("XDG_RUNTIME_DIR"), "syncshell-webui-")
 		if err != nil {

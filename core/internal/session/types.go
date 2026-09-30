@@ -44,10 +44,14 @@ type Identity struct {
 
 // Device is normalized configured-device state.
 type Device struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Untrusted bool   `json:"untrusted"`
-	Connected bool   `json:"connected"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Address     string `json:"address,omitempty"`
+	Paused      bool   `json:"paused"`
+	Untrusted   bool   `json:"untrusted"`
+	Connected   bool   `json:"connected"`
+	DownloadBps int64  `json:"downloadBps"`
+	UploadBps   int64  `json:"uploadBps"`
 }
 
 // FolderDevice is one normalized folder-sharing relationship.

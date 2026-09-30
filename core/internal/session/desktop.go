@@ -16,7 +16,7 @@ func (s *Session) EnableDesktop() func() {
 	}
 }
 
-func (s *Session) openWebUI(ctx context.Context) ActionResult {
+func (s *Session) openWebUI(ctx context.Context, deviceID string) ActionResult {
 	if !s.desktopEnabled {
 		return rejected("desktop_unavailable", "Desktop integration is unavailable; open the Syncthing address in your browser")
 	}
@@ -27,7 +27,7 @@ func (s *Session) openWebUI(ctx context.Context) ActionResult {
 			return rejected("desktop_unavailable", err.Error())
 		}
 	}
-	if err := s.desktop.Open(ctx); err != nil {
+	if err := s.desktop.Open(ctx, boundedIdentifier(deviceID)); err != nil {
 		return rejected("desktop_open", err.Error())
 	}
 	return ActionResult{OK: true}

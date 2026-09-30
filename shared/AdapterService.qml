@@ -311,6 +311,13 @@ QtObject {
         }, "Dismissed pending request from " + label, String(deviceId || ""));
     }
 
+    function setDevicePaused(deviceId, paused, name) {
+        var label = String(name || "").trim() || "Device " + String(deviceId || "").slice(0, 7);
+        return runAction(paused ? "device.pause" : "device.resume", {
+            deviceId: String(deviceId || "")
+        }, paused ? "Paused synchronization with " + label : "Resumed synchronization with " + label, String(deviceId || ""));
+    }
+
     function removeDevice(deviceId, name) {
         var label = String(name || "").trim() || "Device " + String(deviceId || "").slice(0, 7);
         return runAction("device.remove", {
