@@ -387,16 +387,12 @@ Column {
                 }
             }
 
-            TooltipButton {
+            SquareActionButton {
                 id: acceptDeviceButton
-                iconText: "\uf00c"
-                Layout.preferredWidth: Style.spacing.controlHeight
-                Layout.preferredHeight: Style.spacing.controlHeight
+                glyph: "\uf00c"
                 helpText: "Accept remote device connection"
-                bordered: true
                 foreground: root.success
                 fontFamily: root.fontFamily
-                iconSize: Style.font.icon
                 enabled: root.selectedPending && !root.syncthing.folderMutationBusy
                 hasCursor: root.keyboardCursor === acceptDeviceButton
                 onHovered: function (hovered) {
@@ -406,16 +402,12 @@ Column {
                 onClicked: root.openAccept()
             }
 
-            TooltipButton {
+            SquareActionButton {
                 id: dismissDeviceButton
-                iconText: "\uf00d"
-                Layout.preferredWidth: Style.spacing.controlHeight
-                Layout.preferredHeight: Style.spacing.controlHeight
+                glyph: "\uf00d"
                 helpText: "Dismiss incoming device request"
-                bordered: true
                 foreground: root.urgent
                 fontFamily: root.fontFamily
-                iconSize: Style.font.icon
                 enabled: root.selectedPending && !root.syncthing.folderMutationBusy
                 hasCursor: root.keyboardCursor === dismissDeviceButton
                 onHovered: function (hovered) {

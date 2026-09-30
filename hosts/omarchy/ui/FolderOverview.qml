@@ -279,16 +279,12 @@ Column {
                 }
             }
 
-            TooltipButton {
+            SquareActionButton {
                 id: acceptFolderButton
-                iconText: "\uf00c"
-                Layout.preferredWidth: Style.spacing.controlHeight
-                Layout.preferredHeight: Style.spacing.controlHeight
+                glyph: "\uf00c"
                 helpText: "Accept folder request"
-                bordered: true
                 foreground: root.success
                 fontFamily: root.fontFamily
-                iconSize: Style.font.icon
                 enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy && root.controller.selectedPendingOffer !== ""
                 hasCursor: root.keyboardCursor === acceptFolderButton
                 onHovered: function (hovered) {
@@ -301,16 +297,12 @@ Column {
                 }
             }
 
-            TooltipButton {
+            SquareActionButton {
                 id: rejectFolderButton
-                iconText: "\uf00d"
-                Layout.preferredWidth: Style.spacing.controlHeight
-                Layout.preferredHeight: Style.spacing.controlHeight
+                glyph: "\uf00d"
                 helpText: "Reject folder request"
-                bordered: true
                 foreground: root.urgent
                 fontFamily: root.fontFamily
-                iconSize: Style.font.icon
                 enabled: root.syncthing && root.syncthing.online && !root.syncthing.folderMutationBusy && root.controller.selectedPendingOffer !== ""
                 hasCursor: root.keyboardCursor === rejectFolderButton
                 onHovered: function (hovered) {
