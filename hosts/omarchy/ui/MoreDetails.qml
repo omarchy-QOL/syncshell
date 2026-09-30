@@ -17,9 +17,12 @@ Column {
     required property color success
     property string fontFamily: Style.font.family
     property Item keyboardCursor: null
-    readonly property var currentFolder: root.controller.currentFolderRow
-    readonly property int shownErrorCount: currentFolder ? (currentFolder.errorDetails || []).length : 0
-    readonly property int totalErrorCount: currentFolder ? Math.max(shownErrorCount, Number(currentFolder.errorCount || 0)) : 0
+    readonly property var problemFolders: {
+        var rows = root.controller && root.controller.folderRows ? root.controller.folderRows : [];
+        return rows.filter(function (folder) {
+            return folder && folder.problem;
+        });
+    }
     readonly property bool pendingPopupOpen: pendingOfferSelector.popupOpen
     readonly property var keyboardRows: {
         var rows = [[pendingOfferSelector, acceptFolderButton]];
@@ -63,30 +66,37 @@ Column {
     spacing: Style.space(8)
 
     Column {
-        visible: root.currentFolder && root.currentFolder.problem
         width: parent.width
         spacing: Style.space(8)
 
-        PanelSectionHeader {
-            text: "FOLDER ERRORS"
-            foreground: root.foreground
-            fontFamily: root.fontFamily
-        }
-
-        Text {
+        RowLayout {
             width: parent.width
-            text: root.currentFolder ? "\uf07b  " + (root.currentFolder.configuredLabel || root.currentFolder.label) : ""
-            textFormat: Text.PlainText
-            color: root.foreground
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.body
-            elide: Text.ElideRight
+            spacing: Style.space(6)
+
+            PanelSectionHeader {
+                text: "SYNCTHING STATUS"
+                foreground: root.foreground
+                fontFamily: root.fontFamily
+            }
+
+            Text {
+                text: root.problemFolders.length > 0 ? "errors" : (root.syncthing && root.syncthing.online && root.syncthing.statusFresh ? "clean" : "unavailable")
+                textFormat: Text.PlainText
+                color: root.problemFolders.length > 0 ? root.urgent : (text === "clean" ? root.success : root.dim)
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.caption
+                font.bold: true
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
         }
 
         Text {
             visible: root.syncthing && !root.syncthing.statusFresh
             width: parent.width
-            text: "Last reported errors; current status is unavailable."
+            text: root.problemFolders.length > 0 ? "Last reported errors; current status is unavailable." : "Current Syncthing status is unavailable."
             textFormat: Text.PlainText
             color: root.dim
             font.family: root.fontFamily
@@ -94,24 +104,65 @@ Column {
             wrapMode: Text.Wrap
         }
 
-        Text {
-            width: parent.width
-            text: root.controller.folderErrorText(root.currentFolder)
-            textFormat: Text.PlainText
-            color: root.urgent
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.bodySmall
-            wrapMode: Text.Wrap
-        }
+        Repeater {
+            model: root.problemFolders
 
-        Text {
-            width: parent.width
-            text: root.shownErrorCount < root.totalErrorCount ? "Showing " + root.shownErrorCount + " of " + root.totalErrorCount + " current errors. Open Web UI for the full list." : "Showing " + root.shownErrorCount + " current error" + (root.shownErrorCount === 1 ? "." : "s.")
-            textFormat: Text.PlainText
-            color: root.dim
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.caption
-            wrapMode: Text.Wrap
+            delegate: Column {
+                required property var modelData
+                required property int index
+                readonly property int shownErrorCount: (modelData.errorDetails || []).length
+                readonly property int totalErrorCount: Math.max(shownErrorCount, Number(modelData.errorCount || 0))
+                width: root.width
+                spacing: Style.space(4)
+
+                Text {
+                    width: parent.width
+                    text: "Affected folder"
+                    textFormat: Text.PlainText
+                    color: root.dim
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.caption
+                    font.bold: true
+                }
+
+                Text {
+                    visible: parent.modelData.path !== ""
+                    width: parent.width
+                    text: "\uf07b  " + String(parent.modelData.path || "")
+                    textFormat: Text.PlainText
+                    color: root.dim
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.caption
+                    elide: Text.ElideLeft
+                }
+
+                Text {
+                    width: parent.width
+                    text: root.controller.folderErrorText(parent.modelData)
+                    textFormat: Text.PlainText
+                    color: root.urgent
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.bodySmall
+                    wrapMode: Text.Wrap
+                }
+
+                Text {
+                    visible: parent.totalErrorCount > 0
+                    width: parent.width
+                    text: parent.shownErrorCount < parent.totalErrorCount ? "Showing " + parent.shownErrorCount + " of " + parent.totalErrorCount + " current errors. Open Web UI for the full list." : "Showing " + parent.shownErrorCount + " current error" + (parent.shownErrorCount === 1 ? "." : "s.")
+                    textFormat: Text.PlainText
+                    color: root.dim
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.caption
+                    wrapMode: Text.Wrap
+                }
+
+                PanelSeparator {
+                    visible: parent.index < root.problemFolders.length - 1
+                    width: parent.width
+                    foreground: root.foreground
+                }
+            }
         }
     }
 
