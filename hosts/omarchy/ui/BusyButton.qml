@@ -12,6 +12,7 @@ Item {
     property bool busy: false
     property bool pulseBusyIcon: false
     property bool canActivate: true
+    property bool selected: false
     property bool bordered: false
     property bool focusable: false
     property bool hasCursor: false
@@ -69,6 +70,7 @@ Item {
         iconText: root.iconText
         tooltipText: ""
         bordered: root.bordered
+        selected: root.selected
         focusable: root.focusable
         hasCursor: root.hasCursor
         foreground: root.foreground

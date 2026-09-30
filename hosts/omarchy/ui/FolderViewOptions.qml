@@ -231,18 +231,12 @@ Item {
         height: Style.spacing.controlHeight
         spacing: Style.spacing.controlGap
 
-        TooltipButton {
-            width: Style.spacing.controlHeight
-            height: parent.height
-            iconText: "\uf1de"
+        SquareActionButton {
+            glyph: "\uf1de"
             helpText: "Filter and sort folders"
-            bordered: true
             selected: !root.viewDefault
             foreground: root.foreground
             fontFamily: root.fontFamily
-            iconSize: Style.font.icon
-            horizontalPadding: Style.space(6)
-            verticalPadding: Style.space(3)
             onClicked: root.toggle()
         }
 

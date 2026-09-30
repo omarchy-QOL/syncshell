@@ -332,8 +332,12 @@ Item {
                         visible: root.searchable
 
                         Row {
-                            anchors.fill: parent
-                            anchors.margins: Style.spacing.xxs
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.leftMargin: Style.spacing.xxs
+                            anchors.rightMargin: Style.spacing.xxs
+                            height: Style.spacing.controlHeight
                             spacing: searchAccessoryLoader.visible ? Style.spacing.controlGap : 0
 
                             TextField {
