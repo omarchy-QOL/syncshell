@@ -1,14 +1,12 @@
 import QtQuick
 import qs.Modules.Plugins
 import "shared"
-import "shared/Paths.js" as Paths
 
 PluginComponent {
     id: root
 
     property var popoutService: null
     property AdapterService service: AdapterService {
-        pluginRoot: Paths.localPath(Qt.resolvedUrl("."))
         refreshIntervalSeconds: Math.max(60, Number(root.pluginData.refreshIntervalSec || 60))
     }
 

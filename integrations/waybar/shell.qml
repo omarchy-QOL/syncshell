@@ -8,7 +8,6 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import "shared"
-import "shared/Paths.js" as Paths
 
 ShellRoot {
     id: root
@@ -23,7 +22,6 @@ ShellRoot {
     }
     property string lastStatus: ""
     property string barPosition: "top"
-    readonly property string pluginRoot: Paths.localPath(Qt.resolvedUrl("."))
 
     onPopupOpenChanged: {
         if (popupOpen)
@@ -79,12 +77,11 @@ ShellRoot {
 
     AdapterService {
         id: service
-        pluginRoot: root.pluginRoot
     }
 
     FileView {
         id: positionFile
-        path: root.pluginRoot + "/position"
+        path: Quickshell.shellPath("position")
         watchChanges: true
         printErrors: false
         onLoaded: root.barPosition = text().trim() === "bottom" ? "bottom" : "top"

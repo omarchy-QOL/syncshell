@@ -2,8 +2,5 @@ pragma Singleton
 
 import QtQuick
 import "../syncshell/shared"
-import "../syncshell/shared/Paths.js" as Paths
 
-AdapterService {
-    pluginRoot: Paths.localPath(Qt.resolvedUrl("../syncshell"))
-}
+AdapterService {}

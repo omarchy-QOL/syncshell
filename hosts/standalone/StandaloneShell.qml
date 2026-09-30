@@ -8,7 +8,6 @@ ShellRoot {
     id: root
 
     property StandaloneService service: StandaloneService {
-        pluginRoot: Quickshell.env("SYNCSHELL_PLUGIN_ROOT") || ""
         configPath: Quickshell.env("SYNCSHELL_CONFIG_PATH") || ""
     }
 

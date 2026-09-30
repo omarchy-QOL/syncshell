@@ -59,7 +59,6 @@ ShellRoot {
 
     AdapterService {
         id: service
-        pluginRoot: Quickshell.env("SYNCSHELL_TEST_PLUGIN_ROOT")
 
         onOnlineChanged: if (online && root.stage === 0)
             Qt.callLater(root.begin)

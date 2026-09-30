@@ -4,7 +4,6 @@ import "."
 QtObject {
     id: root
 
-    required property string pluginRoot
     property int probeIntervalSeconds: 15
     property int refreshIntervalSeconds: 60
 
@@ -355,7 +354,6 @@ QtObject {
     }
 
     property CoreProcess core: CoreProcess {
-        pluginRoot: root.pluginRoot
         startupArguments: ["--probe-interval-seconds", String(root.probeIntervalSeconds), "--desired-service-state", "enabled", "--lifecycle-kind", "systemd-user", "--lifecycle-authorized", "--lifecycle-unit", "syncthing.service"]
         onProtocolReadyChanged: if (protocolReady)
             root.configureCore()

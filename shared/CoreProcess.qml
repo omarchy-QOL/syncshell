@@ -1,13 +1,13 @@
 import QtQuick
 import Quickshell.Io
+import "Paths.js" as Paths
 
 QtObject {
     id: root
 
-    required property string pluginRoot
     property var startupArguments: []
     property string architecture: ""
-    property string corePath: ""
+    readonly property string corePath: Paths.localPath(Qt.resolvedUrl("../bin/x86_64/syncshell-core"))
     property bool executableReady: false
     property bool starting: true
     property bool desiredRunning: true
@@ -251,7 +251,6 @@ QtObject {
     }
 
     function inspectExecutable() {
-        corePath = pluginRoot + "/bin/x86_64/syncshell-core";
         _executableOutput = "";
         executableProcess.running = true;
     }

@@ -15,7 +15,6 @@ ShellRoot {
     property bool pendingFailurePassed: false
     property bool crashCapPassed: false
     property bool manualRecoveryPassed: false
-    readonly property string testPluginRoot: Quickshell.env("SYNCSHELL_TEST_PLUGIN_ROOT") || ""
 
     function fail(message) {
         console.error(message);
@@ -62,7 +61,6 @@ ShellRoot {
 
     CoreProcess {
         id: core
-        pluginRoot: root.testPluginRoot
 
         onRevisionChanged: root.handleSnapshot()
 
@@ -73,7 +71,6 @@ ShellRoot {
 
     CoreProcess {
         id: duplicateResultProbe
-        pluginRoot: root.testPluginRoot
         desiredRunning: false
         onProtocolFailed: function (message) {
             root.duplicateResultPassed = message.indexOf("duplicate or unknown") >= 0;
@@ -82,7 +79,6 @@ ShellRoot {
 
     CoreProcess {
         id: crashProbe
-        pluginRoot: root.testPluginRoot
         startupArguments: ["--test-exit-on-request"]
         onRevisionChanged: {
             if (!protocolReady || revision < 1)
@@ -103,7 +99,6 @@ ShellRoot {
 
     CoreProcess {
         id: versionProbe
-        pluginRoot: root.testPluginRoot
         desiredRunning: false
         onProtocolFailed: function (message) {
             root.versionFailurePassed = message.indexOf("protocol major") >= 0;
@@ -112,7 +107,6 @@ ShellRoot {
 
     CoreProcess {
         id: lineBoundProbe
-        pluginRoot: root.testPluginRoot
         desiredRunning: false
         onProtocolFailed: function (message) {
             root.lineBoundPassed = message.indexOf("line bound") >= 0;

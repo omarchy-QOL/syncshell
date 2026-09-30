@@ -566,7 +566,6 @@ QtObject {
     }
 
     property CoreProcess core: CoreProcess {
-        pluginRoot: root.pluginRoot
         startupArguments: ["--desktop-authorized", "--probe-interval-seconds", String(root.probeIntervalSeconds), "--desired-service-state", root.configuredServiceState, "--lifecycle-kind", "systemd-user", "--lifecycle-authorized", "--lifecycle-unit", "syncthing.service"]
         onProtocolReadyChanged: if (protocolReady)
             root.configureCore()
