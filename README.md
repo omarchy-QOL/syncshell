@@ -11,7 +11,7 @@
 
 Syncshell shows [Syncthing](https://github.com/syncthing/syncthing) activity in
 the Omarchy bar, manages local folders and opens a redesigned Web UI. Versions
->= 0.1.8 use a bundled Go core since other Linux shell adapters are planned.
+\>= 0.1.8 use a bundled Go core since other Linux shell adapters are planned.
 
 ![Syncthing status and installation controls](preview.png)
 
