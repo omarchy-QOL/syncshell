@@ -83,7 +83,6 @@ Column {
             options.push({
                 value: device.id,
                 label: device.name,
-                trailingText: "(" + device.folderIds.length + " folder" + (device.folderIds.length === 1 ? "" : "s") + ")",
                 statusVisible: true,
                 statusColor: deviceStateColor(device),
                 statusHelpText: deviceStateHelp(device)
@@ -174,6 +173,7 @@ Column {
             rowHeight: Style.spacing.controlHeight
             value: root.selectedDeviceId
             options: root.deviceOptions()
+            interactive: root.remoteRows.length > 1
             foreground: root.foreground
             fontFamily: root.fontFamily
             hasCursor: root.keyboardCursor === deviceSelector

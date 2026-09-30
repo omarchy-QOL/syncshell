@@ -19,6 +19,8 @@ BorderSurface {
     property Item keyboardCursor: null
 
     readonly property color cardBorderColor: device && device.paused ? warning : dim
+    readonly property int sharedFolderCount: device && device.folderIds ? device.folderIds.length : 0
+    readonly property int totalFolderCount: controller && controller.folderRows ? controller.folderRows.length : 0
     readonly property var keyboardRows: [[editDeviceButton, copyIdButton], [deviceActionButton]]
 
     signal actionHovered(Item action)
@@ -120,10 +122,13 @@ BorderSurface {
         spacing: Style.space(1)
 
         Text {
-            text: " "
+            width: parent.width
+            text: "\uf07b  " + root.sharedFolderCount + "/" + root.totalFolderCount + " folder" + (root.totalFolderCount === 1 ? "" : "s") + " shared"
             textFormat: Text.PlainText
+            color: root.dim
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
+            elide: Text.ElideRight
         }
 
         Row {
