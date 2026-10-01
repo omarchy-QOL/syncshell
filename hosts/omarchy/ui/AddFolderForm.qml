@@ -109,7 +109,7 @@ Item {
                 id: addPathField
                 Layout.fillWidth: true
                 enabled: !root.syncthing || !root.syncthing.folderMutationBusy
-                placeholderText: "/path/to/my/folder"
+                placeholderText: "/path/to/Dr/LOERMANNS/folder"
                 foreground: root.foreground
             }
 
