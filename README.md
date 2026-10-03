@@ -48,21 +48,16 @@ planned.
 
 ## Quick start
 
-- select the switch/toggle in the top right to start or stop the user service
-- the folder icon in the top-left of the folder card opens its directory
-- expand **More**, then
-  - **FOLDERS** section:
-    - select **+** to configure a local directory
-    - share icon: choose which configured devices share this folder
-    - unlink icon: pause synchronization for this folder; keep its configuration
-      and files
-  - **REMOTE DEVICES** section: add a device / manage its shared folders
-- select **RESCAN** on a folder or **Rescan all folders** for linked folders
+- select the switch in the top right to start or stop the user service
+- use **Folders** to select a configured folder, then
+  - select **+** to configure a local directory
+  - use the share icon to choose which devices share it
+  - use the link/unlink icon to pause or resume synchronization
+  - select the folder icon on its card to open the directory
+- use **Devices** to add or select a remote device and manage its shared folders
+- expand **More** for folder errors and installation details
 - select **Web UI** for advanced Syncthing options
 - select the gear or press `s` for appearance settings and clean removal
-
-One or two folders appear as cards; larger collections use a searchable
-selector; unshared and paused folders are included.
 
 ## Install
 
@@ -81,13 +76,13 @@ synchronization][firewall].
 The released plugin supports Omarchy on Linux x86_64. Alpha adapters for
 DankMaterialShell, Illogical Impulse, Caelestia, and Waybar are under
 development; they are not officially part of the release yet, but can be tested
-via manual installation on those systems. ARM and daemon mode remain future
-work.
+via manual installation on those systems: see the `hosts/...` in the source. ARM
+and daemon mode remain future work.
 
 ## Demo videos
 
-Click a preview to play the video. These four walkthroughs cover live file
-activity, folder management, Web UI theming, and plugin settings.
+These four walkthroughs cover live file activity, folder management, Web UI
+theming, and plugin settings.
 
 <!-- prettier-ignore -->
 > [!WARNING]
@@ -279,8 +274,8 @@ for file actions; permission errors leave files unchanged. Discovery and
 rechecks remain available without desktop access. Reopen through the plugin
 after its core restarts.
 
-Tested with Syncthing v2.1.3. Source history and licensing details are recorded
-in [Syncshell Web provenance][webui-provenance].
+Tested with Syncthing >=v2.1.3. Source history and licensing details are
+recorded in [Syncshell Web provenance][webui-provenance].
 
 ## Manage folders and devices from the panel
 
@@ -306,12 +301,12 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
+| Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
 | 0.1.9   | 2026-09-21 | add remote-device setup and folder-sharing controls     |
 |         |            | confirm directory creation and folder/device removal    |
 |         |            | fix remote counts and keep rescan controls consistent   |
 |         |            | refine dropdowns, status, and installation feedback     |
 |         |            | allow plugin removal while Syncthing is unavailable     |
-| Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
 | 0.1.8   | 2026-09-13 | use one native core for the Omarchy panel               |
 |         |            | support healthy externally managed Syncthing instances  |
 |         |            | add the Preact Web UI and settings migration            |
@@ -341,7 +336,6 @@ omarchy-restart-shell
 ```
 
 Restart the shell after updating; the retained old service may otherwise fail.
-Syncshell does not restart it automatically.
 
 ## Remove
 
