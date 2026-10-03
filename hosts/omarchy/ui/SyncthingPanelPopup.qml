@@ -136,6 +136,12 @@ KeyboardPanel {
         panelFlick.contentY = Math.max(0, Math.min(moreButton.y, panelFlick.contentHeight - panelFlick.height));
     }
 
+    function scrollToBottom() {
+        moreDetails.forceLayout();
+        content.forceLayout();
+        panelFlick.contentY = Math.max(0, panelFlick.contentHeight - panelFlick.height);
+    }
+
     function scrollToTop() {
         panelFlick.contentY = 0;
     }
@@ -398,7 +404,11 @@ KeyboardPanel {
                     if (hovered)
                         root.selectKeyboardAction(moreButton);
                 }
-                onClicked: root.controller.moreOpen = !root.controller.moreOpen
+                onClicked: {
+                    root.controller.moreOpen = !root.controller.moreOpen;
+                    if (root.controller.moreOpen)
+                        Qt.callLater(root.scrollToBottom);
+                }
             }
 
             MoreDetails {

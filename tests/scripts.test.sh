@@ -107,6 +107,7 @@ test_installation_status() {
     bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
   jq -e '
     .state == "existing"
+    and .label == "Existing installation found: executable"
     and .executable != ""
     and (.operationRunning | type) == "boolean"
   ' <<<"$output" >/dev/null \
@@ -124,7 +125,7 @@ test_installation_status() {
   rm -- "$fake_bin/syncthing"
   output=$(HOME="$sandbox/home" XDG_RUNTIME_DIR="$sandbox/runtime" \
     PATH="$fake_bin" bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
-  jq -e '.state == "existing" and .executable == "com.github.zocker_160.SyncThingy (Flatpak)"' \
+  jq -e '.state == "existing" and .label == "Existing installation found: available" and .executable == "com.github.zocker_160.SyncThingy (Flatpak)"' \
     <<<"$output" >/dev/null || fail "SyncThingy-only installation was not detected"
 
   printf '%s\n' '#!/bin/bash' 'exit 1' >"$fake_bin/flatpak"

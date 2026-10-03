@@ -18,6 +18,8 @@ Column {
     required property color success
     property string fontFamily: Style.font.family
     property Item keyboardCursor: null
+    readonly property string executablePath: syncthing ? String(syncthing.executablePath || "") : ""
+    readonly property bool flatpakInstallation: executablePath.endsWith(" (Flatpak)")
     readonly property var problemFolders: {
         var rows = root.controller && root.controller.folderRows ? root.controller.folderRows : [];
         return rows.filter(function (folder) {
@@ -32,7 +34,8 @@ Column {
         if (!syncthing)
             return "Unavailable";
         if (syncthing.installationState === "existing") {
-            return "Existing installation found: <font color=\"" + success + "\">working</font>";
+            var status = flatpakInstallation ? "available" : "executable";
+            return "Existing installation found: <font color=\"" + success + "\">" + status + "</font>";
         }
         if (syncthing.installationState === "incomplete") {
             return "Incomplete installation: <font color=\"" + urgent + "\">non-working</font>";
@@ -146,10 +149,6 @@ Column {
         }
     }
 
-    PanelSeparator {
-        foreground: root.foreground
-    }
-
     RowLayout {
         width: parent.width
         spacing: Style.space(6)
@@ -178,8 +177,24 @@ Column {
             }
         }
 
-        Item {
+        Text {
             Layout.fillWidth: true
+            text: root.executablePath || "—"
+            textFormat: Text.PlainText
+            color: root.foreground
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.bodySmall
+            elide: Text.ElideLeft
+            wrapMode: Text.NoWrap
+
+            HoverHandler {
+                id: executablePathHover
+            }
+            SyncshellToolTip {
+                visible: executablePathHover.hovered && root.executablePath !== ""
+                text: root.executablePath
+                fontFamily: root.fontFamily
+            }
         }
 
         TooltipButton {
@@ -202,14 +217,6 @@ Column {
             }
             onClicked: root.controller.openSyncthingPackageDocumentation()
         }
-    }
-
-    InfoPair {
-        label: "Executable"
-        value: root.syncthing && root.syncthing.executablePath !== "" ? root.syncthing.executablePath : "—"
-        elideMode: Text.ElideLeft
-        foreground: root.foreground
-        fontFamily: root.fontFamily
     }
 
     Text {
