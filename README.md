@@ -46,40 +46,6 @@ planned.
 
 ![Syncthing status and installation controls](preview.png)
 
-## Quick start
-
-- select the switch in the top right to start or stop the user service
-- use **Folders** to select a configured folder, then
-  - select **+** to configure a local directory
-  - use the share icon to choose which devices share it
-  - use the link/unlink icon to pause or resume synchronization
-  - select the folder icon on its card to open the directory
-- use **Devices** to add or select a remote device and manage its shared folders
-- expand **More** for folder errors and installation details
-- select **Web UI** for advanced Syncthing options
-- select the gear or press `s` for appearance settings and clean removal
-
-## Install
-
-```bash
-omarchy plugin add https://github.com/omarchy-QOL/syncshell.git --enable
-```
-
-Open the widget and expand **More**. If Syncthing is missing, select **Install
-Syncthing** to install the package and start the user service. On Omarchy, this
-uses `omarchy pkg add`, the same mechanism that manual package installation
-would normally use. Existing installations are detected automatically.
-
-If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
-synchronization][firewall].
-
-The plugin supports Omarchy on Linux x86_64 and aarch64, including current
-M1/M2 Omarchy Mac releases. Alpha adapters for DankMaterialShell, Illogical
-Impulse, Caelestia, and Waybar are under
-development; they are not officially part of the release yet, but can be tested
-via manual installation on those systems: see the `hosts/...` in the source.
-Daemon mode remains future work.
-
 ## Demo videos
 
 These four walkthroughs cover live file activity, folder management, Web UI
@@ -153,6 +119,39 @@ theming, and plugin settings.
     </td>
   </tr>
 </table>
+
+## Quick start
+
+- select the switch in the top right to start or stop the user service
+- use **Folders** to select a configured folder, then
+  - select **+** to configure a local directory
+  - use the share icon to choose which devices share it
+  - use the link/unlink icon to pause or resume synchronization
+  - select the folder icon on its card to open the directory
+- use **Devices** to add or select a remote device and manage its shared folders
+- expand **More** for folder errors and installation details
+- select **Web UI** for advanced Syncthing options
+- select the gear or press `s` for appearance settings and clean removal
+
+## Install
+
+```bash
+omarchy plugin add https://github.com/omarchy-QOL/syncshell.git --enable
+```
+
+Open the widget and expand **More**. If Syncthing is missing, select **Install
+Syncthing** to install the package and start the user service. On Omarchy, this
+uses `omarchy pkg add`, the same mechanism that manual package installation
+would normally use. Existing installations are detected automatically.
+
+If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
+synchronization][firewall].
+
+The plugin supports Omarchy on Linux x86_64 and aarch64, including current M1/M2
+Omarchy Mac releases. Alpha adapters for DankMaterialShell, Illogical Impulse,
+Caelestia, and Waybar are under development; they are not officially part of the
+release yet, but can be tested via manual installation on those systems: see the
+`hosts/...` in the source. Daemon mode remains future work.
 
 ### File activity
 
