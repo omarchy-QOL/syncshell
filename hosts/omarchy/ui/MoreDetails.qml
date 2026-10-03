@@ -259,6 +259,7 @@ Column {
         id: installButton
         visible: root.syncthing && root.syncthing.canInstall
         text: "Install Syncthing"
+        tooltipText: "Exact command run: omarchy pkg add syncthing"
         bordered: true
         foreground: root.foreground
         fontFamily: root.fontFamily
