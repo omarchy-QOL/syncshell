@@ -23,7 +23,6 @@ SyncshellDropdown {
             resultCount: root.matchingOptions.length
             totalCount: root.controller.folderRows.length
             foreground: root.foreground
-            urgent: root.controller.urgent
             fontFamily: root.fontFamily
             onClosed: root.focusResults()
         }
