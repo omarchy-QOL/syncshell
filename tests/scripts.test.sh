@@ -195,16 +195,17 @@ test_modern_bundle() {
 }
 
 test_themes() {
-  local theme colors version
+  local theme colors version mode
   local themes_root="${OMARCHY_PATH:-/usr/share/omarchy}/themes"
   if [[ -d $themes_root ]]; then
     while IFS= read -r colors; do
       theme=$(basename -- "$(dirname -- "$colors")")
       bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
         "$test_root/themes/$theme" "$colors" >/dev/null
-      grep -Fxq '@import "syncshell_base.css";' \
+      mode=$(omarchy-theme-color --file "$colors" mode)
+      grep -Fxq "@import \"syncshell-$mode.css\";" \
         "$test_root/themes/$theme/syncthing-omarchy/assets/css/theme.css" \
-        || fail "$theme did not inherit the bundled base theme"
+        || fail "$theme did not select its native base theme"
       ! grep -q '{{' "$test_root/themes/$theme/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
         || fail "$theme left unresolved palette values"
     done < <(find "$themes_root" -mindepth 2 -maxdepth 2 \
@@ -227,9 +228,9 @@ test_themes() {
     >"$user_theme"
   bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
     "$test_root/themes/user" "$user_theme" >/dev/null
-  grep -Fxq '@import "syncshell_base.css";' \
+  grep -Fxq '@import "syncshell-dark.css";' \
     "$test_root/themes/user/syncthing-omarchy/assets/css/theme.css" \
-    || fail "user theme did not inherit the bundled base theme"
+    || fail "user theme did not select its dark base theme"
   ! grep -q '{{' "$user_palette" \
     || fail "user theme left unresolved palette values"
   for color in '#120f18' '#e8dff2' '#ff7ab2' '#ff5370' '#c3e88d' \
@@ -253,9 +254,8 @@ test_themes() {
   cmp -s -- "$root/webui/integration/omarchy-theme-refresh.js" \
     "$user_root/assets/js/omarchy_theme_refresh.js" \
     || fail "generated theme refresh helper differs from its source"
-  cmp -s -- "$test_root/modern/gui/syncshell-modern/assets/css/theme.css" \
-    "$user_root/assets/css/syncshell_base.css" \
-    || fail "Omarchy base differs from bundled modern CSS"
+  [[ ! -e $user_root/assets/css/syncshell_base.css ]] \
+    || fail "Omarchy retained a browser-dependent base wrapper"
   local dependency
   while IFS= read -r -d '' dependency; do
     local relative=${dependency#"$root/webui/gui/syncshell-modern/"}
@@ -272,6 +272,22 @@ test_themes() {
   [[ $(<"$user_root/theme-version.txt") != "$version" ]] \
     || fail "palette refresh did not advance its generation"
 
+  printf '\nmode = "light"\n' >>"$user_theme"
+  bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
+    "$test_root/themes/user" "$user_theme" >/dev/null
+  grep -Fxq '@import "syncshell-light.css";' "$user_root/assets/css/theme.css" \
+    || fail "palette refresh did not switch to the light base theme"
+  ! grep -q 'syncshell-dark.css\|prefers-color-scheme' "$user_root/assets/css/theme.css" \
+    || fail "light palette still depends on dark browser styles"
+
+  version=$(<"$user_root/theme-version.txt")
+  printf '\nmode = "invalid"\n' >>"$user_theme"
+  if bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
+      "$test_root/themes/user" "$user_theme" >/dev/null 2>&1; then
+    fail "invalid palette mode was accepted"
+  fi
+  [[ $(<"$user_root/theme-version.txt") == "$version" ]] \
+    || fail "invalid palette mode changed the active generation"
 }
 
 install_fake_plugin() {
