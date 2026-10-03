@@ -556,7 +556,7 @@ KeyboardPanel {
                 horizontalPadding: Style.space(5)
                 verticalPadding: Style.space(4)
                 busy: refreshRequested || root.refreshFeedbackTimer.running
-                canActivate: root.controller.syncthing && root.controller.syncthing.canRefresh && !root.refreshFeedbackTimer.running
+                canActivate: root.controller.syncthing && root.controller.syncthing.online && root.controller.syncthing.canRefresh && !root.refreshFeedbackTimer.running
                 hasCursor: root.cursorActive && root.cursorAction === refreshStatusButton
                 onHovered: function (hovered) {
                     if (hovered)
