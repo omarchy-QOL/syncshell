@@ -19,12 +19,12 @@
   <a href="https://omarchy.org">
     <img
       alt="Omarchy plugin"
-      src="https://img.shields.io/badge/Omarchy-plugin-b48ead?style=flat-square&amp;logo=archlinux&amp;logoColor=white&amp;labelColor=2e3440"
+      src="https://img.shields.io/badge/Omarchy-plugin-9ece6a?style=flat-square&amp;logo=archlinux&amp;logoColor=white&amp;labelColor=2e3440"
     ></a>
   <a href="https://github.com/syncthing/syncthing/releases/tag/v2.1.3">
     <img
-      alt="Tested with Syncthing v2.1.3"
-      src="https://img.shields.io/badge/tested%20Syncthing-v2.1.3-26b6db?style=flat-square&amp;logo=syncthing&amp;logoColor=white&amp;labelColor=2e3440"
+      alt="Tested with Syncthing ≥ v2.1.3"
+      src="https://img.shields.io/badge/tested%20Syncthing-%E2%89%A5%20v2.1.3-26b6db?style=flat-square&amp;logo=syncthing&amp;logoColor=white&amp;labelColor=2e3440"
     ></a>
   <a href="LICENSE">
     <img
@@ -46,9 +46,10 @@ These four walkthroughs cover live file activity, folder management, Web UI
 theming, and plugin settings.
 
 <!-- prettier-ignore -->
-> [!WARNING]
-> The Hyprland window to the left of the plugin is not part of the plugin. It
-> live-tracks changes in the `test-source` directory for the demonstration.
+> [!NOTE]
+> In the first two videos, the Hyprland window to the left of the plugin is not
+> part of the plugin. It live-tracks changes in the `test-source` directory for
+> illustration.
 
 <table>
   <tr>
