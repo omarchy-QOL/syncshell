@@ -13,7 +13,9 @@ git -C "$work/ii" checkout -q --detach FETCH_HEAD
 bash "$root/integrations/illogical-impulse/apply.sh" "$work/ii"
 config="$work/ii/dots/.config/quickshell/ii"
 git -C "$work/ii" diff --check
+test -x "$config/syncshell/bin/syncshell-core"
 test -x "$config/syncshell/bin/x86_64/syncshell-core"
+test -x "$config/syncshell/bin/aarch64/syncshell-core"
 test -f "$config/syncshell/shared/DeviceWorkflow.qml"
 test -f "$config/syncshell/shared/RescanTracker.qml"
 rg -q 'SyncshellIndicator' "$config/modules/ii/bar/BarContent.qml"

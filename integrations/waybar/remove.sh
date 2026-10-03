@@ -18,7 +18,9 @@ systemctl --user daemon-reload
 pkill -SIGUSR2 -x waybar 2>/dev/null || true
 
 for path in \
+    "$install_root/bin/syncshell-core" \
     "$install_root/bin/x86_64/syncshell-core" \
+    "$install_root/bin/aarch64/syncshell-core" \
     "$install_root/shared/CoreProcess.qml" \
     "$install_root/shared/AdapterService.qml" \
     "$install_root/shared/DeviceWorkflow.qml" \
@@ -32,6 +34,7 @@ for path in \
     "$waybar_root/syncshell.css"; do
   [[ ! -e $path ]] || unlink "$path"
 done
-rmdir "$install_root/bin/x86_64" "$install_root/bin" \
+rmdir "$install_root/bin/x86_64" "$install_root/bin/aarch64" \
+  "$install_root/bin" \
   "$install_root/shared" "$install_root" 2>/dev/null || true
 printf '[ok] removed Syncshell Waybar adapter and kept Syncthing data\n'

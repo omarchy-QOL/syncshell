@@ -9,7 +9,9 @@ bash "$root/integrations/dankmaterialshell/assemble.sh" "$work/Syncshell"
 jq -e --arg version "$(jq -er .version "$root/manifest.json")" \
   '.version == $version and .requires_dms == ">=1.5.3"' \
   "$work/Syncshell/plugin.json" >/dev/null
+test -x "$work/Syncshell/bin/syncshell-core"
 test -x "$work/Syncshell/bin/x86_64/syncshell-core"
+test -x "$work/Syncshell/bin/aarch64/syncshell-core"
 test -f "$work/Syncshell/shared/AdapterService.qml"
 test -f "$work/Syncshell/shared/DeviceWorkflow.qml"
 test -f "$work/Syncshell/shared/RescanTracker.qml"

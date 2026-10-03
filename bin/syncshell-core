@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+platform="$(/usr/bin/uname -s):$(/usr/bin/uname -m)"
+
+case $platform in
+  Linux:x86_64) target="$root/x86_64/syncshell-core" ;;
+  Linux:aarch64|Linux:arm64) target="$root/aarch64/syncshell-core" ;;
+  *)
+    printf 'Unsupported Syncshell core platform: %s\n' "$platform" >&2
+    exit 126
+    ;;
+esac
+
+[[ -f $target && -x $target ]] || {
+  printf 'Bundled Syncshell core is unavailable for %s\n' "$platform" >&2
+  exit 126
+}
+
+exec "$target" "$@"

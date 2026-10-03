@@ -12,7 +12,9 @@ git -C "$work/caelestia" fetch -q --depth=1 origin "$commit"
 git -C "$work/caelestia" checkout -q --detach FETCH_HEAD
 bash "$root/integrations/caelestia/apply.sh" "$work/caelestia"
 git -C "$work/caelestia" diff --check
+test -x "$work/caelestia/syncshell/bin/syncshell-core"
 test -x "$work/caelestia/syncshell/bin/x86_64/syncshell-core"
+test -x "$work/caelestia/syncshell/bin/aarch64/syncshell-core"
 test -f "$work/caelestia/syncshell/shared/DeviceWorkflow.qml"
 test -f "$work/caelestia/syncshell/shared/RescanTracker.qml"
 rg -q 'SyncshellStatus' \

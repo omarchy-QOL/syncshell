@@ -73,11 +73,12 @@ would normally use. Existing installations are detected automatically.
 If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
 synchronization][firewall].
 
-The released plugin supports Omarchy on Linux x86_64. Alpha adapters for
-DankMaterialShell, Illogical Impulse, Caelestia, and Waybar are under
+The plugin supports Omarchy on Linux x86_64 and aarch64, including current
+M1/M2 Omarchy Mac releases. Alpha adapters for DankMaterialShell, Illogical
+Impulse, Caelestia, and Waybar are under
 development; they are not officially part of the release yet, but can be tested
-via manual installation on those systems: see the `hosts/...` in the source. ARM
-and daemon mode remain future work.
+via manual installation on those systems: see the `hosts/...` in the source.
+Daemon mode remains future work.
 
 ## Demo videos
 

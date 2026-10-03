@@ -8,8 +8,8 @@ mkdir -p -- "$test_root/home" "$test_root/config" "$test_root/state" "$test_root
 export HOME=$test_root/home XDG_CONFIG_HOME=$test_root/config
 export XDG_STATE_HOME=$test_root/state XDG_RUNTIME_DIR=$test_root/runtime
 export TEST_SANDBOX=$test_root
-cp "$root/tests/core-process-mock.sh" "$test_root/bin/x86_64/syncshell-core"
-chmod 755 "$test_root/bin/x86_64/syncshell-core"
+cp "$root/tests/core-process-mock.sh" "$test_root/bin/syncshell-core"
+chmod 755 "$test_root/bin/syncshell-core"
 
 # Only the staged helper can run; no native plugin removal is performed.
 cat >"$test_root/hosts/omarchy/scripts/syncthing-remove.sh" <<'MOCK'

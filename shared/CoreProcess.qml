@@ -6,8 +6,7 @@ QtObject {
     id: root
 
     property var startupArguments: []
-    property string architecture: ""
-    readonly property string corePath: Paths.localFilePath(Qt.resolvedUrl("../bin/x86_64/syncshell-core"))
+    readonly property string corePath: Paths.localFilePath(Qt.resolvedUrl("../bin/syncshell-core"))
     property bool executableReady: false
     property bool starting: true
     property bool desiredRunning: true
@@ -29,7 +28,6 @@ QtObject {
     property var _pending: ({})
     property bool _expectedStop: false
     property bool _restartRequested: false
-    property string _architectureOutput: ""
     property string _executableOutput: ""
 
     signal resultReceived(string id, bool ok, var data, var error)
@@ -255,7 +253,7 @@ QtObject {
         executableProcess.running = true;
     }
 
-    Component.onCompleted: architectureProcess.running = true
+    Component.onCompleted: inspectExecutable()
 
     Component.onDestruction: {
         _expectedStop = true;
@@ -297,26 +295,6 @@ QtObject {
 
         onExited: function (exitCode) {
             root.handleExit(exitCode);
-        }
-    }
-
-    property Process architectureProcess: Process {
-        command: ["/usr/bin/uname", "-m"]
-
-        stdout: StdioCollector {
-            waitForEnd: true
-            onStreamFinished: root._architectureOutput = text
-        }
-
-        onExited: function (exitCode) {
-            root.architecture = String(root._architectureOutput || "").trim();
-            if (exitCode !== 0 || root.architecture !== "x86_64") {
-                root.starting = false;
-                root.unavailable = true;
-                root.lastError = root.architecture ? "unsupported architecture: " + root.architecture : "could not determine system architecture";
-                return;
-            }
-            root.inspectExecutable();
         }
     }
 

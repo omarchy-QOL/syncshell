@@ -7,8 +7,8 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/qml-test-helper.sh"
 stage_omarchy_test refresh-recovery shared hosts/omarchy
 mkdir -p -- "$test_root/config/omarchy/ilyazar.syncthing" "$test_root/state"
 cp -- "$root/tests/refresh-recovery-core-mock.sh" \
-  "$test_root/bin/x86_64/syncshell-core"
-chmod 755 -- "$test_root/bin/x86_64/syncshell-core"
+  "$test_root/bin/syncshell-core"
+chmod 755 -- "$test_root/bin/syncshell-core"
 sed 's/web_ui_theme = "omarchy"/web_ui_theme = "default"/' \
   "$root/hosts/omarchy/config/settings.toml" \
   >"$test_root/config/omarchy/ilyazar.syncthing/settings.toml"
