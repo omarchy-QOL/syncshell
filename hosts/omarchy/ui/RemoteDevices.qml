@@ -183,9 +183,6 @@ Column {
             }
             onChanged: function (value) {
                 root.selectedDeviceId = value;
-                deviceSelector.value = Qt.binding(function () {
-                    return root.selectedDeviceId;
-                });
             }
         }
 
@@ -381,9 +378,6 @@ Column {
                 }
                 onChanged: function (value) {
                     root.selectedPendingId = value;
-                    pendingSelector.value = Qt.binding(function () {
-                        return root.selectedPendingId;
-                    });
                 }
             }
 

@@ -30,9 +30,6 @@ SyncshellDropdown {
     }
     onChanged: function (value) {
         controller.currentFolderId = value;
-        root.value = Qt.binding(function () {
-            return controller.currentFolderId;
-        });
     }
     onVisibleChanged: if (!visible)
         close()

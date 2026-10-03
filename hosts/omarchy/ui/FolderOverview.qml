@@ -273,9 +273,6 @@ Column {
                 }
                 onChanged: function (value) {
                     root.controller.selectedPendingOffer = value;
-                    pendingOfferSelector.value = Qt.binding(function () {
-                        return root.controller.selectedPendingOffer;
-                    });
                 }
             }
 

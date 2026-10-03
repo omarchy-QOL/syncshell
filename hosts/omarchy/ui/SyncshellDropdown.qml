@@ -12,7 +12,8 @@ import qs.Ui
 //
 // `options` accepts either a plain string[] or an array of
 // { value, label, trailingText } objects (label is what we render; value is
-// what we emit). Mixing is fine — each row is interpreted independently.
+// what we emit). The caller owns `value` and updates it from `changed(value)`.
+// Mixing is fine — each row is interpreted independently.
 //
 // Keyboard: Tab to focus the trigger, Enter/Space opens, Esc closes,
 // j/k or Up/Down walks options inside the open popup, Enter selects.
@@ -407,7 +408,6 @@ Item {
                             if (currentIndex < 0 || currentIndex >= root.matchingOptions.length)
                                 return;
                             var v = root.optionValue(root.matchingOptions[currentIndex]);
-                            root.value = v;
                             root.changed(v);
                             popup.close();
                         }
