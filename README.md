@@ -357,7 +357,7 @@ to Syncthing's configuration. File actions use your existing permissions.
 
 Plugin code is MIT licensed. The Web UI and adapted icons retain Syncthing's
 MPL-2.0 attribution and vendor licenses; see [Web UI
-provenance][webui-provenance] and [icon sources](assets/README.md). The Go
+provenance][webui-provenance] and [icon sources](assets/LICENSE.md). The Go
 runtime and system-call dependency use the
 [BSD license](packaging/bundled/LICENSE.golang).
 
