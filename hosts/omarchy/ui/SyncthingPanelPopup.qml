@@ -136,13 +136,19 @@ KeyboardPanel {
         panelFlick.contentY = Math.max(0, Math.min(moreButton.y, panelFlick.contentHeight - panelFlick.height));
     }
 
+    function scrollToBottom() {
+        moreDetails.forceLayout();
+        content.forceLayout();
+        panelFlick.contentY = Math.max(0, panelFlick.contentHeight - panelFlick.height);
+    }
+
     function scrollToTop() {
         panelFlick.contentY = 0;
     }
 
     focusTarget: keyCatcher
     contentWidth: fittedContentWidth(Style.space(400))
-    contentHeight: root.controller.settingsMigrationOpen ? fittedContentHeight(Style.space(520), Style.space(560)) : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12), Style.space(root.controller.moreOpen && root.controller.hasProblems ? 760 : 560))
+    contentHeight: root.controller.settingsMigrationOpen ? fittedContentHeight(Style.space(520), Style.space(560)) : fittedContentHeight(content.implicitHeight + fixedActions.height + shortcutHint.implicitHeight + Style.space(fixedActions.visible ? 24 : 12), root.controller.moreOpen ? (root.controller.hasProblems ? Style.space(760) : 0) : Style.space(560))
 
     PanelKeyCatcher {
         id: keyCatcher
@@ -398,7 +404,11 @@ KeyboardPanel {
                     if (hovered)
                         root.selectKeyboardAction(moreButton);
                 }
-                onClicked: root.controller.moreOpen = !root.controller.moreOpen
+                onClicked: {
+                    root.controller.moreOpen = !root.controller.moreOpen;
+                    if (root.controller.moreOpen)
+                        Qt.callLater(root.scrollToBottom);
+                }
             }
 
             MoreDetails {
@@ -546,7 +556,7 @@ KeyboardPanel {
                 horizontalPadding: Style.space(5)
                 verticalPadding: Style.space(4)
                 busy: refreshRequested || root.refreshFeedbackTimer.running
-                canActivate: root.controller.syncthing && root.controller.syncthing.canRefresh && !root.refreshFeedbackTimer.running
+                canActivate: root.controller.syncthing && root.controller.syncthing.online && root.controller.syncthing.canRefresh && !root.refreshFeedbackTimer.running
                 hasCursor: root.cursorActive && root.cursorAction === refreshStatusButton
                 onHovered: function (hovered) {
                     if (hovered)

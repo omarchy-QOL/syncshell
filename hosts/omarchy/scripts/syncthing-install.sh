@@ -38,14 +38,15 @@ detect_status() {
   if [[ -n $executable ]]; then
     executable_path="$(readlink -f -- "$executable" 2>/dev/null || true)"
     [[ -n $executable_path ]] || executable_path="$executable"
+    label="Existing installation found: executable"
   elif command -v flatpak >/dev/null 2>&1 &&
       timeout 3s flatpak info "$flatpak_id" >/dev/null 2>&1; then
     executable_path="$flatpak_id (Flatpak)"
+    label="Existing installation found: available"
   fi
 
   if [[ -n $executable_path ]]; then
     state="existing"
-    label="Existing installation found: working"
   elif [[ -e $bin_link || -L $bin_link || -e $service_file ||
           -L $service_file ]]; then
     state="incomplete"

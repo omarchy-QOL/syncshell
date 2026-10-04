@@ -8,7 +8,7 @@ import qs.Ui
 // Searchable multi-select for static Syncshell options.
 //
 // `values` is the current selection — always an array of strings.
-// Emits `changed(values)` whenever the selection mutates.
+// The caller owns it and updates it from `changed(values)`.
 Item {
     id: root
 
@@ -114,7 +114,6 @@ Item {
             arr.push(v);
         else
             arr.splice(idx, 1);
-        root.values = arr;
         root.changed(arr);
     }
 

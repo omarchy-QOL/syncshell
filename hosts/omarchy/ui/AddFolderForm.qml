@@ -76,6 +76,7 @@ Item {
             foreground: root.foreground
             fontFamily: root.fontFamily
             onChanged: function (value) {
+                pendingFolderPicker.value = value;
                 root.controller.applyPendingFolder(value);
             }
         }
@@ -205,6 +206,9 @@ Item {
             placeholderText: "Find a device..."
             foreground: root.foreground
             fontFamily: root.fontFamily
+            onChanged: function (values) {
+                devicePicker.values = values;
+            }
         }
 
         Text {

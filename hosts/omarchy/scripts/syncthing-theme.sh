@@ -40,10 +40,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-base_stylesheet() {
-  cat -- "$bundle_root/gui/syncshell-modern/assets/css/theme.css"
-}
-
 output_root=$theme_root
 if [[ ! -f $theme_root/.syncshell-bundle
     || $(<"$theme_root/.syncshell-bundle") != "$revision" ]]; then
@@ -77,7 +73,7 @@ if [[ $style == omarchy ]]; then
   done < <("${color_command[@]}")
 
   required=(
-    background foreground accent muted selection
+    mode background foreground accent muted selection
     lighter_background darker_background dark_foreground light_foreground
     red yellow green cyan blue magenta orange
   )
@@ -87,6 +83,14 @@ if [[ $style == omarchy ]]; then
       exit 1
     }
   done
+
+  case ${colors[mode]} in
+    dark|light) ;;
+    *)
+      printf 'Invalid Omarchy theme mode\n' >&2
+      exit 1
+      ;;
+  esac
 
   theme_dir="$output_root/assets/css"
   js_dir="$output_root/assets/js"
@@ -102,11 +106,17 @@ if [[ $style == omarchy ]]; then
 
   printf '%s\n' \
     "/* omarchy-generation: $generation */" \
-    '@import "syncshell_base.css";' \
+    "@import \"syncshell-${colors[mode]}.css\";" \
     "@import \"omarchy_syncthing_theme.css?v=$generation\";" \
     >"$wrapper_tmp"
 
+  palette_source=$(realpath -- "${colors_file:-$HOME/.local/state/omarchy/current/theme/colors.toml}")
+  palette=$(basename -- "$(dirname -- "$palette_source")")
+  palette=$(printf '%s' "$palette" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cs 'a-z0-9_-' '-')
+
   sed \
+    -e "s/{{palette}}/$palette/g" \
+    -e "s/{{mode}}/${colors[mode]}/g" \
     -e "s/{{background}}/${colors[background]}/g" \
     -e "s/{{foreground}}/${colors[foreground]}/g" \
     -e "s/{{accent}}/${colors[accent]}/g" \
@@ -136,7 +146,6 @@ if [[ $style == omarchy ]]; then
     -e "s#</head>#  <script defer src=\"assets/js/omarchy_theme_refresh.js\" data-theme-version=\"$generation\"></script>\n</head>#" \
     "$bundle_root/gui/syncshell-modern/index.html" >"$index_tmp"
   cp -- "$bundle_root/integration/omarchy-theme-refresh.js" "$refresh_tmp"
-  base_stylesheet >"$theme_dir/syncshell_base.css"
   printf '%s\n' "$generation" >"$version_tmp"
   chmod 644 -- "${temporary_files[@]}"
   mv -- "$palette_tmp" "$theme_dir/omarchy_syncthing_theme.css"

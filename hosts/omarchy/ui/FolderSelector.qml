@@ -23,16 +23,12 @@ SyncshellDropdown {
             resultCount: root.matchingOptions.length
             totalCount: root.controller.folderRows.length
             foreground: root.foreground
-            urgent: root.controller.urgent
             fontFamily: root.fontFamily
             onClosed: root.focusResults()
         }
     }
     onChanged: function (value) {
         controller.currentFolderId = value;
-        root.value = Qt.binding(function () {
-            return controller.currentFolderId;
-        });
     }
     onVisibleChanged: if (!visible)
         close()

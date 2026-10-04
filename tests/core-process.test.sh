@@ -4,12 +4,11 @@ set -euo pipefail
 # shellcheck source=qml-test-helper.sh
 source "$(dirname -- "${BASH_SOURCE[0]}")/qml-test-helper.sh"
 stage_qml_test core-process shared
-cp -- "$root/tests/core-process-mock.sh" \
-  "$test_root/bin/x86_64/syncshell-core"
-chmod 755 -- "$test_root/bin/x86_64/syncshell-core"
+cp -- "$root/tests/core-process-mock.sh" "$test_root/bin/syncshell-core"
+chmod 755 -- "$test_root/bin/syncshell-core"
 
 timeout 15s quickshell --no-color -p "$test_root/shell.qml"
-if pgrep -f "$test_root/bin/x86_64/syncshell-core" >/dev/null; then
+if pgrep -f "$test_root/bin/syncshell-core" >/dev/null; then
   printf '%s\n' 'core process fixture was orphaned' >&2
   exit 1
 fi

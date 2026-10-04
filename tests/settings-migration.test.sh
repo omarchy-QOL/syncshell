@@ -19,7 +19,7 @@ set -euo pipefail
 printf '%s\n' "$3" "$4" >"$TEST_SANDBOX/editor-args"
 ln -s "$4" "$TEST_REFERENCE"
 MOCK
-cat >"$test_root/bin/x86_64/syncshell-core" <<'MOCK'
+cat >"$test_root/bin/syncshell-core" <<'MOCK'
 #!/bin/bash
 set -euo pipefail
 printf '%s\n' \
@@ -31,7 +31,7 @@ while IFS= read -r line; do
   printf '{"v":2,"type":"result","id":"%s","ok":true}\n' "$id"
 done
 MOCK
-chmod 755 "$test_root/bin/omarchy" "$test_root/bin/x86_64/syncshell-core"
+chmod 755 "$test_root/bin/omarchy" "$test_root/bin/syncshell-core"
 sed -e 's/version = 2/version = 1/' -e 's/"branded"/"themed"/' \
   -e 's/"omarchy"/"default"/' -e 's/"enabled"/"disabled"/' \
   -e 's/seconds = 15/seconds = 27/' "$template" >"$test_root/original.toml"

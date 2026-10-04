@@ -19,14 +19,18 @@ config_root="$target/dots/.config/quickshell/ii"
 patch --dry-run --silent -d "$target" -p1 <"$integration_root/overlay.patch"
 patch --silent -d "$target" -p1 <"$integration_root/overlay.patch"
 install -d -- "$config_root/syncshell/shared" \
-  "$config_root/syncshell/bin/x86_64"
+  "$config_root/syncshell/bin/x86_64" "$config_root/syncshell/bin/aarch64"
 install -m 0644 -- "$repo_root/shared/CoreProcess.qml" \
   "$repo_root/shared/AdapterService.qml" \
   "$repo_root/shared/DeviceWorkflow.qml" \
   "$repo_root/shared/RescanTracker.qml" \
   "$repo_root/shared/Paths.js" "$config_root/syncshell/shared/"
+install -m 0755 -- "$repo_root/bin/syncshell-core" \
+  "$config_root/syncshell/bin/syncshell-core"
 install -m 0755 -- "$repo_root/bin/x86_64/syncshell-core" \
   "$config_root/syncshell/bin/x86_64/syncshell-core"
+install -m 0755 -- "$repo_root/bin/aarch64/syncshell-core" \
+  "$config_root/syncshell/bin/aarch64/syncshell-core"
 install -m 0644 -- "$integration_root/files/SyncshellService.qml.in" \
   "$config_root/services/Syncshell.qml"
 install -m 0644 -- "$integration_root/files/SyncshellIndicator.qml.in" \

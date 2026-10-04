@@ -72,7 +72,7 @@ BorderSurface {
             variant: "panel"
             size: editDeviceButton.implicitHeight
             value: String(root.device.id || "")
-            notice: "Device ID copied"
+            notice: "Remote device ID copied"
             helpText: "Copy device ID"
             controller: root.controller
             foreground: root.foreground

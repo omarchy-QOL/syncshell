@@ -29,7 +29,7 @@ try {
         const palette = process.env.SYNCSHELL_TEST_PALETTE;
         await writeFile(palette, (await readFile(palette, 'utf8')).replace('#120f18', '#203040'));
         execFileSync('bash', [resolve('hosts/omarchy/scripts/syncthing-theme.sh'),
-            'prepare', 'omarchy', runtime + '/gui'], {stdio: 'pipe'});
+            'prepare', 'omarchy', runtime + '/gui', palette], {stdio: 'pipe'});
         await expect.poll(() => page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor),
             {timeout: 10000}).toBe('rgb(32, 48, 64)');
         expect(await page.evaluate(() => window.themeAcceptance)).toBe('retained');

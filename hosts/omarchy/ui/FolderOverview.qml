@@ -78,9 +78,14 @@ Column {
             }
         }
 
-        Item {
+        Text {
             visible: !folderSelector.visible
             Layout.fillWidth: true
+            text: root.syncthing && root.syncthing.online ? "No folders configured." : "Folder status is unavailable."
+            textFormat: Text.PlainText
+            color: root.dim
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.bodySmall
         }
 
         SquareActionButton {
@@ -185,17 +190,6 @@ Column {
         }
     }
 
-    Text {
-        visible: root.controller.folderRows.length === 0
-        width: parent.width
-        text: root.syncthing && root.syncthing.online ? "No folders configured." : "Folder status is unavailable."
-        textFormat: Text.PlainText
-        color: root.dim
-        font.family: root.fontFamily
-        font.pixelSize: Style.font.body
-        horizontalAlignment: Text.AlignHCenter
-    }
-
     Column {
         width: parent.width
         spacing: Style.space(6)
@@ -273,9 +267,6 @@ Column {
                 }
                 onChanged: function (value) {
                     root.controller.selectedPendingOffer = value;
-                    pendingOfferSelector.value = Qt.binding(function () {
-                        return root.controller.selectedPendingOffer;
-                    });
                 }
             }
 

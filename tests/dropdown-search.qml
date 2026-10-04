@@ -27,6 +27,9 @@ ShellRoot {
             searchable: true
             value: "docs"
             options: ["workflow", "work-notes", "docs", "project-k"]
+            onChanged: function (value) {
+                dropdown.value = value;
+            }
             searchHeaderAccessory: Component {
                 Item {
                     property bool popupOpen: false

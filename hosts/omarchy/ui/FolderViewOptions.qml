@@ -15,7 +15,6 @@ Item {
     property color background: Color.popups.background
     property color popupBorder: Color.popups.border
     property color accent: Color.accent
-    property color urgent: Color.urgent
     property string fontFamily: Style.font.family
     readonly property bool popupOpen: popup.opened
     readonly property bool filtersDefault: controller.folderShowReady && controller.folderShowActive && controller.folderShowErrors && controller.folderShowPaused && controller.folderShowUnknown
@@ -248,6 +247,11 @@ Item {
             color: Color.muted
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
+
+            TapHandler {
+                enabled: root.popupOpen
+                onTapped: root.close()
+            }
         }
     }
 
@@ -297,17 +301,9 @@ Item {
                 event.accepted = true;
             }
 
-            InlineFormHeader {
-                width: parent.width
-                title: "VIEW OPTIONS"
-                foreground: root.foreground
-                cancelColor: root.urgent
-                fontFamily: root.fontFamily
-                onCanceled: popup.close()
-            }
-
             PanelSectionHeader {
-                text: "SHOW"
+                width: parent.width
+                text: "VIEW OPTIONS"
                 foreground: root.foreground
                 fontFamily: root.fontFamily
             }

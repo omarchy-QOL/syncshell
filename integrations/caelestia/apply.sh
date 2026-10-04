@@ -17,14 +17,19 @@ target=${1:-}
 
 patch --dry-run --silent -d "$target" -p1 <"$integration_root/overlay.patch"
 patch --silent -d "$target" -p1 <"$integration_root/overlay.patch"
-install -d -- "$target/syncshell/shared" "$target/syncshell/bin/x86_64"
+install -d -- "$target/syncshell/shared" \
+  "$target/syncshell/bin/x86_64" "$target/syncshell/bin/aarch64"
 install -m 0644 -- "$repo_root/shared/CoreProcess.qml" \
   "$repo_root/shared/AdapterService.qml" \
   "$repo_root/shared/DeviceWorkflow.qml" \
   "$repo_root/shared/RescanTracker.qml" \
   "$repo_root/shared/Paths.js" "$target/syncshell/shared/"
+install -m 0755 -- "$repo_root/bin/syncshell-core" \
+  "$target/syncshell/bin/syncshell-core"
 install -m 0755 -- "$repo_root/bin/x86_64/syncshell-core" \
   "$target/syncshell/bin/x86_64/syncshell-core"
+install -m 0755 -- "$repo_root/bin/aarch64/syncshell-core" \
+  "$target/syncshell/bin/aarch64/syncshell-core"
 install -m 0644 -- "$integration_root/files/SyncshellService.qml.in" \
   "$target/services/Syncshell.qml"
 install -m 0644 -- "$integration_root/files/SyncshellStatus.qml.in" \

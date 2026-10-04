@@ -6,7 +6,9 @@ work=$(mktemp -d)
 trap 'find "$work" -depth -delete' EXIT
 
 bash "$root/integrations/waybar/assemble.sh" "$work/bundle"
+test -x "$work/bundle/bin/syncshell-core"
 test -x "$work/bundle/bin/x86_64/syncshell-core"
+test -x "$work/bundle/bin/aarch64/syncshell-core"
 test -x "$work/bundle/status.sh"
 test -f "$work/bundle/shared/DeviceWorkflow.qml"
 test -f "$work/bundle/shared/RescanTracker.qml"

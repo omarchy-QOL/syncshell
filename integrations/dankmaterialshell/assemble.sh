@@ -15,7 +15,7 @@ mkdir -p -- "$target"
   exit 1
 }
 
-install -d -- "$target/shared" "$target/bin/x86_64"
+install -d -- "$target/shared" "$target/bin/x86_64" "$target/bin/aarch64"
 install -m 0644 -- "$integration_root/plugin.json" \
   "$integration_root/SyncshellDaemon.qml" \
   "$integration_root/SyncshellWidget.qml" "$target/"
@@ -24,8 +24,12 @@ install -m 0644 -- "$repo_root/shared/CoreProcess.qml" \
   "$repo_root/shared/DeviceWorkflow.qml" \
   "$repo_root/shared/RescanTracker.qml" \
   "$repo_root/shared/Paths.js" "$target/shared/"
+install -m 0755 -- "$repo_root/bin/syncshell-core" \
+  "$target/bin/syncshell-core"
 install -m 0755 -- "$repo_root/bin/x86_64/syncshell-core" \
   "$target/bin/x86_64/syncshell-core"
+install -m 0755 -- "$repo_root/bin/aarch64/syncshell-core" \
+  "$target/bin/aarch64/syncshell-core"
 (cd -- "$repo_root" && \
   sha256sum --check packaging/bundled/SHA256SUMS >/dev/null)
 printf '[ok] assembled DMS adapter\n'

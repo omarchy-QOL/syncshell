@@ -179,7 +179,6 @@ ShellRoot {
             case 2:
                 root.check(shown.length === 1 && picker.visible && picker.interactive, "two folders use a selector and one card");
                 root.check(picker.options.length === 2, "selector includes both folders");
-                picker.value = "folder-1";
                 picker.changed("folder-1");
                 root.rows = root.folders(3);
                 break;

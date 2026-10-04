@@ -9,8 +9,8 @@ marker="$test_root/installation-ready"
 stage_omarchy_test install-recovery shared hosts/omarchy
 mkdir -p -- "$test_home/.config" "$test_home/.local/state"
 cp -- "$root/tests/install-recovery-core-mock.sh" \
-  "$test_root/bin/x86_64/syncshell-core"
-chmod 755 -- "$test_root/bin/x86_64/syncshell-core"
+  "$test_root/bin/syncshell-core"
+chmod 755 -- "$test_root/bin/syncshell-core"
 
 HOME="$test_home" \
 XDG_CONFIG_HOME="$test_home/.config" \
@@ -18,7 +18,7 @@ XDG_STATE_HOME="$test_home/.local/state" \
 SYNCSHELL_RECOVERY_MARKER="$marker" \
   timeout 15s quickshell --no-color -p "$test_root/shell.qml"
 
-if pgrep -f "$test_root/bin/x86_64/syncshell-core" >/dev/null; then
+if pgrep -f "$test_root/bin/syncshell-core" >/dev/null; then
   printf '%s\n' 'install recovery test orphaned a native core' >&2
   exit 1
 fi

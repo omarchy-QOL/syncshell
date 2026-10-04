@@ -14,15 +14,19 @@ service_root="$HOME/.config/systemd/user"
 
 (cd -- "$source_root" && sha256sum --check SHA256SUMS >/dev/null)
 install -d -- "$install_root/shared" "$install_root/bin/x86_64" \
-  "$waybar_root" "$service_root"
+  "$install_root/bin/aarch64" "$waybar_root" "$service_root"
 install -m 0644 -- "$source_root/manifest.json" "$source_root/shell.qml" \
   "$install_root/"
 install -m 0644 -- "$source_root/shared/CoreProcess.qml" \
   "$source_root/shared/AdapterService.qml" \
   "$source_root/shared/DeviceWorkflow.qml" \
   "$source_root/shared/RescanTracker.qml" "$install_root/shared/"
+install -m 0755 -- "$source_root/bin/syncshell-core" \
+  "$install_root/bin/syncshell-core"
 install -m 0755 -- "$source_root/bin/x86_64/syncshell-core" \
   "$install_root/bin/x86_64/syncshell-core"
+install -m 0755 -- "$source_root/bin/aarch64/syncshell-core" \
+  "$install_root/bin/aarch64/syncshell-core"
 install -m 0755 -- "$source_root/status.sh" \
   "$source_root/waybar-config.py" "$source_root/remove.sh" "$install_root/"
 install -m 0644 -- "$source_root/style.css" "$waybar_root/syncshell.css"

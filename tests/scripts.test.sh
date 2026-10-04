@@ -107,6 +107,7 @@ test_installation_status() {
     bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
   jq -e '
     .state == "existing"
+    and .label == "Existing installation found: executable"
     and .executable != ""
     and (.operationRunning | type) == "boolean"
   ' <<<"$output" >/dev/null \
@@ -124,7 +125,7 @@ test_installation_status() {
   rm -- "$fake_bin/syncthing"
   output=$(HOME="$sandbox/home" XDG_RUNTIME_DIR="$sandbox/runtime" \
     PATH="$fake_bin" bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
-  jq -e '.state == "existing" and .executable == "com.github.zocker_160.SyncThingy (Flatpak)"' \
+  jq -e '.state == "existing" and .label == "Existing installation found: available" and .executable == "com.github.zocker_160.SyncThingy (Flatpak)"' \
     <<<"$output" >/dev/null || fail "SyncThingy-only installation was not detected"
 
   printf '%s\n' '#!/bin/bash' 'exit 1' >"$fake_bin/flatpak"
@@ -195,16 +196,17 @@ test_modern_bundle() {
 }
 
 test_themes() {
-  local theme colors version
+  local theme colors version mode
   local themes_root="${OMARCHY_PATH:-/usr/share/omarchy}/themes"
   if [[ -d $themes_root ]]; then
     while IFS= read -r colors; do
       theme=$(basename -- "$(dirname -- "$colors")")
       bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
         "$test_root/themes/$theme" "$colors" >/dev/null
-      grep -Fxq '@import "syncshell_base.css";' \
+      mode=$(omarchy-theme-color --file "$colors" mode)
+      grep -Fxq "@import \"syncshell-$mode.css\";" \
         "$test_root/themes/$theme/syncthing-omarchy/assets/css/theme.css" \
-        || fail "$theme did not inherit the bundled base theme"
+        || fail "$theme did not select its native base theme"
       ! grep -q '{{' "$test_root/themes/$theme/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
         || fail "$theme left unresolved palette values"
     done < <(find "$themes_root" -mindepth 2 -maxdepth 2 \
@@ -227,9 +229,9 @@ test_themes() {
     >"$user_theme"
   bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
     "$test_root/themes/user" "$user_theme" >/dev/null
-  grep -Fxq '@import "syncshell_base.css";' \
+  grep -Fxq '@import "syncshell-dark.css";' \
     "$test_root/themes/user/syncthing-omarchy/assets/css/theme.css" \
-    || fail "user theme did not inherit the bundled base theme"
+    || fail "user theme did not select its dark base theme"
   ! grep -q '{{' "$user_palette" \
     || fail "user theme left unresolved palette values"
   for color in '#120f18' '#e8dff2' '#ff7ab2' '#ff5370' '#c3e88d' \
@@ -237,6 +239,28 @@ test_themes() {
     grep -Fq "$color" "$user_palette" \
       || fail "user theme omitted palette color $color"
   done
+
+  local identity="$test_root/palette-identity" identity_home identity_helper
+  mkdir -p -- "$identity/hosts/omarchy/scripts"
+  cp -a -- "$root/webui" "$identity/"
+  cp -- "$root/hosts/omarchy/scripts/syncthing-theme.sh" "$identity/hosts/omarchy/scripts/"
+  identity_helper="$identity/hosts/omarchy/scripts/syncthing-theme.sh"
+  printf '\n:root { --identity-check: {{palette}}; }\n' >>"$identity/webui/integration/omarchy-theme.css.in"
+  (cd -- "$identity/webui"; find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum) >"$identity/webui/SHA256SUMS"
+  bash "$identity_helper" prepare omarchy "$identity/gui" "$user_theme" >/dev/null
+  grep -Fq -- '--identity-check: user-theme;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
+    || fail "explicit palette identity was not supplied"
+  identity_home="$identity/home"
+  mkdir -p -- "$identity_home/.local/state/omarchy/current"
+  ln -s -- "$(dirname -- "$user_theme")" "$identity_home/.local/state/omarchy/current/theme"
+  HOME="$identity_home" bash "$identity_helper" prepare omarchy "$identity/gui" >/dev/null
+  grep -Fq -- '--identity-check: user-theme;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
+    || fail "current-theme symlink hid the palette identity"
+  mkdir -p -- "$identity/Odd; Theme"
+  cp -- "$user_theme" "$identity/Odd; Theme/colors.toml"
+  bash "$identity_helper" prepare omarchy "$identity/gui" "$identity/Odd; Theme/colors.toml" >/dev/null
+  grep -Fq -- '--identity-check: odd-theme;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
+    || fail "palette identity was not normalized safely"
 
   local user_root="$test_root/themes/user/syncthing-omarchy"
   version=$(<"$user_root/theme-version.txt")
@@ -253,9 +277,8 @@ test_themes() {
   cmp -s -- "$root/webui/integration/omarchy-theme-refresh.js" \
     "$user_root/assets/js/omarchy_theme_refresh.js" \
     || fail "generated theme refresh helper differs from its source"
-  cmp -s -- "$test_root/modern/gui/syncshell-modern/assets/css/theme.css" \
-    "$user_root/assets/css/syncshell_base.css" \
-    || fail "Omarchy base differs from bundled modern CSS"
+  [[ ! -e $user_root/assets/css/syncshell_base.css ]] \
+    || fail "Omarchy retained a browser-dependent base wrapper"
   local dependency
   while IFS= read -r -d '' dependency; do
     local relative=${dependency#"$root/webui/gui/syncshell-modern/"}
@@ -272,6 +295,22 @@ test_themes() {
   [[ $(<"$user_root/theme-version.txt") != "$version" ]] \
     || fail "palette refresh did not advance its generation"
 
+  printf '\nmode = "light"\n' >>"$user_theme"
+  bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
+    "$test_root/themes/user" "$user_theme" >/dev/null
+  grep -Fxq '@import "syncshell-light.css";' "$user_root/assets/css/theme.css" \
+    || fail "palette refresh did not switch to the light base theme"
+  ! grep -q 'syncshell-dark.css\|prefers-color-scheme' "$user_root/assets/css/theme.css" \
+    || fail "light palette still depends on dark browser styles"
+
+  version=$(<"$user_root/theme-version.txt")
+  printf '\nmode = "invalid"\n' >>"$user_theme"
+  if bash "$root/hosts/omarchy/scripts/syncthing-theme.sh" prepare omarchy \
+      "$test_root/themes/user" "$user_theme" >/dev/null 2>&1; then
+    fail "invalid palette mode was accepted"
+  fi
+  [[ $(<"$user_root/theme-version.txt") == "$version" ]] \
+    || fail "invalid palette mode changed the active generation"
 }
 
 install_fake_plugin() {
