@@ -110,7 +110,12 @@ if [[ $style == omarchy ]]; then
     "@import \"omarchy_syncthing_theme.css?v=$generation\";" \
     >"$wrapper_tmp"
 
+  palette_source=$(realpath -- "${colors_file:-$HOME/.local/state/omarchy/current/theme/colors.toml}")
+  palette=$(basename -- "$(dirname -- "$palette_source")")
+  palette=$(printf '%s' "$palette" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cs 'a-z0-9_-' '-')
+
   sed \
+    -e "s/{{palette}}/$palette/g" \
     -e "s/{{mode}}/${colors[mode]}/g" \
     -e "s/{{background}}/${colors[background]}/g" \
     -e "s/{{foreground}}/${colors[foreground]}/g" \

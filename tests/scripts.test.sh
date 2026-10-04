@@ -240,6 +240,28 @@ test_themes() {
       || fail "user theme omitted palette color $color"
   done
 
+  local identity="$test_root/palette-identity" identity_home identity_helper
+  mkdir -p -- "$identity/hosts/omarchy/scripts"
+  cp -a -- "$root/webui" "$identity/"
+  cp -- "$root/hosts/omarchy/scripts/syncthing-theme.sh" "$identity/hosts/omarchy/scripts/"
+  identity_helper="$identity/hosts/omarchy/scripts/syncthing-theme.sh"
+  printf '\n:root { --identity-check: {{palette}}; }\n' >>"$identity/webui/integration/omarchy-theme.css.in"
+  (cd -- "$identity/webui"; find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum) >"$identity/webui/SHA256SUMS"
+  bash "$identity_helper" prepare omarchy "$identity/gui" "$user_theme" >/dev/null
+  grep -Fq -- '--identity-check: user-theme;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
+    || fail "explicit palette identity was not supplied"
+  identity_home="$identity/home"
+  mkdir -p -- "$identity_home/.local/state/omarchy/current"
+  ln -s -- "$(dirname -- "$user_theme")" "$identity_home/.local/state/omarchy/current/theme"
+  HOME="$identity_home" bash "$identity_helper" prepare omarchy "$identity/gui" >/dev/null
+  grep -Fq -- '--identity-check: user-theme;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
+    || fail "current-theme symlink hid the palette identity"
+  mkdir -p -- "$identity/Odd; Theme"
+  cp -- "$user_theme" "$identity/Odd; Theme/colors.toml"
+  bash "$identity_helper" prepare omarchy "$identity/gui" "$identity/Odd; Theme/colors.toml" >/dev/null
+  grep -Fq -- '--identity-check: odd-theme;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
+    || fail "palette identity was not normalized safely"
+
   local user_root="$test_root/themes/user/syncthing-omarchy"
   version=$(<"$user_root/theme-version.txt")
   [[ $version =~ ^[A-Za-z0-9._-]+$ ]] \

@@ -28,7 +28,7 @@ printf '%s\t%s\n' mode dark background '#120f18' foreground '#e8dff2' accent '#f
   red '#ff5370' yellow '#ffcb6b' green '#c3e88d' cyan '#89ddff' blue '#82aaff' \
   magenta '#c792ea' orange '#ff8800' >"$SYNCSHELL_TEST_PALETTE"
 for style in modern omarchy; do
-  assets=$(bash hosts/omarchy/scripts/syncthing-theme.sh prepare "$style" "$runtime/gui")
+  assets=$(bash hosts/omarchy/scripts/syncthing-theme.sh prepare "$style" "$runtime/gui" "$SYNCSHELL_TEST_PALETTE")
   "$runtime/fixture" -fixture-assets "$assets" -runtime "$runtime/$style" \
     -fixture-port "${SYNCSHELL_TEST_PORT:-18401}" >"$runtime/fixture.log" 2>&1 &
   fixture_pid=$!
