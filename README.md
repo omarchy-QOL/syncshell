@@ -145,11 +145,11 @@ would normally use. Existing installations are detected automatically.
 If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
 synchronization][firewall].
 
-The plugin supports Omarchy on Linux x86_64 and aarch64, including current M1/M2
-Omarchy Mac releases. Alpha adapters for DankMaterialShell, Illogical Impulse,
-Caelestia, and Waybar are under development; they are not officially part of the
-release yet, but can be tested via manual installation on those systems: see the
-`hosts/...` in the source. Daemon mode remains future work.
+The plugin supports Omarchy on Linux x86_64 and aarch64, including Apple Silicon
+M1/M2 Macs running Omarchy. Alpha adapters for DankMaterialShell, Illogical
+Impulse, Caelestia, and Waybar are under development; they are not officially
+part of the release yet, but can be tested via manual installation on those
+systems: see the `hosts/...` in the source. Daemon mode remains future work.
 
 ### File activity
 
@@ -300,6 +300,11 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
 | Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
+| 0.2.0   | 2026-10-05 | improve multi-folder navigation, search, and filtering  |
+|         |            | support Apple Silicon Macs running Omarchy Linux        |
+|         |            | add anchored side forms and keyboard navigation         |
+|         |            | clarify statuses and restore bar hover tooltips         |
+|         |            | refresh the preview and all four demo videos            |
 | 0.1.9   | 2026-09-21 | add remote-device setup and folder-sharing controls     |
 |         |            | confirm directory creation and folder/device removal    |
 |         |            | fix remote counts and keep rescan controls consistent   |

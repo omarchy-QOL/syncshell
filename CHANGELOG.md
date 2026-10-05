@@ -2,6 +2,9 @@
 
 Notable changes to Syncshell for Omarchy are documented here.
 
+## 0.2.0 - 2026-10-05
+
+- bundle a Linux aarch64 core for Apple Silicon Macs running Omarchy
 - keep one or two folders visible as cards and use a stable compact selector for
   larger collections, including paused and unshared folders
 - add direct fuzzy folder search with status dots, result counts, filtering, and
@@ -13,6 +16,8 @@ Notable changes to Syncshell for Omarchy are documented here.
   anchored side cards so the main panel stays in place
 - keep background status refreshes from showing feedback reserved for manual
   refreshes
+- refresh the preview and demo videos for file activity, folder management,
+  themes and icons, and device management
 - restore bar hover tooltips with Omarchy's current plugin API; thanks to
   [@sherajdev](https://github.com/sherajdev) for reporting, diagnosing, and
   verifying the fix in
