@@ -281,21 +281,22 @@ are recorded in [Syncshell Web provenance][webui-provenance]).
 
 ## Manage folders and devices from the panel
 
-- **UNLINK / LINK** pause and resume a folder; they do not change its path or
-  sharing.
-- **FORGET** removes an unlinked folder from Syncthing's configuration while
-  keeping its files.
-- **Add** requires a unique Folder ID. Missing directories can be created after
-  confirmation. Overlapping paths are rejected. Select remote devices explicitly
-  to share the folder.
-- Use **FOLDERS** to choose a folder's devices or review and remove the selected
-  device's existing shares.
+- The **link/unlink icon** resumes or pauses a folder without changing its path
+  or sharing.
+- **FORGET** removes an unlinked folder's configuration, keeping its files.
+- **+** adds a local folder with a generated Folder ID. Missing directories
+  require confirmation; overlapping paths are rejected. Select devices to
+  share with, or leave it local only.
+- Under **Folders**, use the **share icon** to choose the selected folder's
+  devices.
+- Under **Devices**, use the **folder icon** to review or remove existing shares.
 
-Incoming unencrypted folder offers can prefill the setup form. Use the Web UI
-for encrypted sharing, untrusted devices and details beyond the panel's limits.
-Shared folders need the same Folder ID on each device; accept an offer rather
-than create a separate identity. See Syncthing's
-[folder guide](https://docs.syncthing.net/intro/gui.html).
+Incoming unencrypted folder offers can fill in the setup form for you. Shared
+folders need the same Folder ID on every device, so accept an offer rather than
+generate a new ID. For encrypted sharing, untrusted devices, or more advanced
+options, use the Web UI. See Syncthing's
+[folder guide](https://docs.syncthing.net/intro/gui.html) for more on setting up
+shared folders.
 
 ## Roadmap and prior releases
 
