@@ -1,3 +1,4 @@
+@layer theme {
 /*
 // Copyright (C) 2016 The Syncthing Authors.
 //
@@ -7,20 +8,70 @@
 
 */
 
+:root {
+  --color-page: #fff;
+  --color-surface: #fff;
+  --color-surface-muted: #f5f5f5;
+  --color-text: #333;
+  --color-text-strong: #222;
+  --color-text-muted: #777;
+  --color-border: #ddd;
+  --color-accent: #337ab7;
+  --color-info: #31708f;
+  --color-success: #3c763d;
+  --color-warning: #8a6d3b;
+  --color-danger: #a94442;
+  --color-focus: #337ab7;
+  --color-semantic-text: #000;
+  --color-semantic-danger: #d62c1a;
+}
+
+.alert-success,
+.alert-warning,
+.alert-danger,
+.btn-success,
+.btn-warning {
+  color: var(--color-semantic-text);
+}
+
+:is(.alert-success, .alert-warning, .alert-danger) :is(a:not(.btn), .btn-link) {
+  color: inherit;
+}
+
+:is(.alert-success, .alert-warning, .alert-danger) a:not(.btn) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+:is(.alert-success, .alert-warning, .alert-danger)
+  :is(a:not(.btn), .btn-link):is(:focus, .focus) {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.btn-danger {
+  background-color: var(--color-semantic-danger);
+}
+
+.btn-danger:is(:active, .active):is(:hover, :focus, .focus) {
+  background-color: #b62516;
+}
+
 .panel-progress {
-    background: #3498db;
+  background: #3498db;
 }
 
 .identicon rect {
-    fill: #333;
+  fill: #333;
 }
 
 .panel-warning .identicon rect {
-    fill: #fff;
+  fill: #fff;
 }
 
-.panel-heading:hover, .panel-heading:focus {
-    text-decoration: none;
+.panel-heading:hover,
+.panel-heading:focus {
+  text-decoration: none;
 }
 
 /*
@@ -29,5 +80,8 @@
 
 /* Remote Devices 'connection type'-icon color set to #333 */
 .reception {
-    filter: invert(12%) sepia(11%) saturate(20%) hue-rotate(318deg) brightness(100%) contrast(80%);
+  filter: invert(12%) sepia(11%) saturate(20%) hue-rotate(318deg)
+    brightness(100%) contrast(80%);
+}
+
 }

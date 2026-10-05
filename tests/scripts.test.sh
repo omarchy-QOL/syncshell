@@ -223,6 +223,7 @@ test_themes() {
     'color1 = "#ff5370"' \
     'color2 = "#c3e88d"' \
     'color3 = "#ffcb6b"' \
+    'bright_yellow = "#e5c736"' \
     'color4 = "#82aaff"' \
     'color5 = "#c792ea"' \
     'color6 = "#89ddff"' \
@@ -245,17 +246,26 @@ test_themes() {
   cp -a -- "$root/webui" "$identity/"
   cp -- "$root/hosts/omarchy/scripts/syncthing-theme.sh" "$identity/hosts/omarchy/scripts/"
   identity_helper="$identity/hosts/omarchy/scripts/syncthing-theme.sh"
-  printf '\n:root { --identity-check: {{palette}}; }\n' >>"$identity/webui/integration/omarchy-theme.css.in"
+  printf '\n:root { --identity-check: {{palette}}; --bright-check: {{bright_yellow}}; }\n' >>"$identity/webui/integration/omarchy-theme.css.in"
   (cd -- "$identity/webui"; find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum) >"$identity/webui/SHA256SUMS"
   bash "$identity_helper" prepare omarchy "$identity/gui" "$user_theme" >/dev/null
   grep -Fq -- '--identity-check: user-theme;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
     || fail "explicit palette identity was not supplied"
+  grep -Fq -- '--bright-check: #e5c736;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
+    || fail "native bright yellow was not supplied"
   identity_home="$identity/home"
   mkdir -p -- "$identity_home/.local/state/omarchy/current"
   ln -s -- "$(dirname -- "$user_theme")" "$identity_home/.local/state/omarchy/current/theme"
   HOME="$identity_home" bash "$identity_helper" prepare omarchy "$identity/gui" >/dev/null
   grep -Fq -- '--identity-check: user-theme;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
     || fail "current-theme symlink hid the palette identity"
+  rm -- "$identity_home/.local/state/omarchy/current/theme"
+  mkdir -p -- "$identity_home/.local/state/omarchy/current/theme"
+  cp -- "$user_theme" "$identity_home/.local/state/omarchy/current/theme/colors.toml"
+  printf '%s\n' 'Osaka Jade' >"$identity_home/.local/state/omarchy/current/theme.name"
+  HOME="$identity_home" bash "$identity_helper" prepare omarchy "$identity/gui" >/dev/null
+  grep -Fq -- '--identity-check: osaka-jade;' "$identity/gui/syncthing-omarchy/assets/css/omarchy_syncthing_theme.css" \
+    || fail "copied current theme lost its recorded palette identity"
   mkdir -p -- "$identity/Odd; Theme"
   cp -- "$user_theme" "$identity/Odd; Theme/colors.toml"
   bash "$identity_helper" prepare omarchy "$identity/gui" "$identity/Odd; Theme/colors.toml" >/dev/null
