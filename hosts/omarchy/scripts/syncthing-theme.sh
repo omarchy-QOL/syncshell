@@ -75,7 +75,7 @@ if [[ $style == omarchy ]]; then
   required=(
     mode background foreground accent muted selection
     lighter_background darker_background dark_foreground light_foreground
-    red yellow green cyan blue magenta orange
+    red yellow bright_yellow green cyan blue magenta orange
   )
   for key in "${required[@]}"; do
     [[ -n ${colors[$key]:-} ]] || {
@@ -110,8 +110,13 @@ if [[ $style == omarchy ]]; then
     "@import \"omarchy_syncthing_theme.css?v=$generation\";" \
     >"$wrapper_tmp"
 
-  palette_source=$(realpath -- "${colors_file:-$HOME/.local/state/omarchy/current/theme/colors.toml}")
-  palette=$(basename -- "$(dirname -- "$palette_source")")
+  if [[ -z $colors_file && ! -L $HOME/.local/state/omarchy/current/theme ]]; then
+    # Copied current themes retain their identity in the provider's name file.
+    palette=$(<"$HOME/.local/state/omarchy/current/theme.name")
+  else
+    palette_source=$(realpath -- "${colors_file:-$HOME/.local/state/omarchy/current/theme/colors.toml}")
+    palette=$(basename -- "$(dirname -- "$palette_source")")
+  fi
   palette=$(printf '%s' "$palette" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cs 'a-z0-9_-' '-')
 
   sed \
@@ -128,6 +133,7 @@ if [[ $style == omarchy ]]; then
     -e "s/{{foreground_light}}/${colors[light_foreground]}/g" \
     -e "s/{{red}}/${colors[red]}/g" \
     -e "s/{{yellow}}/${colors[yellow]}/g" \
+    -e "s/{{bright_yellow}}/${colors[bright_yellow]}/g" \
     -e "s/{{green}}/${colors[green]}/g" \
     -e "s/{{cyan}}/${colors[cyan]}/g" \
     -e "s/{{blue}}/${colors[blue]}/g" \
