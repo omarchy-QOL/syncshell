@@ -45,6 +45,14 @@ jobs:
         run: bash tests/scripts.test.sh --installation-only
       - name: Integration fixture contracts
         run: go -C tests/integration test -race ./...
+      - name: Reproduce bundled core
+        run: |
+          expected="$RUNNER_TEMP/bundled-core.sha256"
+          sha256sum bin/x86_64/syncshell-core \
+            bin/aarch64/syncshell-core >"$expected"
+          bash packaging/bundled/build.sh
+          sha256sum --check "$expected"
+          git diff --exit-code -- bin packaging/bundled/SHA256SUMS
       - name: Verify bundled assets
         run: |
           sha256sum --check packaging/bundled/SHA256SUMS
