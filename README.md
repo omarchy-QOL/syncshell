@@ -151,7 +151,7 @@ Impulse, Caelestia, and Waybar are under development; they are not officially
 part of the release yet, but can be tested via manual installation on those
 systems: see the `hosts/...` in the source. Daemon mode remains future work.
 
-### File activity
+## File activity
 
 The plugin reports only state exposed by Syncthing:
 
