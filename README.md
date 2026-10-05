@@ -38,7 +38,7 @@ the Omarchy bar, manages local folders and opens a redesigned Web UI.
 Versions >= 0.1.8 use a bundled Go core since other Linux shell adapters are
 planned.
 
-![Syncshell plugin on the left and redesigned web UI on the right](preview.png)
+![Redesigned web UI on the left and Syncshell plugin on the right](preview.png)
 
 ## Demo videos
 
@@ -108,10 +108,10 @@ theming and icons, and device management.
           alt="Syncthing device connections and folder sharing"
         >
       </a>
-      <p><strong>Device management</strong></p>
+      <p><strong>Multi-device management</strong></p>
       <p>
-        Pause and resume syncing with a remote device and manage folder sharing:
-        remove/re-add a device by ID, and unshare/re-share folders without
+        Pause/resume syncing with a remote device and manage folder sharing:
+        remove/re-add a device by ID, unshare/re-share folders without
         deleting local files.
       </p>
     </td>
