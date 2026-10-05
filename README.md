@@ -93,9 +93,10 @@ theming, and plugin settings.
           alt="Theme-aware Syncthing Web UI"
         >
       </a>
-      <p><strong>Theme-aware Web UI</strong></p>
+      <p><strong>Theme-aware Web UI, bar icon and settings</strong></p>
       <p>
-        Follow Omarchy theme changes in Syncthing's Web UI without reloading.
+        Redesigned modern web UI: switch to omarchy in the settings
+        to make it theme aware. Choose between a branded or themed bar icon.
       </p>
     </td>
     <td width="50%" valign="top">
