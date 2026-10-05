@@ -2,5 +2,8 @@
   font-family: 'Raleway';
   font-style: normal;
   font-weight: 500;
-  src: local('Raleway Medium'), local('Raleway-Medium'), url(raleway-500.woff) format('woff');
+  src:
+    local('Raleway Medium'),
+    local('Raleway-Medium'),
+    url(raleway-500.woff) format('woff');
 }
