@@ -14,6 +14,7 @@ import (
 	"github.com/omarchy-QOL/syncshell/core/internal/protocol"
 	"github.com/omarchy-QOL/syncshell/core/internal/session"
 	"github.com/omarchy-QOL/syncshell/core/internal/systemduser"
+	"github.com/omarchy-QOL/syncshell/core/internal/waybarconfig"
 )
 
 var buildVersion = "0.2.0"
@@ -31,12 +32,15 @@ func main() {
 }
 
 func run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer) error {
+	if len(args) > 0 && args[0] == "waybar-config" {
+		return waybarconfig.Run(args[1:])
+	}
 	if len(args) == 0 {
-		return errors.New("expected probe, status, or stream")
+		return errors.New("expected probe, status, stream, or waybar-config")
 	}
 	command := args[0]
 	if command != "probe" && command != "status" && command != "stream" {
-		return errors.New("expected probe, status, or stream")
+		return errors.New("expected probe, status, stream, or waybar-config")
 	}
 	flags := flag.NewFlagSet(command, flag.ContinueOnError)
 	flags.SetOutput(io.Discard)

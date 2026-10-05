@@ -5,6 +5,8 @@ Notable changes to Syncshell for Omarchy are documented here.
 ## 0.2.0 - 2026-10-05
 
 - bundle a Linux aarch64 core for Apple Silicon Macs running Omarchy
+- use the bundled Go core for Waybar configuration during installation and
+  removal, eliminating the Python dependency
 - keep one or two folders visible as cards and use a stable compact selector for
   larger collections, including paused and unshared folders
 - add direct fuzzy folder search with status dots, result counts, filtering, and

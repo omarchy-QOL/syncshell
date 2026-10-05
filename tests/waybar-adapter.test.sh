@@ -10,6 +10,7 @@ test -x "$work/bundle/bin/syncshell-core"
 test -x "$work/bundle/bin/x86_64/syncshell-core"
 test -x "$work/bundle/bin/aarch64/syncshell-core"
 test -x "$work/bundle/status.sh"
+test ! -e "$work/bundle/waybar-config.py"
 test -f "$work/bundle/shared/DeviceWorkflow.qml"
 test -f "$work/bundle/shared/RescanTracker.qml"
 (cd -- "$work/bundle" && sha256sum --check SHA256SUMS >/dev/null)
@@ -26,7 +27,7 @@ printf '%s\n' '{' '  // unrelated setting' \
 printf '%s\n' '#clock { color: white; }' >"$style"
 
 for _ in 1 2; do
-  "$work/bundle/waybar-config.py" install --config "$config" \
+  "$work/bundle/bin/syncshell-core" waybar-config install --config "$config" \
     --style "$style" --root "$work/bundle"
 done
 [[ $(rg -c 'syncshell module start' "$config") == 1 ]]
@@ -40,7 +41,7 @@ rg -q '#clock' "$style"
 
 empty_config="$work/waybar/empty.jsonc"
 printf '%s\n' '{"modules-right": []}' >"$empty_config"
-"$work/bundle/waybar-config.py" install --config "$empty_config" \
+"$work/bundle/bin/syncshell-core" waybar-config install --config "$empty_config" \
   --style "$style" --root "$work/bundle"
 if rg -Uq '"custom/syncshell",\n[[:space:]]*// syncshell placement end' \
     "$empty_config"; then
@@ -48,7 +49,7 @@ if rg -Uq '"custom/syncshell",\n[[:space:]]*// syncshell placement end' \
   exit 1
 fi
 
-"$work/bundle/waybar-config.py" remove --config "$config" \
+"$work/bundle/bin/syncshell-core" waybar-config remove --config "$config" \
   --style "$style" --root "$work/bundle"
 if rg -q syncshell "$config" "$style"; then
   printf 'Waybar removal left managed configuration\n' >&2

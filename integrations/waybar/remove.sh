@@ -6,9 +6,9 @@ waybar_root="$HOME/.config/waybar"
 style_file="$waybar_root/style.css"
 service_file="$HOME/.config/systemd/user/syncshell-waybar.service"
 
-if [[ -x $install_root/waybar-config.py ]]; then
+if [[ -x $install_root/bin/syncshell-core ]]; then
   for config_file in "$waybar_root/config.jsonc" "$waybar_root/config"; do
-    "$install_root/waybar-config.py" remove --config "$config_file" \
+    "$install_root/bin/syncshell-core" waybar-config remove --config "$config_file" \
       --style "$style_file" --root "$install_root"
   done
 fi
