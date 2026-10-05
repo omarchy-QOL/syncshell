@@ -25,7 +25,7 @@ export PATH="$runtime/bin:$PATH"
 printf '%s\t%s\n' mode dark background '#120f18' foreground '#e8dff2' accent '#ff7ab2' \
   muted '#666666' selection '#334455' lighter_background '#201d28' \
   darker_background '#100d18' dark_foreground '#111111' light_foreground '#eeeeee' \
-  red '#ff5370' yellow '#ffcb6b' green '#c3e88d' cyan '#89ddff' blue '#82aaff' \
+  red '#ff5370' yellow '#ffcb6b' bright_yellow '#e5c736' green '#c3e88d' cyan '#89ddff' blue '#82aaff' \
   magenta '#c792ea' orange '#ff8800' >"$SYNCSHELL_TEST_PALETTE"
 for style in modern omarchy; do
   assets=$(bash hosts/omarchy/scripts/syncthing-theme.sh prepare "$style" "$runtime/gui" "$SYNCSHELL_TEST_PALETTE")

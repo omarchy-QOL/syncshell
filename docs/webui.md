@@ -21,10 +21,15 @@ change the Web repository and import a new release.
 `hosts/omarchy/scripts/syncthing-theme.sh` installs Modern or Omarchy profiles.
 The Web release owns the CSS template and browser refresh helper. The plugin
 owns palette discovery, settings, launcher behavior and the Go desktop bridge.
-The generator supplies `{{palette}}` alongside the resolved colors and mode:
-the resolved palette directory name, normalized to a lowercase CSS-safe token.
-This identity travels with the stylesheet during palette refresh. Any
-palette-specific presentation choice stays in the Web-owned helper, not here.
+The generator supplies `{{palette}}` alongside the resolved colors and mode.
+Explicit palette files and current-theme symlinks use the resolved directory
+name; copied current themes use Omarchy's `current/theme.name`. Both are
+normalized to a lowercase CSS-safe token. This identity travels with the
+stylesheet during palette refresh.
+
+Resolved colors include `{{bright_yellow}}` for palettes with a distinct native
+warning alternative. Palette selection, shading, and foreground decisions stay
+in the Web-owned helper; the plugin only supplies native values.
 
 Run the focused consumer checks with:
 
