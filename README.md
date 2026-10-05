@@ -38,7 +38,7 @@ the Omarchy bar, manages local folders and opens a redesigned Web UI.
 Versions >= 0.1.8 use a bundled Go core since other Linux shell adapters are
 planned.
 
-![Syncthing status and installation controls](preview.png)
+![Syncshell plugin on the left and redesigned web UI on the right](preview.png)
 
 ## Demo videos
 
@@ -199,8 +199,10 @@ profiles; `modern` keeps its own appearance.
 
 ## New Web UI
 
-The bundled UI keeps Syncthing's API and adds a few changes over the classical
-interface:
+The web UI is independently developed as a self-contained interface under
+[syncshell-webui](https://github.com/syncshell/syncshell-webui/). A bundled
+version is shipped with this plugin. It keeps Syncthing's API and adds a modern
+look and cosmetic changes over the classical interface:
 
 - **Clearer layout:** folders, this device and remote devices sit alongside each
   other on wide screens and stack on smaller ones. Current activity stays
@@ -272,8 +274,10 @@ for file actions; permission errors leave files unchanged. Discovery and
 rechecks remain available without desktop access. Reopen through the plugin
 after its core restarts.
 
-Tested with Syncthing >=v2.1.3. Source history and licensing details are
-recorded in [Syncshell Web provenance][webui-provenance].
+For issue submission regarding the new web UI please refer to its GitHub repo
+issue section under
+[issues](https://github.com/syncshell/syncshell-webui/issues) (licensing details
+are recorded in [Syncshell Web provenance][webui-provenance]).
 
 ## Manage folders and devices from the panel
 
