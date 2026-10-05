@@ -443,6 +443,7 @@ ShellRoot {
                             Label {
                                 Layout.fillWidth: true
                                 text: String(pendingDeviceRow.modelData.name || root.deviceFlow.shortId(pendingDeviceRow.modelData.id)) + " wants to connect"
+                                textFormat: Text.PlainText
                                 color: "#cdd6f4"
                                 elide: Text.ElideRight
                             }

@@ -305,6 +305,7 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
 | Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
+| 0.2.1   | 2026-10-05 | render pending device names as plain text in adapters   |
 | 0.2.0   | 2026-10-05 | improve multi-folder navigation, search, and filtering  |
 |         |            | bundle Web UI 0.1.4 with improved theme handling        |
 |         |            | support Apple Silicon Macs running Omarchy Linux        |
