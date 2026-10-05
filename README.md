@@ -43,7 +43,7 @@ planned.
 ## Demo videos
 
 These four walkthroughs cover live file activity, folder management, Web UI
-theming, and plugin settings.
+theming and icons, and device management.
 
 <!-- prettier-ignore -->
 > [!NOTE]
@@ -105,12 +105,14 @@ theming, and plugin settings.
       >
         <img
           src="assets/published/04_syncthing_icon_change_and_other_settings.png"
-          alt="Syncthing icon and plugin settings"
+          alt="Syncthing device connections and folder sharing"
         >
       </a>
-      <p><strong>Icon and settings</strong></p>
+      <p><strong>Device management</strong></p>
       <p>
-        Switch the bar icon style and review the plugin's other settings.
+        Pause and resume syncing with a remote device and manage folder sharing:
+        remove/re-add a device by ID, and unshare/re-share folders without
+        deleting local files.
       </p>
     </td>
   </tr>
