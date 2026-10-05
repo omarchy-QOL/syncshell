@@ -7,5 +7,8 @@
 
 */
 
-@import "syncshell-dark.css" screen and (prefers-color-scheme: dark);
-@import "syncshell-light.css" (prefers-color-scheme: light), (prefers-color-scheme: no-preference);
+@import 'syncshell-dark.css' screen and
+  (prefers-color-scheme: dark);
+@import 'syncshell-light.css'
+    (prefers-color-scheme: light),
+  (prefers-color-scheme: no-preference);
