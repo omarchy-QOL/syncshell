@@ -2,6 +2,12 @@
 set -euo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
+required_go=$(awk '$1 == "go" { print "go" $2 }' "$root/core/go.mod")
+[[ $(go env GOVERSION) == "$required_go" ]] || {
+  printf 'bundled core requires %s\n' "$required_go" >&2
+  exit 1
+}
+
 build_core() {
   local directory=$1 goarch=$2
   local output="$root/bin/$directory/syncshell-core"
