@@ -7,7 +7,7 @@ cd -- "$root"
 # Models run in Qt, not a JavaScript surrogate with different import semantics.
 QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
   /usr/lib/qt6/bin/qml tests/run.qml
-node --test tests/folder-creation.test.mjs
+node --test tests/folder-creation.test.mjs tests/bar-click.test.mjs
 
 # Run serially: popup focus tests share the desktop and are timing sensitive.
 for name in architecture plugin-acceptance-lint \

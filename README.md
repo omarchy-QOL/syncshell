@@ -38,12 +38,12 @@ the Omarchy bar, manages local folders and opens a redesigned Web UI.
 Versions >= 0.1.8 use a bundled Go core since other Linux shell adapters are
 planned.
 
-![Syncthing status and installation controls](preview.png)
+![Redesigned web UI on the left and Syncshell plugin on the right](preview.png)
 
 ## Demo videos
 
 These four walkthroughs cover live file activity, folder management, Web UI
-theming, and plugin settings.
+theming and icons, and device management.
 
 <!-- prettier-ignore -->
 > [!NOTE]
@@ -93,9 +93,10 @@ theming, and plugin settings.
           alt="Theme-aware Syncthing Web UI"
         >
       </a>
-      <p><strong>Theme-aware Web UI</strong></p>
+      <p><strong>Theme-aware Web UI, bar icon and settings</strong></p>
       <p>
-        Follow Omarchy theme changes in Syncthing's Web UI without reloading.
+        Redesigned modern web UI: switch to omarchy in the settings
+        to make it theme aware. Choose between a branded or themed bar icon.
       </p>
     </td>
     <td width="50%" valign="top">
@@ -104,12 +105,14 @@ theming, and plugin settings.
       >
         <img
           src="assets/published/04_syncthing_icon_change_and_other_settings.png"
-          alt="Syncthing icon and plugin settings"
+          alt="Syncthing device connections and folder sharing"
         >
       </a>
-      <p><strong>Icon and settings</strong></p>
+      <p><strong>Multi-device management</strong></p>
       <p>
-        Switch the bar icon style and review the plugin's other settings.
+        Pause/resume syncing with a remote device and manage folder sharing:
+        remove/re-add a device by ID, unshare/re-share folders without
+        deleting local files.
       </p>
     </td>
   </tr>
@@ -142,13 +145,13 @@ would normally use. Existing installations are detected automatically.
 If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
 synchronization][firewall].
 
-The plugin supports Omarchy on Linux x86_64 and aarch64, including current M1/M2
-Omarchy Mac releases. Alpha adapters for DankMaterialShell, Illogical Impulse,
-Caelestia, and Waybar are under development; they are not officially part of the
-release yet, but can be tested via manual installation on those systems: see the
-`hosts/...` in the source. Daemon mode remains future work.
+The plugin supports Omarchy on Linux x86_64 and aarch64, including Apple Silicon
+M1/M2 Macs running Omarchy. Alpha adapters for DankMaterialShell, Illogical
+Impulse, Caelestia, and Waybar are under development; they are not officially
+part of the release yet, but can be tested via manual installation on those
+systems: see the `hosts/...` in the source. Daemon mode remains future work.
 
-### File activity
+## File activity
 
 The plugin reports only state exposed by Syncthing:
 
@@ -196,8 +199,10 @@ profiles; `modern` keeps its own appearance.
 
 ## New Web UI
 
-The bundled UI keeps Syncthing's API and adds a few changes over the classical
-interface:
+The web UI is independently developed as a self-contained interface under
+[syncshell-webui](https://github.com/syncshell/syncshell-webui/). A bundled
+version is shipped with this plugin. It keeps Syncthing's API and adds a modern
+look and cosmetic changes over the classical interface:
 
 - **Clearer layout:** folders, this device and remote devices sit alongside each
   other on wide screens and stack on smaller ones. Current activity stays
@@ -269,26 +274,29 @@ for file actions; permission errors leave files unchanged. Discovery and
 rechecks remain available without desktop access. Reopen through the plugin
 after its core restarts.
 
-Tested with Syncthing >=v2.1.3. Source history and licensing details are
-recorded in [Syncshell Web provenance][webui-provenance].
+For issue submission regarding the new web UI please refer to its GitHub repo
+issue section under
+[issues](https://github.com/syncshell/syncshell-webui/issues) (licensing details
+are recorded in [Syncshell Web provenance][webui-provenance]).
 
 ## Manage folders and devices from the panel
 
-- **UNLINK / LINK** pause and resume a folder; they do not change its path or
-  sharing.
-- **FORGET** removes an unlinked folder from Syncthing's configuration while
-  keeping its files.
-- **Add** requires a unique Folder ID. Missing directories can be created after
-  confirmation. Overlapping paths are rejected. Select remote devices explicitly
-  to share the folder.
-- Use **FOLDERS** to choose a folder's devices or review and remove the selected
-  device's existing shares.
+- The **link/unlink icon** resumes or pauses a folder without changing its path
+  or sharing.
+- **FORGET** removes an unlinked folder's configuration, keeping its files.
+- **+** adds a local folder with a generated Folder ID. Missing directories
+  require confirmation; overlapping paths are rejected. Select devices to
+  share with, or leave it local only.
+- Under **Folders**, use the **share icon** to choose the selected folder's
+  devices.
+- Under **Devices**, use the **folder icon** to review or remove existing shares.
 
-Incoming unencrypted folder offers can prefill the setup form. Use the Web UI
-for encrypted sharing, untrusted devices and details beyond the panel's limits.
-Shared folders need the same Folder ID on each device; accept an offer rather
-than create a separate identity. See Syncthing's
-[folder guide](https://docs.syncthing.net/intro/gui.html).
+Incoming unencrypted folder offers can fill in the setup form for you. Shared
+folders need the same Folder ID on every device, so accept an offer rather than
+generate a new ID. For encrypted sharing, untrusted devices, or more advanced
+options, use the Web UI. See Syncthing's
+[folder guide](https://docs.syncthing.net/intro/gui.html) for more on setting up
+shared folders.
 
 ## Roadmap and prior releases
 
@@ -297,6 +305,11 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
 | Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
+| 0.2.0   | 2026-10-05 | improve multi-folder navigation, search, and filtering  |
+|         |            | support Apple Silicon Macs running Omarchy Linux        |
+|         |            | add anchored side forms and keyboard navigation         |
+|         |            | clarify statuses and restore bar hover tooltips         |
+|         |            | refresh the preview and all four demo videos            |
 | 0.1.9   | 2026-09-21 | add remote-device setup and folder-sharing controls     |
 |         |            | confirm directory creation and folder/device removal    |
 |         |            | fix remote counts and keep rescan controls consistent   |

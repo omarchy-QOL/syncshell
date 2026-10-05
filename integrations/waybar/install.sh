@@ -28,15 +28,18 @@ install -m 0755 -- "$source_root/bin/x86_64/syncshell-core" \
 install -m 0755 -- "$source_root/bin/aarch64/syncshell-core" \
   "$install_root/bin/aarch64/syncshell-core"
 install -m 0755 -- "$source_root/status.sh" \
-  "$source_root/waybar-config.py" "$source_root/remove.sh" "$install_root/"
+  "$source_root/remove.sh" "$install_root/"
 install -m 0644 -- "$source_root/style.css" "$waybar_root/syncshell.css"
 
 if [[ -e $config_file && ! -e $config_file.syncshell-before ]]; then
   cp -a -- "$config_file" "$config_file.syncshell-before"
 fi
 
-"$install_root/waybar-config.py" install --config "$config_file" \
+"$install_root/bin/syncshell-core" waybar-config install --config "$config_file" \
   --style "$style_file" --root "$install_root"
+
+# Retire the old helper only after the native configuration command succeeds.
+[[ ! -e $install_root/waybar-config.py ]] || unlink "$install_root/waybar-config.py"
 
 temporary=$(mktemp --tmpdir="$service_root" .syncshell-waybar.XXXXXX)
 trap 'rm -f -- "$temporary"' EXIT

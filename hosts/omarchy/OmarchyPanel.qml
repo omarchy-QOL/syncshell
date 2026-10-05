@@ -863,12 +863,7 @@ Panel {
                     root.bar.hideTooltip(button);
             }
         }
-        onPressed: function (buttonCode) {
-            if (buttonCode === Qt.RightButton && root.syncthing)
-                root.syncthing.refresh();
-            else
-                root.toggle();
-        }
+        onPressed: root.toggle()
     }
 
     SyncthingPanelPopup {

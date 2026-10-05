@@ -19,8 +19,7 @@ install -d -- "$target/shared" "$target/bin/x86_64" "$target/bin/aarch64"
 install -m 0644 -- "$integration_root/manifest.json" \
   "$integration_root/shell.qml" "$integration_root/style.css" "$target/"
 install -m 0755 -- "$integration_root/install.sh" \
-  "$integration_root/remove.sh" "$integration_root/status.sh" \
-  "$integration_root/waybar-config.py" "$target/"
+  "$integration_root/remove.sh" "$integration_root/status.sh" "$target/"
 install -m 0644 -- "$repo_root/shared/CoreProcess.qml" \
   "$repo_root/shared/AdapterService.qml" \
   "$repo_root/shared/DeviceWorkflow.qml" \

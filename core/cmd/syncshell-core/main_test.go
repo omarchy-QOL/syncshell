@@ -90,6 +90,19 @@ func TestRunRejectsInvalidInvocation(t *testing.T) {
 	}
 }
 
+func TestRunWaybarConfigWithoutSession(t *testing.T) {
+	root := t.TempDir()
+	config := filepath.Join(root, "config.jsonc")
+	style := filepath.Join(root, "style.css")
+	for _, action := range []string{"install", "remove"} {
+		if err := run(context.Background(), []string{"waybar-config", action,
+			"--config", config, "--style", style, "--root", root},
+			bytes.NewReader(nil), io.Discard); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestParseOptionsRequiresExplicitLifecycleAuthority(t *testing.T) {
 	flags := flag.NewFlagSet("test", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
