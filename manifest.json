@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.ilyazar.syncthing",
   "name": "Syncthing",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "ilyaZar",
   "license": "MIT AND MPL-2.0 AND OFL-1.1 AND BSD-3-Clause",
   "description": "An elegant Syncthing interface with intuitive multi-folder and multi-device management. Includes a redesigned web UI with optional Omarchy theme integration, while retaining support for Syncthing’s original Web UI. Monitor file activity and easily manage folder sharing across machines. Review pending device and folder-sharing invitations. The screenshot shows the modern webUI under the Nord theme (left) and the plugin with open folder addition view (right).",

@@ -306,10 +306,10 @@ shared folders.
 | Shell             | Status  | Release plan           |
 | ----------------- | ------- | ---------------------- |
 | Omarchy           | Stable  | stable since 0.1.0     |
-| DankMaterialShell | Alpha   | beta planned for 0.2.2 |
-| Illogical Impulse | Alpha   | beta planned for 0.2.3 |
-| Caelestia         | Alpha   | beta planned for 0.2.4 |
-| Waybar            | Alpha   | beta planned for 0.2.5 |
+| DankMaterialShell | Alpha   | beta planned for 0.2.3 |
+| Illogical Impulse | Alpha   | beta planned for 0.2.4 |
+| Caelestia         | Alpha   | beta planned for 0.2.5 |
+| Waybar            | Alpha   | beta planned for 0.2.6 |
 | Ambxst            | Planned | TBD                    |
 | iNiR              | Planned | TBD                    |
 
@@ -320,6 +320,7 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
 | Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
+| 0.2.2   | 2026-10-06 | secure pending-device dismissal confirmations           |
 | 0.2.1   | 2026-10-05 | render pending device names as plain text in adapters   |
 | 0.2.0   | 2026-10-05 | improve multi-folder navigation, search, and filtering  |
 |         |            | bundle Web UI 0.1.4 with improved theme handling        |
