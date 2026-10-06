@@ -2,6 +2,11 @@
 
 Notable changes to Syncshell for Omarchy are documented here.
 
+## 0.2.2 - 2026-10-06
+
+- render unaccepted remote-device names as plain text in Illogical Impulse and
+  Waybar dismissal confirmations
+
 ## 0.2.1 - 2026-10-05
 
 - render pending remote-device names as plain text in the Illogical Impulse and
