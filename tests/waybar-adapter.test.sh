@@ -15,6 +15,8 @@ test -f "$work/bundle/shared/DeviceWorkflow.qml"
 test -f "$work/bundle/shared/RescanTracker.qml"
 (cd -- "$work/bundle" && sha256sum --check SHA256SUMS >/dev/null)
 rg -q 'WantedBy=default.target' "$work/bundle/install.sh"
+rg -Uq 'wants to connect"\n[[:space:]]+textFormat: Text\.PlainText' \
+  "$work/bundle/shell.qml"
 
 mkdir -p -- "$work/waybar"
 config="$work/waybar/config.jsonc"

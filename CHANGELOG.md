@@ -2,6 +2,11 @@
 
 Notable changes to Syncshell for Omarchy are documented here.
 
+## 0.2.1 - 2026-10-05
+
+- render pending remote-device names as plain text in the Illogical Impulse and
+  Waybar adapters
+
 ## 0.2.0 - 2026-10-05
 
 - bundle a Linux aarch64 core for Apple Silicon Macs running Omarchy

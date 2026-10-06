@@ -367,6 +367,7 @@ LazyLoader {
                 Layout.fillWidth: true
                 text: String(modelData.name || root.deviceFlow.shortId(modelData.id))
                   + " wants to connect"
+                textFormat: Text.PlainText
                 elide: Text.ElideRight
               }
               DialogButton {
