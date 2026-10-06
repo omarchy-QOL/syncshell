@@ -518,6 +518,7 @@ LazyLoader {
                 text: "Dismiss pending request from "
                   + (root.deviceFlow.targetDeviceName
                     || root.deviceFlow.shortId(root.deviceFlow.targetDeviceId)) + "?"
+                textFormat: Text.PlainText
                 color: Appearance.m3colors.m3error
               }
               RowLayout {

@@ -586,6 +586,7 @@ ShellRoot {
                             Label {
                                 Layout.fillWidth: true
                                 text: "Dismiss pending request from " + (root.deviceFlow.targetDeviceName || root.deviceFlow.shortId(root.deviceFlow.targetDeviceId)) + "?"
+                                textFormat: Text.PlainText
                                 color: "#f38ba8"
                             }
                             RowLayout {

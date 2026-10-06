@@ -21,4 +21,6 @@ test -f "$config/syncshell/shared/RescanTracker.qml"
 rg -q 'SyncshellIndicator' "$config/modules/ii/bar/BarContent.qml"
 rg -Uq 'wants to connect"\n[[:space:]]+textFormat: Text\.PlainText' \
   "$config/modules/ii/bar/SyncshellPopup.qml"
+rg -Uq 'shortId\(root\.deviceFlow\.targetDeviceId\)\) \+ "\?"\n[[:space:]]+textFormat: Text\.PlainText' \
+  "$config/modules/ii/bar/SyncshellPopup.qml"
 printf '[ok] Illogical Impulse adapter contract passed\n'

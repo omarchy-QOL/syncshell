@@ -17,6 +17,8 @@ test -f "$work/bundle/shared/RescanTracker.qml"
 rg -q 'WantedBy=default.target' "$work/bundle/install.sh"
 rg -Uq 'wants to connect"\n[[:space:]]+textFormat: Text\.PlainText' \
   "$work/bundle/shell.qml"
+rg -Uq 'shortId\(root\.deviceFlow\.targetDeviceId\)\) \+ "\?"\n[[:space:]]+textFormat: Text\.PlainText' \
+  "$work/bundle/shell.qml"
 
 mkdir -p -- "$work/waybar"
 config="$work/waybar/config.jsonc"
