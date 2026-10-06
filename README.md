@@ -33,17 +33,19 @@
     ></a>
 </p>
 
-Syncshell shows [Syncthing](https://github.com/syncthing/syncthing) activity in
-the Omarchy bar, manages local folders and opens a redesigned Web UI.
-Versions >= 0.1.8 use a bundled Go core since other Linux shell adapters are
-planned.
+Syncshell is a quickshell based plugin integration to
+[Syncthing](https://github.com/syncthing/syncthing). It shows syncing
+activity,support multi-folder and multi-device manages and ships an optional
+redesigned Web UI. Versions >= 0.1.8 use a bundled Go core since several Linux
+shell adapters are planned. Omarchy bar integration is stable. Remaining
+adapters are in alpha.
 
 ![Redesigned web UI on the left and Syncshell plugin on the right](preview.png)
 
 ## Demo videos
 
-These four walkthroughs cover live file activity, folder management, Web UI
-theming and icons, and device management.
+These four videos cover live file activity, folder management, Web UI theming
+and icons, and device management taking Omarchy as an example.
 
 <!-- prettier-ignore -->
 > [!NOTE]
@@ -146,9 +148,9 @@ If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
 synchronization][firewall].
 
 The plugin supports Omarchy on Linux x86_64 and aarch64, including Apple Silicon
-M1/M2 Macs running Omarchy. Alpha adapters for DankMaterialShell, Illogical
-Impulse, Caelestia, and Waybar are under development; they are not officially
-part of the release yet, but can be tested via manual installation on those
+M1/M2 Macs running Omarchy (stable). Alpha adapters for DankMaterialShell,
+Illogical Impulse, Caelestia, and Waybar are under development; they are not
+officially released and WIP, but can be tested via manual installation on those
 systems: see the `hosts/...` in the source. Daemon mode remains future work.
 
 ## File activity
@@ -285,11 +287,12 @@ are recorded in [Syncshell Web provenance][webui-provenance]).
   or sharing.
 - **FORGET** removes an unlinked folder's configuration, keeping its files.
 - **+** adds a local folder with a generated Folder ID. Missing directories
-  require confirmation; overlapping paths are rejected. Select devices to
-  share with, or leave it local only.
+  require confirmation; overlapping paths are rejected. Select devices to share
+  with, or leave it local only.
 - Under **Folders**, use the **share icon** to choose the selected folder's
   devices.
-- Under **Devices**, use the **folder icon** to review or remove existing shares.
+- Under **Devices**, use the **folder icon** to review or remove existing
+  shares.
 
 Incoming unencrypted folder offers can fill in the setup form for you. Shared
 folders need the same Folder ID on every device, so accept an offer rather than
@@ -297,6 +300,18 @@ generate a new ID. For encrypted sharing, untrusted devices, or more advanced
 options, use the Web UI. See Syncthing's
 [folder guide](https://docs.syncthing.net/intro/gui.html) for more on setting up
 shared folders.
+
+## Shell support
+
+| Shell             | Status  | Release plan           |
+| ----------------- | ------- | ---------------------- |
+| Omarchy           | Stable  | stable since 0.1.0     |
+| DankMaterialShell | Alpha   | beta planned for 0.2.2 |
+| Illogical Impulse | Alpha   | beta planned for 0.2.3 |
+| Caelestia         | Alpha   | beta planned for 0.2.4 |
+| Waybar            | Alpha   | beta planned for 0.2.5 |
+| Ambxst            | Planned | TBD                    |
+| iNiR              | Planned | TBD                    |
 
 ## Roadmap and prior releases
 
