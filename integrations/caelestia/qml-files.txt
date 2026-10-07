@@ -24,6 +24,7 @@ hosts/caelestia/ui/RemoteDevices.qml
 hosts/caelestia/ui/SideCardMenu.qml
 hosts/caelestia/ui/SquareActionButton.qml
 hosts/caelestia/ui/SyncshellDropdown.qml
+hosts/caelestia/ui/SyncshellToolTip.qml
 hosts/caelestia/ui/SyncthingPanelPopup.qml
 shared/AdapterService.qml
 shared/CoreProcess.qml

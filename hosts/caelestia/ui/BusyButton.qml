@@ -1,10 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls as QQC
 import Quickshell
 import qs.components.controls
 import qs.services
+import "."
 
 TextButton {
     id: root
@@ -31,9 +31,10 @@ TextButton {
         font: root.font
         text: root.copyValue ? "Copied" : ""
     }
-    QQC.ToolTip.visible: hover.hovered || activeFocus
-    QQC.ToolTip.text: help
-    QQC.ToolTip.delay: 500
+    SyncshellToolTip {
+        visible: (hover.hovered || root.activeFocus) && !!root.help
+        text: root.help
+    }
     HoverHandler {
         id: hover
         enabled: !!root.help

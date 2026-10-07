@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls as QQC
 import QtQuick.Layouts
 import qs.components
 import qs.services
@@ -72,8 +71,10 @@ ColumnLayout {
     StyledText {
         id: activityLabel
         animate: true
-        QQC.ToolTip.text: text
-        QQC.ToolTip.visible: activityHover.hovered && !!text
+        SyncshellToolTip {
+            text: activityLabel.text
+            visible: activityHover.hovered && !!text
+        }
         HoverHandler {
             id: activityHover
         }
