@@ -48,10 +48,9 @@ ColumnLayout {
             StyledText {
                 required property var modelData
                 Layout.fillWidth: true
-                text: (modelData.label || modelData.id) + ": " + (modelData.status.error || "Sync errors")
-                    + (modelData.status.errors || []).map(function (error) {
-                        return "\n" + error.path + ": " + error.error;
-                    }).join("")
+                text: (modelData.label || modelData.id) + ": " + (modelData.status.error || "Sync errors") + (modelData.status.errors || []).map(function (error) {
+                    return "\n" + error.path + ": " + error.error;
+                }).join("")
                 textFormat: Text.PlainText
                 wrapMode: Text.Wrap
                 elide: Text.ElideNone

@@ -29,15 +29,16 @@ ColumnLayout {
         }
         SquareActionButton {
             iconName: root.controller.folder && root.controller.folder.paused ? "link" : "link_off"
-            help: root.controller.folder && root.controller.folder.paused ? "Resume folder synchronization"
-                : "Pause folder synchronization; keep its files and shares"
+            help: root.controller.folder && root.controller.folder.paused ? "Resume folder synchronization" : "Pause folder synchronization; keep its files and shares"
             busy: !!root.controller.service && root.controller.service.busy
             enabled: !!root.controller.folder && root.controller.fresh
-            onClicked: root.controller.service.setFolderPaused(root.controller.folder.id,
-                !root.controller.folder.paused)
+            onClicked: root.controller.service.setFolderPaused(root.controller.folder.id, !root.controller.folder.paused)
         }
     }
-    FolderCard { Layout.fillWidth: true; controller: root.controller }
+    FolderCard {
+        Layout.fillWidth: true
+        controller: root.controller
+    }
     Repeater {
         model: root.controller.service ? root.controller.service.pendingFolderOffers() : []
         ColumnLayout {

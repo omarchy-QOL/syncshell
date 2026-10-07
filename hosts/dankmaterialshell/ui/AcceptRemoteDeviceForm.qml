@@ -20,7 +20,11 @@ ColumnLayout {
         enabled: !root.controller.busy
         onTextEdited: root.controller.setDraft("name", text)
     }
-    InfoPair { Layout.fillWidth: true; label: "Address"; value: root.controller.draft.address || "Unknown" }
+    InfoPair {
+        Layout.fillWidth: true
+        label: "Address"
+        value: root.controller.draft.address || "Unknown"
+    }
     StyledText {
         Layout.fillWidth: true
         text: root.controller.draft.deviceId || ""

@@ -27,20 +27,8 @@ FocusScope {
         id: content
         width: parent.width
         enabled: !root.controller || !root.controller.busy
-        confirmTitle: root.action === "folder.add-existing" ? "Create directory?"
-            : root.action === "folder.forget" ? "Forget folder?"
-            : root.action === "device.remove" ? "Remove device?"
-            : root.action.indexOf("lifecycle.") === 0 ? "Change Syncthing service?"
-            : "Dismiss invitation?"
-        confirmMessage: root.action === "folder.add-existing"
-            ? "Create " + root.target.path + " and add it to Syncthing?"
-            : root.action === "folder.forget"
-            ? "Forget " + (root.target.label || root.target.id) + "? Its files will be kept."
-            : root.action === "device.remove"
-            ? "Remove " + (root.target.name || root.target.id) + " and its folder shares? Files will be kept."
-            : root.action.indexOf("lifecycle.") === 0
-            ? "This changes the authorized systemd user service for this Syncthing instance."
-            : "Dismiss this invitation from " + (root.target.name || root.target.deviceId || root.target.id) + "?"
+        confirmTitle: root.action === "folder.add-existing" ? "Create directory?" : root.action === "folder.forget" ? "Forget folder?" : root.action === "device.remove" ? "Remove device?" : root.action.indexOf("lifecycle.") === 0 ? "Change Syncthing service?" : "Dismiss invitation?"
+        confirmMessage: root.action === "folder.add-existing" ? "Create " + root.target.path + " and add it to Syncthing?" : root.action === "folder.forget" ? "Forget " + (root.target.label || root.target.id) + "? Its files will be kept." : root.action === "device.remove" ? "Remove " + (root.target.name || root.target.id) + " and its folder shares? Files will be kept." : root.action.indexOf("lifecycle.") === 0 ? "This changes the authorized systemd user service for this Syncthing instance." : "Dismiss this invitation from " + (root.target.name || root.target.deviceId || root.target.id) + "?"
         onCancelled: root.controller.cancelConfirmation()
         onButtonActivated: button => {
             if (root.controller.busy)

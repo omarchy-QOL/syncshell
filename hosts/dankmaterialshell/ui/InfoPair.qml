@@ -8,7 +8,11 @@ RowLayout {
     property string value: ""
     property color valueColor: Theme.surfaceText
     spacing: Theme.spacingS
-    StyledText { text: label; color: Theme.surfaceVariantText; textFormat: Text.PlainText }
+    StyledText {
+        text: label
+        color: Theme.surfaceVariantText
+        textFormat: Text.PlainText
+    }
     StyledText {
         text: value
         color: valueColor

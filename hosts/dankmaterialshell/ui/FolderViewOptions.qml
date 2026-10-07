@@ -12,8 +12,7 @@ ColumnLayout {
         DankToggle {
             text: root.controller.groups.length === 5 ? "All" : "All (mixed)"
             checked: root.controller.groups.length === 5
-            onToggled: checked => root.controller.groups = checked
-                ? ["ready", "active", "errors", "paused", "unknown"] : []
+            onToggled: checked => root.controller.groups = checked ? ["ready", "active", "errors", "paused", "unknown"] : []
         }
         Repeater {
             model: ["ready", "active", "errors", "paused", "unknown"]
@@ -28,8 +27,20 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         Repeater {
-            model: [{ value: "name", label: "Name" },
-                { value: "active", label: "Active first" }, { value: "errors", label: "Errors first" }]
+            model: [
+                {
+                    value: "name",
+                    label: "Name"
+                },
+                {
+                    value: "active",
+                    label: "Active first"
+                },
+                {
+                    value: "errors",
+                    label: "Errors first"
+                }
+            ]
             DankButton {
                 required property var modelData
                 text: modelData.label
@@ -38,5 +49,8 @@ ColumnLayout {
             }
         }
     }
-    DankButton { text: "Reset filters"; onClicked: root.controller.resetFilters() }
+    DankButton {
+        text: "Reset filters"
+        onClicked: root.controller.resetFilters()
+    }
 }

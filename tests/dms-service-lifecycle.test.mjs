@@ -111,7 +111,7 @@ test("returning to a retained confirmation restores Cancel selection", () => {
 
 test("connection edits retry even when startup never reached a handshake", () => {
   assert.match(daemon,
-    /onConnectionKeyChanged: if \(service\) restartTimer.restart\(\)/);
+    /onConnectionKeyChanged:\s*if\s*\(service\)\s*restartTimer\.restart\(\)/);
 });
 
 test("pause shortcut never acts on the other tab's retained selection", () => {

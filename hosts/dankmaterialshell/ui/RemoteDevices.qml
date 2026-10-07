@@ -37,7 +37,10 @@ ColumnLayout {
             onClicked: root.controller.requestConfirmation("device.remove", root.controller.device, this)
         }
     }
-    DeviceCard { Layout.fillWidth: true; controller: root.controller }
+    DeviceCard {
+        Layout.fillWidth: true
+        controller: root.controller
+    }
     Repeater {
         model: root.controller.service ? root.controller.service.pendingDevices : []
         ColumnLayout {

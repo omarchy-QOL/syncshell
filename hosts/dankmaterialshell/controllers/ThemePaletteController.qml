@@ -7,13 +7,19 @@ QtObject {
     property var settings: null
     readonly property string selection: settings ? settings.values.webUiTheme : "default"
     readonly property var palette: ({
-        mode: Theme.isLightMode ? "light" : "dark",
-        background: rgb(Theme.surface), surface: rgb(Theme.surfaceContainer),
-        surfaceVariant: rgb(Theme.surfaceVariant), foreground: rgb(Theme.surfaceText),
-        muted: rgb(Theme.surfaceVariantText), accent: rgb(Theme.primary),
-        success: rgb(Theme.success), warning: rgb(Theme.warning), danger: rgb(Theme.error),
-        border: rgb(Theme.outline), info: rgb(Theme.info)
-    })
+            mode: Theme.isLightMode ? "light" : "dark",
+            background: rgb(Theme.surface),
+            surface: rgb(Theme.surfaceContainer),
+            surfaceVariant: rgb(Theme.surfaceVariant),
+            foreground: rgb(Theme.surfaceText),
+            muted: rgb(Theme.surfaceVariantText),
+            accent: rgb(Theme.primary),
+            success: rgb(Theme.success),
+            warning: rgb(Theme.warning),
+            danger: rgb(Theme.error),
+            border: rgb(Theme.outline),
+            info: rgb(Theme.info)
+        })
     readonly property string key: selection + (selection === "dms" ? JSON.stringify(palette) : "")
     property string pendingKey: ""
     property string error: ""
@@ -22,7 +28,9 @@ QtObject {
     readonly property bool busy: pendingKey !== ""
 
     function rgb(color) {
-        function channel(value) { return Math.round(value * 255).toString(16).padStart(2, "0"); }
+        function channel(value) {
+            return Math.round(value * 255).toString(16).padStart(2, "0");
+        }
         return "#" + channel(color.r) + channel(color.g) + channel(color.b);
     }
 
@@ -37,9 +45,7 @@ QtObject {
         dirty = false;
         pendingKey = key;
         error = "";
-        var accepted = selection === "default" ? service.setWebUiTheme("default")
-            : service.applyWebProfile(selection === "dms" ? "themed" : "modern",
-                selection === "dms" ? palette : {});
+        var accepted = selection === "default" ? service.setWebUiTheme("default") : service.applyWebProfile(selection === "dms" ? "themed" : "modern", selection === "dms" ? palette : {});
         if (!accepted) {
             pendingKey = "";
             error = service.actionError || "Web UI profile could not be applied";
@@ -64,7 +70,8 @@ QtObject {
         if (selection !== "default")
             schedule();
     }
-    onSelectionChanged: if (initialized) schedule()
+    onSelectionChanged: if (initialized)
+        schedule()
     onServiceChanged: {
         if (busy) {
             pendingKey = "";
@@ -74,16 +81,27 @@ QtObject {
             schedule();
     }
     onPaletteChanged: {
-        if (initialized && selection === "dms" && service
-                && service.webUi.theme === "syncshell-dms-themed")
+        if (initialized && selection === "dms" && service && service.webUi.theme === "syncshell-dms-themed")
             schedule();
     }
-    property Timer debounce: Timer { interval: 200; onTriggered: root.apply() }
+    property Timer debounce: Timer {
+        interval: 200
+        onTriggered: root.apply()
+    }
     property Connections serviceConnections: Connections {
         target: root.service
-        function onOnlineChanged() { if (root.dirty) root.debounce.restart(); }
-        function onBusyChanged() { if (root.dirty) root.debounce.restart(); }
-        function onRefreshingChanged() { if (root.dirty) root.debounce.restart(); }
+        function onOnlineChanged() {
+            if (root.dirty)
+                root.debounce.restart();
+        }
+        function onBusyChanged() {
+            if (root.dirty)
+                root.debounce.restart();
+        }
+        function onRefreshingChanged() {
+            if (root.dirty)
+                root.debounce.restart();
+        }
         function onActionFinished(action, ok, data, failure) {
             if (!root.busy || ["webui.apply-profile", "webui.set-theme", "webui.remove-profile"].indexOf(action) < 0)
                 return;

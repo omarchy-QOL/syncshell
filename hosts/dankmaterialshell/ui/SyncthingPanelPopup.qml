@@ -26,18 +26,11 @@ FocusScope {
     readonly property real screenWidth: parentPopout && parentPopout.screen ? parentPopout.screen.width : 1920
     readonly property real screenHeight: parentPopout && parentPopout.screen ? parentPopout.screen.height : 1080
     readonly property int barPosition: parentPopout ? parentPopout.effectiveBarPosition : 0
-    readonly property real usableTop: Theme.spacingL + (barPosition === 0 && parentPopout
-        ? parentPopout.storedBarThickness + parentPopout.storedBarSpacing * 2 : 0)
-    readonly property real availableHeight: Math.max(140, screenHeight
-        - (barPosition <= 1 && parentPopout
-            ? parentPopout.storedBarThickness + parentPopout.storedBarSpacing * 2 : 0)
-        - Theme.spacingL * 2)
+    readonly property real usableTop: Theme.spacingL + (barPosition === 0 && parentPopout ? parentPopout.storedBarThickness + parentPopout.storedBarSpacing * 2 : 0)
+    readonly property real availableHeight: Math.max(140, screenHeight - (barPosition <= 1 && parentPopout ? parentPopout.storedBarThickness + parentPopout.storedBarSpacing * 2 : 0) - Theme.spacingL * 2)
     readonly property real sideExtra: sideOpen && side !== "stack" ? sideWidth + Theme.spacingM : 0
-    readonly property real wantedWidth: Math.min(screenWidth - Theme.spacingL * 2,
-        mainWidth + sideExtra + Theme.spacingS * 2)
-    readonly property var panes: Model.paneLayout(mainPane.implicitHeight,
-        sidePane.implicitHeight, availableHeight, triggerRowY, sideOpen,
-        side === "stack", barPosition, mainTop, Theme.spacingM, footer.implicitHeight)
+    readonly property real wantedWidth: Math.min(screenWidth - Theme.spacingL * 2, mainWidth + sideExtra + Theme.spacingS * 2)
+    readonly property var panes: Model.paneLayout(mainPane.implicitHeight, sidePane.implicitHeight, availableHeight, triggerRowY, sideOpen, side === "stack", barPosition, mainTop, Theme.spacingM, footer.implicitHeight)
     signal widthRequested(real value)
 
     implicitHeight: panes.height
@@ -55,15 +48,12 @@ FocusScope {
     function updatePlacement() {
         captureAnchor();
         if (sideOpen)
-            side = Model.sidePlacement(screenWidth, mainX, mainWidth + Theme.spacingS * 2,
-                sideWidth, Theme.spacingM, Theme.spacingL);
+            side = Model.sidePlacement(screenWidth, mainX, mainWidth + Theme.spacingS * 2, sideWidth, Theme.spacingM, Theme.spacingL);
         if (parentPopout && anchored) {
             if (barPosition === 0 || barPosition === 1)
-                parentPopout.triggerX = mainX - (side === "left" ? sideExtra : 0)
-                    + wantedWidth / 2 - parentPopout.triggerWidth / 2;
+                parentPopout.triggerX = mainX - (side === "left" ? sideExtra : 0) + wantedWidth / 2 - parentPopout.triggerWidth / 2;
             else if (sideOpen)
-                parentPopout.triggerY = usableTop + panes.top
-                    + (panes.height + Theme.spacingS * 2) / 2;
+                parentPopout.triggerY = usableTop + panes.top + (panes.height + Theme.spacingS * 2) / 2;
             else
                 parentPopout.triggerY = originalTriggerY;
         }
@@ -106,17 +96,28 @@ FocusScope {
             return;
         var service = controller.service;
         switch (event.key) {
-        case Qt.Key_R: if (service) service.rescanAllFolders(); break;
-        case Qt.Key_W: if (service) service.openWebUi(); break;
+        case Qt.Key_R:
+            if (service)
+                service.rescanAllFolders();
+            break;
+        case Qt.Key_W:
+            if (service)
+                service.openWebUi();
+            break;
         case Qt.Key_P:
             if (controller.tab === "folders" && controller.folder)
                 service.setFolderPaused(controller.folder.id, !controller.folder.paused);
             else if (controller.tab === "devices" && controller.device)
                 service.setDevicePaused(controller.device.id, !controller.device.paused, controller.device.name);
             break;
-        case Qt.Key_S: settings.clicked(); break;
-        case Qt.Key_Q: closeInner(); break;
-        default: return;
+        case Qt.Key_S:
+            settings.clicked();
+            break;
+        case Qt.Key_Q:
+            closeInner();
+            break;
+        default:
+            return;
         }
         event.accepted = true;
     }
@@ -160,7 +161,9 @@ FocusScope {
             else
                 root.forceActiveFocus();
         }
-        function onDirectoryPickerRequested() { picker.open(); }
+        function onDirectoryPickerRequested() {
+            picker.open();
+        }
     }
     FileBrowserModal {
         id: picker
@@ -180,7 +183,10 @@ FocusScope {
     }
     Connections {
         target: root.parentPopout ? root.parentPopout.transientSurfaceTracker : null
-        function onCloseRequested() { if (picker.visible) picker.close(); }
+        function onCloseRequested() {
+            if (picker.visible)
+                picker.close();
+        }
     }
 
     ColumnLayout {
@@ -216,7 +222,16 @@ FocusScope {
                     Layout.fillWidth: true
                     tabHeight: 40
                     showIcons: false
-                    model: [{ text: "Folders", icon: "folder" }, { text: "Devices", icon: "devices" }]
+                    model: [
+                        {
+                            text: "Folders",
+                            icon: "folder"
+                        },
+                        {
+                            text: "Devices",
+                            icon: "devices"
+                        }
+                    ]
                     currentIndex: root.controller.tab === "folders" ? 0 : 1
                     onTabClicked: index => root.controller.tab = index === 0 ? "folders" : "devices"
                 }
@@ -232,7 +247,10 @@ FocusScope {
                     parentPopout: root.parentPopout
                     visible: root.controller.tab === "devices"
                 }
-                MoreDetails { Layout.fillWidth: true; controller: root.controller }
+                MoreDetails {
+                    Layout.fillWidth: true
+                    controller: root.controller
+                }
             }
         }
         ColumnLayout {
@@ -260,7 +278,11 @@ FocusScope {
                     enabled: !!root.controller.service && !root.controller.busy
                     onClicked: root.controller.service.refresh()
                 }
-                SettingsMenu { id: settings; pluginId: root.pluginId; onOpening: root.closePopout() }
+                SettingsMenu {
+                    id: settings
+                    pluginId: root.pluginId
+                    onOpening: root.closePopout()
+                }
             }
             StyledText {
                 Layout.fillWidth: true

@@ -6,7 +6,10 @@ import qs.Widgets
 Item {
     id: root
     property string text: ""
-    HoverHandler { id: hover; enabled: root.text !== "" }
+    HoverHandler {
+        id: hover
+        enabled: root.text !== ""
+    }
     ToolTip {
         visible: hover.hovered && root.text !== ""
         delay: 500
@@ -20,6 +23,9 @@ Item {
             elide: Text.ElideNone
             maximumLineCount: 14
         }
-        background: StyledRect { color: Theme.surfaceContainer; radius: Theme.cornerRadius }
+        background: StyledRect {
+            color: Theme.surfaceContainer
+            radius: Theme.cornerRadius
+        }
     }
 }

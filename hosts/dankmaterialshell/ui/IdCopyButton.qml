@@ -23,5 +23,9 @@ SquareActionButton {
             reset.restart();
         }
     }
-    Timer { id: reset; interval: 1800; onTriggered: root.copied = false }
+    Timer {
+        id: reset
+        interval: 1800
+        onTriggered: root.copied = false
+    }
 }

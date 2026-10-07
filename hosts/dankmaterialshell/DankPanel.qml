@@ -11,9 +11,10 @@ PluginComponent {
     popoutWidth: 440 + Theme.spacingS * 2
     property var service: null
     property var host: null
-    readonly property string stateIcon: !service || !service.online ? "cloud_off"
-        : service.folderProblemCount ? "sync_problem" : service.syncingFolderCount ? "sync" : "cloud_done"
-    pillRightClickAction: function () { root.triggerPopout(); }
+    readonly property string stateIcon: !service || !service.online ? "cloud_off" : service.folderProblemCount ? "sync_problem" : service.syncingFolderCount ? "sync" : "cloud_done"
+    pillRightClickAction: function () {
+        root.triggerPopout();
+    }
 
     function resolveService() {
         service = pluginService && pluginId ? pluginService.getGlobalVar(pluginId, "service", null) : null;
@@ -29,7 +30,10 @@ PluginComponent {
                 root.resolveService();
         }
     }
-    PanelController { id: panelController; service: root.service }
+    PanelController {
+        id: panelController
+        service: root.service
+    }
     horizontalBarPill: Component {
         Row {
             spacing: Theme.spacingXS

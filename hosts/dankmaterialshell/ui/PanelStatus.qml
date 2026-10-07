@@ -21,7 +21,10 @@ ColumnLayout {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 0
-            StyledText { text: "Syncthing"; font.weight: Font.Medium }
+            StyledText {
+                text: "Syncthing"
+                font.weight: Font.Medium
+            }
             RowLayout {
                 Layout.fillWidth: true
                 StyledText {
@@ -32,28 +35,31 @@ ColumnLayout {
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.surfaceVariantText
                 }
-                IdCopyButton { value: root.service ? root.service.localDeviceId : "" }
+                IdCopyButton {
+                    value: root.service ? root.service.localDeviceId : ""
+                }
             }
         }
         DankToggle {
             hideText: true
             checked: !!root.service && root.service.lifecycle.active === true
             enabled: !!root.service && root.service.canControlService && !root.controller.busy
-            onToggled: checked => root.controller.requestConfirmation(
-                checked ? "lifecycle.enable" : "lifecycle.disable", {}, this)
+            onToggled: checked => root.controller.requestConfirmation(checked ? "lifecycle.enable" : "lifecycle.disable", {}, this)
             SyncshellToolTip {
                 anchors.fill: parent
-                text: root.service && root.service.canControlService ? "Enable or disable Syncthing"
-                    : "Externally managed. Authorize the matching user service in Syncshell settings to control it here."
+                text: root.service && root.service.canControlService ? "Enable or disable Syncthing" : "Externally managed. Authorize the matching user service in Syncshell settings to control it here."
             }
         }
     }
-    InfoPair { Layout.fillWidth: true; label: "Folders"; value: root.service ? String(root.service.folderCount) : "-" }
+    InfoPair {
+        Layout.fillWidth: true
+        label: "Folders"
+        value: root.service ? String(root.service.folderCount) : "-"
+    }
     InfoPair {
         Layout.fillWidth: true
         label: "Devices"
-        value: root.controller.fresh ? root.service.connectedDeviceCount
-            + " of " + root.service.deviceCount + " connected" : "Connection unknown"
+        value: root.controller.fresh ? root.service.connectedDeviceCount + " of " + root.service.deviceCount + " connected" : "Connection unknown"
     }
     InfoPair {
         Layout.fillWidth: true
@@ -62,8 +68,7 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: root.service ? root.service.lastError || root.service.actionNotice
-            || (!root.service.online ? root.service.summaryText : "") : "Starting Syncshell"
+        text: root.service ? root.service.lastError || root.service.actionNotice || (!root.service.online ? root.service.summaryText : "") : "Starting Syncshell"
         textFormat: Text.PlainText
         wrapMode: Text.WordWrap
         elide: Text.ElideNone

@@ -14,12 +14,7 @@ PluginComponent {
     property string collisionError: ""
     property bool ownsService: false
     readonly property string error: collisionError || settings.validationError
-    readonly property string connectionKey: JSON.stringify([
-        settings.values.configPath, settings.values.endpoint, settings.values.credentialFile,
-        settings.values.tlsCertificate, settings.values.expectedDeviceId,
-        settings.values.lifecycleAuthorized, settings.values.lifecycleUnit,
-        settings.values.lifecycleConfig
-    ])
+    readonly property string connectionKey: JSON.stringify([settings.values.configPath, settings.values.endpoint, settings.values.credentialFile, settings.values.tlsCertificate, settings.values.expectedDeviceId, settings.values.lifecycleAuthorized, settings.values.lifecycleUnit, settings.values.lifecycleConfig])
 
     function publish() {
         if (!pluginService || !pluginId)
@@ -68,12 +63,17 @@ PluginComponent {
             refreshIntervalSeconds: settingsController.values.refreshIntervalSeconds
             desiredServiceState: settingsController.values.desiredServiceState
             lifecyclePolicy: ({
-                kind: "systemd-user", authorized: settingsController.values.lifecycleAuthorized,
-                unit: settingsController.values.lifecycleUnit,
-                configPath: settingsController.values.lifecycleConfig
-            })
+                    kind: "systemd-user",
+                    authorized: settingsController.values.lifecycleAuthorized,
+                    unit: settingsController.values.lifecycleUnit,
+                    configPath: settingsController.values.lifecycleConfig
+                })
             desktopAuthorized: true
-            profilePolicy: ({ authorized: true, owner: "dms", bundle: root.bundleRoot + "/webui" })
+            profilePolicy: ({
+                    authorized: true,
+                    owner: "dms",
+                    bundle: root.bundleRoot + "/webui"
+                })
             configPath: settingsController.values.configPath
             endpoint: settingsController.values.endpoint
             credentialFile: settingsController.values.credentialFile
@@ -82,13 +82,13 @@ PluginComponent {
 
             onActionFinished: function (action, ok, data, failure) {
                 if (ok && (action === "lifecycle.enable" || action === "lifecycle.disable"))
-                    settingsController.save("desiredServiceState",
-                        action === "lifecycle.enable" ? "enabled" : "disabled");
+                    settingsController.save("desiredServiceState", action === "lifecycle.enable" ? "enabled" : "disabled");
             }
         }
     }
 
-    onConnectionKeyChanged: if (service) restartTimer.restart()
+    onConnectionKeyChanged: if (service)
+        restartTimer.restart()
 
     Timer {
         id: restartTimer

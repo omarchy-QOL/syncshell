@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const source = readFileSync(new URL(
   "../hosts/dankmaterialshell/controllers/SettingsController.qml", import.meta.url), "utf8");
-const defaults = source.match(/readonly property var defaults: (\(\{[^]*?^    \}\))/m);
+const defaults = source.match(/readonly property var defaults:\s*(\(\{[^]*?^\s*\}\))/m);
 assert.ok(defaults);
 
 function settings(data = {}) {

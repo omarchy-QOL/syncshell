@@ -18,14 +18,19 @@ StyledRect {
         spacing: Theme.spacingS
         RowLayout {
             Layout.fillWidth: true
-            DankIcon { name: "devices"; size: Theme.iconSizeSmall }
+            DankIcon {
+                name: "devices"
+                size: Theme.iconSizeSmall
+            }
             StyledText {
                 Layout.fillWidth: true
                 text: root.device ? root.device.name || root.device.id : "No remote device"
                 textFormat: Text.PlainText
                 maximumLineCount: 1
             }
-            IdCopyButton { value: root.device ? root.device.id : "" }
+            IdCopyButton {
+                value: root.device ? root.device.id : ""
+            }
             StyledText {
                 text: Model.deviceStatus(root.device, root.controller.fresh)
                 font.pixelSize: Theme.fontSizeSmall
@@ -40,9 +45,7 @@ StyledRect {
         InfoPair {
             Layout.fillWidth: true
             label: "Download / upload"
-            value: root.device && root.controller.fresh
-                ? Model.bytes(root.device.downloadBps) + "/s · " + Model.bytes(root.device.uploadBps) + "/s"
-                : "Unknown"
+            value: root.device && root.controller.fresh ? Model.bytes(root.device.downloadBps) + "/s · " + Model.bytes(root.device.uploadBps) + "/s" : "Unknown"
         }
         StyledText {
             Layout.fillWidth: true

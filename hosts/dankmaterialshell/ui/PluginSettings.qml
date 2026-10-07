@@ -53,9 +53,12 @@ Plugins.PluginSettings {
                 Layout.fillWidth: true
                 text: "Web UI"
                 options: ["Syncthing default", "Modern", "DMS theme"]
-                currentValue: ({ default: "Syncthing default", modern: "Modern", dms: "DMS theme" })[root.settings.values.webUiTheme]
-                onValueChanged: value => root.settings.save("webUiTheme",
-                    value === "Modern" ? "modern" : value === "DMS theme" ? "dms" : "default")
+                currentValue: ({
+                        default: "Syncthing default",
+                        modern: "Modern",
+                        dms: "DMS theme"
+                    })[root.settings.values.webUiTheme]
+                onValueChanged: value => root.settings.save("webUiTheme", value === "Modern" ? "modern" : value === "DMS theme" ? "dms" : "default")
             }
             StyledText {
                 Layout.fillWidth: true
@@ -76,14 +79,20 @@ Plugins.PluginSettings {
                     Layout.fillWidth: true
                     labelText: "Probe interval (seconds)"
                     text: String(root.settings.values.probeIntervalSeconds)
-                    validator: IntValidator { bottom: 1; top: 3600 }
+                    validator: IntValidator {
+                        bottom: 1
+                        top: 3600
+                    }
                     onEditingFinished: root.settings.save("probeIntervalSeconds", Number(text))
                 }
                 DankTextField {
                     Layout.fillWidth: true
                     labelText: "Refresh interval (seconds)"
                     text: String(root.settings.values.refreshIntervalSeconds)
-                    validator: IntValidator { bottom: 1; top: 3600 }
+                    validator: IntValidator {
+                        bottom: 1
+                        top: 3600
+                    }
                     onEditingFinished: root.settings.save("refreshIntervalSeconds", Number(text))
                 }
             }
@@ -112,7 +121,10 @@ Plugins.PluginSettings {
                 checked: root.settings.values.lifecycleAuthorized
                 onToggled: checked => root.settings.save("lifecycleAuthorized", checked)
             }
-            StyledText { text: "Connection"; font.weight: Font.Medium }
+            StyledText {
+                text: "Connection"
+                font.weight: Font.Medium
+            }
             StyledText {
                 Layout.fillWidth: true
                 text: "Leave these fields empty for local discovery. Credentials stay in a private file read by the native core, never in plugin settings. Connection changes restart only the Syncshell worker."
@@ -121,11 +133,26 @@ Plugins.PluginSettings {
             }
             Repeater {
                 model: [
-                    { key: "configPath", label: "Syncthing config path" },
-                    { key: "endpoint", label: "API endpoint" },
-                    { key: "credentialFile", label: "Private credential file path" },
-                    { key: "tlsCertificate", label: "Pinned TLS certificate path" },
-                    { key: "expectedDeviceId", label: "Expected device ID" }
+                    {
+                        key: "configPath",
+                        label: "Syncthing config path"
+                    },
+                    {
+                        key: "endpoint",
+                        label: "API endpoint"
+                    },
+                    {
+                        key: "credentialFile",
+                        label: "Private credential file path"
+                    },
+                    {
+                        key: "tlsCertificate",
+                        label: "Pinned TLS certificate path"
+                    },
+                    {
+                        key: "expectedDeviceId",
+                        label: "Expected device ID"
+                    }
                 ]
                 DankTextField {
                     required property var modelData
@@ -148,7 +175,10 @@ Plugins.PluginSettings {
             }
             RowLayout {
                 visible: root.confirmCleanup
-                DankButton { text: "Cancel"; onClicked: root.confirmCleanup = false }
+                DankButton {
+                    text: "Cancel"
+                    onClicked: root.confirmCleanup = false
+                }
                 BusyButton {
                     text: "Restore default and clean profiles"
                     busy: !!root.host && root.host.theme.busy

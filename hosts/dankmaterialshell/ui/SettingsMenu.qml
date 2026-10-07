@@ -5,7 +5,7 @@ SquareActionButton {
     id: root
     property string pluginId: "syncshell"
     property bool waiting: false
-    signal opening()
+    signal opening
     iconName: "settings"
     help: "Syncshell settings"
     function finishOpen() {
@@ -22,6 +22,8 @@ SquareActionButton {
     }
     Connections {
         target: PopoutService
-        function onSettingsModalChanged() { root.finishOpen(); }
+        function onSettingsModalChanged() {
+            root.finishOpen();
+        }
     }
 }

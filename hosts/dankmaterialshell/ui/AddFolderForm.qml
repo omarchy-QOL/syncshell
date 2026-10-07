@@ -65,7 +65,9 @@ ColumnLayout {
         font.pixelSize: Theme.fontSizeSmall
         wrapMode: Text.WordWrap
     }
-    StyledText { text: "Share with devices" }
+    StyledText {
+        text: "Share with devices"
+    }
     SyncshellDropdown {
         Layout.fillWidth: true
         multiple: true
@@ -78,8 +80,7 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: (root.controller.draft.ids || []).length ? "Only the selected devices will share this folder."
-            : "Local only: not shared with other devices."
+        text: (root.controller.draft.ids || []).length ? "Only the selected devices will share this folder." : "Local only: not shared with other devices."
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
     }
@@ -87,8 +88,7 @@ ColumnLayout {
         Layout.fillWidth: true
         text: "Add folder"
         busy: root.controller.submitting
-        enabled: !!root.controller.service && root.controller.service.online
-            && !!root.controller.draft.path && !!root.controller.draft.folderId
+        enabled: !!root.controller.service && root.controller.service.online && !!root.controller.draft.path && !!root.controller.draft.folderId
         onClicked: root.controller.submit()
     }
 }

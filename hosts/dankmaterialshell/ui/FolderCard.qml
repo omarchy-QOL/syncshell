@@ -32,11 +32,12 @@ StyledRect {
                 Layout.fillWidth: true
                 maximumLineCount: 1
             }
-            IdCopyButton { value: root.folder ? root.folder.id : "" }
+            IdCopyButton {
+                value: root.folder ? root.folder.id : ""
+            }
             StyledText {
                 text: root.folder ? Model.folderStatus(root.folder, root.controller.fresh) : ""
-                color: !root.controller.fresh ? Theme.surfaceVariantText
-                    : Model.folderGroup(root.folder || {}, true) === "errors" ? Theme.error : Theme.primary
+                color: !root.controller.fresh ? Theme.surfaceVariantText : Model.folderGroup(root.folder || {}, true) === "errors" ? Theme.error : Theme.primary
                 font.pixelSize: Theme.fontSizeSmall
             }
         }
@@ -47,7 +48,10 @@ StyledRect {
             color: Theme.surfaceVariantText
             maximumLineCount: 1
             elide: Text.ElideMiddle
-            SyncshellToolTip { anchors.fill: parent; text: parent.text }
+            SyncshellToolTip {
+                anchors.fill: parent
+                text: parent.text
+            }
         }
         ActivityText {
             Layout.fillWidth: true

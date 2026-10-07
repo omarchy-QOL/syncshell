@@ -26,8 +26,11 @@ ColumnLayout {
         parentPopout: root.parentPopout
         options: root.controller.originalShareIds.map(function (id) {
             var folder = root.controller.service ? root.controller.service.folder(id) : null;
-            return { value: id, label: folder ? folder.label || id : id,
-                description: folder ? folder.path : "Folder no longer available" };
+            return {
+                value: id,
+                label: folder ? folder.label || id : id,
+                description: folder ? folder.path : "Folder no longer available"
+            };
         })
         selectedValues: root.controller.draft.ids || []
         enabled: !root.controller.busy

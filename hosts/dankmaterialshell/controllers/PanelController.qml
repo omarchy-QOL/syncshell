@@ -24,14 +24,13 @@ QtObject {
     readonly property var folder: service ? service.folder(selectedFolderId) : null
     readonly property var device: service ? service.device(selectedDeviceId) : null
     readonly property bool fresh: !!service && service.online && service.connection.fresh === true
-    readonly property var folderOptions: Model.folderOptions(service ? service.folders : [],
-        fresh, groups, sort)
+    readonly property var folderOptions: Model.folderOptions(service ? service.folders : [], fresh, groups, sort)
     readonly property var deviceOptions: Model.deviceOptions(service ? service.remoteDevices() : [], fresh)
     readonly property var shareableDeviceOptions: Model.deviceOptions(service ? service.shareableDevices() : [], fresh)
     readonly property bool busy: submitting || !!service && (service.busy || service.refreshing)
 
     signal focusRequested(var target)
-    signal directoryPickerRequested()
+    signal directoryPickerRequested
 
     function reconcile() {
         if (!service)
@@ -68,23 +67,35 @@ QtObject {
         returnFocus = trigger || null;
         originalShareIds = [];
         if (nextForm === "add-folder") {
-            draft = { path: "", label: String(target.label || ""),
+            draft = {
+                path: "",
+                label: String(target.label || ""),
                 folderId: String(target.folderId || ""),
                 pendingDeviceId: String(target.deviceId || ""),
-                ids: target.deviceId ? [target.deviceId] : [] };
+                ids: target.deviceId ? [target.deviceId] : []
+            };
         } else if (nextForm === "add-device" || nextForm === "accept-device") {
-            draft = { deviceId: String(target.id || ""), name: String(target.name || ""),
-                address: String(target.address || "") };
+            draft = {
+                deviceId: String(target.id || ""),
+                name: String(target.name || ""),
+                address: String(target.address || "")
+            };
         } else if (nextForm === "share-folder") {
             if (!service || !service.folder(target.id))
                 return false;
-            draft = { folderId: target.id, ids: service.remoteDeviceIdsForFolder(target.id).slice() };
+            draft = {
+                folderId: target.id,
+                ids: service.remoteDeviceIdsForFolder(target.id).slice()
+            };
         } else if (nextForm === "device-folders") {
             if (!service || !service.device(target.id))
                 return false;
             originalShareIds = service.folderIdsForDevice(target.id).slice();
-            draft = { deviceId: target.id, name: target.name,
-                ids: originalShareIds.slice() };
+            draft = {
+                deviceId: target.id,
+                name: target.name,
+                ids: originalShareIds.slice()
+            };
         } else {
             return false;
         }
@@ -118,7 +129,10 @@ QtObject {
     function requestConfirmation(action, target, trigger) {
         if (busy)
             return false;
-        confirmation = { action: action, target: JSON.parse(JSON.stringify(target || {})) };
+        confirmation = {
+            action: action,
+            target: JSON.parse(JSON.stringify(target || {}))
+        };
         returnFocus = trigger || returnFocus;
         error = "";
         return true;
@@ -140,7 +154,9 @@ QtObject {
         var accepted = false;
         if (form === "add-folder") {
             pendingAction = "folder.add-existing";
-            accepted = service.addFolder(Object.assign({}, draft, { deviceIds: draft.ids.slice() }));
+            accepted = service.addFolder(Object.assign({}, draft, {
+                deviceIds: draft.ids.slice()
+            }));
         } else if (form === "add-device" || form === "accept-device") {
             pendingAction = "device.add";
             accepted = service.addDevice(draft.deviceId, draft.name);
@@ -153,8 +169,7 @@ QtObject {
             if (!service.device(draft.deviceId))
                 return reject("This device no longer exists; your draft has been kept");
             pendingAction = "device.remove-folder-shares";
-            accepted = service.removeDeviceFolderShares(draft.deviceId,
-                Model.removedShares(originalShareIds, draft.ids), draft.name);
+            accepted = service.removeDeviceFolderShares(draft.deviceId, Model.removedShares(originalShareIds, draft.ids), draft.name);
         }
         if (!accepted)
             return reject(service.actionError || "Action is unavailable");
@@ -168,8 +183,7 @@ QtObject {
         var target = request.target;
         var action = request.action;
         var accepted = false;
-        if (action === "folder.forget" && !service.folder(target.id)
-                || action === "device.remove" && !service.device(target.id))
+        if (action === "folder.forget" && !service.folder(target.id) || action === "device.remove" && !service.device(target.id))
             return reject("This target no longer exists; nothing was changed");
         submitting = true;
         pendingAction = action;
@@ -182,7 +196,9 @@ QtObject {
         else if (action === "folder.dismiss-pending")
             accepted = service.dismissPendingFolder(target.folderId, target.deviceId);
         else if (action === "folder.add-existing")
-            accepted = service.addFolder(Object.assign({}, target, { createDirectory: true }));
+            accepted = service.addFolder(Object.assign({}, target, {
+                createDirectory: true
+            }));
         else if (action === "lifecycle.enable" || action === "lifecycle.disable")
             accepted = service.setServiceEnabled(action === "lifecycle.enable");
         if (!accepted)
@@ -202,11 +218,10 @@ QtObject {
         pendingAction = "";
         if (!ok) {
             error = String(failure && failure.message || "Action failed; your draft has been kept");
-            if (action === "folder.add-existing" && failure && failure.code === "path_missing"
-                    && !confirmation) {
-                requestConfirmation("folder.add-existing",
-                    Object.assign({}, submittedDraft,
-                        { deviceIds: (submittedDraft.ids || []).slice() }), returnFocus);
+            if (action === "folder.add-existing" && failure && failure.code === "path_missing" && !confirmation) {
+                requestConfirmation("folder.add-existing", Object.assign({}, submittedDraft, {
+                    deviceIds: (submittedDraft.ids || []).slice()
+                }), returnFocus);
             }
             return;
         }
@@ -218,8 +233,12 @@ QtObject {
 
     property Connections serviceConnections: Connections {
         target: root.service
-        function onFoldersChanged() { root.reconcile(); }
-        function onDevicesChanged() { root.reconcile(); }
+        function onFoldersChanged() {
+            root.reconcile();
+        }
+        function onDevicesChanged() {
+            root.reconcile();
+        }
         function onActionFinished(action, ok, data, error) {
             root.settled(action, ok, data, error);
         }

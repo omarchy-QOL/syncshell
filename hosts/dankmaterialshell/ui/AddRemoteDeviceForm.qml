@@ -14,17 +14,26 @@ ColumnLayout {
         enabled: !root.controller.submitting
         onCancelled: root.controller.closeForm()
     }
-    StyledText { text: "Device source" }
+    StyledText {
+        text: "Device source"
+    }
     SyncshellDropdown {
         Layout.fillWidth: true
         parentPopout: root.parentPopout
         placeholder: "Custom device ID"
         value: root.controller.draft.deviceId || ""
-        options: [{ value: "", label: "Custom device ID" }].concat(
-            (root.controller.service ? root.controller.service.nearbyDevices : []).map(function (device) {
-                return { value: device.id, label: device.id,
-                    description: (device.addresses || []).join(", ") };
-            }))
+        options: [
+            {
+                value: "",
+                label: "Custom device ID"
+            }
+        ].concat((root.controller.service ? root.controller.service.nearbyDevices : []).map(function (device) {
+            return {
+                value: device.id,
+                label: device.id,
+                description: (device.addresses || []).join(", ")
+            };
+        }))
         enabled: !root.controller.busy
         onSelected: value => root.controller.setDraft("deviceId", value)
     }
@@ -54,8 +63,7 @@ ColumnLayout {
         Layout.fillWidth: true
         text: "Add remote device"
         busy: root.controller.submitting
-        enabled: !!root.controller.service && root.controller.service.online
-            && !!root.controller.draft.deviceId
+        enabled: !!root.controller.service && root.controller.service.online && !!root.controller.draft.deviceId
         onClicked: root.controller.submit()
     }
 }

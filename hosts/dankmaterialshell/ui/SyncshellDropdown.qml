@@ -75,14 +75,20 @@ Item {
         searchText = "";
         menu.anchor.updateAnchor();
         opened = true;
-        Qt.callLater(function () { search.forceActiveFocus(); });
+        Qt.callLater(function () {
+            search.forceActiveFocus();
+        });
     }
 
-    onOpenedChanged: if (tracker) tracker.setActive(root, opened, opened ? menu : null)
-    Component.onDestruction: if (tracker) tracker.unregister(root)
+    onOpenedChanged: if (tracker)
+        tracker.setActive(root, opened, opened ? menu : null)
+    Component.onDestruction: if (tracker)
+        tracker.unregister(root)
     Connections {
         target: root.tracker
-        function onCloseRequested() { root.close(); }
+        function onCloseRequested() {
+            root.close();
+        }
     }
 
     DankButton {
@@ -100,7 +106,10 @@ Item {
                 elide: Text.ElideRight
                 Layout.fillWidth: true
             }
-            DankIcon { name: root.opened ? "expand_less" : "expand_more"; size: 18 }
+            DankIcon {
+                name: root.opened ? "expand_less" : "expand_more"
+                size: 18
+            }
         }
     }
 
@@ -110,17 +119,20 @@ Item {
         property real originY: 0
         visible: root.opened
         color: "transparent"
-        MouseArea { anchors.fill: parent; onClicked: root.close() }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.close()
+        }
         StyledRect {
             width: Math.min(menu.width, Math.max(root.width, 310))
             height: Math.min(menu.height, content.implicitHeight + Theme.spacingM * 2)
             x: Math.max(0, Math.min(menu.width - width, menu.originX))
-            y: Math.max(0, Math.min(menu.height - height,
-                menu.originY + root.height + height <= menu.height
-                    ? menu.originY + root.height : menu.originY - height))
+            y: Math.max(0, Math.min(menu.height - height, menu.originY + root.height + height <= menu.height ? menu.originY + root.height : menu.originY - height))
             color: Theme.surfaceContainer
             radius: Theme.cornerRadius
-            MouseArea { anchors.fill: parent }
+            MouseArea {
+                anchors.fill: parent
+            }
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
                     root.close();
@@ -164,8 +176,7 @@ Item {
                     currentIndex: -1
                     keyNavigationEnabled: true
                     Keys.onPressed: event => {
-                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
-                                || event.key === Qt.Key_Space) {
+                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                             if (!event.isAutoRepeat)
                                 root.choose(currentIndex);
                             event.accepted = true;
@@ -184,8 +195,7 @@ Item {
                             anchors.margins: Theme.spacingS
                             DankIcon {
                                 visible: root.multiple
-                                name: root.selectedValues.indexOf(modelData.value) >= 0
-                                    ? "check_box" : "check_box_outline_blank"
+                                name: root.selectedValues.indexOf(modelData.value) >= 0 ? "check_box" : "check_box_outline_blank"
                                 size: 20
                             }
                             ColumnLayout {
@@ -219,7 +229,10 @@ Item {
                             onEntered: list.currentIndex = index
                             onClicked: root.choose(index)
                         }
-                        SyncshellToolTip { anchors.fill: parent; text: modelData.help || "" }
+                        SyncshellToolTip {
+                            anchors.fill: parent
+                            text: modelData.help || ""
+                        }
                     }
                 }
             }

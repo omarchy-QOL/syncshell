@@ -8,17 +8,25 @@ QtObject {
     property var pluginData: ({})
     readonly property string owner: "omarchy-QOL/syncshell"
     readonly property var defaults: ({
-        schema: 1, owner: root.owner, iconStyle: "themed", webUiTheme: "default",
-        probeIntervalSeconds: 15, refreshIntervalSeconds: 60,
-        lifecycleAuthorized: false, lifecycleUnit: "syncthing.service",
-        lifecycleConfig: "", desiredServiceState: "enabled",
-        configPath: "", endpoint: "", credentialFile: "", tlsCertificate: "",
-        expectedDeviceId: ""
-    })
+            schema: 1,
+            owner: root.owner,
+            iconStyle: "themed",
+            webUiTheme: "default",
+            probeIntervalSeconds: 15,
+            refreshIntervalSeconds: 60,
+            lifecycleAuthorized: false,
+            lifecycleUnit: "syncthing.service",
+            lifecycleConfig: "",
+            desiredServiceState: "enabled",
+            configPath: "",
+            endpoint: "",
+            credentialFile: "",
+            tlsCertificate: "",
+            expectedDeviceId: ""
+        })
     readonly property string validationError: validate(pluginData)
     readonly property bool valid: validationError === ""
-    readonly property var values: valid
-        ? Object.assign({}, defaults, pluginData.syncshell || {}) : defaults
+    readonly property var values: valid ? Object.assign({}, defaults, pluginData.syncshell || {}) : defaults
     property string writeError: ""
 
     function validate(data) {
@@ -37,18 +45,13 @@ QtObject {
         var configKeys = Object.keys(config);
         for (var keyIndex = 0; keyIndex < configKeys.length; keyIndex++) {
             var key = configKeys[keyIndex];
-            if (!Object.prototype.hasOwnProperty.call(defaults, key)
-                    || typeof config[key] !== typeof defaults[key])
+            if (!Object.prototype.hasOwnProperty.call(defaults, key) || typeof config[key] !== typeof defaults[key])
                 return "Unsupported Syncshell setting: " + key;
         }
         var value = Object.assign({}, defaults, config);
-        if (["themed", "branded"].indexOf(value.iconStyle) < 0
-                || ["default", "modern", "dms"].indexOf(value.webUiTheme) < 0)
+        if (["themed", "branded"].indexOf(value.iconStyle) < 0 || ["default", "modern", "dms"].indexOf(value.webUiTheme) < 0)
             return "Unsupported icon or Web UI theme";
-        if (!Number.isInteger(value.probeIntervalSeconds) || value.probeIntervalSeconds < 1
-                || value.probeIntervalSeconds > 3600
-                || !Number.isInteger(value.refreshIntervalSeconds) || value.refreshIntervalSeconds < 1
-                || value.refreshIntervalSeconds > 3600)
+        if (!Number.isInteger(value.probeIntervalSeconds) || value.probeIntervalSeconds < 1 || value.probeIntervalSeconds > 3600 || !Number.isInteger(value.refreshIntervalSeconds) || value.refreshIntervalSeconds < 1 || value.refreshIntervalSeconds > 3600)
             return "Probe and refresh intervals must be whole seconds between 1 and 3600";
         if (["enabled", "disabled"].indexOf(value.desiredServiceState) < 0)
             return "Unsupported desired service state";
@@ -62,7 +65,9 @@ QtObject {
             return false;
         var next = Object.assign({}, values);
         next[key] = value;
-        writeError = validate({ syncshell: next });
+        writeError = validate({
+            syncshell: next
+        });
         if (writeError)
             return false;
         pluginService.savePluginData(pluginId, "syncshell", next);
