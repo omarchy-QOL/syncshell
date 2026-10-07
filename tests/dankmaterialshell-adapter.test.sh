@@ -36,5 +36,6 @@ if bash "$root/integrations/dankmaterialshell/assemble.sh" "$work/Syncshell" 2>/
   printf 'assembler overwrote a nonempty package\n' >&2
   exit 1
 fi
+QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$root/tests/dms"
 node --test "$root/tests/adapter-contract.test.mjs" "$root"/tests/dms-*.test.mjs
 printf '[ok] DMS adapter bundle contract passed\n'

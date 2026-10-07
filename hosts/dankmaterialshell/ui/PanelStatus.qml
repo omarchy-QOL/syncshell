@@ -43,11 +43,11 @@ ColumnLayout {
         DankToggle {
             hideText: true
             checked: !!root.service && root.service.lifecycle.active === true
-            enabled: !!root.service && root.service.canControlService && !root.controller.busy
-            onToggled: checked => root.controller.requestConfirmation(checked ? "lifecycle.enable" : "lifecycle.disable", {}, this)
+            enabled: !!root.service && root.service.canControlService && !root.controller.busy && !root.controller.form && !root.controller.confirmation
+            onToggled: root.controller.requestServiceToggle(this)
             SyncshellToolTip {
                 anchors.fill: parent
-                text: root.service && root.service.canControlService ? "Enable or disable Syncthing" : "Externally managed. Authorize the matching user service in Syncshell settings to control it here."
+                text: root.service && root.service.canControlService ? "Start or stop Syncthing without changing autostart" : "Externally managed. Authorize the matching user service in Syncshell settings to control it here."
             }
         }
     }

@@ -24,10 +24,29 @@ QtObject {
     readonly property var folder: service ? service.folder(selectedFolderId) : null
     readonly property var device: service ? service.device(selectedDeviceId) : null
     readonly property bool fresh: !!service && service.online && service.connection.fresh === true
-    readonly property var folderOptions: Model.folderOptions(service ? service.folders : [], fresh, groups, sort)
+    readonly property var folderOptions: Model.folderOptions(service ? service.folders : [], fresh, groups, sort, folder => root.folderStatus(folder))
     readonly property var deviceOptions: Model.deviceOptions(service ? service.remoteDevices() : [], fresh)
     readonly property var shareableDeviceOptions: Model.deviceOptions(service ? service.shareableDevices() : [], fresh)
     readonly property bool busy: submitting || !!service && (service.busy || service.refreshing)
+
+    property string recentlyLinkedFolderId: ""
+    property Timer linkedFeedback: Timer {
+        interval: 10000
+        onTriggered: root.recentlyLinkedFolderId = ""
+    }
+    function folderActivity(folder) {
+        return Model.folderActivity(folder, fresh, service ? service.currentActivity : null);
+    }
+    function rescanning(folder) {
+        if (!service || !folder || folder.paused || !service.busy)
+            return false;
+        if (service._actionName === "folder.rescan")
+            return service._actionTargetId === folder.id;
+        return service._actionName === "folder.rescan-all" && (service.scanning(folder.id) || service.scanningFolderIds().length === 0);
+    }
+    function folderStatus(folder) {
+        return Model.folderStatus(folder, fresh, recentlyLinkedFolderId, !!folderActivity(folder), rescanning(folder));
+    }
 
     signal focusRequested(var target)
     signal directoryPickerRequested
@@ -35,10 +54,25 @@ QtObject {
     function reconcile() {
         if (!service)
             return;
+        if (form === "device-folders" && !submitting && !confirmation) {
+            var current = service.folderIdsForDevice(draft.deviceId);
+            setDraft("ids", current.filter(id => originalShareIds.indexOf(id) < 0 || draft.ids.indexOf(id) >= 0));
+            originalShareIds = current.slice();
+        }
         selectedFolderId = Model.retainedSelection(service.folders, selectedFolderId);
         selectedDeviceId = Model.retainedSelection(service.remoteDevices(), selectedDeviceId);
     }
 
+    property string linkingFolderId: ""
+    function toggleFolder() {
+        if (!folder || !fresh || busy || confirmation || form)
+            return false;
+        linkingFolderId = folder.paused ? folder.id : "";
+        var accepted = service.setFolderPaused(folder.id, !folder.paused);
+        if (!accepted)
+            linkingFolderId = "";
+        return accepted;
+    }
     function resetFilters() {
         groups = ["ready", "active", "errors", "paused", "unknown"];
         sort = "name";
@@ -176,6 +210,12 @@ QtObject {
         return true;
     }
 
+    function requestServiceToggle(trigger) {
+        if (!service || !service.canControlService || busy || form || confirmation)
+            return false;
+        return requestConfirmation(service.lifecycle.active ? "lifecycle.stop" : "lifecycle.start", {}, trigger);
+    }
+
     function confirm() {
         if (busy || !confirmation || !service)
             return false;
@@ -199,14 +239,21 @@ QtObject {
             accepted = service.addFolder(Object.assign({}, target, {
                 createDirectory: true
             }));
-        else if (action === "lifecycle.enable" || action === "lifecycle.disable")
-            accepted = service.setServiceEnabled(action === "lifecycle.enable");
+        else if (action === "lifecycle.start" || action === "lifecycle.stop")
+            accepted = service.runAction(action, {}, action === "lifecycle.start" ? "Syncthing started" : "Syncthing stopped", "");
         if (!accepted)
             return reject(service.actionError || "Action is unavailable");
         return true;
     }
 
     function settled(action, ok, data, failure) {
+        if (action === "folder.resume") {
+            if (ok && linkingFolderId) {
+                recentlyLinkedFolderId = linkingFolderId;
+                linkedFeedback.restart();
+            }
+            linkingFolderId = "";
+        }
         if (action === "folder.suggest-id") {
             if (ok && form === "add-folder" && !draft.folderId)
                 setDraft("folderId", String(data && data.folderId || ""));

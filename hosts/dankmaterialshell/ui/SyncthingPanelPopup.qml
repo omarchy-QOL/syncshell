@@ -92,7 +92,7 @@ FocusScope {
                 return;
             item = item.parent;
         }
-        if (event.isAutoRepeat || controller.busy || controller.confirmation)
+        if (event.isAutoRepeat || controller.busy || controller.confirmation || controller.form)
             return;
         var service = controller.service;
         switch (event.key) {
@@ -105,10 +105,7 @@ FocusScope {
                 service.openWebUi();
             break;
         case Qt.Key_P:
-            if (controller.tab === "folders" && controller.folder)
-                service.setFolderPaused(controller.folder.id, !controller.folder.paused);
-            else if (controller.tab === "devices" && controller.device)
-                service.setDevicePaused(controller.device.id, !controller.device.paused, controller.device.name);
+            controller.requestServiceToggle(null);
             break;
         case Qt.Key_S:
             settings.clicked();

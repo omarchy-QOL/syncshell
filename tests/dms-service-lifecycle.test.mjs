@@ -114,24 +114,6 @@ test("connection edits retry even when startup never reached a handshake", () =>
     /onConnectionKeyChanged:\s*if\s*\(service\)\s*restartTimer\.restart\(\)/);
 });
 
-test("pause shortcut never acts on the other tab's retained selection", () => {
-  const popup = readFileSync(new URL(
-    "../hosts/dankmaterialshell/ui/SyncthingPanelPopup.qml", import.meta.url), "utf8");
-  let pauses = 0;
-  const panel = instance(popup, "handleKey", {
-    Qt: { Key_P: 80, Key_Escape: 27, Key_R: 82, Key_W: 87 },
-    Window: { window: null },
-    controller: { busy: false, confirmation: null, tab: "folders", folder: null,
-      device: { id: "retained", paused: false },
-      service: { setDevicePaused() { pauses++; } } },
-  });
-  panel.handleKey({ key: 80, isAutoRepeat: false });
-  assert.equal(pauses, 0);
-  panel.controller.tab = "devices";
-  panel.handleKey({ key: 80, isAutoRepeat: false });
-  assert.equal(pauses, 1);
-});
-
 for (const name of ["BusyButton", "SquareActionButton"]) {
   test(`${name} rejects held activation keys even after a fast action settles`, () => {
     const source = readFileSync(new URL(

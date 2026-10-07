@@ -173,7 +173,7 @@ test("refresh preserves drafts and device sharing removes only original shares",
   panel.toggleDraft("a");
   service.folderIdsForDevice = () => ["a", "z", "newly-shared"];
   panel.reconcile();
-  assert.deepEqual(Array.from(panel.draft.ids), ["z"]);
+  assert.deepEqual(Array.from(panel.draft.ids), ["z", "newly-shared"]);
   panel.submit();
   assert.deepEqual(removed, ["a"]);
   assert.equal(panel.submit(), false);
@@ -230,4 +230,43 @@ test("cancel and failure retain form drafts; suggestion cannot overwrite typed I
   panel.cancelConfirmation();
   assert.equal(panel.confirmation, null);
   assert.equal(panel.draft.path, "/keep");
+});
+
+test("folder presentation preserves state precedence, local-only and remaining bytes", () => {
+  const folder = (status, extra = {}) => ({ id: "one", path: "/work/docs", label: "Archive", status, ...extra });
+  const cases = [
+    [folder({ state: "idle" }), false, "", false, false, "UNKNOWN"],
+    [folder({ state: "error" }, { paused: true }), true, "", false, false, "UNLINKED"],
+    [folder({ state: "idle", pullErrors: 1 }), true, "", false, false, "ERROR"],
+    [folder({ state: "scanning" }), true, "", false, false, "SCANNING"],
+    [folder({ state: "scanning", needTotalItems: 2 }), true, "", false, false, "SCAN+SYNC"],
+    [folder({ state: "idle" }), true, "", true, true, "SCAN+SYNC"],
+    [folder({ state: "syncing" }), true, "", false, false, "SYNCING"],
+    [folder({ state: "idle" }), true, "one", false, false, "LINKED"],
+    [folder({ state: "idle" }), true, "", false, false, "SYNCED"],
+    [folder({}), true, "", false, false, "UNKNOWN"],
+  ];
+  for (const [f, fresh, linked, activity, scanning, expected] of cases) {
+    assert.equal(model.folderStatus(f, fresh, linked, activity, scanning), expected);
+    assert.ok(model.stateHelp(expected).startsWith(expected + " · "));
+  }
+  assert.match(model.folderMeta(folder({ state: "syncing", needTotalItems: 2, needBytes: 2048 }), true, "local", false), /2 items remaining.*2.*KiB.*Archive/);
+  assert.match(model.folderMeta(folder({ state: "idle", globalFiles: 3 }, { devices: [{ id: "local" }] }), true, "local", false), /3 files.*local only/);
+  assert.match(model.folderMeta(folder({ state: "idle" }), false, "local", false), /^Last reported:/);
+});
+test("activity is current and belongs to the displayed folder", () => {
+  const activity = { folderId: "one", action: "Uploading", detail: "photo.jpg" };
+  assert.equal(model.folderActivity({ id: "one" }, true, activity), "Uploading photo.jpg");
+  assert.equal(model.folderActivity({ id: "two" }, true, activity), "");
+  assert.equal(model.folderActivity({ id: "one" }, false, activity), "");
+  assert.equal(model.folderActivity(null, true, activity), "");
+});
+test("remote share confirmation requires fresh connected unpaused device state", () => {
+  for (const remoteState of ["valid", "paused", "unknown", "notSharing"]) {
+    const folder = { devices: [{ id: "peer", remoteState }] };
+    assert.equal(model.remoteShare(folder, { id: "peer", connected: true }, true), remoteState);
+    assert.equal(model.remoteShare(folder, { id: "peer", connected: false }, true), "unknown");
+    assert.equal(model.remoteShare(folder, { id: "peer", connected: true, paused: true }, true), "unknown");
+    assert.equal(model.remoteShare(folder, { id: "peer", connected: true }, false), "unknown");
+  }
 });

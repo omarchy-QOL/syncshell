@@ -25,7 +25,7 @@ function folderGroup(folder, fresh) {
     if (folder.paused)
         return "paused";
     var status = folder.status || {};
-    if (status.error || status.pullErrors > 0 || status.state === "error")
+    if (status.error || status.pullErrors > 0 || (status.errors || []).length || status.state === "error")
         return "errors";
     if (status.state === "syncing" || String(status.state).indexOf("scan") === 0
             || status.needTotalItems > 0)
@@ -33,15 +33,9 @@ function folderGroup(folder, fresh) {
     return status.state === "idle" ? "ready" : "unknown";
 }
 
-function folderStatus(folder, fresh) {
-    var group = folderGroup(folder, fresh);
-    if (group === "active")
-        return String(folder.status.state).indexOf("scan") === 0 ? "SCANNING" : "SYNCING";
-    return { ready: "SYNCED", errors: "ERROR", paused: "UNLINKED",
-        unknown: "UNKNOWN" }[group];
-}
 
-function folderOptions(folders, fresh, groups, sort) {
+
+function folderOptions(folders, fresh, groups, sort, presentation) {
     var rows = (folders || []).map(function (folder) {
         var status = folder.status || {};
         return {
@@ -49,8 +43,8 @@ function folderOptions(folders, fresh, groups, sort) {
             label: String(folder.label || folder.id),
             description: String(folder.path || ""),
             group: folderGroup(folder, fresh),
-            status: folderStatus(folder, fresh),
-            help: String(status.error || (status.errors || []).map(function (error) {
+            status: presentation ? presentation(folder) : folderStatus(folder, fresh),
+            help: stateHelp(presentation ? presentation(folder) : folderStatus(folder, fresh)) + "\n" + String(status.error || (status.errors || []).map(function (error) {
                 return error.path + ": " + error.error;
             }).join("\n"))
         };
@@ -156,4 +150,48 @@ function paneLayout(mainHeight, formHeight, available, triggerY, sideOpen,
     var last = sideOpen ? Math.max(top + main, formTop + form) : top + main;
     return { height: last - first, mainY: top - first, mainHeight: main,
         sideY: formTop - first, sideHeight: form, top: first };
+}
+
+function folderStatus(folder, fresh, recentlyLinkedId, activity, rescanning) {
+    if (!folder || !fresh) return "UNKNOWN";
+    if (folder.paused) return "UNLINKED";
+    var s = folder.status || {};
+    if (s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error") return "ERROR";
+    var syncing = s.needTotalItems > 0 || s.state === "syncing" || !!activity;
+    if (rescanning || String(s.state).indexOf("scan") === 0)
+        return syncing ? "SCAN+SYNC" : "SCANNING";
+    if (folder.id === recentlyLinkedId) return "LINKED";
+    if (syncing) return "SYNCING";
+    return s.state === "idle" ? "SYNCED" : "UNKNOWN";
+}
+function stateHelp(state) {
+    return state + " · " + ({ UNKNOWN: "Status unavailable", UNLINKED: "Syncing paused",
+        ERROR: "Needs attention", SCANNING: "Rescanning local files",
+        SYNCING: "Applying changes", "SCAN+SYNC": "Rescanning and syncing",
+        LINKED: "Newly linked", SYNCED: "Up to date" }[state] || "Status unavailable");
+}
+function folderMeta(folder, fresh, localDeviceId, rescanning) {
+    if (!folder) return "";
+    var s = folder.status || {};
+    var pathName = String(folder.path || "").replace(/\/+$/, "").split("/").pop();
+    var suffix = folder.label && folder.label !== pathName ? " · " + folder.label : "";
+    if (!fresh) return "Last reported: " + (s.globalFiles || 0) + " files · " + bytes(s.globalBytes) + suffix;
+    if (s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error")
+        return (s.error || (s.errors || [])[0]?.error || "Folder needs attention") + suffix;
+    if (folder.paused) return "Syncing paused" + suffix;
+    if (rescanning || String(s.state).indexOf("scan") === 0) return "Scanning local changes" + suffix;
+    if (s.needTotalItems > 0 || s.state === "syncing")
+        return (s.needTotalItems || 0) + " item" + (s.needTotalItems === 1 ? "" : "s") + " remaining"
+            + (s.needBytes > 0 ? " · " + bytes(s.needBytes) : "") + suffix;
+    var localOnly = !(folder.devices || []).some(d => d.id && d.id !== localDeviceId);
+    return (s.globalFiles || 0) + " files · " + (localOnly ? "local only" : bytes(s.globalBytes)) + suffix;
+}
+function folderActivity(folder, fresh, activity) {
+    return folder && fresh && activity && activity.folderId === folder.id && activity.detail
+        ? String(activity.action || "Syncing") + " " + activity.detail : "";
+}
+
+function remoteShare(folder, device, fresh) {
+    var member = (folder.devices || []).find(d => d.id === device.id);
+    return fresh && device.connected && !device.paused && member ? member.remoteState || "unknown" : "unknown";
 }

@@ -36,7 +36,7 @@ StyledRect {
                 value: root.folder ? root.folder.id : ""
             }
             StyledText {
-                text: root.folder ? Model.folderStatus(root.folder, root.controller.fresh) : ""
+                text: root.folder ? root.controller.folderStatus(root.folder) : ""
                 color: !root.controller.fresh ? Theme.surfaceVariantText : Model.folderGroup(root.folder || {}, true) === "errors" ? Theme.error : Theme.primary
                 font.pixelSize: Theme.fontSizeSmall
             }
@@ -62,7 +62,7 @@ StyledRect {
             Layout.fillWidth: true
             StyledText {
                 Layout.fillWidth: true
-                text: (root.status.globalFiles || 0) + " files · " + Model.bytes(root.status.globalBytes)
+                text: Model.folderMeta(root.folder, root.controller.fresh, root.controller.service ? root.controller.service.localDeviceId : "", root.controller.rescanning(root.folder))
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }

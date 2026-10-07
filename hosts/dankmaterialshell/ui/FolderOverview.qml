@@ -32,7 +32,7 @@ ColumnLayout {
             help: root.controller.folder && root.controller.folder.paused ? "Resume folder synchronization" : "Pause folder synchronization; keep its files and shares"
             busy: !!root.controller.service && root.controller.service.busy
             enabled: !!root.controller.folder && root.controller.fresh
-            onClicked: root.controller.service.setFolderPaused(root.controller.folder.id, !root.controller.folder.paused)
+            onClicked: root.controller.toggleFolder()
         }
     }
     FolderCard {

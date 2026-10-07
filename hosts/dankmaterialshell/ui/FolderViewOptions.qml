@@ -10,7 +10,7 @@ ColumnLayout {
         columns: 2
         Layout.fillWidth: true
         DankToggle {
-            text: root.controller.groups.length === 5 ? "All" : "All (mixed)"
+            text: root.controller.groups.length > 0 && root.controller.groups.length < 5 ? "All (mixed)" : "All"
             checked: root.controller.groups.length === 5
             onToggled: checked => root.controller.groups = checked ? ["ready", "active", "errors", "paused", "unknown"] : []
         }

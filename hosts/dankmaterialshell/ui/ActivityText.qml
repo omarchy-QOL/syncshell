@@ -6,7 +6,7 @@ StyledText {
     id: root
     property var service: null
     property string folderId: ""
-    text: service && (!folderId || service.currentActivity.folderId === folderId) ? service.activityText : ""
+    text: service && service.online && service.connection.fresh && folderId && service.currentActivity.folderId === folderId ? service.activityText : ""
     textFormat: Text.PlainText
     maximumLineCount: 1
     elide: Text.ElideMiddle
