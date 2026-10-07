@@ -8,6 +8,16 @@ QtObject {
 
     property int probeIntervalSeconds: 15
     property int refreshIntervalSeconds: 60
+    property string bundleRoot: Paths.localFilePath(Qt.resolvedUrl(".."))
+    property var lifecyclePolicy: ({})
+    property string desiredServiceState: "disabled"
+    property bool desktopAuthorized: false
+    property var profilePolicy: ({})
+    property string configPath: ""
+    property string endpoint: ""
+    property string credentialFile: ""
+    property string tlsCertificate: ""
+    property string expectedDeviceId: ""
     readonly property string homePath: Quickshell.env("HOME") || ""
 
     readonly property var state: core.snapshot || ({})
@@ -18,6 +28,13 @@ QtObject {
     readonly property var activity: state.activity || ({})
     readonly property var currentActivity: activity.current || ({})
     readonly property var webUi: state.webUi || ({})
+    readonly property var lifecycle: state.lifecycle || ({})
+    readonly property var installation: state.installation || ({})
+    readonly property bool lifecycleAuthorized: lifecyclePolicy.authorized === true
+        && lifecyclePolicy.kind === "systemd-user" && !!lifecyclePolicy.unit
+    readonly property bool canControlService: lifecycleAuthorized
+        && lifecycle.authorized === true && lifecycle.canControl === true
+    readonly property bool canStartService: canControlService && lifecycle.canStart === true
     readonly property var folders: state.folders || []
     readonly property var devices: state.devices || []
     readonly property var pendingFolders: state.pendingFolders || ({})
@@ -167,9 +184,11 @@ QtObject {
     }
 
     function refresh() {
-        if (!core.protocolReady || refreshing || busy)
+        if (refreshing || busy)
             return false;
         actionError = "";
+        if (!core.protocolReady)
+            return core.restart();
         _refreshRequest = core.refresh(function (ok, data, error) {
             root._refreshRequest = "";
             if (!ok)
@@ -179,8 +198,14 @@ QtObject {
     }
 
     function runAction(name, args, notice, targetId) {
-        if (!online || busy || refreshing) {
-            actionError = online ? "Another operation is already running" : "Syncthing must be online";
+        var lifecycleAction = name.indexOf("lifecycle.") === 0;
+        var available = core.protocolReady && (online || lifecycleAction && canStartService);
+        if (!available || busy || refreshing) {
+            actionError = available ? "Another operation is already running" : "Syncthing must be online";
+            return false;
+        }
+        if (lifecycleAction && !canControlService) {
+            actionError = "This Syncthing instance is externally managed";
             return false;
         }
         actionError = "";
@@ -283,8 +308,9 @@ QtObject {
         return runAction("folder.add-existing", {
             folderId: String(input.folderId || input.id || ""),
             path: Paths.resolveFolderPath(input.path, homePath),
+            createDirectory: input.createDirectory === true,
             label: String(input.label || ""),
-            deviceIds: input.deviceIds || input.selectedDeviceIds || [],
+            deviceIds: (input.deviceIds || input.selectedDeviceIds || []).slice(),
             pendingDeviceId: String(input.pendingDeviceId || "")
         }, "Added existing directory", String(input.folderId || input.id || ""));
     }
@@ -336,19 +362,80 @@ QtObject {
     function openWebUi() {
         if (!online || !baseUrl)
             return false;
+        if (desktopAuthorized)
+            return runAction("webui.open", {}, "", "");
         return Qt.openUrlExternally(baseUrl);
     }
 
+    function dismissPendingFolder(folderId, deviceId) {
+        return runAction("folder.dismiss-pending", {
+            folderId: String(folderId || ""),
+            pendingDeviceId: String(deviceId || "")
+        }, "Folder invitation dismissed", String(folderId || ""));
+    }
+
+    function recheckErrors() {
+        return runAction("folder.recheck-errors", {}, "Folder errors checked", "");
+    }
+
+    function setWebUiTheme(theme) {
+        return runAction("webui.set-theme", { theme: String(theme || "") }, "Web UI theme updated", "");
+    }
+
+    function applyWebProfile(style, palette) {
+        return runAction("webui.apply-profile", {
+            profile: style, palette: palette || ({})
+        }, "Web UI profile updated", "");
+    }
+
+    function removeWebProfile() {
+        return runAction("webui.remove-profile", {}, "Default Web UI restored; this adapter's profiles removed", "");
+    }
+
+    function setServiceEnabled(enabled) {
+        return runAction(enabled ? "lifecycle.enable" : "lifecycle.disable", {},
+            enabled ? "Syncthing enabled" : "Syncthing disabled", "");
+    }
+
+    function startupArguments() {
+        var args = ["--probe-interval-seconds", String(probeIntervalSeconds),
+            "--desired-service-state", desiredServiceState];
+        if (lifecycleAuthorized) {
+            args.push("--lifecycle-kind", lifecyclePolicy.kind,
+                "--lifecycle-authorized", "--lifecycle-unit", lifecyclePolicy.unit);
+            if (lifecyclePolicy.configPath)
+                args.push("--lifecycle-config", lifecyclePolicy.configPath);
+        }
+        if (desktopAuthorized)
+            args.push("--desktop-authorized");
+        if (profilePolicy.authorized === true)
+            args.push("--web-profile-authorized", "--web-profile-owner", profilePolicy.owner,
+                "--web-profile-bundle", profilePolicy.bundle);
+        var targets = [
+            ["--config", configPath], ["--endpoint", endpoint],
+            ["--credential-file", credentialFile], ["--tls-certificate", tlsCertificate],
+            ["--expected-device-id", expectedDeviceId]
+        ];
+        for (var index = 0; index < targets.length; index++) {
+            if (targets[index][1])
+                args.push(targets[index][0], targets[index][1]);
+        }
+        return args;
+    }
+
     function configureCore() {
-        if (!core.protocolReady)
+        if (!core || !core.protocolReady)
             return;
         core.configure({
             probeIntervalSeconds: probeIntervalSeconds,
             refreshIntervalSeconds: refreshIntervalSeconds,
-            desiredServiceState: "enabled"
+            desiredServiceState: desiredServiceState
         });
     }
 
+    onProbeIntervalSecondsChanged: configureCore()
+    onRefreshIntervalSecondsChanged: configureCore()
+    onDesiredServiceStateChanged: configureCore()
     onFoldersChanged: rescanTracker.reconcile(scanningFolderIds())
     onOnlineChanged: {
         if (!online && busy && (_actionName === "folder.rescan" || _actionName === "folder.rescan-all") && rescanTracker.runningFolderIds.length > 0) {
@@ -364,7 +451,8 @@ QtObject {
     }
 
     property CoreProcess core: CoreProcess {
-        startupArguments: ["--probe-interval-seconds", String(root.probeIntervalSeconds), "--desired-service-state", "enabled", "--lifecycle-kind", "systemd-user", "--lifecycle-authorized", "--lifecycle-unit", "syncthing.service"]
+        corePath: root.bundleRoot.replace(/\/$/, "") + "/bin/syncshell-core"
+        startupArguments: root.startupArguments()
         onProtocolReadyChanged: if (protocolReady)
             root.configureCore()
         onRunningChanged: if (!running) {
