@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-platform="$(/usr/bin/uname -s):$(/usr/bin/uname -m)"
+platform="$(uname -s):$(uname -m)"
 
 case $platform in
   Linux:x86_64) target="$root/x86_64/syncshell-core" ;;

@@ -1,0 +1,61 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Layouts
+import qs.components
+import qs.components.controls
+import "."
+
+ColumnLayout {
+    id: root
+    required property var controller
+    InlineFormHeader {
+        Layout.fillWidth: true
+        title: root.controller.view.form === "accept-device" ? "Accept device" : "Add device"
+        busy: root.controller.busy
+        onCancelled: root.controller.cancelForm()
+    }
+    SyncshellDropdown {
+        Layout.fillWidth: true
+        visible: root.controller.view.form !== "accept-device"
+        placeholder: "Nearby devices"
+        options: root.controller.service.nearbyDevices.map(d => ({
+                    value: d.id,
+                    label: d.name || d.id,
+                    detail: (d.addresses || []).join(", ")
+                }))
+        onChosen: id => root.controller.draft({
+                deviceId: id
+            })
+    }
+    StyledTextField {
+        Layout.fillWidth: true
+        objectName: root.controller.view.form === "accept-device" ? "" : "syncshellInitialFocus"
+        placeholderText: "Device ID"
+        text: root.controller.view.draft.deviceId || ""
+        readOnly: root.controller.busy || root.controller.view.form === "accept-device"
+        onTextEdited: root.controller.draft({
+            deviceId: text
+        })
+    }
+    StyledTextField {
+        Layout.fillWidth: true
+        objectName: root.controller.view.form === "accept-device" ? "syncshellInitialFocus" : ""
+        placeholderText: "Device name"
+        text: root.controller.view.draft.deviceName || ""
+        readOnly: root.controller.busy
+        onTextEdited: root.controller.draft({
+            deviceName: text
+        })
+    }
+    StyledText {
+        Layout.fillWidth: true
+        text: "Add this device on the other device too, then select folders to share."
+        wrapMode: Text.Wrap
+    }
+    BusyButton {
+        caption: "Add device"
+        busy: root.controller.busy
+        onClicked: root.controller.submitForm()
+    }
+}

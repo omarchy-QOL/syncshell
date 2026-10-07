@@ -100,6 +100,10 @@ func parseOptions(flags *flag.FlagSet, args []string) (options, bool, error) {
 	flags.BoolVar(&config.Discovery.InsecureTLS, "insecure-tls", false, "allow unverified TLS for this target")
 	flags.BoolVar(&config.DesktopAuthorized, "desktop-authorized", false,
 		"authorize the desktop bridge")
+	flags.BoolVar(&config.WebProfile.Authorized, "web-profile-authorized", false,
+		"authorize owned local Web UI profile installation")
+	flags.StringVar(&config.WebProfile.Owner, "web-profile-owner", "", "profile owner identifier")
+	flags.StringVar(&config.WebProfile.Bundle, "web-profile-bundle", "", "verified Web UI bundle directory")
 	flags.StringVar(&lifecycleKind, "lifecycle-kind", "", "authorized lifecycle kind")
 	flags.BoolVar(&config.Lifecycle.Authorized, "lifecycle-authorized", false, "authorize the exact lifecycle binding")
 	flags.StringVar(&config.Lifecycle.Unit, "lifecycle-unit", "", "exact systemd user unit")
@@ -112,6 +116,13 @@ func parseOptions(flags *flag.FlagSet, args []string) (options, bool, error) {
 	}
 	if flags.NArg() != 0 {
 		return options{}, false, errors.New("unexpected command arguments")
+	}
+	if config.WebProfile.Authorized {
+		if err := config.WebProfile.Validate(); err != nil {
+			return options{}, false, err
+		}
+	} else if config.WebProfile.Owner != "" || config.WebProfile.Bundle != "" {
+		return options{}, false, errors.New("Web UI profile policy requires explicit authority")
 	}
 	if lifecycleKind != "" && lifecycleKind != "systemd-user" {
 		return options{}, false, errors.New("unsupported lifecycle kind")

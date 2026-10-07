@@ -45,6 +45,12 @@ jobs:
         run: bash tests/scripts.test.sh --installation-only
       - name: Device sharing form contracts
         run: node --test tests/device-sharing.test.mjs
+      - name: Portable adapter contracts and Caelestia package
+        run: |
+          node --test tests/adapter-contract.test.mjs tests/caelestia-*.test.mjs
+          bash integrations/caelestia/assemble.sh "$RUNNER_TEMP/caelestia-one"
+          bash integrations/caelestia/assemble.sh "$RUNNER_TEMP/caelestia-two"
+          diff -qr "$RUNNER_TEMP/caelestia-one" "$RUNNER_TEMP/caelestia-two"
       - name: Integration fixture contracts
         run: go -C tests/integration test -race ./...
       - name: Reproduce bundled core

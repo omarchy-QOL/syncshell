@@ -1,0 +1,124 @@
+import QtQuick
+import QtTest
+import "../../hosts/caelestia/controllers"
+
+TestCase {
+    id: test
+    name: "CaelestiaPanelBehavior"
+    property var controller
+    QtObject {
+        id: backend
+        property var folders: [{ id: "a", label: "same" }, { id: "b", label: "same" }]
+        property var devices: [{ id: "one" }, { id: "two" }]
+        property var sharedFolders: ["a", "b"]
+        property bool online: true
+        property var connection: ({ fresh: true })
+        property bool busy: false
+        property bool refreshing: false
+        property string homePath: "/home/test"
+        property var sent: null
+        signal actionFinished(string action, bool ok, var data, var error)
+        function remoteDevices() { return devices; }
+        function folder(id) { return folders.find(f => f.id === id) || null; }
+        function device(id) { return devices.find(d => d.id === id) || null; }
+        function pendingFolderOffers() { return []; }
+        function folderIdsForDevice(id) { return sharedFolders; }
+        function remoteDeviceIdsForFolder(id) { return ["one"]; }
+        function folderLabel(id) { return id; }
+        function requestFolderIdSuggestion() {}
+        function runAction(action, args) { sent = { action: action, args: JSON.parse(JSON.stringify(args)) }; busy = true; return true; }
+    }
+    Component { id: factory; PanelController { service: backend; screenName: "test" } }
+    function init() {
+        backend.folders = [{ id: "a", label: "same" }, { id: "b", label: "same" }];
+        backend.busy = false; backend.sent = null; backend.sharedFolders = ["a", "b"]; backend.connection = { fresh: true };
+        controller = factory.createObject(test);
+        controller.update({ form: "", draft: {}, confirmation: null, folderId: "a" });
+    }
+    function cleanup() { controller.destroy(); }
+    function test_stable_selection_and_draft() {
+        controller.update({ folderId: "b" });
+        controller.openForm("add-folder", null, 20);
+        controller.draft({ path: "~/work", folderId: "new", label: "draft" });
+        backend.folders = [{ id: "b", label: "renamed" }, { id: "a", label: "same" }];
+        compare(controller.view.folderId, "b");
+        compare(controller.view.draft.label, "draft");
+        controller.destroy(); controller = factory.createObject(test);
+        compare(controller.view.draft.path, "~/work");
+    }
+    function test_frozen_confirmation_and_duplicate_submit() {
+        controller.confirm("folder.forget", { folderId: "b" }, "Forget?", "keep files");
+        controller.update({ folderId: "a" });
+        controller.acceptConfirmation();
+        compare(backend.sent.args.folderId, "b");
+        controller.acceptConfirmation();
+        compare(controller.submittedAction, "folder.forget");
+        backend.busy = false;
+        backend.actionFinished("folder.forget", true, {}, null);
+        compare(controller.view.confirmation, null);
+        compare(controller.submittedAction, "");
+    }
+    function test_missing_directory_requires_frozen_confirmation() {
+        controller.openForm("add-folder", null, 0);
+        controller.draft({ path: "~/work", folderId: "new", label: "original" });
+        controller.submitForm();
+        compare(backend.sent.args.path, "/home/test/work");
+        backend.busy = false;
+        backend.actionFinished("folder.add-existing", false, null, { code: "path_missing", message: "missing" });
+        compare(controller.view.confirmation.args.createDirectory, true);
+        controller.draft({ path: "/changed" });
+        controller.acceptConfirmation();
+        compare(backend.sent.args.path, "/home/test/work");
+    }
+    function test_vanished_target_is_rejected() {
+        controller.confirm("folder.forget", { folderId: "b" }, "Forget?", "keep files");
+        backend.folders = [{ id: "a" }];
+        controller.acceptConfirmation();
+        compare(backend.sent, null);
+        verify(controller.error.includes("disappeared"));
+    }
+    function test_new_shares_are_kept_during_a_draft() {
+        controller.openForm("device-folders", { id: "one" }, 0);
+        controller.draft({ folderIds: ["b"] });
+        backend.sharedFolders = ["a", "b", "new"];
+        backend.folders = backend.folders.concat([{ id: "new" }]);
+        compare(controller.view.draft.folderIds.join(","), "b,new");
+        controller.submitForm(); controller.acceptConfirmation();
+        compare(backend.sent.args.folderIds.join(","), "a");
+    }
+    function test_stale_confirmation_is_not_submitted() {
+        controller.confirm("folder.forget", { folderId: "a" }, "Forget?", "keep files");
+        backend.connection = { fresh: false };
+        controller.acceptConfirmation();
+        compare(backend.sent, null);
+        verify(controller.error.includes("stale"));
+    }
+    function test_cancel_discards_settings_draft() {
+        controller.openForm("settings", null, 0);
+        controller.update({ settingsDraft: { probeSeconds: 37 } });
+        controller.cancelForm();
+        compare(controller.view.settingsDraft, null);
+        compare(controller.view.form, "");
+    }
+    function test_success_restores_form_trigger() {
+        var destinations = [];
+        controller.restoreFocus.connect(name => destinations.push(name));
+        controller.openForm("add-device", null, 0);
+        controller.draft({ deviceId: "new", deviceName: "name" });
+        controller.submitForm();
+        backend.busy = false;
+        backend.actionFinished("device.add", true, {}, null);
+        compare(controller.view.form, "");
+        compare(destinations[destinations.length - 1], "formTrigger");
+    }
+    function test_failed_action_retains_draft() {
+        controller.openForm("add-device", null, 0);
+        controller.draft({ deviceId: "new", deviceName: "name" });
+        controller.submitForm();
+        backend.busy = false;
+        backend.actionFinished("device.add", false, null, { message: "offline" });
+        compare(controller.view.form, "add-device");
+        compare(controller.view.draft.deviceName, "name");
+        compare(controller.error, "offline");
+    }
+}
