@@ -42,7 +42,10 @@ function folders(values) {
     var folderDevices = []
     var shared = folder.devices || []
     for (var j = 0; j < shared.length; j++) {
-      folderDevices.push({ deviceID: String((shared[j] || {}).id || "") })
+      folderDevices.push({
+        deviceID: String((shared[j] || {}).id || ""),
+        remoteState: String((shared[j] || {}).remoteState || "unknown")
+      })
     }
     projected.push({
       id: String(folder.id || ""),

@@ -472,7 +472,7 @@ func TestConfigureSupportsConcurrentUpdates(t *testing.T) {
 	}
 }
 
-func newTestSession(t *testing.T, api *testAPI, active, expectedID string) *Session {
+func newTestSession(t *testing.T, api http.Handler, active, expectedID string) *Session {
 	t.Helper()
 	server := httptest.NewServer(api)
 	t.Cleanup(server.Close)

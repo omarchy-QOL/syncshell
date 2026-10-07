@@ -290,11 +290,15 @@ function remoteDeviceRows(syncthing) {
         if (!id || id === syncthing.localDeviceId)
             continue;
         var folderIds = [];
+        var remoteFolderStates = ({});
         for (var j = 0; j < folders.length; j++) {
             var members = folders[j].devices || [];
             for (var k = 0; k < members.length; k++) {
                 if (String((members[k] || {}).deviceID || "") === id) {
                     folderIds.push(String(folders[j].id || ""));
+                    remoteFolderStates[String(folders[j].id || "")] =
+                        syncthing.statusFresh && device.connected && !device.paused
+                        ? String(members[k].remoteState || "unknown") : "unknown";
                     break;
                 }
             }
@@ -310,6 +314,7 @@ function remoteDeviceRows(syncthing) {
             downloadBps: Number(device.downloadBps || 0),
             uploadBps: Number(device.uploadBps || 0),
             folderIds: folderIds,
+            remoteFolderStates: remoteFolderStates,
             label: name + " · " + count + " folder" + (count === 1 ? "" : "s")
         });
     }

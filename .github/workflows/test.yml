@@ -43,6 +43,8 @@ jobs:
           use_oidc: true
       - name: Installation script contracts
         run: bash tests/scripts.test.sh --installation-only
+      - name: Device sharing form contracts
+        run: node --test tests/device-sharing.test.mjs
       - name: Integration fixture contracts
         run: go -C tests/integration test -race ./...
       - name: Reproduce bundled core

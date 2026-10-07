@@ -90,6 +90,11 @@ type FolderStatus struct {
 	GlobalBytes    int64  `json:"globalBytes"`
 }
 
+// FolderCompletion contains the remote's current folder-sharing state.
+type FolderCompletion struct {
+	RemoteState string `json:"remoteState"`
+}
+
 // Connections is the configured connection response.
 type Connections struct {
 	Connections map[string]Connection `json:"connections"`
