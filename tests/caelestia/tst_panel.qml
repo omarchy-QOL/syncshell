@@ -63,6 +63,15 @@ TestCase {
                 enabled: false
             })
         property string actionError: ""
+        property string _actionName: ""
+        property string _actionTargetId: ""
+        property var scanningIds: []
+        function scanning(id) {
+            return scanningIds.includes(id);
+        }
+        function scanningFolderIds() {
+            return scanningIds;
+        }
         function requestFolderIdSuggestion() {
             busy = true;
             return true;
@@ -349,5 +358,38 @@ TestCase {
             folderId: "wrong"
         }, null);
         compare(controller.view.draft.folderId, "exact");
+    }
+    function test_rescan_feedback_tracks_the_operation_and_target() {
+        var folder = {
+            id: "a",
+            status: {
+                state: "idle"
+            }
+        };
+        backend.busy = true;
+        backend._actionName = "webui.open";
+        verify(!controller.rescanning(folder));
+        backend._actionName = "folder.rescan";
+        backend._actionTargetId = "other";
+        verify(!controller.rescanning(folder));
+        backend._actionTargetId = "a";
+        verify(controller.rescanning(folder));
+        compare(controller.folderStatus(folder), "SCANNING");
+        backend.busy = false;
+        verify(!controller.rescanning(folder));
+        backend.busy = true;
+        backend._actionName = "folder.rescan-all";
+        backend.scanningIds = [];
+        verify(controller.rescanning(folder));
+        backend.scanningIds = ["other"];
+        verify(!controller.rescanning(folder));
+        backend.scanningIds = ["a"];
+        verify(controller.rescanning(folder));
+        verify(!controller.rescanning({
+            id: "a",
+            paused: true
+        }));
+        backend.busy = false;
+        verify(!controller.rescanning(folder));
     }
 }

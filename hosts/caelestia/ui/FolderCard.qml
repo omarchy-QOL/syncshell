@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls as QQC
 import QtQuick.Layouts
 import qs.components
 import qs.services
@@ -70,6 +71,12 @@ ColumnLayout {
     }
     StyledText {
         id: activityLabel
+        animate: true
+        QQC.ToolTip.text: text
+        QQC.ToolTip.visible: activityHover.hovered && !!text
+        HoverHandler {
+            id: activityHover
+        }
         Layout.fillWidth: true
         Layout.minimumHeight: activityMetrics.height
         FontMetrics {

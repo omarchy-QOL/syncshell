@@ -276,7 +276,7 @@ FocusScope {
                         busyCaption: "Rescanning..."
                         busy: root.controller.service.busy && root.controller.service._actionName === "folder.rescan-all"
                         help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan every linked folder"
-                        disabled: !root.controller.fresh || root.controller.busy
+                        disabled: !root.controller.fresh || root.controller.busy || !root.controller.service.folders.some(f => !f.paused)
                         onClicked: root.controller.service.rescanAllFolders()
                     }
                     BusyButton {

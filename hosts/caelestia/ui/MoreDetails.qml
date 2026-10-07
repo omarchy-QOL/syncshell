@@ -11,7 +11,7 @@ ColumnLayout {
     required property var controller
     StyledText {
         Layout.fillWidth: true
-        text: root.controller.fresh ? "Status is current" : "Status is stale or unavailable"
+        text: root.controller.fresh ? "Status is current" : "Last reported errors; current status is unavailable"
         wrapMode: Text.Wrap
     }
     StyledText {
@@ -36,7 +36,7 @@ ColumnLayout {
         StyledText {
             required property var modelData
             Layout.fillWidth: true
-            text: Model.label(modelData) + "\n" + Model.errorDetails(modelData)
+            text: Model.label(modelData) + "\nAffected: " + (modelData.path || modelData.id) + "\n" + Model.errorDetails(modelData)
             wrapMode: Text.Wrap
         }
     }

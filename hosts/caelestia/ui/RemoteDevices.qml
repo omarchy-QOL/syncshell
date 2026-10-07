@@ -48,6 +48,12 @@ ColumnLayout {
                 text: folderOffer.modelData.label + " offered by " + root.controller.service.deviceName(folderOffer.modelData.deviceId)
                 wrapMode: Text.Wrap
             }
+            StyledText {
+                Layout.fillWidth: true
+                visible: folderOffer.modelData.encrypted
+                text: "Encrypted or untrusted shares require setup in Web UI."
+                wrapMode: Text.Wrap
+            }
             RowLayout {
                 BusyButton {
                     id: acceptFolder

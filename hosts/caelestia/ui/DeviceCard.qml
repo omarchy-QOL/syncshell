@@ -26,7 +26,12 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: "Download " + Model.bytes(root.device?.downloadBps) + "/s · Upload " + Model.bytes(root.device?.uploadBps) + "/s"
+        text: root.controller.fresh ? "Download " + Model.bytes(root.device?.downloadBps) + "/s · Upload " + Model.bytes(root.device?.uploadBps) + "/s" : "Transfer rates unknown"
+        wrapMode: Text.Wrap
+    }
+    StyledText {
+        Layout.fillWidth: true
+        text: root.device ? root.controller.service.folderIdsForDevice(root.device.id).length + " shared folders" : "No folders shared"
         wrapMode: Text.Wrap
     }
     Flow {

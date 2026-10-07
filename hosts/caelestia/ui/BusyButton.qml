@@ -50,7 +50,7 @@ TextButton {
         feedbackTimer.restart();
     }
     disabled: busy
-    enabled: !disabled
+    enabled: !disabled && !busy
     activeFocusOnTab: enabled
     border.width: activeFocus ? 2 : 0
     border.color: Colours.palette.m3primary
@@ -64,7 +64,7 @@ TextButton {
     Keys.onPressed: event => {
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
             event.accepted = true;
-            if (!event.isAutoRepeat && !disabled)
+            if (!event.isAutoRepeat && !disabled && !busy)
                 clicked();
         }
     }

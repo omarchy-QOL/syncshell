@@ -31,3 +31,19 @@ test("p requests the service toggle on either tab, even with no selection", () =
     }
   }
 });
+
+test("busy buttons reject held keys and busy activation even with custom disabled bindings", () => {
+  const source = readFileSync(new URL("../hosts/caelestia/ui/BusyButton.qml", import.meta.url), "utf8");
+  const handler = "(" + source.match(/^    Keys\.onPressed: (event => \{[^]*?^    \})/m)[1] + ")";
+  let clicks = 0;
+  const context = vm.createContext({ Qt: { Key_Return: 13, Key_Enter: 10, Key_Space: 32 },
+    disabled: false, busy: false, clicked() { clicks++; } });
+  const run = vm.runInContext(handler, context);
+  run({ key: 13, isAutoRepeat: false });
+  assert.equal(clicks, 1);
+  run({ key: 13, isAutoRepeat: true });
+  assert.equal(clicks, 1);
+  context.busy = true;
+  run({ key: 32, isAutoRepeat: false });
+  assert.equal(clicks, 1);
+});

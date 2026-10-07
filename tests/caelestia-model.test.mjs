@@ -62,8 +62,8 @@ test("count-only and state-only errors stay visible with fallback details", () =
     assert.equal(model.hasErrors(folder), true);
     assert.ok(model.errorDetails(folder).length > 0);
   }
-  assert.match(model.errorDetails({ status: { pullErrors: 4 } }), /4 errors.*no error details/s);
-  assert.match(model.errorDetails({ status: { errors: [{ path: "file", error: "denied" }] } }), /file: denied/);
+  assert.match(model.errorDetails({ status: { pullErrors: 4 } }), /no error details.*Showing 0 of 4 current errors/s);
+  assert.match(model.errorDetails({ status: { errors: [{ path: "file", error: "denied" }] } }), /denied\nfile/);
   assert.equal(model.errorDetails({ status: { state: "idle" } }), "");
   assert.equal(model.hasErrors(null), false);
 });
@@ -105,4 +105,19 @@ test("remote share confirmation requires fresh connected unpaused device state",
     assert.equal(model.remoteShare(folder, { id: "peer", connected: true, paused: true }, true), "unknown");
     assert.equal(model.remoteShare(folder, { id: "peer", connected: true }, false), "unknown");
   }
+});
+
+test("error details group paths by reason and disclose bounded counts", () => {
+  const folder = { status: { pullErrors: 7, errors: [
+    { path: "one", error: "denied" }, { path: "two", error: "denied" },
+    { path: "three", error: "missing" } ] } };
+  const detail = model.errorDetails(folder);
+  assert.match(detail, /denied\none\ntwo/);
+  assert.match(detail, /missing\nthree/);
+  assert.equal(detail.match(/denied/g).length, 1);
+  assert.match(detail, /Showing 3 of 7 current errors.*Open Web UI/s);
+  assert.equal(model.hasErrors({ status: { state: "error" } }), true);
+  assert.equal(model.hasErrors({ status: { errors: [{ error: "missing" }] } }), true);
+  assert.match(model.errorDetails({ status: { pullErrors: 4 } }), /no error details.*Showing 0 of 4/s);
+  assert.equal(model.errorDetails({ status: { state: "idle" } }), "");
 });
