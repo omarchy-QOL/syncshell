@@ -1,6 +1,15 @@
 # Changelog
 
-Notable changes to Syncshell for Omarchy are documented here.
+Notable changes to Syncshell and its shell adapters are documented here.
+
+## Unreleased
+
+- replace the experimental DMS adapter with native folder, device, sharing
+  and invitation workflows, pending desktop acceptance on DMS 1.6.2
+- add adapter-owned Modern and DMS-themed Web UI profiles with explicit
+  cleanup, and require explicit authority for Syncthing service control
+- assemble a reproducible DMS package with bundled Linux workers and a Nix
+  recipe, without installing tools or changing bar placement
 
 ## 0.2.4 - 2026-10-19
 

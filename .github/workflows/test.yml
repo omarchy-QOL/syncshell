@@ -43,6 +43,16 @@ jobs:
           use_oidc: true
       - name: Installation script contracts
         run: bash tests/scripts.test.sh --installation-only
+      - name: Install Qt controller test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-declarative-dev-tools qml6-module-qttest \
+            qml6-module-qtquick qml6-module-qtquick-window \
+            qml6-module-qtqml-workerscript
+      - name: DMS adapter contracts and reproducible package
+        run: |
+          bash integrations/dankmaterialshell/assemble.sh "$GITHUB_WORKSPACE/dist/dankmaterialshell"
+          bash tests/dankmaterialshell-adapter.test.sh
       - name: Device sharing form contracts
         run: node --test tests/device-sharing.test.mjs
       - name: Integration fixture contracts

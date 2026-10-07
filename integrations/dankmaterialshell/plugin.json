@@ -1,17 +1,18 @@
 {
   "id": "syncshell",
   "name": "Syncshell",
-  "description": "Monitor Syncthing and safely manage synchronized folders",
+  "description": "Monitor synchronization and manage folders, devices, sharing, and invitations from DankMaterialShell",
   "version": "0.2.4",
   "author": "ilyaZar",
   "type": "composite",
   "capabilities": ["daemon", "dankbar-widget", "monitoring"],
   "icon": "sync",
   "components": {
-    "daemon": "./SyncshellDaemon.qml",
-    "widget": "./SyncshellWidget.qml"
+    "daemon": "./hosts/dankmaterialshell/DankService.qml",
+    "widget": "./hosts/dankmaterialshell/DankPanel.qml"
   },
-  "requires_dms": ">=1.5.3",
+  "settings": "./hosts/dankmaterialshell/ui/PluginSettings.qml",
+  "requires_dms": ">=1.6.2",
   "dependencies": ["syncthing"],
-  "permissions": ["process", "network"]
+  "permissions": ["process", "network", "settings_read", "settings_write"]
 }
