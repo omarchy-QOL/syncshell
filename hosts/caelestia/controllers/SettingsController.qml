@@ -15,13 +15,13 @@ QtObject {
             return "Incompatible Syncshell settings schema";
         if (!["sync", "cloud_sync", "folder"].includes(s.icon))
             return "Unsupported bar icon";
-        if (!Number.isInteger(s.probeSeconds) || s.probeSeconds < 5 || s.probeSeconds > 300)
-            return "Probe interval must be 5 to 300 seconds";
+        if (!Number.isInteger(s.probeSeconds) || s.probeSeconds < 1 || s.probeSeconds > 3600)
+            return "Probe interval must be 1 to 3600 seconds";
         if (!Number.isInteger(s.refreshSeconds) || s.refreshSeconds < 60 || s.refreshSeconds > 3600)
             return "Refresh interval must be 60 to 3600 seconds";
         if (!["default", "modern", "themed"].includes(s.webUiStyle))
             return "Unsupported Web UI selection";
-        if (s.lifecycleAuthorized && (!s.lifecycleUnit.trim() || !s.lifecycleConfig.startsWith("/")))
+        if (s.lifecycleAuthorized && (!/^[A-Za-z0-9_.@:-]+\.service$/.test(s.lifecycleUnit) || !s.lifecycleConfig.startsWith("/")))
             return "Service control requires an exact unit and absolute configuration path";
         return "";
     }

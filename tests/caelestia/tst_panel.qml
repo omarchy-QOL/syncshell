@@ -27,6 +27,9 @@ TestCase {
             }
         ]
         property var sharedFolders: ["a", "b"]
+        property QtObject core: QtObject {
+            property int generation: 1
+        }
         property bool online: true
         property var connection: ({
                 fresh: true
@@ -124,6 +127,37 @@ TestCase {
     }
     function cleanup() {
         controller.destroy();
+    }
+    function test_closed_form_cannot_submit() {
+        controller.submitForm();
+        compare(backend.sent, null);
+        compare(controller.submittedAction, "");
+    }
+    function test_retired_controller_cannot_write_or_dispatch() {
+        controller.openForm("add-device", null, 0);
+        controller.draft({
+            deviceId: "old"
+        });
+        controller.retire();
+        var replacement = factory.createObject(test);
+        replacement.draft({
+            deviceId: "new"
+        });
+        controller.draft({
+            deviceId: "late"
+        });
+        controller.cancelForm();
+        controller.submitForm();
+        verify(!controller.send("device.add", {
+            deviceId: "late"
+        }));
+        compare(backend.sent, null);
+        replacement.retire();
+        replacement.destroy();
+        var reopened = factory.createObject(test);
+        compare(reopened.view.form, "add-device");
+        compare(reopened.view.draft.deviceId, "new");
+        reopened.destroy();
     }
     function test_stable_selection_and_draft() {
         controller.update({
@@ -391,5 +425,102 @@ TestCase {
         }));
         backend.busy = false;
         verify(!controller.rescanning(folder));
+    }
+    function test_restart_drops_the_old_confirmation_and_keeps_input() {
+        controller.openForm("add-folder", null, 0);
+        backend.busy = false;
+        controller.draft({
+            folderId: "id",
+            path: "/keep"
+        });
+        controller.submitForm();
+        backend.busy = false;
+        backend.actionFinished("folder.add-existing", false, null, {
+            code: "path_missing"
+        });
+        verify(!!controller.view.confirmation);
+        backend.core.generation++;
+        compare(controller.view.confirmation, null);
+        compare(controller.view.draft.path, "/keep");
+        compare(controller.submittedAction, "");
+        verify(controller.view.interrupted);
+        verify(controller.error.includes("connection changed"));
+    }
+    function test_required_fields_reject_whitespace_without_losing_input() {
+        controller.openForm("add-folder", null, 0);
+        backend.busy = false;
+        controller.draft({
+            folderId: "id",
+            path: "   "
+        });
+        controller.submitForm();
+        compare(backend.sent, null);
+        compare(controller.view.draft.path, "   ");
+        verify(controller.error.includes("required"));
+        controller.cancelForm();
+        controller.openForm("add-device", null, 0);
+        controller.draft({
+            deviceId: "   "
+        });
+        controller.submitForm();
+        compare(backend.sent, null);
+        verify(controller.error.includes("required"));
+    }
+    function test_backend_rejections_preserve_input_and_do_not_confirm_creation() {
+        for (var failure of [
+            {
+                code: "path_invalid",
+                message: "folder path must be a directory"
+            },
+            {
+                code: "path_overlap",
+                message: "folder path overlaps a configured folder"
+            },
+            {
+                code: "folder_exists",
+                message: "folder is already configured"
+            }
+        ]) {
+            controller.openForm("add-folder", null, 0);
+            backend.busy = false;
+            controller.draft({
+                folderId: "id",
+                path: "/keep"
+            });
+            controller.submitForm();
+            backend.busy = false;
+            backend.actionFinished("folder.add-existing", false, null, failure);
+            compare(controller.view.confirmation, null);
+            compare(controller.view.draft.path, "/keep");
+            compare(controller.error, failure.message);
+            controller.cancelForm();
+        }
+        for (var failure of [
+            {
+                code: "device_id_invalid",
+                message: "device ID is invalid"
+            },
+            {
+                code: "device_self",
+                message: "this device cannot be added as a remote device"
+            },
+            {
+                code: "device_exists",
+                message: "device is already configured"
+            }
+        ]) {
+            controller.openForm("add-device", null, 0);
+            controller.draft({
+                deviceId: "input",
+                deviceName: "keep"
+            });
+            controller.submitForm();
+            backend.busy = false;
+            backend.actionFinished("device.add", false, null, failure);
+            compare(controller.view.draft.deviceId, "input");
+            compare(controller.view.draft.deviceName, "keep");
+            compare(controller.error, failure.message);
+            controller.cancelForm();
+        }
     }
 }

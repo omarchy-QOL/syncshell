@@ -18,7 +18,7 @@ QtObject {
     readonly property var folder: service.folder(view.folderId)
     readonly property var device: service.device(view.deviceId)
     readonly property bool fresh: service.online && service.connection.fresh === true
-    readonly property bool busy: service.busy || service.refreshing
+    readonly property bool busy: !acceptingResults || service.busy || service.refreshing
     readonly property var folderOptions: Model.options(service.folders, "", view.filters, view.sort, fresh, folder => root.folderStatus(folder))
     readonly property var deviceOptions: Model.options(service.remoteDevices(), "", null, "name", fresh)
     property string recentlyLinkedFolderId: ""
@@ -49,7 +49,29 @@ QtObject {
             });
         acceptingResults = false;
     }
+    function connectionChanged() {
+        if (submittedAction || view.form || view.confirmation) {
+            submittedAction = "";
+            submitted = null;
+            update({
+                confirmation: null,
+                interrupted: true
+            });
+            error = "The connection changed or an operation was interrupted. Refresh and review your draft before retrying.";
+        }
+        idSuggestionPending = false;
+        recentlyLinkedFolderId = "";
+    }
+    property Connections coreGeneration: Connections {
+        target: root.service ? root.service.core || null : null
+        function onGenerationChanged() {
+            if (root.acceptingResults)
+                root.connectionChanged();
+        }
+    }
     function update(values) {
+        if (!acceptingResults)
+            return;
         view = Object.assign({}, view, values);
         Ownership.save(screenName, Model.clone(view));
     }
@@ -140,7 +162,7 @@ QtObject {
         confirm(start ? "lifecycle.start" : "lifecycle.stop", {}, start ? "Start Syncthing?" : "Stop Syncthing?", "Change the running state of the verified systemd user service. Autostart is unchanged.");
     }
     function cancelForm() {
-        if (submittedAction)
+        if (!acceptingResults || submittedAction)
             return;
         idSuggestionPending = false;
         update({
@@ -167,7 +189,7 @@ QtObject {
         restoreFocus("cancel");
     }
     function cancelConfirmation() {
-        if (submittedAction)
+        if (!acceptingResults || submittedAction)
             return;
         update({
             confirmation: null
@@ -214,7 +236,7 @@ QtObject {
             send(c.action, c.args);
     }
     function submitForm() {
-        if (busy || submittedAction || view.confirmation)
+        if (busy || submittedAction || view.confirmation || !view.form)
             return;
         var d = Model.clone(view.draft);
         if (view.form === "add-folder") {

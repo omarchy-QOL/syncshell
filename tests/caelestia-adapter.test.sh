@@ -66,8 +66,10 @@ while IFS= read -r file; do
 done < "$root/integrations/caelestia/qml-files.txt"
 # Run the actual controller against the named imports from the payload.
 mkdir -p "$work/behavior"
-sed 's|import "../../hosts/caelestia/controllers"|import syncshell.syncshell.hosts.caelestia.controllers|' \
-  "$root/tests/caelestia/tst_panel.qml" >"$work/behavior/tst_panel.qml"
+for test_file in "$root"/tests/caelestia/tst_*.qml; do
+  sed 's|import "../../hosts/caelestia/controllers"|import syncshell.syncshell.hosts.caelestia.controllers|' \
+    "$test_file" >"$work/behavior/$(basename "$test_file")"
+done
 QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner \
   -import "$work/imports" -input "$work/behavior"
 node --test "$root/tests/caelestia-model.test.mjs" \
