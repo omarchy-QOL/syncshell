@@ -22,8 +22,10 @@ QtObject {
         })
     readonly property string key: selection + (selection === "dms" ? JSON.stringify(palette) : "")
     property string pendingKey: ""
+    property string pendingSelection: ""
     property string error: ""
     property bool dirty: false
+    property bool paletteOnly: false
     property bool initialized: false
     readonly property bool busy: pendingKey !== ""
 
@@ -34,7 +36,9 @@ QtObject {
         return "#" + channel(color.r) + channel(color.g) + channel(color.b);
     }
 
-    function schedule() {
+    function schedule(paletteChange) {
+        if (!dirty || !paletteChange)
+            paletteOnly = paletteChange === true;
         dirty = true;
         debounce.restart();
     }
@@ -42,8 +46,13 @@ QtObject {
     function apply() {
         if (!dirty || !service || !service.online || service.busy || service.refreshing || busy)
             return;
+        var noLongerSelected = paletteOnly && (selection !== "dms" || service.webUi.theme !== "syncshell-dms-themed");
         dirty = false;
+        paletteOnly = false;
+        if (noLongerSelected)
+            return;
         pendingKey = key;
+        pendingSelection = selection;
         error = "";
         var accepted = selection === "default" ? service.setWebUiTheme("default") : service.applyWebProfile(selection === "dms" ? "themed" : "modern", selection === "dms" ? palette : {});
         if (!accepted) {
@@ -82,7 +91,7 @@ QtObject {
     }
     onPaletteChanged: {
         if (initialized && selection === "dms" && service && service.webUi.theme === "syncshell-dms-themed")
-            schedule();
+            schedule(true);
     }
     property Timer debounce: Timer {
         interval: 200
@@ -106,6 +115,7 @@ QtObject {
             if (!root.busy || ["webui.apply-profile", "webui.set-theme", "webui.remove-profile"].indexOf(action) < 0)
                 return;
             var completed = root.pendingKey;
+            var completedSelection = root.pendingSelection;
             root.pendingKey = "";
             if (!ok) {
                 root.error = String(failure && failure.message || "Web UI profile operation failed");
@@ -114,7 +124,7 @@ QtObject {
             if (completed === "remove") {
                 root.settings.save("webUiTheme", "default");
             } else if (root.key !== completed) {
-                root.schedule();
+                root.schedule(root.selection === completedSelection);
             }
         }
     }
