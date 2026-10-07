@@ -68,8 +68,10 @@ StyledRect {
             }
             BusyButton {
                 text: root.folder && root.folder.paused ? "Forget" : "Rescan"
-                busy: !!root.controller.service && root.controller.service.busy
-                enabled: !!root.folder && root.controller.fresh && !root.controller.submitting
+                busyText: root.folder && root.folder.paused ? "Forgetting" : "Rescanning"
+                help: !root.controller.fresh ? "Refresh current status before changing this folder" : root.folder && root.folder.paused ? "Forget this folder without deleting its files" : "Rescan local changes"
+                busy: root.controller.rescanning(root.folder) || root.controller.pendingAction === "folder.forget"
+                enabled: !!root.folder && root.controller.fresh && !root.controller.busy
                 onClicked: {
                     if (root.folder.paused)
                         root.controller.requestConfirmation("folder.forget", root.folder, this);

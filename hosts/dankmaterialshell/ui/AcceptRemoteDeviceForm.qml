@@ -32,6 +32,9 @@ ColumnLayout {
         wrapMode: Text.WrapAnywhere
         elide: Text.ElideNone
     }
+    IdCopyButton {
+        value: root.controller.draft.deviceId || ""
+    }
     BusyButton {
         Layout.fillWidth: true
         text: "Accept device"

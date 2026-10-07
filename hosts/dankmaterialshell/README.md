@@ -35,8 +35,8 @@ on NixOS; no NixOS support claim is made yet.
 
 The DMS plugin manager owns enable/disable and removal. One daemon owns the
 worker regardless of bar or monitor count. Both mouse buttons open the panel.
-Shortcuts outside text fields are `r` (rescan), `w` (Web UI), `p` (pause/resume
-the selected target), `s` (settings) and `q` (close). Escape closes the innermost
+Shortcuts outside text fields are `r` (rescan), `w` (Web UI), `p` (start/stop
+the authorized service), `s` (settings) and `q` (close). Escape closes the innermost
 menu, confirmation or form first.
 
 Settings live in DMS plugin settings under the `syncshell` object, with an

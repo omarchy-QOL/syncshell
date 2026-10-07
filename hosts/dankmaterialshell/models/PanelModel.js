@@ -195,3 +195,24 @@ function remoteShare(folder, device, fresh) {
     var member = (folder.devices || []).find(d => d.id === device.id);
     return fresh && device.connected && !device.paused && member ? member.remoteState || "unknown" : "unknown";
 }
+
+function hasErrors(folder) {
+    var s = folder && folder.status || {};
+    return !!(s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error");
+}
+function errorDetails(folder) {
+    if (!hasErrors(folder)) return "";
+    var s = folder.status || {}, groups = Object.create(null);
+    var errors = s.errors || [];
+    errors.forEach(e => {
+        var reason = e.error || "Unknown error";
+        if (!groups[reason]) groups[reason] = [];
+        if (e.path) groups[reason].push(e.path);
+    });
+    var details = Object.keys(groups).map(reason => reason + (groups[reason].length ? "\n" + groups[reason].join("\n") : ""));
+    if (s.error) details.unshift(s.error);
+    var count = Math.max(Number(s.pullErrors || 0), errors.length);
+    var summary = count ? "Showing " + errors.length + " of " + count + " current error" + (count === 1 ? "" : "s") + "." : "";
+    if (errors.length < count) summary += " Open Web UI for the full list.";
+    return (details.join("\n\n") || "Syncthing reported no error details.") + (summary ? "\n\n" + summary : "");
+}

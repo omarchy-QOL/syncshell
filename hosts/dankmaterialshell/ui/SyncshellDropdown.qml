@@ -10,7 +10,11 @@ Item {
     property var options: []
     property string value: ""
     property string placeholder: "Choose"
-    property string searchText: ""
+    property string localSearchText: ""
+    property var searchOwner: null
+    property string searchKey: ""
+    readonly property string searchText: searchOwner ? searchOwner[searchKey] : localSearchText
+    property int totalCount: options.length
     property bool multiple: false
     property var selectedValues: []
     property var parentPopout: null
@@ -72,7 +76,6 @@ Item {
         var point = root.QsWindow.itemPosition(trigger);
         menu.originX = point.x;
         menu.originY = point.y;
-        searchText = "";
         menu.anchor.updateAnchor();
         opened = true;
         Qt.callLater(function () {
@@ -149,11 +152,21 @@ Item {
                     Layout.fillWidth: true
                     placeholderText: "Search"
                     text: root.searchText
-                    onTextEdited: root.searchText = text
+                    onTextEdited: {
+                        if (root.searchOwner)
+                            root.searchOwner[root.searchKey] = text;
+                        else
+                            root.localSearchText = text;
+                    }
                     Keys.onDownPressed: {
                         list.currentIndex = 0;
                         list.forceActiveFocus();
                     }
+                }
+                StyledText {
+                    Layout.fillWidth: true
+                    text: root.filteredOptions.length + " of " + root.totalCount + " results"
+                    color: Theme.surfaceVariantText
                 }
                 Loader {
                     Layout.fillWidth: true

@@ -148,7 +148,7 @@ const controllerSource = readFileSync(new URL(
 function controller(service) {
   const context = vm.createContext({
     Model: model, service, busy: false, submitting: false, pendingAction: "",
-    form: "", draft: {}, originalShareIds: [], confirmation: null, error: "",
+    fresh: true, form: "", draft: {}, originalShareIds: [], confirmation: null, error: "",
     returnFocus: null, selectedFolderId: "a", selectedDeviceId: "REMOTE",
     focusRequested() {},
   });
@@ -201,6 +201,7 @@ test("confirmation freezes its target and rejects a vanished target", () => {
 test("missing directory confirmation reuses submitted values, not later edits", () => {
   let added;
   const panel = controller({ requestFolderIdSuggestion() {},
+    pendingFolderOffers: () => [{ folderId: "offer", deviceId: "REMOTE" }],
     addFolder(values) { added = values; return true; } });
   panel.begin("add-folder", { folderId: "offer", deviceId: "REMOTE" });
   panel.setDraft("path", "/original");
@@ -269,4 +270,19 @@ test("remote share confirmation requires fresh connected unpaused device state",
     assert.equal(model.remoteShare(folder, { id: "peer", connected: true, paused: true }, true), "unknown");
     assert.equal(model.remoteShare(folder, { id: "peer", connected: true }, false), "unknown");
   }
+});
+
+test("error details group paths by reason and disclose bounded counts", () => {
+  const folder = { status: { pullErrors: 7, errors: [
+    { path: "one", error: "denied" }, { path: "two", error: "denied" },
+    { path: "three", error: "missing" } ] } };
+  const detail = model.errorDetails(folder);
+  assert.match(detail, /denied\none\ntwo/);
+  assert.match(detail, /missing\nthree/);
+  assert.equal(detail.match(/denied/g).length, 1);
+  assert.match(detail, /Showing 3 of 7 current errors.*Open Web UI/s);
+  assert.equal(model.hasErrors({ status: { state: "error" } }), true);
+  assert.equal(model.hasErrors({ status: { errors: [{ error: "missing" }] } }), true);
+  assert.match(model.errorDetails({ status: { pullErrors: 4 } }), /no error details.*Showing 0 of 4/s);
+  assert.equal(model.errorDetails({ status: { state: "idle" } }), "");
 });

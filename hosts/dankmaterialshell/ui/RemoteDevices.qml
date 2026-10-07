@@ -12,6 +12,8 @@ ColumnLayout {
         Layout.fillWidth: true
         SyncshellDropdown {
             Layout.fillWidth: true
+            searchOwner: root.controller
+            searchKey: "deviceSearch"
             options: root.controller.deviceOptions
             value: root.controller.selectedDeviceId
             placeholder: "No remote device"

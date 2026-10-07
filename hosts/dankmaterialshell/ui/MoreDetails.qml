@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Widgets
+import "../models/PanelModel.js" as Model
 
 ColumnLayout {
     id: root
@@ -21,7 +22,7 @@ ColumnLayout {
         InfoPair {
             Layout.fillWidth: true
             label: "Syncthing status"
-            value: root.controller.fresh ? "Current" : "Stale or unavailable"
+            value: root.controller.fresh ? "Current" : "Last reported errors; current status is unavailable"
         }
         InfoPair {
             Layout.fillWidth: true
@@ -43,19 +44,23 @@ ColumnLayout {
         }
         Repeater {
             model: root.service ? root.service.folders.filter(function (folder) {
-                return folder.status && (folder.status.error || folder.status.pullErrors > 0);
+                return Model.hasErrors(folder);
             }) : []
             StyledText {
                 required property var modelData
                 Layout.fillWidth: true
-                text: (modelData.label || modelData.id) + ": " + (modelData.status.error || "Sync errors") + (modelData.status.errors || []).map(function (error) {
-                    return "\n" + error.path + ": " + error.error;
-                }).join("")
+                text: (modelData.label || modelData.id) + "\nAffected: " + (modelData.path || modelData.id) + "\n" + Model.errorDetails(modelData)
                 textFormat: Text.PlainText
                 wrapMode: Text.Wrap
                 elide: Text.ElideNone
                 color: Theme.error
             }
+        }
+        StyledText {
+            Layout.fillWidth: true
+            text: "Some entries are omitted by the core's display limits. Open Web UI for the full list."
+            visible: !!root.service && Object.values(root.service.truncation).some(n => n > 0)
+            wrapMode: Text.Wrap
         }
         BusyButton {
             text: "Recheck errors"

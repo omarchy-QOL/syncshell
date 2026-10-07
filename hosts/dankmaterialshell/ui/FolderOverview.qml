@@ -46,8 +46,14 @@ ColumnLayout {
             Layout.fillWidth: true
             StyledText {
                 Layout.fillWidth: true
-                text: "Folder invitation: " + modelData.label
+                text: "Folder invitation: " + modelData.label + " from " + root.controller.service.deviceName(modelData.deviceId)
                 textFormat: Text.PlainText
+            }
+            StyledText {
+                Layout.fillWidth: true
+                visible: modelData.encrypted
+                text: "Encrypted or untrusted shares require setup in Web UI."
+                wrapMode: Text.Wrap
             }
             RowLayout {
                 DankButton {

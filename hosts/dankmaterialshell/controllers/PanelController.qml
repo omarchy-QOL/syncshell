@@ -6,6 +6,8 @@ QtObject {
 
     property var service: null
     property string tab: "folders"
+    property string folderSearch: ""
+    property string deviceSearch: ""
     property string selectedFolderId: ""
     property string selectedDeviceId: ""
     property var groups: ["ready", "active", "errors", "paused", "unknown"]
@@ -93,8 +95,12 @@ QtObject {
     }
 
     function begin(nextForm, value, trigger) {
-        if (busy)
+        if (busy || confirmation)
             return false;
+        if (form) {
+            error = "Finish or cancel the current form first";
+            return false;
+        }
         var target = value || {};
         error = "";
         confirmation = null;
@@ -161,8 +167,12 @@ QtObject {
     }
 
     function requestConfirmation(action, target, trigger) {
-        if (busy)
+        if (busy || confirmation)
             return false;
+        if (form && !(form === "add-folder" && action === "folder.add-existing")) {
+            error = "Finish or cancel the current form first";
+            return false;
+        }
         confirmation = {
             action: action,
             target: JSON.parse(JSON.stringify(target || {}))
@@ -179,9 +189,17 @@ QtObject {
         return false;
     }
 
+    function validFolderOffer(target) {
+        return !target.pendingDeviceId || service.pendingFolderOffers().some(offer => offer.folderId === target.folderId && offer.deviceId === target.pendingDeviceId && !offer.encrypted);
+    }
+
     function submit() {
-        if (busy || !service)
+        if (busy || !service || confirmation)
             return false;
+        if (!fresh)
+            return reject("Status is stale; refresh before changing Syncthing");
+        if (form === "add-folder" && !validFolderOffer(draft))
+            return reject("The invitation changed or disappeared; your draft has been kept");
         error = "";
         submitting = true;
         submittedDraft = JSON.parse(JSON.stringify(draft));
@@ -223,6 +241,10 @@ QtObject {
         var target = request.target;
         var action = request.action;
         var accepted = false;
+        if (action.indexOf("lifecycle.") !== 0 && !fresh)
+            return reject("Status is stale; refresh before changing Syncthing");
+        if (action === "folder.add-existing" && !validFolderOffer(target))
+            return reject("The invitation changed or disappeared; your draft has been kept");
         if (action === "folder.forget" && !service.folder(target.id) || action === "device.remove" && !service.device(target.id))
             return reject("This target no longer exists; nothing was changed");
         submitting = true;

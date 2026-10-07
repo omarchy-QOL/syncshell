@@ -6,6 +6,9 @@ SyncshellDropdown {
     id: root
     required property var controller
     property bool filtersOpen: false
+    searchOwner: controller
+    searchKey: "folderSearch"
+    totalCount: controller.service ? controller.service.folders.length : 0
     options: controller.folderOptions
     value: controller.selectedFolderId
     placeholder: controller.folder ? controller.folder.label || controller.folder.id : "No matching folders"

@@ -264,8 +264,10 @@ FocusScope {
                 BusyButton {
                     Layout.fillWidth: true
                     text: "Rescan all"
-                    busy: !!root.controller.service && root.controller.service.busy
-                    enabled: !!root.controller.service && root.controller.service.online
+                    busyText: "Rescanning"
+                    busy: !!root.controller.service && root.controller.service.busy && root.controller.service._actionName === "folder.rescan-all"
+                    enabled: root.controller.fresh && !root.controller.busy && root.controller.service.folders.some(f => !f.paused)
+                    help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan every linked folder; paused folders are skipped"
                     onClicked: root.controller.service.rescanAllFolders()
                 }
                 BusyButton {
@@ -283,7 +285,7 @@ FocusScope {
             }
             StyledText {
                 Layout.fillWidth: true
-                text: "[r] rescan   [w] Web UI   [p] pause/resume   [s] settings"
+                text: "[r] rescan   [w] Web UI   [p] start/stop   [s] settings"
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.surfaceVariantText
             }
