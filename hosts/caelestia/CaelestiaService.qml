@@ -85,7 +85,7 @@ QtObject {
         return views[screenName];
     }
     function applyWebUi(style) {
-        if (!adapter || adapter.busy || adapter.refreshing)
+        if (!eligible || !adapter || adapter.busy || adapter.refreshing)
             return false;
         var accepted = style === "default" ? adapter.setWebUiTheme("default") : adapter.applyWebProfile(style, style === "themed" ? theme.palette : {});
         if (accepted) {

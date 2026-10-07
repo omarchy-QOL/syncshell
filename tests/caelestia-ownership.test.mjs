@@ -76,3 +76,23 @@ test("explicit termination cancels scheduled crash recovery", () => {
   assert.equal(context._expectedStop, true);
   assert.equal(context.desiredRunning, false);
 });
+
+test("only the current eligible owner can request a Web UI profile", () => {
+  for (const inactive of ["disabled", "released", "retired", "replaced"]) {
+    const host = owner(registry()), plugin = { enabled: true, generation: 1 };
+    let writes = 0;
+    host.service.theme = { palette: { accent: "#aabbcc" } };
+    host.service.adapter.applyWebProfile = () => { writes++; return true; };
+    host.service.adapter.setWebUiTheme = () => { writes++; return true; };
+    host.service.acquire({ plugin }, {}, "bar");
+    assert.equal(host.service.applyWebUi("themed"), true);
+    assert.equal(writes, 1);
+    if (inactive === "disabled") plugin.enabled = false;
+    if (inactive === "released") host.service.release("bar");
+    if (inactive === "retired") host.service.retire();
+    if (inactive === "replaced") plugin.generation++;
+    assert.equal(host.service.applyWebUi("themed"), false, inactive);
+    assert.equal(host.service.applyWebUi("default"), false, inactive);
+    assert.equal(writes, 1, inactive);
+  }
+});
