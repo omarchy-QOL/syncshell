@@ -30,6 +30,9 @@ Item {
     property bool multiple: false
     property var selectedIds: []
     property var searchOwner: null
+    property var filterController: null
+    property int totalCount: options.length
+    property bool filtersOpen: false
     property string localQuery: ""
     readonly property string query: searchOwner ? searchOwner.view.search : localQuery
     readonly property var filtered: options.filter(o => Model.matchesSearch(o.label + " " + (o.detail || ""), query))
@@ -39,7 +42,7 @@ Item {
     BusyButton {
         id: trigger
         anchors.fill: parent
-        caption: root.multiple ? root.selectedIds.length + " selected" : (root.options.find(o => o.value === root.value)?.label || root.placeholder)
+        caption: root.multiple ? (root.selectedIds.length ? root.selectedIds.length + " selected" : root.placeholder) : (root.options.find(o => o.value === root.value)?.label || root.placeholder)
         disabled: root.disabled
         label.elide: Text.ElideRight
         label.width: width - horizontalPadding * 2
@@ -50,7 +53,7 @@ Item {
         parent: trigger
         y: root.boundary ? Math.max(-trigger.mapToItem(root.boundary, 0, 0).y, Math.min(trigger.height, root.boundary.height - trigger.mapToItem(root.boundary, 0, 0).y - height)) : trigger.height
         width: trigger.width
-        height: Math.min(root.boundary?.height || 320, 320, contentColumn.implicitHeight + padding * 2)
+        height: Math.min(root.boundary?.height || 540, 540, contentColumn.implicitHeight + padding * 2)
         padding: Tokens.padding.medium
         modal: true
         focus: true
@@ -67,23 +70,42 @@ Item {
         }
         contentItem: ColumnLayout {
             id: contentColumn
-            StyledTextField {
-                id: search
+            RowLayout {
                 Layout.fillWidth: true
-                placeholderText: "Search"
-                text: root.query
-                onTextEdited: {
-                    if (root.searchOwner)
-                        root.searchOwner.update({
-                            search: text
-                        });
-                    else
-                        root.localQuery = text;
+                StyledTextField {
+                    id: search
+                    Layout.fillWidth: true
+                    placeholderText: "Search"
+                    text: root.query
+                    onTextEdited: {
+                        if (root.searchOwner)
+                            root.searchOwner.update({
+                                search: text
+                            });
+                        else
+                            root.localQuery = text;
+                    }
+                    Keys.onDownPressed: {
+                        list.forceActiveFocus();
+                        list.currentIndex = 0;
+                    }
                 }
-                Keys.onDownPressed: {
-                    list.forceActiveFocus();
-                    list.currentIndex = 0;
+                SquareActionButton {
+                    visible: !!root.filterController
+                    icon: "filter_list"
+                    help: "Folder filters and sort order"
+                    onClicked: root.filtersOpen = !root.filtersOpen
                 }
+            }
+            StyledText {
+                Layout.fillWidth: true
+                text: root.filtered.length + " of " + root.totalCount + " results"
+                color: Colours.palette.m3onSurfaceVariant
+            }
+            FolderViewOptions {
+                Layout.fillWidth: true
+                visible: !!root.filterController && root.filtersOpen
+                controller: root.filterController
             }
             StyledListView {
                 id: list
@@ -101,7 +123,8 @@ Item {
                     required property var modelData
                     required property int index
                     width: ListView.view.width
-                    caption: (root.multiple && root.selectedIds.includes(modelData.value) ? "[x] " : "") + modelData.label + (modelData.detail ? "\n" + modelData.detail : "")
+                    caption: (root.multiple && root.selectedIds.includes(modelData.value) ? "[x] " : "") + modelData.label + (modelData.status ? " · " + modelData.status : "") + (modelData.detail ? "\n" + modelData.detail : "")
+                    help: modelData.help || modelData.detail || ""
                     label.wrapMode: Text.Wrap
                     label.width: width - horizontalPadding * 2
                     isToggle: true

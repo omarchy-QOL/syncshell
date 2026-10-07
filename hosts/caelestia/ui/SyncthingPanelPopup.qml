@@ -106,16 +106,14 @@ FocusScope {
                 }
             }
         }
-        if (event.isAutoRepeat || controller.view.confirmation || hasForm)
+        if (event.isAutoRepeat || controller.busy || controller.view.confirmation || hasForm)
             return;
         if (event.key === Qt.Key_R)
             controller.service.rescanAllFolders();
         else if (event.key === Qt.Key_W)
             controller.service.openWebUi();
-        else if (event.key === Qt.Key_P && controller.folder)
-            controller.send(controller.folder.paused ? "folder.resume" : "folder.pause", {
-                folderId: controller.folder.id
-            });
+        else if (event.key === Qt.Key_P)
+            controller.requestServiceToggle();
         else if (event.key === Qt.Key_S)
             form("settings", null, settingsButton);
         else if (event.key === Qt.Key_Q)
@@ -184,44 +182,12 @@ FocusScope {
                         }
                     }
                     RowLayout {
-                        visible: root.controller.view.tab === "folders"
-                        SyncshellDropdown {
-                            Layout.fillWidth: true
-                            options: ["active", "errors", "paused", "ready", "unknown"].map(s => ({
-                                        value: s,
-                                        label: s
-                                    }))
-                            multiple: true
-                            selectedIds: root.controller.view.filters
-                            onToggled: value => root.controller.update({
-                                    filters: Model.toggle(selectedIds, value)
-                                })
-                        }
-                        SyncshellDropdown {
-                            Layout.fillWidth: true
-                            options: ["name", "active", "errors"].map(s => ({
-                                        value: s,
-                                        label: "Sort: " + s
-                                    }))
-                            value: root.controller.view.sort
-                            onChosen: value => root.controller.update({
-                                    sort: value
-                                })
-                        }
-                        BusyButton {
-                            caption: "Reset"
-                            onClicked: root.controller.update({
-                                search: "",
-                                filters: ["active", "errors", "paused", "ready", "unknown"],
-                                sort: "name"
-                            })
-                        }
-                    }
-                    RowLayout {
                         SyncshellDropdown {
                             id: mainSelector
                             Layout.fillWidth: true
                             searchOwner: root.controller
+                            filterController: root.controller.view.tab === "folders" ? root.controller : null
+                            totalCount: root.controller.view.tab === "folders" ? root.controller.service.folders.length : root.controller.service.remoteDevices().length
                             options: root.controller.view.tab === "folders" ? root.controller.folderOptions : root.controller.deviceOptions
                             value: root.controller.view.tab === "folders" ? root.controller.view.folderId : root.controller.view.deviceId
                             placeholder: "No matching items"
@@ -307,6 +273,9 @@ FocusScope {
                 RowLayout {
                     BusyButton {
                         caption: "Rescan all"
+                        busyCaption: "Rescanning..."
+                        busy: root.controller.service.busy && root.controller.service._actionName === "folder.rescan-all"
+                        help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan every linked folder"
                         disabled: !root.controller.fresh || root.controller.busy
                         onClicked: root.controller.service.rescanAllFolders()
                     }

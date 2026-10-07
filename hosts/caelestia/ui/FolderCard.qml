@@ -2,8 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import qs.components
+import qs.services
 import "."
 import "../models/PanelModel.js" as Model
 import "../../../shared/Paths.js" as Paths
@@ -24,12 +24,13 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: root.folder ? Model.folderState(root.folder, root.controller.fresh).toUpperCase() : ""
+        text: root.folder ? root.controller.folderStatus(root.folder) : ""
+        color: text === "ERROR" ? Colours.palette.m3error : text === "UNKNOWN" || text === "UNLINKED" ? Colours.palette.m3onSurfaceVariant : Colours.palette.m3primary
     }
     StyledText {
         Layout.fillWidth: true
         visible: !!root.folder
-        text: Model.bytes(root.folder?.status.globalBytes) + " in " + (root.folder?.status.globalFiles || 0) + " files; " + (root.folder?.status.needTotalItems || 0) + " remaining"
+        text: Model.folderMeta(root.folder, root.controller.fresh, root.controller.service.localDeviceId, root.controller.rescanning(root.folder))
         wrapMode: Text.Wrap
     }
     Flow {
@@ -43,11 +44,14 @@ ColumnLayout {
         BusyButton {
             caption: "Copy ID"
             disabled: !root.folder
-            onClicked: Quickshell.clipboardText = root.folder.id
+            copyValue: root.folder ? root.folder.id : ""
         }
         BusyButton {
             caption: "Rescan"
-            disabled: !root.folder || !root.controller.fresh || root.controller.busy
+            busyCaption: "Rescanning..."
+            busy: root.controller.rescanning(root.folder)
+            help: !root.controller.fresh ? "Refresh current status before rescanning" : root.folder?.paused ? "Link this folder before rescanning" : "Rescan local changes"
+            disabled: !root.folder || !!root.folder.paused || !root.controller.fresh || root.controller.busy
             onClicked: root.controller.service.rescanFolder(root.folder.id)
         }
         BusyButton {
@@ -65,9 +69,17 @@ ColumnLayout {
         wrapMode: Text.Wrap
     }
     StyledText {
+        id: activityLabel
         Layout.fillWidth: true
-        text: root.controller.service.activityText
-        visible: !!text
-        wrapMode: Text.Wrap
+        Layout.minimumHeight: activityMetrics.height
+        FontMetrics {
+            id: activityMetrics
+            font: activityLabel.font
+        }
+        text: root.controller.folderActivity(root.folder)
+        visible: !!root.folder
+        elide: Text.ElideMiddle
+        maximumLineCount: 1
+        color: Colours.palette.m3primary
     }
 }

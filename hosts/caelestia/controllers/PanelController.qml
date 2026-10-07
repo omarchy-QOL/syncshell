@@ -14,12 +14,32 @@ QtObject {
     property var submitted: null
     property string error: view.interrupted ? "An operation was interrupted by reload. Refresh and review before retrying." : ""
     property bool acceptingResults: true
+    property bool idSuggestionPending: false
     readonly property var folder: service.folder(view.folderId)
     readonly property var device: service.device(view.deviceId)
     readonly property bool fresh: service.online && service.connection.fresh === true
     readonly property bool busy: service.busy || service.refreshing
-    readonly property var folderOptions: Model.options(service.folders, "", view.filters, view.sort, fresh)
+    readonly property var folderOptions: Model.options(service.folders, "", view.filters, view.sort, fresh, folder => root.folderStatus(folder))
     readonly property var deviceOptions: Model.options(service.remoteDevices(), "", null, "name", fresh)
+    property string recentlyLinkedFolderId: ""
+    property Timer linkedFeedback: Timer {
+        interval: 10000
+        onTriggered: root.recentlyLinkedFolderId = ""
+    }
+    function folderActivity(folder) {
+        return Model.folderActivity(folder, fresh, service ? service.currentActivity : null);
+    }
+    function rescanning(folder) {
+        if (!service || !folder || folder.paused || !service.busy)
+            return false;
+        if (service._actionName === "folder.rescan")
+            return service._actionTargetId === folder.id;
+        return service._actionName === "folder.rescan-all" && (service.scanning(folder.id) || service.scanningFolderIds().length === 0);
+    }
+    function folderStatus(folder) {
+        return Model.folderStatus(folder, fresh, recentlyLinkedFolderId, !!folderActivity(folder), rescanning(folder));
+    }
+
     signal restoreFocus(string name)
 
     function retire() {
@@ -34,6 +54,8 @@ QtObject {
         Ownership.save(screenName, Model.clone(view));
     }
     function draft(values) {
+        if (Object.prototype.hasOwnProperty.call(values, "folderId"))
+            idSuggestionPending = false;
         update({
             draft: Object.assign({}, view.draft, values)
         });
@@ -91,6 +113,7 @@ QtObject {
         } else if (target) {
             d.deviceId = target.id;
             d.deviceName = target.name || "";
+            d.address = target.address || "";
         }
         update({
             form: kind,
@@ -98,12 +121,28 @@ QtObject {
             formAnchor: anchor || 0
         });
         if (kind === "add-folder" && !d.folderId)
-            service.requestFolderIdSuggestion();
+            suggestFolderId();
         restoreFocus("form");
+    }
+    function suggestFolderId() {
+        if (busy || submittedAction || view.confirmation || view.form !== "add-folder" || view.draft.pendingDeviceId)
+            return false;
+        error = "";
+        idSuggestionPending = service.requestFolderIdSuggestion();
+        if (!idSuggestionPending)
+            error = service.actionError || "Could not generate a folder ID";
+        return idSuggestionPending;
+    }
+    function requestServiceToggle() {
+        if (busy || submittedAction || view.form || view.confirmation || !service.canControlService)
+            return;
+        var start = !service.lifecycle.active;
+        confirm(start ? "lifecycle.start" : "lifecycle.stop", {}, start ? "Start Syncthing?" : "Stop Syncthing?", "Change the running state of the verified systemd user service. Autostart is unchanged.");
     }
     function cancelForm() {
         if (submittedAction)
             return;
+        idSuggestionPending = false;
         update({
             form: "",
             draft: {},
@@ -227,13 +266,26 @@ QtObject {
         function onActionFinished(action, ok, data, failure) {
             if (!root.acceptingResults)
                 return;
-            if (action === "folder.suggest-id" && ok && root.view.form === "add-folder" && !root.view.draft.folderId)
-                root.draft({
-                    folderId: data.folderId
-                });
+            if (action === "folder.suggest-id") {
+                var applySuggestion = root.idSuggestionPending && root.view.form === "add-folder" && !root.view.draft.pendingDeviceId;
+                root.idSuggestionPending = false;
+                if (applySuggestion) {
+                    if (ok && data && data.folderId)
+                        root.draft({
+                            folderId: data.folderId
+                        });
+                    else
+                        root.error = failure && failure.message || "Could not generate a folder ID";
+                }
+                return;
+            }
             if (action !== root.submittedAction)
                 return;
             var frozen = root.submitted;
+            if (ok && action === "folder.resume") {
+                root.recentlyLinkedFolderId = frozen.folderId;
+                root.linkedFeedback.restart();
+            }
             root.submittedAction = "";
             root.submitted = null;
             if (ok) {

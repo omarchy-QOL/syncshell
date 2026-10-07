@@ -55,7 +55,12 @@ python3 "$root/tests/caelestia-imports.py" "$sdk" "$work/first" "$work/imports"
 while IFS= read -r file; do
   [[ $file == *.qml ]] || continue
   /usr/lib/qt6/bin/qmlformat -n "$work/first/$file" >/dev/null
-  /usr/lib/qt6/bin/qmllint --unqualified disable \
+  lint_options=(--max-warnings 0 --unqualified disable)
+  # Quickshell's metadata omits QProcess::ExitStatus for these existing handlers.
+  if [[ $file == shared/CoreProcess.qml ]]; then
+    lint_options+=(--signal-handler-parameters info)
+  fi
+  /usr/lib/qt6/bin/qmllint "${lint_options[@]}" \
     -I "$work/imports" -I "$build/qml" \
     "$work/imports/syncshell/syncshell/$file"
 done < "$root/integrations/caelestia/qml-files.txt"
@@ -66,5 +71,5 @@ sed 's|import "../../hosts/caelestia/controllers"|import syncshell.syncshell.hos
 QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner \
   -import "$work/imports" -input "$work/behavior"
 node --test "$root/tests/caelestia-model.test.mjs" \
-  "$root/tests/caelestia-ownership.test.mjs" "$root/tests/adapter-contract.test.mjs"
+  "$root/tests/caelestia-ownership.test.mjs" "$root/tests/caelestia-shortcuts.test.mjs" "$root/tests/adapter-contract.test.mjs"
 printf '[ok] Caelestia payload, SDK, behavior and reproducibility checks passed\n'

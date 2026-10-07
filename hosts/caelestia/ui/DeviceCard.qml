@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import qs.components
 import "."
 import "../models/PanelModel.js" as Model
@@ -36,7 +35,7 @@ ColumnLayout {
         BusyButton {
             caption: "Copy ID"
             disabled: !root.device
-            onClicked: Quickshell.clipboardText = root.device.id
+            copyValue: root.device ? root.device.id : ""
         }
         BusyButton {
             caption: root.device?.paused ? "Resume" : "Pause"

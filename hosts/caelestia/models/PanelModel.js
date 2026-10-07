@@ -16,7 +16,7 @@ function folderState(folder, fresh) {
     if (s.needTotalItems || s.state === "syncing" || String(s.state).indexOf("scan") === 0) return "active";
     return s.state === "idle" ? "ready" : "unknown";
 }
-function options(rows, search, filters, sort, fresh) {
+function options(rows, search, filters, sort, fresh, presentation) {
     var query = String(search || "").toLowerCase();
     return (rows || []).filter(row => {
         return matchesSearch([label(row), row.path, row.id, row.address].join(" "), query)
@@ -25,7 +25,11 @@ function options(rows, search, filters, sort, fresh) {
         var rank = row => sort === "name" || folderState(row, fresh) === sort ? 0 : 1;
         return rank(a) - rank(b) || label(a).toLowerCase().localeCompare(label(b).toLowerCase())
             || a.id.localeCompare(b.id);
-    }).map(row => ({ value: row.id, label: label(row), detail: (row.path || row.address || "") + " · " + row.id }));
+    }).map(row => {
+        var state = filters === null ? deviceStatus(row, fresh) : presentation ? presentation(row) : folderStatus(row, fresh);
+        return { value: row.id, label: label(row), detail: (row.path || row.address || "") + " · " + row.id,
+            status: state, help: filters === null ? state : stateHelp(state), group: filters === null ? "" : folderState(row, fresh) };
+    });
 }
 function selectedId(rows, id) {
     return byId(rows, id) ? id : rows.length ? rows[0].id : "";
@@ -36,9 +40,17 @@ function initialView() {
         formAnchor: 0, settingsDraft: null };
 }
 function toggle(ids, id) { return ids.includes(id) ? ids.filter(x => x !== id) : ids.concat([id]); }
+function hasErrors(folder) {
+    var s = folder && folder.status || {};
+    return !!(s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error");
+}
 function errorDetails(folder) {
     var s = folder && folder.status || {};
-    return [s.error].concat((s.errors || []).map(e => e.path + ": " + e.error)).filter(Boolean).join("\n");
+    var details = [s.error].concat((s.errors || []).map(e => [e.path, e.error].filter(Boolean).join(": "))).filter(Boolean).join("\n");
+    var count = Math.max(Number(s.pullErrors || 0), (s.errors || []).length);
+    if (!hasErrors(folder)) return "";
+    return (count ? count + " error" + (count === 1 ? "" : "s") + "\n" : "")
+        + (details || "Syncthing reported no error details.");
 }
 function remoteShare(folder, device, fresh) {
     var member = (folder.devices || []).find(d => d.id === device.id);
@@ -75,4 +87,50 @@ function matchesSearch(label, query) {
 function deviceStatus(device, fresh) {
     if (!device) return "";
     return !fresh ? "Status unknown" : device.paused ? "Paused" : device.connected ? "Connected" : "Disconnected";
+}
+
+function folderStatus(folder, fresh, recentlyLinkedId, activity, rescanning) {
+    if (!folder || !fresh) return "UNKNOWN";
+    if (folder.paused) return "UNLINKED";
+    var s = folder.status || {};
+    if (s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error") return "ERROR";
+    var syncing = s.needTotalItems > 0 || s.state === "syncing" || !!activity;
+    if (rescanning || String(s.state).indexOf("scan") === 0)
+        return syncing ? "SCAN+SYNC" : "SCANNING";
+    if (folder.id === recentlyLinkedId) return "LINKED";
+    if (syncing) return "SYNCING";
+    return s.state === "idle" ? "SYNCED" : "UNKNOWN";
+}
+function stateHelp(state) {
+    return state + " · " + ({ UNKNOWN: "Status unavailable", UNLINKED: "Syncing paused",
+        ERROR: "Needs attention", SCANNING: "Rescanning local files",
+        SYNCING: "Applying changes", "SCAN+SYNC": "Rescanning and syncing",
+        LINKED: "Newly linked", SYNCED: "Up to date" }[state] || "Status unavailable");
+}
+function folderMeta(folder, fresh, localDeviceId, rescanning) {
+    if (!folder) return "";
+    var s = folder.status || {};
+    var pathName = String(folder.path || "").replace(/\/+$/, "").split("/").pop();
+    var suffix = folder.label && folder.label !== pathName ? " · " + folder.label : "";
+    if (!fresh) return "Last reported: " + (s.globalFiles || 0) + " files · " + bytes(s.globalBytes) + suffix;
+    if (s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error")
+        return (s.error || (s.errors || [])[0]?.error || "Folder needs attention") + suffix;
+    if (folder.paused) return "Syncing paused" + suffix;
+    if (rescanning || String(s.state).indexOf("scan") === 0) return "Scanning local changes" + suffix;
+    if (s.needTotalItems > 0 || s.state === "syncing")
+        return (s.needTotalItems || 0) + " item" + (s.needTotalItems === 1 ? "" : "s") + " remaining"
+            + (s.needBytes > 0 ? " · " + bytes(s.needBytes) : "") + suffix;
+    var localOnly = !(folder.devices || []).some(d => d.id && d.id !== localDeviceId);
+    return (s.globalFiles || 0) + " files · " + (localOnly ? "local only" : bytes(s.globalBytes)) + suffix;
+}
+function folderActivity(folder, fresh, activity) {
+    return folder && fresh && activity && activity.folderId === folder.id && activity.detail
+        ? String(activity.action || "Syncing") + " " + activity.detail : "";
+}
+
+function totals(folders) {
+    return (folders || []).reduce((sum, f) => ({
+        files: sum.files + Number((f.status || {}).globalFiles || 0),
+        bytes: sum.bytes + Number((f.status || {}).globalBytes || 0)
+    }), { files: 0, bytes: 0 });
 }

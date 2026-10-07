@@ -30,6 +30,22 @@ ColumnLayout {
     }
     StyledTextField {
         Layout.fillWidth: true
+        objectName: root.controller.view.form === "accept-device" ? "syncshellInitialFocus" : ""
+        placeholderText: "Device name"
+        text: root.controller.view.draft.deviceName || ""
+        readOnly: root.controller.busy
+        onTextEdited: root.controller.draft({
+            deviceName: text
+        })
+    }
+    StyledText {
+        Layout.fillWidth: true
+        visible: root.controller.view.form === "accept-device"
+        text: "Observed address: " + (root.controller.view.draft.address || "unknown")
+        wrapMode: Text.Wrap
+    }
+    StyledTextField {
+        Layout.fillWidth: true
         objectName: root.controller.view.form === "accept-device" ? "" : "syncshellInitialFocus"
         placeholderText: "Device ID"
         text: root.controller.view.draft.deviceId || ""
@@ -38,15 +54,16 @@ ColumnLayout {
             deviceId: text
         })
     }
-    StyledTextField {
+    BusyButton {
+        caption: "Copy ID"
+        copyValue: root.controller.view.draft.deviceId || ""
+        disabled: !copyValue
+    }
+    StyledText {
         Layout.fillWidth: true
-        objectName: root.controller.view.form === "accept-device" ? "syncshellInitialFocus" : ""
-        placeholderText: "Device name"
-        text: root.controller.view.draft.deviceName || ""
-        readOnly: root.controller.busy
-        onTextEdited: root.controller.draft({
-            deviceName: text
-        })
+        visible: root.controller.view.form !== "accept-device" && !root.controller.service.nearbyDevices.length
+        text: "No nearby devices found. Paste a Device ID to add one manually."
+        wrapMode: Text.Wrap
     }
     StyledText {
         Layout.fillWidth: true

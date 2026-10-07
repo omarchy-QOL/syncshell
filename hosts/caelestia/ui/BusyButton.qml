@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls as QQC
+import Quickshell
 import qs.components.controls
 import qs.services
 
@@ -8,7 +10,45 @@ TextButton {
     id: root
     property bool busy: false
     property string caption: ""
-    text: busy ? "Working..." : caption
+    property string busyCaption: "Working..."
+    property string help: ""
+    property string feedback: ""
+    property string copyValue: ""
+    text: feedback || (busy ? busyCaption : caption)
+    implicitWidth: Math.max(idleMetrics.width, busyMetrics.width, feedbackMetrics.width) + horizontalPadding * 2
+    TextMetrics {
+        id: idleMetrics
+        font: root.font
+        text: root.caption
+    }
+    TextMetrics {
+        id: busyMetrics
+        font: root.font
+        text: root.busyCaption
+    }
+    TextMetrics {
+        id: feedbackMetrics
+        font: root.font
+        text: root.copyValue ? "Copied" : ""
+    }
+    QQC.ToolTip.visible: hover.hovered || activeFocus
+    QQC.ToolTip.text: help
+    QQC.ToolTip.delay: 500
+    HoverHandler {
+        id: hover
+        enabled: !!root.help
+    }
+    Timer {
+        id: feedbackTimer
+        interval: 2000
+        onTriggered: root.feedback = ""
+    }
+    onCopyValueChanged: feedback = ""
+    onClicked: if (copyValue) {
+        Quickshell.clipboardText = copyValue;
+        feedback = "Copied";
+        feedbackTimer.restart();
+    }
     disabled: busy
     enabled: !disabled
     activeFocusOnTab: enabled

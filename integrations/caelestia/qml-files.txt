@@ -14,6 +14,7 @@ hosts/caelestia/ui/DeviceCard.qml
 hosts/caelestia/ui/DeviceFoldersForm.qml
 hosts/caelestia/ui/DirectoryPicker.qml
 hosts/caelestia/ui/FolderCard.qml
+hosts/caelestia/ui/FolderViewOptions.qml
 hosts/caelestia/ui/FolderSharingForm.qml
 hosts/caelestia/ui/InlineFormHeader.qml
 hosts/caelestia/ui/MoreDetails.qml

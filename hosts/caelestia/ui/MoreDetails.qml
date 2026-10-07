@@ -32,7 +32,7 @@ ColumnLayout {
         wrapMode: Text.Wrap
     }
     Repeater {
-        model: root.controller.service.folders.filter(f => !!Model.errorDetails(f))
+        model: root.controller.service.folders.filter(f => Model.hasErrors(f))
         StyledText {
             required property var modelData
             Layout.fillWidth: true

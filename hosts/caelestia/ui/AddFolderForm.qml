@@ -52,8 +52,13 @@ ColumnLayout {
     }
     BusyButton {
         caption: "Generate ID"
-        disabled: root.controller.busy || !!root.controller.view.draft.pendingDeviceId
-        onClicked: root.controller.service.requestFolderIdSuggestion()
+        disabled: root.controller.busy || !!root.controller.view.confirmation || !!root.controller.view.draft.pendingDeviceId
+        onClicked: root.controller.suggestFolderId()
+    }
+    StyledText {
+        Layout.fillWidth: true
+        text: "Reuse the exact ID to join an existing folder. A new ID creates a different folder identity."
+        wrapMode: Text.Wrap
     }
     StyledText {
         text: "Share with selected devices"
@@ -74,7 +79,7 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: "Existing files are kept. Missing directories require confirmation."
+        text: (!(root.controller.view.draft.deviceIds || []).length ? "Local only: not shared with other devices. " : "Only the selected devices will share this folder. ") + "Existing files are kept. Missing directories require confirmation."
         wrapMode: Text.Wrap
     }
     BusyButton {

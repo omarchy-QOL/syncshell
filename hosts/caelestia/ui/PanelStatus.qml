@@ -2,15 +2,16 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import Caelestia.Config
 import qs.components
 import qs.components.controls
 import "."
+import "../models/PanelModel.js" as Model
 
 ColumnLayout {
     id: root
     required property var controller
+    readonly property var totals: Model.totals(controller.service.folders)
     RowLayout {
         MaterialIcon {
             text: "sync"
@@ -23,8 +24,11 @@ ColumnLayout {
         }
         StyledSwitch {
             checked: root.controller.service.lifecycle.active === true
-            disabled: root.controller.busy || !root.controller.service.canControlService
-            onToggled: root.controller.confirm(checked ? "lifecycle.start" : "lifecycle.stop", {}, checked ? "Start Syncthing?" : "Stop Syncthing?", "Change the running state of the verified systemd user service.")
+            disabled: root.controller.busy || !!root.controller.view.form || !!root.controller.view.confirmation || !root.controller.service.canControlService
+            onToggled: {
+                root.controller.requestServiceToggle();
+                checked = Qt.binding(() => root.controller.service.lifecycle.active === true);
+            }
         }
     }
     RowLayout {
@@ -36,7 +40,7 @@ ColumnLayout {
         BusyButton {
             caption: "Copy ID"
             disabled: !root.controller.service.localDeviceId
-            onClicked: Quickshell.clipboardText = root.controller.service.localDeviceId
+            copyValue: root.controller.service.localDeviceId
         }
     }
     StyledText {
@@ -46,5 +50,10 @@ ColumnLayout {
     }
     StyledText {
         text: root.controller.service.folderCount + " folders · " + root.controller.service.connectedDeviceCount + "/" + root.controller.service.deviceCount + " devices"
+    }
+    StyledText {
+        Layout.fillWidth: true
+        text: root.totals.files + " files · " + Model.bytes(root.totals.bytes) + " tracked"
+        wrapMode: Text.Wrap
     }
 }
