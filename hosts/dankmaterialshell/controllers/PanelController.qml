@@ -227,6 +227,10 @@ QtObject {
             return reject("Status is stale; refresh before changing Syncthing");
         if (form === "add-folder" && !validFolderOffer(draft))
             return reject("The invitation changed or disappeared; your draft has been kept");
+        if (form === "accept-device" && !service.pendingDevices.some(device => device.id === draft.deviceId))
+            return reject("The device invitation disappeared; your draft has been kept");
+        if (form === "device-folders" && Model.removedShares(originalShareIds, draft.ids).length === 0)
+            return reject("Uncheck a folder to remove its share");
         error = "";
         submitting = true;
         submittedDraft = JSON.parse(JSON.stringify(draft));
@@ -279,6 +283,8 @@ QtObject {
             return reject("Status is stale; refresh before changing Syncthing");
         if (action === "folder.add-existing" && !validFolderOffer(target))
             return reject("The invitation changed or disappeared; your draft has been kept");
+        if (action === "device.dismiss-pending" && !service.pendingDevices.some(device => device.id === target.id) || action === "folder.dismiss-pending" && !service.pendingFolderOffers().some(offer => offer.folderId === target.folderId && offer.deviceId === target.deviceId))
+            return reject("The invitation disappeared; nothing was changed");
         if (action === "folder.forget" && !service.folder(target.id) || action === "device.remove" && !service.device(target.id))
             return reject("This target no longer exists; nothing was changed");
         submitting = true;

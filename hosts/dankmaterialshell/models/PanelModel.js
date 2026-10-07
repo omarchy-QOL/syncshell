@@ -195,6 +195,10 @@ function remoteShare(folder, device, fresh) {
     var member = (folder.devices || []).find(d => d.id === device.id);
     return fresh && device.connected && !device.paused && member ? member.remoteState || "unknown" : "unknown";
 }
+function remoteShareDescription(state) {
+    return ({ valid: "Remote share confirmed", paused: "Remote folder paused",
+        notSharing: "Remote is not sharing back" })[state] || "Remote acceptance unconfirmed";
+}
 
 function hasErrors(folder) {
     var s = folder && folder.status || {};

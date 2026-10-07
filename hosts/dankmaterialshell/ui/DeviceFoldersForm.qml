@@ -13,8 +13,7 @@ ColumnLayout {
         return controller.originalShareIds.map(id => controller.service.folder(id)).filter(Boolean).filter(f => ["valid", "paused"].includes(Model.remoteShare(f, device || {}, controller.fresh)) === confirmed).map(f => ({
                     value: f.id,
                     label: f.label || f.id,
-                    description: f.path,
-                    status: Model.remoteShare(f, device || {}, controller.fresh)
+                    description: [f.path, f.id, Model.remoteShareDescription(Model.remoteShare(f, device || {}, controller.fresh))].filter(Boolean).join(" · ")
                 }));
     }
     spacing: Theme.spacingS
@@ -67,7 +66,7 @@ ColumnLayout {
         Layout.fillWidth: true
         text: "Save shares"
         busy: root.controller.submitting
-        enabled: !!root.controller.service && root.controller.service.online
+        enabled: root.controller.fresh && !root.controller.busy && Model.removedShares(root.controller.originalShareIds, root.controller.draft.ids || []).length > 0
         onClicked: root.controller.submit()
     }
 }

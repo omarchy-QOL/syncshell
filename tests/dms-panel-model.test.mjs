@@ -286,3 +286,16 @@ test("error details group paths by reason and disclose bounded counts", () => {
   assert.match(model.errorDetails({ status: { pullErrors: 4 } }), /no error details.*Showing 0 of 4/s);
   assert.equal(model.errorDetails({ status: { state: "idle" } }), "");
 });
+
+test("share descriptions preserve remote acceptance and pause explanations", () => {
+  for (const [state, expected] of Object.entries({
+    valid: "Remote share confirmed", paused: "Remote folder paused",
+    notSharing: "Remote is not sharing back", unknown: "Remote acceptance unconfirmed",
+  })) {
+    const folder = { devices: [{ id: "peer", remoteState: state }] };
+    assert.equal(model.remoteShareDescription(model.remoteShare(folder,
+      { id: "peer", connected: true }, true)), expected);
+    assert.equal(model.remoteShareDescription(model.remoteShare(folder,
+      { id: "peer", connected: true }, false)), "Remote acceptance unconfirmed");
+  }
+});

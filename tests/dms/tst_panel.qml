@@ -10,6 +10,8 @@ TestCase {
         id: backend
         property var folders: []
         property var devices: []
+        property var pendingDevices: []
+        property var sharedFolders: ["a", "b"]
         property QtObject core: QtObject {
             property int generation: 1
         }
@@ -62,7 +64,27 @@ TestCase {
             return null;
         }
         function device(id) {
-            return null;
+            return devices.find(d => d.id === id) || null;
+        }
+        function folderIdsForDevice(id) {
+            return sharedFolders;
+        }
+        function removeDeviceFolderShares(id, ids) {
+            return runAction("device.remove-folder-shares", {
+                deviceId: id,
+                folderIds: ids
+            });
+        }
+        function dismissPendingDevice(id, name) {
+            return runAction("device.dismiss-pending", {
+                deviceId: id
+            });
+        }
+        function dismissPendingFolder(id, device) {
+            return runAction("folder.dismiss-pending", {
+                folderId: id,
+                pendingDeviceId: device
+            });
         }
         function runAction(action, args) {
             sent = {
@@ -84,6 +106,9 @@ TestCase {
             fresh: true
         };
         backend.offers = [];
+        backend.devices = [];
+        backend.pendingDevices = [];
+        backend.sharedFolders = ["a", "b"];
         backend.busy = false;
         backend.sent = null;
         backend.canControlService = true;
@@ -95,6 +120,113 @@ TestCase {
     }
     function cleanup() {
         controller.destroy();
+    }
+    function test_vanished_device_invitation_preserves_accept_draft() {
+        backend.pendingDevices = [
+            {
+                id: "peer",
+                name: "Invited"
+            }
+        ];
+        controller.begin("accept-device", backend.pendingDevices[0], null);
+        controller.setDraft("name", "My name");
+        backend.pendingDevices = [
+            {
+                id: "another"
+            }
+        ];
+        verify(!controller.submit());
+        compare(backend.sent, null);
+        compare(controller.draft.deviceId, "peer");
+        compare(controller.draft.name, "My name");
+        verify(controller.error.includes("invitation"));
+        verify(!controller.submitting);
+    }
+    function test_vanished_invitation_cannot_be_dismissed() {
+        for (var folder of [false, true]) {
+            backend.pendingDevices = [
+                {
+                    id: "peer"
+                }
+            ];
+            backend.offers = [
+                {
+                    folderId: "offered",
+                    deviceId: "peer",
+                    encrypted: true
+                }
+            ];
+            var target = folder ? backend.offers[0] : backend.pendingDevices[0];
+            controller.requestConfirmation(folder ? "folder.dismiss-pending" : "device.dismiss-pending", target, null);
+            backend.pendingDevices = [
+                {
+                    id: "another"
+                }
+            ];
+            backend.offers = [
+                {
+                    folderId: "offered",
+                    deviceId: "another"
+                }
+            ];
+            verify(!controller.confirm());
+            compare(backend.sent, null);
+            verify(controller.error.includes("invitation"));
+            controller.cancelConfirmation();
+        }
+    }
+    function test_live_invitation_keeps_its_frozen_target() {
+        for (var folder of [false, true]) {
+            backend.pendingDevices = [
+                {
+                    id: "peer"
+                },
+                {
+                    id: "another"
+                }
+            ];
+            backend.offers = [
+                {
+                    folderId: "offered",
+                    deviceId: "peer",
+                    encrypted: true
+                }
+            ];
+            var target = folder ? {
+                folderId: "offered",
+                deviceId: "peer"
+            } : {
+                id: "peer"
+            };
+            controller.requestConfirmation(folder ? "folder.dismiss-pending" : "device.dismiss-pending", target, null);
+            target.id = "another";
+            target.deviceId = "another";
+            verify(controller.confirm());
+            compare(backend.sent.args[folder ? "pendingDeviceId" : "deviceId"], "peer");
+            backend.busy = false;
+            backend.actionFinished(backend.sent.action, true, {}, null);
+        }
+        controller.begin("accept-device", backend.pendingDevices[0], null);
+        verify(controller.submit());
+        compare(backend.sent.action, "device.add");
+        compare(backend.sent.args.deviceId, "peer");
+    }
+    function test_unchanged_shares_cannot_be_submitted() {
+        backend.devices = [
+            {
+                id: "peer",
+                name: "Peer"
+            }
+        ];
+        controller.begin("device-folders", backend.devices[0], null);
+        verify(!controller.submit());
+        compare(backend.sent, null);
+        compare(controller.draft.ids.join(","), "a,b");
+        verify(controller.error.includes("Uncheck"));
+        controller.toggleDraft("a");
+        verify(controller.submit());
+        compare(backend.sent.action, "device.remove-folder-shares");
+        compare(backend.sent.args.folderIds.join(","), "a");
     }
     function test_closed_form_cannot_submit() {
         verify(!controller.submit());
