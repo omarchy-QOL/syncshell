@@ -22,7 +22,7 @@ ColumnLayout {
         options: root.controller.service.nearbyDevices.map(d => ({
                     value: d.id,
                     label: d.name || d.id,
-                    detail: (d.addresses || []).join(", ")
+                    detail: [d.id, (d.addresses || []).join(", ")].filter(Boolean).join(" · ")
                 }))
         onChosen: id => root.controller.draft({
                 deviceId: id

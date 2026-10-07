@@ -205,6 +205,10 @@ QtObject {
         if (action === "folder.add-existing" && args.pendingDeviceId) {
             return service.pendingFolderOffers().some(o => o.folderId === args.folderId && o.deviceId === args.pendingDeviceId && !o.encrypted);
         }
+        if (action === "device.dismiss-pending" || action === "device.add" && view.form === "accept-device")
+            return service.pendingDevices.some(device => device.id === args.deviceId);
+        if (action === "folder.dismiss-pending")
+            return service.pendingFolderOffers().some(offer => offer.folderId === args.folderId && offer.deviceId === args.pendingDeviceId);
         return true;
     }
     function send(action, args) {
@@ -215,7 +219,7 @@ QtObject {
             return false;
         }
         if (!validTarget(action, args)) {
-            error = "The target changed or disappeared; refresh and review it";
+            error = "The target or invitation changed or disappeared; refresh and review it";
             return false;
         }
         update({

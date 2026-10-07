@@ -35,7 +35,7 @@ Item {
     property bool filtersOpen: false
     property string localQuery: ""
     readonly property string query: searchOwner ? searchOwner.view.search : localQuery
-    readonly property var filtered: options.filter(o => Model.matchesSearch(o.label + " " + (o.detail || ""), query))
+    readonly property var filtered: options.filter(o => Model.matchesOption(o, query))
     signal chosen(string value)
     signal toggled(string value)
 

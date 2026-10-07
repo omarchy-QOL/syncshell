@@ -27,6 +27,8 @@ TestCase {
             }
         ]
         property var sharedFolders: ["a", "b"]
+        property var pendingDevices: []
+        property var offers: []
         property QtObject core: QtObject {
             property int generation: 1
         }
@@ -49,7 +51,7 @@ TestCase {
             return devices.find(d => d.id === id) || null;
         }
         function pendingFolderOffers() {
-            return [];
+            return offers;
         }
         function folderIdsForDevice(id) {
             return sharedFolders;
@@ -106,6 +108,8 @@ TestCase {
                 label: "same"
             }
         ];
+        backend.pendingDevices = [];
+        backend.offers = [];
         backend.canControlService = true;
         backend.lifecycle = {
             active: false,
@@ -127,6 +131,102 @@ TestCase {
     }
     function cleanup() {
         controller.destroy();
+    }
+    function test_vanished_device_invitation_preserves_accept_draft() {
+        backend.pendingDevices = [
+            {
+                id: "peer",
+                name: "Invited"
+            }
+        ];
+        controller.openForm("accept-device", backend.pendingDevices[0], 0);
+        controller.draft({
+            deviceName: "My name"
+        });
+        backend.pendingDevices = [
+            {
+                id: "another"
+            }
+        ];
+        controller.submitForm();
+        compare(backend.sent, null);
+        compare(controller.view.draft.deviceId, "peer");
+        compare(controller.view.draft.deviceName, "My name");
+        verify(controller.error.includes("invitation"));
+        compare(controller.submittedAction, "");
+    }
+    function test_vanished_invitation_cannot_be_dismissed() {
+        for (var folder of [false, true]) {
+            backend.pendingDevices = [
+                {
+                    id: "peer"
+                }
+            ];
+            backend.offers = [
+                {
+                    folderId: "offered",
+                    deviceId: "peer",
+                    encrypted: true
+                }
+            ];
+            controller.confirm(folder ? "folder.dismiss-pending" : "device.dismiss-pending", folder ? {
+                folderId: "offered",
+                pendingDeviceId: "peer"
+            } : {
+                deviceId: "peer"
+            }, "Dismiss?", "");
+            backend.pendingDevices = [
+                {
+                    id: "another"
+                }
+            ];
+            backend.offers = [
+                {
+                    folderId: "offered",
+                    deviceId: "another"
+                }
+            ];
+            controller.acceptConfirmation();
+            compare(backend.sent, null);
+            verify(controller.error.includes("invitation"));
+            controller.cancelConfirmation();
+        }
+    }
+    function test_live_invitation_keeps_its_frozen_target() {
+        for (var folder of [false, true]) {
+            backend.pendingDevices = [
+                {
+                    id: "peer"
+                },
+                {
+                    id: "another"
+                }
+            ];
+            backend.offers = [
+                {
+                    folderId: "offered",
+                    deviceId: "peer",
+                    encrypted: true
+                }
+            ];
+            var args = folder ? {
+                folderId: "offered",
+                pendingDeviceId: "peer"
+            } : {
+                deviceId: "peer"
+            };
+            controller.confirm(folder ? "folder.dismiss-pending" : "device.dismiss-pending", args, "Dismiss?", "");
+            args.deviceId = "another";
+            args.pendingDeviceId = "another";
+            controller.acceptConfirmation();
+            compare(backend.sent.args[folder ? "pendingDeviceId" : "deviceId"], "peer");
+            backend.busy = false;
+            backend.actionFinished(backend.sent.action, true, {}, null);
+        }
+        controller.openForm("accept-device", backend.pendingDevices[0], 0);
+        controller.submitForm();
+        compare(backend.sent.action, "device.add");
+        compare(backend.sent.args.deviceId, "peer");
     }
     function test_closed_form_cannot_submit() {
         controller.submitForm();

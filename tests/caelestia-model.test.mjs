@@ -37,6 +37,20 @@ test("stale state never reports current folder or device status", () => {
 test("searching a multiselect does not remove hidden selections", () => {
   assert.deepEqual(Array.from(model.toggle(["a", "hidden"], "a")), ["hidden"]);
 });
+test("every selector searches stable IDs even when labels and details omit them", () => {
+  const rows = [
+    { value: "folder-a", label: "Documents", detail: "valid" },
+    { value: "folder-b", label: "Documents", detail: "valid" },
+    { value: "REMOTE-ID", label: "Laptop", detail: "tcp://192.0.2.1" },
+  ];
+  const matching = query => rows.filter(row => model.matchesOption(row, query)).map(row => row.value);
+  assert.deepEqual(matching("folder-b"), ["folder-b"]);
+  assert.deepEqual(matching("remote-id"), ["REMOTE-ID"]);
+  assert.deepEqual(matching("192.0.2.1"), ["REMOTE-ID"]);
+  assert.deepEqual(matching("dcm"), ["folder-a", "folder-b"]);
+  assert.deepEqual(matching("missing"), []);
+  assert.deepEqual(matching(""), rows.map(row => row.value));
+});
 test("taller side forms preserve the main screen anchor at both vertical edges", () => {
   for (const center of [30, 350, 830]) {
     const closed = model.geometry(400, 400, 0, 0, 0, 1100, 900, center, 12);
@@ -120,4 +134,17 @@ test("error details group paths by reason and disclose bounded counts", () => {
   assert.equal(model.hasErrors({ status: { errors: [{ error: "missing" }] } }), true);
   assert.match(model.errorDetails({ status: { pullErrors: 4 } }), /no error details.*Showing 0 of 4/s);
   assert.equal(model.errorDetails({ status: { state: "idle" } }), "");
+});
+
+test("share descriptions preserve remote acceptance and pause explanations", () => {
+  for (const [state, expected] of Object.entries({
+    valid: "Remote share confirmed", paused: "Remote folder paused",
+    notSharing: "Remote is not sharing back", unknown: "Remote acceptance unconfirmed",
+  })) {
+    const folder = { devices: [{ id: "peer", remoteState: state }] };
+    assert.equal(model.remoteShareDescription(model.remoteShare(folder,
+      { id: "peer", connected: true }, true)), expected);
+    assert.equal(model.remoteShareDescription(model.remoteShare(folder,
+      { id: "peer", connected: true }, false)), "Remote acceptance unconfirmed");
+  }
 });

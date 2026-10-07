@@ -46,6 +46,10 @@ function remoteShare(folder, device, fresh) {
     var member = (folder.devices || []).find(d => d.id === device.id);
     return fresh && device.connected && !device.paused && member ? member.remoteState || "unknown" : "unknown";
 }
+function remoteShareDescription(state) {
+    return ({ valid: "Remote share confirmed", paused: "Remote folder paused",
+        notSharing: "Remote is not sharing back" })[state] || "Remote acceptance unconfirmed";
+}
 
 // The host anchors the union's center; offset the main pane inside that union.
 function geometry(mainWidth, mainHeight, formWidth, formHeight, anchor, availableWidth, availableHeight, center, padding) {
@@ -73,6 +77,9 @@ function matchesSearch(label, query) {
         position++;
     }
     return true;
+}
+function matchesOption(option, query) {
+    return matchesSearch([option.label, option.value, option.detail].join(" "), query);
 }
 function deviceStatus(device, fresh) {
     if (!device) return "";

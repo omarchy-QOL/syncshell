@@ -16,7 +16,7 @@ ColumnLayout {
         return shares.filter(f => ["valid", "paused"].includes(Model.remoteShare(f, device || {}, controller.fresh)) === confirmed).map(f => ({
                     value: f.id,
                     label: Model.label(f),
-                    detail: Model.remoteShare(f, device || {}, controller.fresh)
+                    detail: [f.path, f.id, Model.remoteShareDescription(Model.remoteShare(f, device || {}, controller.fresh))].filter(Boolean).join(" · ")
                 }));
     }
     InlineFormHeader {
