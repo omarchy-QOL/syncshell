@@ -21,6 +21,7 @@ QtObject {
     property string pendingAction: ""
     property var submittedDraft: null
     property string error: ""
+    property bool idSuggestionPending: false
     property var returnFocus: null
 
     readonly property var folder: service ? service.folder(selectedFolderId) : null
@@ -85,6 +86,8 @@ QtObject {
     }
 
     function setDraft(key, value) {
+        if (key === "folderId")
+            idSuggestionPending = false;
         var next = Object.assign({}, draft);
         next[key] = value;
         draft = next;
@@ -141,14 +144,38 @@ QtObject {
         }
         form = nextForm;
         if (nextForm === "add-folder" && !draft.folderId)
-            service.requestFolderIdSuggestion();
+            suggestFolderId();
         return true;
+    }
+
+    function suggestFolderId() {
+        if (!service || busy || confirmation || form !== "add-folder" || draft.pendingDeviceId)
+            return false;
+        error = "";
+        idSuggestionPending = service.requestFolderIdSuggestion();
+        if (!idSuggestionPending)
+            error = service.actionError || "Could not generate a folder ID";
+        return idSuggestionPending;
+    }
+
+    function connectionChanged() {
+        if (submitting || confirmation || form) {
+            submitting = false;
+            pendingAction = "";
+            submittedDraft = null;
+            confirmation = null;
+            error = "The connection changed or an operation was interrupted. Refresh and review your draft before retrying.";
+        }
+        idSuggestionPending = false;
+        linkingFolderId = "";
+        recentlyLinkedFolderId = "";
     }
 
     function closeForm() {
         if (submitting)
             return false;
         confirmation = null;
+        idSuggestionPending = false;
         form = "";
         draft = ({});
         originalShareIds = [];
@@ -194,7 +221,7 @@ QtObject {
     }
 
     function submit() {
-        if (busy || !service || confirmation)
+        if (busy || !service || confirmation || !form)
             return false;
         if (!fresh)
             return reject("Status is stale; refresh before changing Syncthing");
@@ -205,13 +232,20 @@ QtObject {
         submittedDraft = JSON.parse(JSON.stringify(draft));
         var accepted = false;
         if (form === "add-folder") {
+            submittedDraft.path = String(draft.path || "").trim();
+            submittedDraft.folderId = String(draft.folderId || "").trim();
+            if (!submittedDraft.path || !submittedDraft.folderId)
+                return reject("Directory and Folder ID are required");
             pendingAction = "folder.add-existing";
-            accepted = service.addFolder(Object.assign({}, draft, {
+            accepted = service.addFolder(Object.assign({}, submittedDraft, {
                 deviceIds: draft.ids.slice()
             }));
         } else if (form === "add-device" || form === "accept-device") {
+            var deviceId = String(draft.deviceId || "").trim();
+            if (!deviceId)
+                return reject("Device ID is required");
             pendingAction = "device.add";
-            accepted = service.addDevice(draft.deviceId, draft.name);
+            accepted = service.addDevice(deviceId, draft.name);
         } else if (form === "share-folder") {
             if (!service.folder(draft.folderId))
                 return reject("This folder no longer exists; your draft has been kept");
@@ -277,8 +311,14 @@ QtObject {
             linkingFolderId = "";
         }
         if (action === "folder.suggest-id") {
-            if (ok && form === "add-folder" && !draft.folderId)
-                setDraft("folderId", String(data && data.folderId || ""));
+            var applySuggestion = idSuggestionPending && form === "add-folder" && !draft.pendingDeviceId;
+            idSuggestionPending = false;
+            if (applySuggestion) {
+                if (ok && data && data.folderId)
+                    setDraft("folderId", String(data.folderId));
+                else
+                    error = failure && failure.message || "Could not generate a folder ID";
+            }
             return;
         }
         if (!pendingAction || action !== pendingAction)
@@ -298,7 +338,16 @@ QtObject {
         closeForm();
     }
 
-    onServiceChanged: reconcile()
+    onServiceChanged: {
+        connectionChanged();
+        reconcile();
+    }
+    property Connections coreGeneration: Connections {
+        target: root.service ? root.service.core || null : null
+        function onGenerationChanged() {
+            root.connectionChanged();
+        }
+    }
 
     property Connections serviceConnections: Connections {
         target: root.service

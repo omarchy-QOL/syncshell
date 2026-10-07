@@ -10,6 +10,9 @@ TestCase {
         id: backend
         property var folders: []
         property var devices: []
+        property QtObject core: QtObject {
+            property int generation: 1
+        }
         property bool online: true
         property var connection: ({
                 fresh: true
@@ -92,6 +95,11 @@ TestCase {
     }
     function cleanup() {
         controller.destroy();
+    }
+    function test_closed_form_cannot_submit() {
+        verify(!controller.submit());
+        compare(backend.sent, null);
+        compare(controller.pendingAction, "");
     }
     function test_runtime_toggle_preserves_autostart() {
         for (var active of [false, true]) {
@@ -189,6 +197,7 @@ TestCase {
     function test_late_results_cannot_clear_a_different_draft() {
         controller.begin("add-device", null, null);
         controller.setDraft("name", "original");
+        controller.setDraft("deviceId", "peer");
         verify(controller.submit());
         verify(!controller.begin("add-folder", null, null));
         verify(!controller.closeForm());
@@ -232,5 +241,140 @@ TestCase {
         }));
         backend.busy = false;
         verify(!controller.rescanning(folder));
+    }
+    function test_service_replacement_unblocks_and_preserves_the_draft() {
+        controller.begin("add-device", null, null);
+        controller.setDraft("deviceId", "peer");
+        controller.setDraft("name", "keep");
+        verify(controller.submit());
+        controller.service = null;
+        verify(!controller.submitting);
+        compare(controller.pendingAction, "");
+        compare(controller.draft.name, "keep");
+        verify(controller.error.includes("interrupted"));
+        backend.actionFinished("device.add", true, {}, null);
+        compare(controller.form, "add-device");
+        backend.busy = false;
+        controller.service = backend;
+        compare(controller.draft.deviceId, "peer");
+        verify(controller.submit());
+        compare(backend.sent.args.deviceId, "peer");
+    }
+    function test_restart_drops_the_old_confirmation_and_keeps_input() {
+        backend.offers = [
+            {
+                folderId: "offer",
+                deviceId: "peer"
+            }
+        ];
+        controller.begin("add-folder", backend.offers[0], null);
+        controller.setDraft("path", "/keep");
+        verify(controller.submit());
+        backend.busy = false;
+        backend.actionFinished("folder.add-existing", false, null, {
+            code: "path_missing"
+        });
+        verify(!!controller.confirmation);
+        backend.core.generation++;
+        compare(controller.confirmation, null);
+        compare(controller.draft.path, "/keep");
+        verify(!controller.confirm());
+        verify(controller.error.includes("connection changed"));
+    }
+    function test_id_generation_preserves_existing_id_on_failure_or_typing() {
+        controller.begin("add-folder", null, null);
+        backend.actionFinished("folder.suggest-id", true, {
+            folderId: "first"
+        }, null);
+        compare(controller.draft.folderId, "first");
+        verify(controller.suggestFolderId());
+        backend.actionFinished("folder.suggest-id", false, null, {
+            message: "offline"
+        });
+        compare(controller.draft.folderId, "first");
+        verify(controller.suggestFolderId());
+        controller.setDraft("folderId", "typed");
+        backend.actionFinished("folder.suggest-id", true, {
+            folderId: "late"
+        }, null);
+        compare(controller.draft.folderId, "typed");
+        verify(controller.suggestFolderId());
+        backend.actionFinished("folder.suggest-id", true, {
+            folderId: "second"
+        }, null);
+        compare(controller.draft.folderId, "second");
+        controller.closeForm();
+        controller.begin("add-folder", {
+            folderId: "offer",
+            deviceId: "peer"
+        }, null);
+        verify(!controller.suggestFolderId());
+    }
+    function test_required_fields_reject_whitespace_without_losing_input() {
+        controller.begin("add-folder", null, null);
+        controller.setDraft("folderId", "id");
+        controller.setDraft("path", "   ");
+        verify(!controller.submit());
+        compare(backend.sent, null);
+        compare(controller.draft.path, "   ");
+        verify(controller.error.includes("required"));
+        controller.closeForm();
+        controller.begin("add-device", null, null);
+        controller.setDraft("deviceId", "   ");
+        verify(!controller.submit());
+        compare(backend.sent, null);
+        verify(controller.error.includes("required"));
+    }
+    function test_backend_rejections_preserve_input_and_do_not_confirm_creation() {
+        for (var failure of [
+            {
+                code: "path_invalid",
+                message: "folder path must be a directory"
+            },
+            {
+                code: "path_overlap",
+                message: "folder path overlaps a configured folder"
+            },
+            {
+                code: "folder_exists",
+                message: "folder is already configured"
+            }
+        ]) {
+            controller.begin("add-folder", null, null);
+            controller.setDraft("folderId", "id");
+            controller.setDraft("path", "/keep");
+            verify(controller.submit());
+            backend.busy = false;
+            backend.actionFinished("folder.add-existing", false, null, failure);
+            compare(controller.confirmation, null);
+            compare(controller.draft.path, "/keep");
+            compare(controller.error, failure.message);
+            controller.closeForm();
+        }
+        for (var failure of [
+            {
+                code: "device_id_invalid",
+                message: "device ID is invalid"
+            },
+            {
+                code: "device_self",
+                message: "this device cannot be added as a remote device"
+            },
+            {
+                code: "device_exists",
+                message: "device is already configured"
+            }
+        ]) {
+            controller.begin("add-device", null, null);
+            controller.setDraft("deviceId", "input");
+            controller.setDraft("name", "keep");
+            verify(controller.submit());
+            backend.busy = false;
+            backend.actionFinished("device.add", false, null, failure);
+            compare(controller.draft.deviceId, "input");
+            compare(controller.draft.name, "keep");
+            compare(controller.error, failure.message);
+            controller.closeForm();
+        }
     }
 }

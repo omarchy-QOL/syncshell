@@ -51,8 +51,10 @@ QtObject {
         var value = Object.assign({}, defaults, config);
         if (["themed", "branded"].indexOf(value.iconStyle) < 0 || ["default", "modern", "dms"].indexOf(value.webUiTheme) < 0)
             return "Unsupported icon or Web UI theme";
-        if (!Number.isInteger(value.probeIntervalSeconds) || value.probeIntervalSeconds < 1 || value.probeIntervalSeconds > 3600 || !Number.isInteger(value.refreshIntervalSeconds) || value.refreshIntervalSeconds < 1 || value.refreshIntervalSeconds > 3600)
-            return "Probe and refresh intervals must be whole seconds between 1 and 3600";
+        if (!Number.isInteger(value.probeIntervalSeconds) || value.probeIntervalSeconds < 1 || value.probeIntervalSeconds > 3600)
+            return "Probe interval must be whole seconds between 1 and 3600";
+        if (!Number.isInteger(value.refreshIntervalSeconds) || value.refreshIntervalSeconds < 60 || value.refreshIntervalSeconds > 3600)
+            return "Refresh interval must be whole seconds between 60 and 3600";
         if (["enabled", "disabled"].indexOf(value.desiredServiceState) < 0)
             return "Unsupported desired service state";
         if (value.lifecycleAuthorized && !/^[A-Za-z0-9_.@:-]+\.service$/.test(value.lifecycleUnit))

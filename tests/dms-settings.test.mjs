@@ -50,6 +50,7 @@ test("settings updates write one owned object and reject invalid values", () => 
   const { context, writes } = settings({ enabled: true });
   for (const [key, value] of [
     ["probeIntervalSeconds", 0], ["probeIntervalSeconds", 1.5],
+    ["refreshIntervalSeconds", 1], ["refreshIntervalSeconds", 59],
     ["refreshIntervalSeconds", 3601], ["webUiTheme", "unknown"],
     ["iconStyle", "unknown"], ["desiredServiceState", "start"],
   ]) {
@@ -71,4 +72,12 @@ test("lifecycle authorization requires an exact safe unit", () => {
     lifecycleAuthorized: true, lifecycleUnit: "syncthing*" } }), "");
   assert.equal(context.validate({ syncshell: { ...context.defaults,
     lifecycleAuthorized: true, lifecycleUnit: "syncthing.service" } }), "");
+});
+
+test("interval boundaries match the shared core contract", () => {
+  const { context } = settings();
+  for (const seconds of [1, 3600])
+    assert.equal(context.save("probeIntervalSeconds", seconds), true);
+  for (const seconds of [60, 3600])
+    assert.equal(context.save("refreshIntervalSeconds", seconds), true);
 });

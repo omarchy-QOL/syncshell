@@ -90,7 +90,7 @@ Plugins.PluginSettings {
                     labelText: "Refresh interval (seconds)"
                     text: String(root.settings.values.refreshIntervalSeconds)
                     validator: IntValidator {
-                        bottom: 1
+                        bottom: 60
                         top: 3600
                     }
                     onEditingFinished: root.settings.save("refreshIntervalSeconds", Number(text))

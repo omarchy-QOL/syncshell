@@ -52,10 +52,7 @@ ColumnLayout {
             iconName: "refresh"
             help: "Generate a new folder ID"
             enabled: !root.controller.busy && !root.controller.draft.pendingDeviceId
-            onClicked: {
-                root.controller.setDraft("folderId", "");
-                root.controller.service.requestFolderIdSuggestion();
-            }
+            onClicked: root.controller.suggestFolderId()
         }
     }
     StyledText {

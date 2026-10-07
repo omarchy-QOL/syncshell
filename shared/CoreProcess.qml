@@ -43,6 +43,8 @@ QtObject {
     }
 
     function terminate() {
+        restartTimer.stop();
+        shutdownTimer.stop();
         _restartRequested = false;
         _expectedStop = true;
         desiredRunning = false;
@@ -328,7 +330,8 @@ QtObject {
             root._expectedStop = false;
             root.desiredRunning = false;
             Qt.callLater(function () {
-                root.desiredRunning = true;
+                if (!root._expectedStop)
+                    root.desiredRunning = true;
             });
         }
     }
