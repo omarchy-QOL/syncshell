@@ -280,7 +280,7 @@ Item {
                 topPadding: Border.top(root.popupBorderSpec) + Style.spacing.hairline
                 bottomPadding: Border.bottom(root.popupBorderSpec) + Style.spacing.hairline
                 focus: true
-                closePolicy: Popup.CloseOnPressOutsideParent | ((searchField.activeFocus || root.headerAccessoryOpen) ? 0 : Popup.CloseOnEscape)
+                closePolicy: Popup.CloseOnPressOutsideParent | (Popup.CloseMultiple || 0) | ((searchField.activeFocus || root.headerAccessoryOpen) ? 0 : Popup.CloseOnEscape)
 
                 function handleKey(event, editing) {
                     var key = event.text.toLowerCase();

@@ -42,5 +42,10 @@ Popup {
         borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Math.max(1, Style.space(2)))
         color: Commons.Color.popups.background
         radius: Style.cornerRadius
+
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.AllButtons
+        }
     }
 }

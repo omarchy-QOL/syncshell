@@ -255,7 +255,7 @@ Item {
                 topPadding: Border.top(root.popupBorderSpec) + Style.spacing.hairline
                 bottomPadding: Border.bottom(root.popupBorderSpec) + Style.spacing.hairline
                 focus: true
-                closePolicy: QQC.Popup.CloseOnEscape | QQC.Popup.CloseOnPressOutsideParent
+                closePolicy: QQC.Popup.CloseOnEscape | QQC.Popup.CloseOnPressOutsideParent | (QQC.Popup.CloseMultiple || 0)
 
                 background: BorderSurface {
                     color: root.background
