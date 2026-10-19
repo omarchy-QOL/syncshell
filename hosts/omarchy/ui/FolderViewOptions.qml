@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -11,10 +12,10 @@ Item {
     required property var controller
     required property int resultCount
     required property int totalCount
-    property color foreground: Color.popups.text
-    property color background: Color.popups.background
-    property color popupBorder: Color.popups.border
-    property color accent: Color.accent
+    property color foreground: Commons.Color.popups.text
+    property color background: Commons.Color.popups.background
+    property color popupBorder: Commons.Color.popups.border
+    property color accent: Commons.Color.accent
     property string fontFamily: Style.font.family
     readonly property bool popupOpen: popup.opened
     readonly property bool filtersDefault: controller.folderShowReady && controller.folderShowActive && controller.folderShowErrors && controller.folderShowPaused && controller.folderShowUnknown
@@ -68,7 +69,7 @@ Item {
             help: "Put folders needing attention first"
         }
     ]
-    readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Color.popups.border, Style.normalBorderWidth)
+    readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Commons.Color.popups.border, Style.normalBorderWidth)
     property int keyboardIndex: 0
 
     signal closed
@@ -244,7 +245,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: "(" + root.resultCount + " of " + root.totalCount + ")"
             textFormat: Text.PlainText
-            color: Color.muted
+            color: Commons.Color.muted
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
 

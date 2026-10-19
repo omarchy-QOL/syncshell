@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -9,9 +10,9 @@ Item {
 
     property int selectedIndex: 0
     property string fontFamily: Style.font.family
-    readonly property color foreground: Color.popups.text
-    readonly property color selectedBackground: Style.selectedFillFor(foreground, Color.accent, Color.urgent)
-    readonly property color selectedText: Style.selectedStateColor(foreground, Color.accent, Color.urgent)
+    readonly property color foreground: Commons.Color.popups.text
+    readonly property color selectedBackground: Style.selectedFillFor(foreground, Commons.Color.accent, Commons.Color.urgent)
+    readonly property color selectedText: Style.selectedStateColor(foreground, Commons.Color.accent, Commons.Color.urgent)
     signal highlightRequested(int index)
     signal activated(int index)
 
@@ -85,7 +86,7 @@ Item {
                         width: parent.width
                         text: menuRow.modelData.title
                         textFormat: Text.PlainText
-                        color: root.selectedIndex === menuRow.index ? root.selectedText : (menuRow.modelData.dangerous ? Color.urgent : root.foreground)
+                        color: root.selectedIndex === menuRow.index ? root.selectedText : (menuRow.modelData.dangerous ? Commons.Color.urgent : root.foreground)
                         font.family: root.fontFamily
                         font.pixelSize: Style.font.title
                         font.bold: true

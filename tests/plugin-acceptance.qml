@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Commons as Commons
 import ".." as Plugin
 
 ShellRoot {
@@ -23,8 +24,8 @@ ShellRoot {
         target: "shell"
         // Use the installed shell's palette entry point rather than file watching.
         function applyTheme(colorsB64: string, shellB64: string): string {
-            Color.loadColors(Qt.atob(colorsB64));
-            Color.loadShell(Qt.atob(shellB64));
+            Commons.Color.loadColors(Qt.atob(colorsB64));
+            Commons.Color.loadShell(Qt.atob(shellB64));
             Style.scheduleRefresh();
             return "ok";
         }

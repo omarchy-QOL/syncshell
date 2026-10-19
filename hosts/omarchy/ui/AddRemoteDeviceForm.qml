@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -12,9 +13,9 @@ Item {
     property string sourceId: ""
     property string deviceId: ""
     property string deviceName: ""
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
-    property color urgent: Color.urgent
+    property color urgent: Commons.Color.urgent
     required property color warning
     property string fontFamily: Style.font.family
     readonly property bool popupOpen: sourceSelector.popupOpen

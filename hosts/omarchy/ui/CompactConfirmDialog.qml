@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -15,11 +16,11 @@ Item {
     property bool confirmFirst: false
     property bool equalWidthActions: false
     property bool destructiveConfirmation: true
-    property color background: Color.background
-    property color foreground: Color.foreground
+    property color background: Commons.Color.background
+    property color foreground: Commons.Color.foreground
     property color scrim: Util.alpha(background, 0.7)
-    property color selectedBackground: Util.alpha(Color.foreground, 0.08)
-    property color selectedText: Color.accent
+    property color selectedBackground: Util.alpha(Commons.Color.foreground, 0.08)
+    property color selectedText: Commons.Color.accent
     property string fontFamily: Style.font.family
 
     signal canceled
@@ -113,15 +114,15 @@ Item {
 
                             width: root.equalWidthActions ? (actions.width - actions.spacing) / 2 : Style.space(76)
                             height: Style.spacing.controlHeight
-                            color: actionButton.selected ? (actionButton.destructive ? Util.alpha(Color.urgent, 0.22) : root.selectedBackground) : "transparent"
-                            borderSpec: Border.flat(actionButton.destructive ? (actionButton.selected ? Color.urgent : Util.alpha(Color.urgent, 0.56)) : (actionButton.selected ? root.selectedText : Util.alpha(root.foreground, 0.38)), Style.normalBorderWidth)
+                            color: actionButton.selected ? (actionButton.destructive ? Util.alpha(Commons.Color.urgent, 0.22) : root.selectedBackground) : "transparent"
+                            borderSpec: Border.flat(actionButton.destructive ? (actionButton.selected ? Commons.Color.urgent : Util.alpha(Commons.Color.urgent, 0.56)) : (actionButton.selected ? root.selectedText : Util.alpha(root.foreground, 0.38)), Style.normalBorderWidth)
                             radius: 0
 
                             Text {
                                 anchors.centerIn: parent
                                 text: actionButton.modelData.text
                                 textFormat: Text.PlainText
-                                color: actionButton.destructive ? (actionButton.selected ? Color.urgent : root.foreground) : (actionButton.selected ? root.selectedText : root.foreground)
+                                color: actionButton.destructive ? (actionButton.selected ? Commons.Color.urgent : root.foreground) : (actionButton.selected ? root.selectedText : root.foreground)
                                 font.family: root.fontFamily
                                 font.pixelSize: Style.font.caption
                             }

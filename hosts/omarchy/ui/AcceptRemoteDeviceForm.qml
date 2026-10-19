@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -12,9 +13,9 @@ Item {
     property var device
     property bool submitting: false
     property string nameText: ""
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
-    property color urgent: Color.urgent
+    property color urgent: Commons.Color.urgent
     property string fontFamily: Style.font.family
 
     signal canceled

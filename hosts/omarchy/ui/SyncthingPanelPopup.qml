@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "UiConstants.js" as UiConstants
 import "../models/PanelNavigation.js" as PanelNavigation
@@ -677,8 +678,8 @@ KeyboardPanel {
         }
         confirmText: root.controller.folderConfirmAction === "create" ? "Create and add" : "Yes"
         cancelText: root.controller.folderConfirmAction === "create" ? "Cancel" : "No"
-        background: Color.popups.background
-        foreground: Color.popups.text
+        background: Commons.Color.popups.background
+        foreground: Commons.Color.popups.text
         selectedText: root.controller.folderConfirmAction === "create" ? root.controller.foreground : root.controller.urgent
         fontFamily: root.controller.fontFamily
         onCanceled: root.controller.cancelFolderAction()
@@ -697,8 +698,8 @@ KeyboardPanel {
         message: root.controller.deviceConfirmAction === "dismiss" ? "Dismiss pending request from " + root.controller.deviceConfirmName + "?\n\n" + "It can reappear if the device connects again." : "Remove " + root.controller.deviceConfirmName + " from this device?\n\nFolder sharing with it will be " + "removed locally. Local folders and files remain.\n" + "The other device is unchanged."
         confirmText: "Yes"
         cancelText: "No"
-        background: Color.popups.background
-        foreground: Color.popups.text
+        background: Commons.Color.popups.background
+        foreground: Commons.Color.popups.text
         selectedText: root.controller.urgent
         fontFamily: root.controller.fontFamily
         onCanceled: root.controller.cancelDeviceAction()

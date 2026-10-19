@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "UiConstants.js" as UiConstants
 
@@ -10,8 +11,8 @@ Column {
 
     property var controller
     property var syncthing
-    property color foreground: Color.foreground
-    property color urgent: Color.urgent
+    property color foreground: Commons.Color.foreground
+    property color urgent: Commons.Color.urgent
     required property color warning
     required property color success
     property string fontFamily: Style.font.family

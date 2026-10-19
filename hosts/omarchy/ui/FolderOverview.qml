@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Column {
@@ -12,9 +13,9 @@ Column {
     required property Item cardAnchor
     property Item addTrigger: addFolderButton
     property var syncthing: null
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
-    property color urgent: Color.urgent
+    property color urgent: Commons.Color.urgent
     required property color warning
     required property color success
     required property color syncColor

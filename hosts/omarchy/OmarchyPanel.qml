@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "ui"
 import "ui/UiConstants.js" as UiConstants
@@ -17,8 +18,8 @@ Panel {
     ipcTarget: moduleName
 
     readonly property var syncthing: bar && bar.shell && moduleName ? bar.shell.serviceFor(moduleName) : null
-    readonly property color foreground: bar ? bar.foreground : Color.foreground
-    readonly property color urgent: bar ? bar.urgent : Color.urgent
+    readonly property color foreground: bar ? bar.foreground : Commons.Color.foreground
+    readonly property color urgent: bar ? bar.urgent : Commons.Color.urgent
     readonly property color warning: syncthing ? syncthing.warning : ThemePaletteModel.DefaultYellow
     readonly property color success: syncthing ? syncthing.success : ThemePaletteModel.DefaultGreen
     readonly property color syncActivityColor: syncthing ? syncthing.syncActivityColor : ThemePaletteModel.DefaultCyan
@@ -220,7 +221,7 @@ Panel {
         if (state === "SYNCING")
             return warning;
         if (state === "UNKNOWN")
-            return Color.muted;
+            return Commons.Color.muted;
         if (state === "ERROR")
             return urgent;
         return success;

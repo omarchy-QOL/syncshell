@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Commons as Commons
 import "../models/SettingsModel.js" as SettingsModel
 
 QtObject {
@@ -437,7 +438,7 @@ QtObject {
     }
 
     property Connections themeConnections: Connections {
-        target: Color
+        target: Commons.Color
         function onBackgroundChanged() {
             root.scheduleThemeRefresh();
         }

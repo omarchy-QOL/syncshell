@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -16,12 +17,12 @@ Item {
     property bool bordered: false
     property bool focusable: false
     property bool hasCursor: false
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property color busyForeground: foreground
     property color disabledForeground: Qt.darker(foreground, 1.6)
-    property color tooltipBackground: Color.tooltip.background
-    property color tooltipForeground: Color.tooltip.text
-    property color tooltipBorder: Color.tooltip.border
+    property color tooltipBackground: Commons.Color.tooltip.background
+    property color tooltipForeground: Commons.Color.tooltip.text
+    property color tooltipBorder: Commons.Color.tooltip.border
     property string fontFamily: Style.font.family
     property real fontSize: Style.font.body
     property real iconSize: Style.font.icon
@@ -88,7 +89,7 @@ Item {
         visible: !root.interactive
         color: "transparent"
         radius: Style.cornerRadius
-        borderSpec: root.bordered ? Border.controlSpec("normal", root.inertForeground, Color.accent) : Border.none()
+        borderSpec: root.bordered ? Border.controlSpec("normal", root.inertForeground, Commons.Color.accent) : Border.none()
 
         HoverHandler {
             id: inertHover

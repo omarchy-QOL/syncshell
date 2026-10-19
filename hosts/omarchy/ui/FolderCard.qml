@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 BorderSurface {
@@ -16,9 +17,9 @@ BorderSurface {
     property string activityDots: ""
     property string activityDetail: ""
     property string activityAction: ""
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
-    property color urgent: Color.urgent
+    property color urgent: Commons.Color.urgent
     required property color warning
     required property color success
     required property color syncColor
@@ -40,7 +41,7 @@ BorderSurface {
 
     implicitHeight: nameActions.implicitHeight + details.implicitHeight + Style.space(14)
     color: "transparent"
-    borderSpec: Border.controlSpec("normal", cardBorderColor, Color.accent)
+    borderSpec: Border.controlSpec("normal", cardBorderColor, Commons.Color.accent)
     radius: Style.cornerRadius
 
     Row {
@@ -102,7 +103,7 @@ BorderSurface {
         width: implicitWidth
         height: nameActions.height
         color: "transparent"
-        borderSpec: Border.withWidth(Border.controlSpec("normal", root.stateColor, Color.accent), "0 0 1 1")
+        borderSpec: Border.withWidth(Border.controlSpec("normal", root.stateColor, Commons.Color.accent), "0 0 1 1")
         radius: 0
 
         Text {
