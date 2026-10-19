@@ -164,19 +164,13 @@ Item {
                 id: unconfirmedHint
                 visible: root.unconfirmedOptions.length > 0
                 width: parent.width - unconfirmedLabel.implicitWidth - parent.spacing
-                text: fullHint.width <= width ? fullHint.text : "(acceptance pending/device offline)"
+                text: "(acceptance pending/device offline)"
                 textFormat: Text.PlainText
                 color: root.warning
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.caption
                 wrapMode: Text.NoWrap
                 elide: Text.ElideRight
-
-                TextMetrics {
-                    id: fullHint
-                    font: unconfirmedHint.font
-                    text: "(acceptance pending/device offline)"
-                }
             }
         }
 

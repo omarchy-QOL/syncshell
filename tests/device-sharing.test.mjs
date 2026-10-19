@@ -130,11 +130,11 @@ test("switching devices resets the draft and closing closes both popups", () => 
   assert.equal((source.match(/root\.setGroupValues\(options, values\)/g) || []).length, 2);
 });
 
-test("unconfirmed hint is yellow, inline and shortened to the available width", () => {
-  const hint = source.match(/id: unconfirmedHint([^]*?)TextMetrics/)[1];
+test("unconfirmed hint is yellow, inline and elided to the available width", () => {
+  const hint = source.match(/id: unconfirmedHint([^]*?)\n\s*}/)[1];
   assert.match(hint, /color: root.warning/);
   assert.match(hint, /wrapMode: Text.NoWrap/);
-  assert.match(hint, /fullHint.width <= width/);
-  assert.match(hint, /\(acceptance pending, or device offline\)/);
+  assert.match(hint, /elide: Text.ElideRight/);
+  assert.match(hint, /text: "\(acceptance pending\/device offline\)"/);
   assert.doesNotMatch(source, /Acceptance is not confirmed; the remote may be offline/);
 });
