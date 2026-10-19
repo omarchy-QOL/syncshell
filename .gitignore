@@ -9,3 +9,7 @@
 /.omarchy-plugin-dev/
 /assets/old-published/
 /assets/README.md
+
+/dist/
+
+__pycache__/

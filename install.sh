@@ -143,37 +143,12 @@ install_dms() {
 }
 
 install_ii() {
-  local checkout="$work/illogical-impulse"
-  local source_config target_config backup relative
-  readonly ii_commit=42d0aae17b744a38cd05c9044c189bfc9b13869a
-
-  require_command git
-  require_command patch
-  target_config="$HOME/.config/quickshell/ii"
-  [[ -d $target_config ]] || {
-    printf 'Illogical Impulse config is missing: %s\n' "$target_config" >&2
-    exit 1
-  }
-  clone_pinned https://github.com/end-4/dots-hyprland.git \
-    "$ii_commit" "$checkout"
-  bash "$repo_root/integrations/illogical-impulse/apply.sh" "$checkout"
-  source_config="$checkout/dots/.config/quickshell/ii"
-  backup="$state_root/backups/ii-$(date -u +%Y%m%dT%H%M%SZ)"
-  mkdir -p -- "$backup" "$target_config/services" \
-    "$target_config/modules/ii/bar"
-  for relative in services/Syncshell.qml \
-      modules/ii/bar/SyncshellIndicator.qml \
-      modules/ii/bar/SyncshellPopup.qml \
-      modules/ii/bar/BarContent.qml; do
-    [[ ! -e $target_config/$relative ]] \
-      || cp -a --parents -- "$target_config/$relative" "$backup/"
-    install -m 0644 -- "$source_config/$relative" \
-      "$target_config/$relative"
-  done
-  [[ ! -e $target_config/syncshell ]] \
-    || mv -- "$target_config/syncshell" "$backup/syncshell"
-  cp -a -- "$source_config/syncshell" "$target_config/syncshell"
-  restart_vm_shell
+  printf '%s\n' \
+    'Use the checked native installer with an explicit shell root:' \
+    '  bash integrations/illogical-impulse/assemble.sh' \
+    '  python3 dist/illogical-impulse/manage.py check --target /path/to/ii' \
+    'Stop ii, then run install with --shell-stopped; see hosts/illogical-impulse/README.md' >&2
+  exit 2
 }
 
 install_caelestia() {
