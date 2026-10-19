@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/omarchy-QOL/syncshell/core/internal/nativebridge"
 	"github.com/omarchy-QOL/syncshell/core/internal/protocol"
 	"github.com/omarchy-QOL/syncshell/core/internal/session"
 	"github.com/omarchy-QOL/syncshell/core/internal/systemduser"
@@ -32,6 +33,20 @@ func main() {
 }
 
 func run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer) error {
+	if len(args) >= 2 && args[0] == "native-save-cleanup" {
+		return nativebridge.SaveCleanup(args[1], args[2:])
+	}
+	if len(args) > 0 && args[0] == "native-browse" {
+		return nativebridge.Browse(args[1:], stdout)
+	}
+	if len(args) > 0 && args[0] == "native-control" {
+		return nativebridge.Control(args[1:])
+	}
+	nativeDirectory := ""
+	if len(args) >= 2 && args[0] == "native-stream" {
+		nativeDirectory = args[1]
+		args = append([]string{"stream"}, args[2:]...)
+	}
 	if len(args) > 0 && args[0] == "waybar-config" {
 		return waybarconfig.Run(args[1:])
 	}
@@ -39,7 +54,7 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer) 
 		return errors.New("expected probe, status, stream, or waybar-config")
 	}
 	command := args[0]
-	if command != "probe" && command != "status" && command != "stream" {
+	if command != "probe" && command != "status" && command != "stream" && command != "profile-cleanup" {
 		return errors.New("expected probe, status, stream, or waybar-config")
 	}
 	flags := flag.NewFlagSet(command, flag.ContinueOnError)
@@ -57,13 +72,29 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer) 
 		return err
 	}
 	switch command {
+	case "profile-cleanup":
+		if _, err := coreSession.Refresh(ctx); err != nil {
+			return err
+		}
+		result := coreSession.Act(ctx, "webui.remove-profile", session.ActionArguments{})
+		if err := json.NewEncoder(stdout).Encode(result); err != nil {
+			return err
+		}
+		if !result.OK {
+			return errors.New("profile cleanup failed; inspect the result and retry")
+		}
+		return nil
 	case "stream":
 		if options.DesktopAuthorized {
 			closeDesktop := coreSession.EnableDesktop()
 			defer closeDesktop()
 		}
-		return protocol.Stream{Session: coreSession, Input: stdin, Output: stdout,
-			Build: protocol.Build{Version: buildVersion}}.Run(ctx)
+		stream := protocol.Stream{Session: coreSession, Input: stdin, Output: stdout,
+			Build: protocol.Build{Version: buildVersion}}
+		if nativeDirectory != "" {
+			return nativebridge.Run(ctx, nativeDirectory, stream)
+		}
+		return stream.Run(ctx)
 	case "probe", "status":
 		published, refreshErr := coreSession.Refresh(ctx)
 		encoder := json.NewEncoder(stdout)
@@ -100,6 +131,10 @@ func parseOptions(flags *flag.FlagSet, args []string) (options, bool, error) {
 	flags.BoolVar(&config.Discovery.InsecureTLS, "insecure-tls", false, "allow unverified TLS for this target")
 	flags.BoolVar(&config.DesktopAuthorized, "desktop-authorized", false,
 		"authorize the desktop bridge")
+	flags.BoolVar(&config.WebProfile.Authorized, "web-profile-authorized", false,
+		"authorize owned local Web UI profile installation")
+	flags.StringVar(&config.WebProfile.Owner, "web-profile-owner", "", "profile owner identifier")
+	flags.StringVar(&config.WebProfile.Bundle, "web-profile-bundle", "", "verified Web UI bundle directory")
 	flags.StringVar(&lifecycleKind, "lifecycle-kind", "", "authorized lifecycle kind")
 	flags.BoolVar(&config.Lifecycle.Authorized, "lifecycle-authorized", false, "authorize the exact lifecycle binding")
 	flags.StringVar(&config.Lifecycle.Unit, "lifecycle-unit", "", "exact systemd user unit")
@@ -112,6 +147,13 @@ func parseOptions(flags *flag.FlagSet, args []string) (options, bool, error) {
 	}
 	if flags.NArg() != 0 {
 		return options{}, false, errors.New("unexpected command arguments")
+	}
+	if config.WebProfile.Authorized {
+		if err := config.WebProfile.Validate(); err != nil {
+			return options{}, false, err
+		}
+	} else if config.WebProfile.Owner != "" || config.WebProfile.Bundle != "" {
+		return options{}, false, errors.New("Web UI profile policy requires explicit authority")
 	}
 	if lifecycleKind != "" && lifecycleKind != "systemd-user" {
 		return options{}, false, errors.New("unsupported lifecycle kind")

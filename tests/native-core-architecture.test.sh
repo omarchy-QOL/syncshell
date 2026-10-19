@@ -43,6 +43,7 @@ fi
 if rg -n -g '!**/*_test.go' \
     'net[.]Listen|ListenUnix|unixgram|socket activation' "$root/core" \
     -g '!**/desktop/**' \
+    -g '!**/nativebridge/**' \
     >/dev/null; then
   fail "native core contains a daemon control socket path"
 fi

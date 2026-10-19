@@ -1,0 +1,21 @@
+{
+  "settings.configPath.label": "Syncthing config.xml",
+  "settings.endpoint.label": "Custom endpoint",
+  "settings.credentialFile.label": "Private API credential file",
+  "settings.tlsCertificate.label": "Pinned TLS certificate",
+  "settings.expectedDeviceId.label": "Expected Syncthing device ID",
+  "settings.insecureTls.label": "Allow unverified TLS for this target",
+  "settings.lifecycleAuthorized.label": "Authorize control of the matching user service",
+  "settings.lifecycleUnit.label": "Exact user service unit",
+  "settings.lifecycleConfig.label": "Config bound to the user service",
+  "settings.refreshSeconds.label": "Refresh interval (seconds)",
+  "settings.probeSeconds.label": "Service probe interval (seconds)",
+  "settings.webUi.label": "Preferred Web UI (apply in Syncshell Settings)",
+  "settings.webUi.default": "Syncthing default",
+  "settings.webUi.modern": "Bundled Modern",
+  "settings.webUi.themed": "Noctalia colors",
+  "settings.brandedIcon.label": "Use branded icon",
+  "settings.serviceState.label": "Preferred service at login (apply in Syncshell Settings)",
+  "settings.serviceState.enabled": "Enabled",
+  "settings.serviceState.disabled": "Disabled"
+}

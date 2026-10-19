@@ -1,0 +1,124 @@
+id = "syncshell/syncshell"
+name = "Syncshell"
+version = "0.2.2"
+plugin_api = 31
+author = "syncshell"
+license = "MIT"
+icon = "refresh"
+description = "Native Syncthing controls for Noctalia"
+tags = ["syncthing", "files", "sync"]
+dependencies = ["xdg-utils"]
+
+[[setting]]
+key = "configPath"
+type = "file"
+label_key = "settings.configPath.label"
+default = ""
+
+[[setting]]
+key = "endpoint"
+type = "string"
+label_key = "settings.endpoint.label"
+default = ""
+
+[[setting]]
+key = "credentialFile"
+type = "file"
+label_key = "settings.credentialFile.label"
+default = ""
+
+[[setting]]
+key = "tlsCertificate"
+type = "file"
+label_key = "settings.tlsCertificate.label"
+default = ""
+
+[[setting]]
+key = "expectedDeviceId"
+type = "string"
+label_key = "settings.expectedDeviceId.label"
+default = ""
+
+[[setting]]
+key = "insecureTls"
+type = "bool"
+label_key = "settings.insecureTls.label"
+default = false
+
+[[setting]]
+key = "lifecycleAuthorized"
+type = "bool"
+label_key = "settings.lifecycleAuthorized.label"
+default = false
+
+[[setting]]
+key = "lifecycleUnit"
+type = "string"
+label_key = "settings.lifecycleUnit.label"
+default = "syncthing.service"
+
+[[setting]]
+key = "lifecycleConfig"
+type = "file"
+label_key = "settings.lifecycleConfig.label"
+default = ""
+
+[[setting]]
+key = "serviceState"
+type = "select"
+label_key = "settings.serviceState.label"
+default = "enabled"
+options = [
+  { value = "enabled", label_key = "settings.serviceState.enabled" },
+  { value = "disabled", label_key = "settings.serviceState.disabled" },
+]
+
+[[setting]]
+key = "refreshSeconds"
+type = "int"
+label_key = "settings.refreshSeconds.label"
+default = 60
+min = 60
+max = 3600
+
+[[setting]]
+key = "probeSeconds"
+type = "int"
+label_key = "settings.probeSeconds.label"
+default = 15
+min = 1
+max = 3600
+
+[[setting]]
+key = "webUi"
+type = "select"
+label_key = "settings.webUi.label"
+default = "default"
+options = [
+  { value = "default", label_key = "settings.webUi.default" },
+  { value = "modern", label_key = "settings.webUi.modern" },
+  { value = "themed", label_key = "settings.webUi.themed" },
+]
+
+[[setting]]
+key = "brandedIcon"
+type = "bool"
+label_key = "settings.brandedIcon.label"
+default = true
+
+[[service]]
+id = "service"
+entry = "hosts/noctalia/NoctaliaService.luau"
+
+[[widget]]
+id = "bar"
+entry = "hosts/noctalia/NoctaliaBarEntry.luau"
+
+[[panel]]
+id = "panel"
+entry = "hosts/noctalia/NoctaliaPanel.luau"
+width = 480
+height = 700
+placement = "attached"
+keyboard_focus = "exclusive"
+capture_keys = ["r", "w", "p", "s", "q", "Alt+Up", "Alt+Down", "Alt+Left", "Alt+Return"]
