@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -10,8 +11,8 @@ Item {
     property var device
     property bool submitting: false
     property var draftFolderIds: []
-    property color foreground: Color.foreground
-    property color urgent: Color.urgent
+    property color foreground: Commons.Color.foreground
+    property color urgent: Commons.Color.urgent
     required property color warning
     property string fontFamily: Style.font.family
     readonly property bool popupOpen: folderPicker.popupOpen

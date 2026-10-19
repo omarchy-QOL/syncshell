@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "UiConstants.js" as UiConstants
 
 Item {
@@ -14,7 +15,7 @@ Item {
     property string helpText: "Copy ID"
     property string variant: "button"
     property real size: Style.spacing.controlHeight
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property string fontFamily: Style.font.family
     property int fontSize: Style.font.caption
     property int iconSize: Style.font.caption

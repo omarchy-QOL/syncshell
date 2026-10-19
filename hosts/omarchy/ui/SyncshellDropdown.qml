@@ -3,11 +3,12 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // Themed single-select dropdown. Trigger row paints with the kit's focus
-// chrome; the popup anchors below and uses Color.popups.background +
-// Color.popups.border so it reads as a panel surface rather than the
+// chrome; the popup anchors below and uses Commons.Color.popups.background +
+// Commons.Color.popups.border so it reads as a panel surface rather than the
 // platform-native ComboBox look.
 //
 // `options` accepts either a plain string[] or an array of
@@ -32,11 +33,11 @@ Item {
         return matchesSearch(optionLabel(option), searchField.text);
     }) : options
 
-    property color foreground: Color.popups.text
-    property color background: Color.popups.background
-    property color popupBorder: Color.popups.border
-    property color accent: Color.accent
-    readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Color.popups.border, Style.normalBorderWidth)
+    property color foreground: Commons.Color.popups.text
+    property color background: Commons.Color.popups.background
+    property color popupBorder: Commons.Color.popups.border
+    property color accent: Commons.Color.accent
+    readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Commons.Color.popups.border, Style.normalBorderWidth)
     property string fontFamily: Style.font.family
     property int rowHeight: Style.spacing.controlHeight
     property int popupRowHeight: Style.spacing.popupRowHeight
@@ -279,7 +280,7 @@ Item {
                 topPadding: Border.top(root.popupBorderSpec) + Style.spacing.hairline
                 bottomPadding: Border.bottom(root.popupBorderSpec) + Style.spacing.hairline
                 focus: true
-                closePolicy: Popup.CloseOnPressOutsideParent | ((searchField.activeFocus || root.headerAccessoryOpen) ? 0 : Popup.CloseOnEscape)
+                closePolicy: Popup.CloseOnPressOutsideParent | (Popup.CloseMultiple || 0) | ((searchField.activeFocus || root.headerAccessoryOpen) ? 0 : Popup.CloseOnEscape)
 
                 function handleKey(event, editing) {
                     var key = event.text.toLowerCase();

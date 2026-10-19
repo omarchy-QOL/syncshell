@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Column {
@@ -9,9 +10,9 @@ Column {
     property var controller
     required property Item cardAnchor
     property var syncthing
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
-    property color urgent: Color.urgent
+    property color urgent: Commons.Color.urgent
     required property color warning
     required property color success
     property string fontFamily: Style.font.family
@@ -64,7 +65,7 @@ Column {
     function deviceStateColor(device) {
         if (device && device.paused)
             return warning;
-        return device && device.connected ? success : Color.muted;
+        return device && device.connected ? success : Commons.Color.muted;
     }
 
     function deviceStateHelp(device) {

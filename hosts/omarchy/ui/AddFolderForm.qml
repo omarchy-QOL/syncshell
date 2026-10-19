@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -10,9 +11,9 @@ Item {
     property var controller
     property var syncthing
     property bool folderPickerRunning: false
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
-    property color urgent: Color.urgent
+    property color urgent: Commons.Color.urgent
     required property color warning
     property string fontFamily: Style.font.family
     property alias pathText: addPathField.text

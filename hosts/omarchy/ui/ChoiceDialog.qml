@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 FocusScope {
@@ -16,8 +17,8 @@ FocusScope {
     property int initialChoice: 0
     property string busyText: "Applying Syncthing setting..."
     property string fontFamily: Style.font.family
-    readonly property var cardBorderSpec: Border.surfaceSpec("menu", "border", Color.menu.border, Math.max(1, Style.space(1)))
-    readonly property var selectedBorderSpec: Border.surfaceSpec("menu", "selected-border", Color.menu.selectedBorder, 0)
+    readonly property var cardBorderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, Math.max(1, Style.space(1)))
+    readonly property var selectedBorderSpec: Border.surfaceSpec("menu", "selected-border", Commons.Color.menu.selectedBorder, 0)
 
     signal actionRequested(int index)
 
@@ -48,7 +49,7 @@ FocusScope {
 
     Rectangle {
         anchors.fill: parent
-        color: Color.menu.scrim
+        color: Commons.Color.menu.scrim
 
         MouseArea {
             anchors.fill: parent
@@ -59,7 +60,7 @@ FocusScope {
             height: content.implicitHeight + Style.spacing.panelPadding * 2
             anchors.centerIn: parent
             radius: Style.cornerRadius
-            color: Color.menu.background
+            color: Commons.Color.menu.background
             borderSpec: root.cardBorderSpec
 
             MouseArea {
@@ -80,7 +81,7 @@ FocusScope {
                     bottomPadding: Style.spacing.sm
                     text: root.message
                     textFormat: Text.PlainText
-                    color: Color.menu.text
+                    color: Commons.Color.menu.text
                     font.family: root.fontFamily
                     font.pixelSize: Style.font.body
                     wrapMode: Text.Wrap
@@ -98,7 +99,7 @@ FocusScope {
                         width: content.width
                         height: Math.max(Style.space(40), choiceText.implicitHeight + Style.spacing.md * 2)
                         radius: Style.cornerRadius
-                        color: root.selectedChoice === index ? Color.menu.selectedBackground : "transparent"
+                        color: root.selectedChoice === index ? Commons.Color.menu.selectedBackground : "transparent"
                         borderSpec: root.selectedChoice === index ? root.selectedBorderSpec : Border.none()
 
                         Text {
@@ -109,7 +110,7 @@ FocusScope {
                             anchors.margins: Style.spacing.md
                             text: choiceRow.modelData
                             textFormat: Text.PlainText
-                            color: root.selectedChoice === choiceRow.index ? Color.menu.selectedText : Color.menu.text
+                            color: root.selectedChoice === choiceRow.index ? Commons.Color.menu.selectedText : Commons.Color.menu.text
                             font.family: root.fontFamily
                             font.pixelSize: Style.font.caption
                             wrapMode: Text.Wrap
@@ -132,7 +133,7 @@ FocusScope {
                     topPadding: Style.spacing.sm
                     text: root.busyText
                     textFormat: Text.PlainText
-                    color: Util.alpha(Color.menu.text, 0.66)
+                    color: Util.alpha(Commons.Color.menu.text, 0.66)
                     font.family: root.fontFamily
                     font.pixelSize: Style.font.caption
                     horizontalAlignment: Text.AlignRight

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 RowLayout {
@@ -8,8 +9,8 @@ RowLayout {
 
     property string title: ""
     property string cancelText: "CANCEL"
-    property color foreground: Color.foreground
-    property color cancelColor: Color.urgent
+    property color foreground: Commons.Color.foreground
+    property color cancelColor: Commons.Color.urgent
     property string fontFamily: Style.font.family
     property bool cancelEnabled: true
 

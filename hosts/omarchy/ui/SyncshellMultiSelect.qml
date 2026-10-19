@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // Searchable multi-select for static Syncshell options.
@@ -21,11 +22,11 @@ Item {
     property string triggerLabel: ""
     property bool showLabel: true
 
-    property color foreground: Color.popups.text
-    property color background: Color.popups.background
-    property color popupBorder: Color.popups.border
-    property color accent: Color.accent
-    readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Color.popups.border, Style.normalBorderWidth)
+    property color foreground: Commons.Color.popups.text
+    property color background: Commons.Color.popups.background
+    property color popupBorder: Commons.Color.popups.border
+    property color accent: Commons.Color.accent
+    readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Commons.Color.popups.border, Style.normalBorderWidth)
     property string fontFamily: Style.font.family
     property int rowHeight: Style.spacing.controlHeight
     property int popupRowHeight: Style.spacing.popupRowHeight
@@ -254,7 +255,7 @@ Item {
                 topPadding: Border.top(root.popupBorderSpec) + Style.spacing.hairline
                 bottomPadding: Border.bottom(root.popupBorderSpec) + Style.spacing.hairline
                 focus: true
-                closePolicy: QQC.Popup.CloseOnEscape | QQC.Popup.CloseOnPressOutsideParent
+                closePolicy: QQC.Popup.CloseOnEscape | QQC.Popup.CloseOnPressOutsideParent | (QQC.Popup.CloseMultiple || 0)
 
                 background: BorderSurface {
                     color: root.background

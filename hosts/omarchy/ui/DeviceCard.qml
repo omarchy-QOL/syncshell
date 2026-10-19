@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 BorderSurface {
@@ -10,8 +11,8 @@ BorderSurface {
     property bool mutationBusy: false
     property bool actionBusy: false
     property string stateLabel: "DISCONNECTED"
-    property color stateColor: Color.muted
-    property color foreground: Color.foreground
+    property color stateColor: Commons.Color.muted
+    property color foreground: Commons.Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
     required property color warning
     property string fontFamily: Style.font.family
@@ -33,7 +34,7 @@ BorderSurface {
 
     implicitHeight: nameActions.implicitHeight + details.implicitHeight + Style.space(14)
     color: "transparent"
-    borderSpec: Border.controlSpec("normal", cardBorderColor, Color.accent)
+    borderSpec: Border.controlSpec("normal", cardBorderColor, Commons.Color.accent)
     radius: Style.cornerRadius
 
     Row {
@@ -95,7 +96,7 @@ BorderSurface {
         width: implicitWidth
         height: nameActions.height
         color: "transparent"
-        borderSpec: Border.withWidth(Border.controlSpec("normal", root.stateColor, Color.accent), "0 0 1 1")
+        borderSpec: Border.withWidth(Border.controlSpec("normal", root.stateColor, Commons.Color.accent), "0 0 1 1")
         radius: 0
 
         Text {

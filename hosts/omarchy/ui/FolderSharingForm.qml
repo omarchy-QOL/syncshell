@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Item {
@@ -7,16 +8,18 @@ Item {
 
     property var controller
     property var syncthing
-    property color foreground: Color.foreground
-    property color urgent: Color.urgent
+    property color foreground: Commons.Color.foreground
+    property color urgent: Commons.Color.urgent
     required property color warning
     property string fontFamily: Style.font.family
     property var draftDeviceIds: []
+    property string draftFolderId: ""
     property bool submitting: false
     readonly property var folder: controller ? controller.currentFolderRow : null
     readonly property bool popupOpen: devicePicker.popupOpen
 
     function resetDraft() {
+        draftFolderId = folder ? String(folder.id || "") : "";
         var selected = [];
         var members = folder && folder.devices ? folder.devices : [];
         for (var i = 0; i < members.length; i++) {
@@ -33,7 +36,7 @@ Item {
 
     onVisibleChanged: if (visible)
         resetDraft()
-    onFolderChanged: if (visible)
+    onFolderChanged: if (visible && (folder ? String(folder.id || "") : "") !== draftFolderId)
         resetDraft()
 
     width: parent ? parent.width : implicitWidth

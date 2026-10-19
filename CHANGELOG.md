@@ -2,6 +2,13 @@
 
 Notable changes to Syncshell for Omarchy are documented here.
 
+## 0.2.3 - 2026-10-19
+
+- qualify Omarchy palette references for compatibility with Omarchy 4.0.5 and
+  Qt 6.12
+- fix nested submenu dismissal and preserve unsaved folder-sharing selections
+  during background refreshes
+
 ## 0.2.2 - 2026-10-06
 
 - render unaccepted remote-device names as plain text in Illogical Impulse and

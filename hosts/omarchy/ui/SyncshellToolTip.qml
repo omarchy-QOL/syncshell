@@ -1,19 +1,20 @@
 import QtQuick
 import QtQuick.Controls as Controls
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "UiConstants.js" as UiConstants
 
 Controls.ToolTip {
     id: root
 
-    property color tooltipBackground: Color.tooltip.background
-    property color tooltipForeground: Color.tooltip.text
-    property color tooltipBorder: Color.tooltip.border
+    property color tooltipBackground: Commons.Color.tooltip.background
+    property color tooltipForeground: Commons.Color.tooltip.text
+    property color tooltipBorder: Commons.Color.tooltip.border
     property string fontFamily: Style.font.family
     property int textFormat: Text.PlainText
 
-    readonly property var tooltipBorderSpec: Border.localOrSurfaceSpec("tooltip", "border", tooltipBorder, Color.tooltip.border, Math.max(1, Style.normalBorderWidth))
+    readonly property var tooltipBorderSpec: Border.localOrSurfaceSpec("tooltip", "border", tooltipBorder, Commons.Color.tooltip.border, Math.max(1, Style.normalBorderWidth))
 
     delay: UiConstants.TOOLTIP_DELAY_MS
     padding: 0
