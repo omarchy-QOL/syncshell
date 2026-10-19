@@ -2,10 +2,16 @@
 
 Notable changes to Syncshell for Omarchy are documented here.
 
+## 0.2.4 - 2026-10-19
+
+- distinguish confirmed and unconfirmed shares in the device-sharing form
+- preserve sharing selections during device-state refreshes
+- clean up QML variable scope, property access, and lint diagnostics
+
 ## 0.2.3 - 2026-10-19
 
-- qualify Omarchy palette references for compatibility with Omarchy 4.0.5 and
-  Qt 6.12
+- qualify Omarchy palette references for compatibility with Omarchy 4.0.5 and Qt
+  6.12
 - fix nested submenu dismissal and preserve unsaved folder-sharing selections
   during background refreshes
 
