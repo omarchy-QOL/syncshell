@@ -73,7 +73,7 @@ Item {
         if (!v || typeof v.length !== "number" || typeof v === "string")
             return [];
         var out = [];
-        for (var i = 0; i < v.length; i++)
+        for (let i = 0; i < v.length; i++)
             out.push(v[i]);
         return out;
     }
@@ -82,8 +82,8 @@ Item {
         var out = [];
         var src = arrayFrom(arr);
         var seen = ({});
-        for (var i = 0; i < src.length; i++) {
-            var n = normalizeOption(src[i]);
+        for (let i = 0; i < src.length; i++) {
+            let n = normalizeOption(src[i]);
             if (!n.value)
                 continue;
             if (seen[n.value])
@@ -97,7 +97,7 @@ Item {
     function valueSet() {
         var set = ({});
         var arr = arrayFrom(values);
-        for (var i = 0; i < arr.length; i++)
+        for (let i = 0; i < arr.length; i++)
             set[String(arr[i])] = true;
         return set;
     }
@@ -124,9 +124,9 @@ Item {
             return "";
         var labels = [];
         var byValue = ({});
-        for (var i = 0; i < resolvedOptions.length; i++)
+        for (let i = 0; i < resolvedOptions.length; i++)
             byValue[resolvedOptions[i].value] = resolvedOptions[i].label;
-        for (var j = 0; j < arr.length; j++)
+        for (let j = 0; j < arr.length; j++)
             labels.push(byValue[String(arr[j])] || String(arr[j]));
         if (labels.length <= 3)
             return labels.join(", ");
@@ -141,8 +141,8 @@ Item {
             return;
         }
         var out = [];
-        for (var i = 0; i < resolvedOptions.length; i++) {
-            var o = resolvedOptions[i];
+        for (let i = 0; i < resolvedOptions.length; i++) {
+            let o = resolvedOptions[i];
             if (o.label.toLowerCase().indexOf(q) !== -1 || o.description.toLowerCase().indexOf(q) !== -1 || o.value.toLowerCase().indexOf(q) !== -1)
                 out.push(o);
         }

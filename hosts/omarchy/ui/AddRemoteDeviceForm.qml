@@ -40,7 +40,7 @@ Item {
         if (id === String(syncthing && syncthing.localDeviceId || ""))
             return false;
         var rows = controller.remoteDeviceRows();
-        for (var i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rows.length; i++) {
             if (String(rows[i].id || "") === id)
                 return false;
         }

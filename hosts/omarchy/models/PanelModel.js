@@ -22,18 +22,18 @@ function buildFolderRows(syncthing, homePath) {
     var rows = [];
     var source = syncthing && syncthing.folders ? syncthing.folders : [];
     var statuses = syncthing && syncthing.folderStatuses ? syncthing.folderStatuses : ({});
-    for (var i = 0; i < source.length; i++) {
-        var folder = source[i] || ({});
-        var id = String(folder.id || "");
-        var status = statuses[id] || ({});
-        var state = String(status.state || "unknown");
-        var errorCount = Math.max(Number(status.errors || 0), Number(status.pullErrors || 0));
-        var needItems = Number(status.needTotalItems || 0);
-        var configuredLabel = String(folder.label || "");
-        var folderDevices = folder.devices || [];
-        var sharedDeviceCount = 0;
-        for (var j = 0; j < folderDevices.length; j++) {
-            var deviceId = String((folderDevices[j] || {}).deviceID || "");
+    for (let i = 0; i < source.length; i++) {
+        let folder = source[i] || ({});
+        let id = String(folder.id || "");
+        let status = statuses[id] || ({});
+        let state = String(status.state || "unknown");
+        let errorCount = Math.max(Number(status.errors || 0), Number(status.pullErrors || 0));
+        let needItems = Number(status.needTotalItems || 0);
+        let configuredLabel = String(folder.label || "");
+        let folderDevices = folder.devices || [];
+        let sharedDeviceCount = 0;
+        for (let j = 0; j < folderDevices.length; j++) {
+            let deviceId = String((folderDevices[j] || {}).deviceID || "");
             if (deviceId && (!syncthing || deviceId !== syncthing.localDeviceId)) {
                 sharedDeviceCount++;
             }
@@ -65,14 +65,14 @@ function buildFolderRows(syncthing, homePath) {
 
 function total(rows, key) {
     var value = 0;
-    for (var i = 0; i < rows.length; i++)
+    for (let i = 0; i < rows.length; i++)
         value += Number(rows[i][key] || 0);
     return value;
 }
 
 function stateCount(rows, key) {
     var count = 0;
-    for (var i = 0; i < rows.length; i++) {
+    for (let i = 0; i < rows.length; i++) {
         if (rows[i][key])
             count++;
     }
@@ -104,8 +104,8 @@ function folderErrorText(folder) {
         return "";
     var groups = Object.create(null);
     var errors = folder.errorDetails || [];
-    for (var i = 0; i < errors.length; i++) {
-        var error = errors[i];
+    for (let i = 0; i < errors.length; i++) {
+        let error = errors[i];
         if (!groups[error.error])
             groups[error.error] = [];
         groups[error.error].push(error.path);
@@ -121,7 +121,7 @@ function folderErrorText(folder) {
 function folderMeta(folder, rescanning) {
     var suffix = folder.configuredLabel && folder.configuredLabel !== folder.label ? " · " + folder.configuredLabel : "";
     if (folder.problem) {
-        var firstError = (folder.errorDetails || [])[0];
+        let firstError = (folder.errorDetails || [])[0];
         return (folder.error || (firstError && firstError.error) || "Folder needs attention") + suffix;
     }
     if (folder.paused)
@@ -129,7 +129,7 @@ function folderMeta(folder, rescanning) {
     if (rescanning)
         return "Scanning local changes" + suffix;
     if (folder.syncing) {
-        var remaining = formatCount(folder.needItems) + " item" + (folder.needItems === 1 ? "" : "s") + " remaining";
+        let remaining = formatCount(folder.needItems) + " item" + (folder.needItems === 1 ? "" : "s") + " remaining";
         return folder.needBytes > 0 ? remaining + " · " + formatBytes(folder.needBytes) + suffix : remaining + suffix;
     }
     if (folder.sharedDeviceCount === 0)
@@ -208,7 +208,7 @@ function sortFolderOptions(options, mode) {
 }
 
 function folderById(rows, folderId) {
-    for (var i = 0; i < rows.length; i++) {
+    for (let i = 0; i < rows.length; i++) {
         if (rows[i].id === folderId)
             return rows[i];
     }
@@ -217,13 +217,13 @@ function folderById(rows, folderId) {
 
 function folderOptions(rows, homePath) {
     var options = [];
-    for (var i = 0; i < rows.length; i++) {
-        var duplicate = false;
-        for (var j = 0; j < rows.length; j++) {
+    for (let i = 0; i < rows.length; i++) {
+        let duplicate = false;
+        for (let j = 0; j < rows.length; j++) {
             if (i !== j && rows[j].label === rows[i].label)
                 duplicate = true;
         }
-        var label = rows[i].label;
+        let label = rows[i].label;
         if (duplicate)
             label += " (" + pathParentName(rows[i].path, homePath) + ")";
         options.push({
@@ -235,8 +235,8 @@ function folderOptions(rows, homePath) {
 }
 
 function deviceName(devices, deviceId) {
-    for (var i = 0; i < devices.length; i++) {
-        var device = devices[i] || ({});
+    for (let i = 0; i < devices.length; i++) {
+        let device = devices[i] || ({});
         if (String(device.deviceID || "") === String(deviceId || "")) {
             return String(device.name || "Device " + String(device.deviceID || "").slice(0, 7));
         }
@@ -250,8 +250,8 @@ function localDeviceName(syncthing, fallback) {
         return displayName;
     var id = String(syncthing && syncthing.localDeviceId || "");
     var devices = syncthing && syncthing.devices ? syncthing.devices : [];
-    for (var i = 0; i < devices.length; i++) {
-        var device = devices[i] || ({});
+    for (let i = 0; i < devices.length; i++) {
+        let device = devices[i] || ({});
         if (String(device.deviceID || "") === id && device.name) {
             return String(device.name);
         }
@@ -262,9 +262,9 @@ function localDeviceName(syncthing, fallback) {
 function deviceOptions(syncthing) {
     var options = [];
     var devices = syncthing && syncthing.devices ? syncthing.devices : [];
-    for (var i = 0; i < devices.length; i++) {
-        var device = devices[i] || ({});
-        var id = String(device.deviceID || "");
+    for (let i = 0; i < devices.length; i++) {
+        let device = devices[i] || ({});
+        let id = String(device.deviceID || "");
         if (!id || id === syncthing.localDeviceId)
             continue;
         options.push({
@@ -284,16 +284,16 @@ function remoteDeviceRows(syncthing) {
     var rows = [];
     var devices = syncthing && syncthing.devices ? syncthing.devices : [];
     var folders = syncthing && syncthing.folders ? syncthing.folders : [];
-    for (var i = 0; i < devices.length; i++) {
-        var device = devices[i] || ({});
-        var id = String(device.deviceID || "");
+    for (let i = 0; i < devices.length; i++) {
+        let device = devices[i] || ({});
+        let id = String(device.deviceID || "");
         if (!id || id === syncthing.localDeviceId)
             continue;
-        var folderIds = [];
-        var remoteFolderStates = ({});
-        for (var j = 0; j < folders.length; j++) {
-            var members = folders[j].devices || [];
-            for (var k = 0; k < members.length; k++) {
+        let folderIds = [];
+        let remoteFolderStates = ({});
+        for (let j = 0; j < folders.length; j++) {
+            let members = folders[j].devices || [];
+            for (let k = 0; k < members.length; k++) {
                 if (String((members[k] || {}).deviceID || "") === id) {
                     folderIds.push(String(folders[j].id || ""));
                     remoteFolderStates[String(folders[j].id || "")] =
@@ -303,8 +303,8 @@ function remoteDeviceRows(syncthing) {
                 }
             }
         }
-        var name = String(device.name || "Device " + shortDeviceId(id));
-        var count = folderIds.length;
+        let name = String(device.name || "Device " + shortDeviceId(id));
+        let count = folderIds.length;
         rows.push({
             id: id,
             name: name,
@@ -324,13 +324,13 @@ function remoteDeviceRows(syncthing) {
 function pendingDeviceRows(syncthing) {
     var rows = [];
     var devices = syncthing && syncthing.pendingDevices ? syncthing.pendingDevices : [];
-    for (var i = 0; i < devices.length; i++) {
-        var device = devices[i] || ({});
-        var id = String(device.id || "");
+    for (let i = 0; i < devices.length; i++) {
+        let device = devices[i] || ({});
+        let id = String(device.id || "");
         if (!id)
             continue;
-        var shortId = shortDeviceId(id);
-        var name = String(device.name || "");
+        let shortId = shortDeviceId(id);
+        let name = String(device.name || "");
         rows.push({
             id: id,
             name: name,
@@ -350,12 +350,12 @@ function nearbyDeviceOptions(syncthing) {
         }
     ];
     var devices = syncthing && syncthing.nearbyDevices ? syncthing.nearbyDevices : [];
-    for (var i = 0; i < devices.length; i++) {
-        var device = devices[i] || ({});
-        var id = String(device.id || "");
+    for (let i = 0; i < devices.length; i++) {
+        let device = devices[i] || ({});
+        let id = String(device.id || "");
         if (!id)
             continue;
-        var addresses = device.addresses || [];
+        let addresses = device.addresses || [];
         options.push({
             value: id,
             label: shortDeviceId(id) + (addresses.length > 0 ? " · " + String(addresses[0]) : "")
@@ -376,13 +376,13 @@ function pendingOfferOptions(syncthing) {
     var pending = syncthing && syncthing.pendingFolders ? syncthing.pendingFolders : ({});
     var ids = Object.keys(pending);
     var devices = syncthing && syncthing.devices ? syncthing.devices : [];
-    for (var i = 0; i < ids.length; i++) {
-        var offeredBy = (pending[ids[i]] || {}).offeredBy || ({});
-        var deviceIds = Object.keys(offeredBy);
+    for (let i = 0; i < ids.length; i++) {
+        let offeredBy = (pending[ids[i]] || {}).offeredBy || ({});
+        let deviceIds = Object.keys(offeredBy);
         if (hasEncryptedOffer(offeredBy))
             continue;
-        for (var offerIndex = 0; offerIndex < deviceIds.length; offerIndex++) {
-            var offer = offeredBy[deviceIds[offerIndex]] || ({});
+        for (let offerIndex = 0; offerIndex < deviceIds.length; offerIndex++) {
+            let offer = offeredBy[deviceIds[offerIndex]] || ({});
             options.push({
                 value: JSON.stringify([ids[i], deviceIds[offerIndex]]),
                 label: String(offer.label || ids[i]),
@@ -397,8 +397,8 @@ function encryptedPendingOfferCount(syncthing) {
     var count = 0;
     var pending = syncthing && syncthing.pendingFolders ? syncthing.pendingFolders : ({});
     var ids = Object.keys(pending);
-    for (var i = 0; i < ids.length; i++) {
-        var offeredBy = (pending[ids[i]] || {}).offeredBy || ({});
+    for (let i = 0; i < ids.length; i++) {
+        let offeredBy = (pending[ids[i]] || {}).offeredBy || ({});
         if (hasEncryptedOffer(offeredBy))
             count++;
     }

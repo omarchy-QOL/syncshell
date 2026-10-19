@@ -30,8 +30,8 @@ Column {
     readonly property bool childPopupOpen: folderSharingForm.popupOpen
     readonly property var keyboardRows: {
         var rows = [[folderSelector, addFolderButton, shareFolderButton, linkFolderButton]];
-        for (var i = 0; i < folderCards.count; i++) {
-            var card = folderCards.itemAt(i) as FolderCard;
+        for (let i = 0; i < folderCards.count; i++) {
+            let card = folderCards.itemAt(i) as FolderCard;
             if (card)
                 rows = rows.concat(card.keyboardRows);
         }

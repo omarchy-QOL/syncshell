@@ -15,8 +15,8 @@ function defaults() {
 function parse(text) {
   var palette = {}
   var lines = String(text || "").split(/\r?\n/)
-  for (var i = 0; i < lines.length; i++) {
-    var fields = lines[i].split("\t")
+  for (let i = 0; i < lines.length; i++) {
+    let fields = lines[i].split("\t")
     if (fields.length !== 2
         || ["yellow", "green", "cyan"].indexOf(fields[0]) < 0) continue
     if (palette[fields[0]] !== undefined

@@ -12,7 +12,7 @@ QtObject {
         if (!Array.isArray(values))
             return false;
         var previous = "";
-        for (var index = 0; index < values.length; index++) {
+        for (let index = 0; index < values.length; index++) {
             if (typeof values[index] !== "string" || values[index] === "" || index > 0 && values[index] <= previous)
                 return false;
             previous = values[index];
@@ -24,9 +24,9 @@ QtObject {
         if (!data || typeof data !== "object" || data.state !== "completed" && data.state !== "running" || !validIds(data.targetFolderIds) || !validIds(data.runningFolderIds))
             return false;
         var targets = ({});
-        for (var index = 0; index < data.targetFolderIds.length; index++)
+        for (let index = 0; index < data.targetFolderIds.length; index++)
             targets[data.targetFolderIds[index]] = true;
-        for (var runningIndex = 0; runningIndex < data.runningFolderIds.length; runningIndex++) {
+        for (let runningIndex = 0; runningIndex < data.runningFolderIds.length; runningIndex++) {
             if (!targets[data.runningFolderIds[runningIndex]])
                 return false;
         }
@@ -49,9 +49,9 @@ QtObject {
             return;
         var scanning = ({});
         var values = Array.isArray(scanningFolderIds) ? scanningFolderIds : [];
-        for (var index = 0; index < values.length; index++)
+        for (let index = 0; index < values.length; index++)
             scanning[String(values[index])] = true;
-        for (var runningIndex = 0; runningIndex < _runningFolderIds.length; runningIndex++) {
+        for (let runningIndex = 0; runningIndex < _runningFolderIds.length; runningIndex++) {
             if (scanning[_runningFolderIds[runningIndex]])
                 return;
         }
