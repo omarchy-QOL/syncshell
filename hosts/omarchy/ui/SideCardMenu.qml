@@ -14,7 +14,10 @@ Popup {
 
     parent: trigger
     x: {
+        // track relative movement so the popup stays current
+        // qmllint disable confusing-expression-statement
         positionWatcher.transform;
+        // qmllint enable confusing-expression-statement
         return panel.mapToItem(trigger, 0, 0).x - width;
     }
     y: 0
