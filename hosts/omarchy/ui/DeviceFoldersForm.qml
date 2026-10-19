@@ -27,12 +27,12 @@ Item {
     function folderOptions(unconfirmed) {
         var options = [];
         var ids = device ? device.folderIds || [] : [];
-        for (var i = 0; i < ids.length; i++) {
-            var state = (device.remoteFolderStates || {})[ids[i]] || "unknown";
-            var confirmed = state === "valid" || state === "paused";
+        for (let i = 0; i < ids.length; i++) {
+            let state = (device.remoteFolderStates || {})[ids[i]] || "unknown";
+            let confirmed = state === "valid" || state === "paused";
             if (unconfirmed === confirmed)
                 continue;
-            var folder = controller.folderById(ids[i]);
+            let folder = controller.folderById(ids[i]);
             options.push({
                 value: ids[i],
                 label: String(folder && folder.label || ids[i]),
@@ -80,7 +80,7 @@ Item {
     function removedFolderIds() {
         var removed = [];
         var original = originalFolderIds;
-        for (var i = 0; i < original.length; i++) {
+        for (let i = 0; i < original.length; i++) {
             if (draftFolderIds.indexOf(original[i]) < 0)
                 removed.push(original[i]);
         }

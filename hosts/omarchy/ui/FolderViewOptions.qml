@@ -85,7 +85,7 @@ Item {
     }
     function moveKeyboardCursor(dx, dy) {
         if (dx !== 0 && keyboardIndex < filterRows.length) {
-            var rowStart = Math.floor(keyboardIndex / 2) * 2;
+            let rowStart = Math.floor(keyboardIndex / 2) * 2;
             keyboardIndex = rowStart + ((keyboardIndex - rowStart + (dx > 0 ? 1 : -1) + 2) % 2);
         } else if (dy > 0) {
             if (keyboardIndex < filterRows.length - 2)
