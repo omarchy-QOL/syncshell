@@ -67,9 +67,10 @@ or credential API. It closes with the core and does not add a daemon or system
 service.
 
 The DMS, Illogical Impulse, and Caelestia adapters embed the shared service in
-their native shell lifecycle. The standalone Waybar bridge owns one shared
-service and publishes one status stream for every Waybar output. Popups never
-start another core.
+their native shell lifecycle. Their popups never start another core.
+Each configured Waybar module owns a `syncshell-waybar` process that embeds
+the shared Go session in read-only mode and emits native Waybar JSONL.
+It has no QML service, standalone popup or background systemd service.
 
 ## SyncThingy discovery
 

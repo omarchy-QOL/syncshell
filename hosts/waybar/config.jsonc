@@ -1,0 +1,30 @@
+{
+  "custom/syncshell": {
+    "exec": "exec syncshell-waybar status",
+    "exec-on-event": false,
+    "restart-interval": 5,
+    "format": "<span font_family='Syncshell Icons'>{icon}</span>",
+    "tooltip-format": "<span font_family='monospace'>{text}</span>",
+    "format-icons": {
+      "default": "\ue000",
+      "healthy": "\ue000",
+      "starting": "\ue002",
+      "syncing": "\ue002",
+      "scanning": "\ue002",
+      "refreshing": "\ue002",
+      "waiting": "\ue002",
+      "error": "\ue001",
+      "offline": "\ue001",
+      "stale": "\ue001",
+      "paused": "\ue001",
+      "paused-devices": "\ue001",
+      "disconnected": "\ue001",
+      "unknown": "\ue001",
+      "incomplete": "\ue001",
+      "device-invitations": "\ue001",
+      "folder-invitations": "\ue001"
+    },
+    "return-type": "json",
+    "escape": true
+  }
+}

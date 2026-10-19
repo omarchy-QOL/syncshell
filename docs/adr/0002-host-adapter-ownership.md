@@ -10,9 +10,13 @@ supporting mixed versions during the interval before restart.
 
 `shared/CoreProcess.qml` owns the child-process contract.
 `shared/AdapterService.qml` and `shared/DeviceWorkflow.qml` provide common
-state and actions for DMS, Illogical Impulse, Caelestia, and Waybar. Their
+state and actions for DMS, Illogical Impulse, and Caelestia. Their
 views remain host-native. Omarchy keeps its richer facade and settings because
 those behaviors are specific to its plugin contract.
+
+Waybar uses `core/internal/waybar` for read-only presentation over the shared
+Go session, without QML or the QML JSONL protocol. `hosts/waybar` owns its
+configuration and font assets. The bar supervises the executable directly.
 
 Shared code stops at process, state, action, and compact workflow behavior.
 Layout and shell controls remain in each adapter instead of being forced

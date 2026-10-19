@@ -1,7 +1,9 @@
 # Use a parent-bound Go core over JSONL
 
-Each live Syncshell adapter owns one Go child process and communicates through
-bounded JSONL over standard input and output. A stateless command cannot own
+Each QML adapter owns one Go child process and communicates through bounded
+JSONL over standard input and output. The native Waybar executable embeds the
+same session library and emits Waybar JSONL directly; each configured bar
+instance owns its monitoring process. A stateless command cannot own
 the Event API cursor and recovery state. A daemon and control socket would add
 client brokerage that no supported adapter needs.
 

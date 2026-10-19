@@ -11,7 +11,7 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --shell)
       [[ $# -ge 2 ]] || {
-        printf 'usage: %s --shell dms|ii|caelestia|waybar\n' "$0" >&2
+        printf 'usage: %s --shell dms|ii|caelestia\n' "$0" >&2
         exit 2
       }
       shell_name=$2
@@ -25,9 +25,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 case $shell_name in
-  dms|ii|caelestia|waybar) ;;
+  dms|ii|caelestia) ;;
   *)
-    printf 'usage: %s --shell dms|ii|caelestia|waybar\n' "$0" >&2
+    printf 'usage: %s --shell dms|ii|caelestia\n' "$0" >&2
     exit 2
     ;;
 esac
@@ -194,16 +194,6 @@ install_caelestia() {
   sudo cmake --install "$checkout/build"
   sudo chown -R "$(id -u):$(id -g)" \
     "$HOME/.config/quickshell/caelestia"
-  restart_vm_shell
-}
-
-install_waybar() {
-  local bundle="$work/waybar"
-
-  require_command quickshell
-  require_command waybar
-  bash "$repo_root/integrations/waybar/assemble.sh" "$bundle"
-  bash "$bundle/install.sh"
   restart_vm_shell
 }
 

@@ -20,6 +20,9 @@ const rescanAllWorkers = 8
 
 // Act serializes, validates, and executes one domain action.
 func (s *Session) Act(ctx context.Context, action string, arguments ActionArguments) ActionResult {
+	if s.readOnly {
+		return rejected("read_only", "actions are disabled for this session")
+	}
 	s.actionMu.Lock()
 	defer s.actionMu.Unlock()
 

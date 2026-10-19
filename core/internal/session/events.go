@@ -43,6 +43,15 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 	if retry < 0 {
 		return
 	}
+	// Seed the cursor before hydration so startup changes are not skipped.
+	if s.Current().Revision == 0 {
+		published, _ := s.Refresh(ctx)
+		emitLatest(updates, published)
+	}
+	// A successful event request does not prove snapshot hydration succeeded.
+	if !s.Current().State.Connection.Online {
+		retry = max(1, retry)
+	}
 	nextRefresh := time.Now().Add(s.RefreshInterval())
 	nextLifecycle := time.Now().Add(s.ProbeInterval())
 	nextTelemetry := time.Now().Add(deviceTelemetryInterval)

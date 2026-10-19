@@ -122,7 +122,9 @@ func (s *Session) localIndex(ctx context.Context, event syncthing.Event, now tim
 			continue
 		}
 		if fileType(entry.Type) == "directory" && !entry.Deleted {
-			_ = s.client.RescanSubdirectory(ctx, data.Folder, name)
+			if !s.readOnly {
+				_ = s.client.RescanSubdirectory(ctx, data.Folder, name)
+			}
 			continue
 		}
 		action := "syncing"

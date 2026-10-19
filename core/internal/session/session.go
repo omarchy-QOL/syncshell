@@ -14,6 +14,7 @@ import (
 
 // Config constructs one authoritative session.
 type Config struct {
+	ReadOnly            bool
 	Discovery           syncthing.DiscoveryOptions
 	Lifecycle           systemduser.Binding
 	SystemdCommand      string
@@ -41,6 +42,7 @@ type hydratedState struct {
 // Session owns refresh, public state, lifecycle classification, and mutation
 // serialization for one selected instance.
 type Session struct {
+	readOnly       bool
 	desktopEnabled bool
 	desktop        *desktop.Bridge
 	executable     string
@@ -88,6 +90,7 @@ func New(ctx context.Context, config Config) (*Session, error) {
 		desired = "enabled"
 	}
 	return &Session{
+		readOnly:            config.ReadOnly,
 		executable:          syncthing.FindExecutable(config.Discovery.SyncthingBinary),
 		client:              client,
 		target:              target,

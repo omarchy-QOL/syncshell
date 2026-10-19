@@ -200,6 +200,33 @@ func TestLocalIndexUsesCurrentFileInformation(t *testing.T) {
 	}
 }
 
+func TestReadOnlySessionDoesNotRescanDirectoriesOrAcceptActions(t *testing.T) {
+	api := &actionAPI{folders: map[string]syncthing.Folder{},
+		devices: []syncthing.Device{{DeviceID: "LOCAL"}},
+		pending: syncthing.PendingFolders{}, theme: "default"}
+	coreSession := newActionSession(t, api)
+	coreSession.readOnly = true
+	if _, err := coreSession.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	event := syncthing.Event{Type: "LocalIndexUpdated",
+		Data: []byte(`{"folder":"folder","filenames":["directory","old.txt"]}`)}
+	coreSession.processActivityEvents(context.Background(), []syncthing.Event{event}, time.Now())
+	if api.rescanCount() != 0 {
+		t.Fatal("read-only activity triggered a rescan")
+	}
+	for _, action := range []string{"folder.rescan-all", "folder.pause", "device.remove", "lifecycle.start", "webui.set-theme"} {
+		result := coreSession.Act(context.Background(), action, ActionArguments{})
+		if result.OK || result.Error == nil || result.Error.Code != "read_only" {
+			t.Fatalf("read-only action accepted: %s", action)
+		}
+	}
+	activity := coreSession.publishActivity(false, time.Now()).State.Activity.Files
+	if len(activity) != 1 || activity[0].Action != "removing" {
+		t.Fatal("read-only mode lost activity reporting")
+	}
+}
+
 func TestLocalIndexDeletionAfterUserRescan(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -243,6 +270,77 @@ func TestLocalIndexDeletionAfterUserRescan(t *testing.T) {
 			}
 			t.Fatalf("removal activity missing: %#v", published.State.Activity)
 		})
+	}
+}
+
+func TestUpdatesHydratesAfterSeedingCursor(t *testing.T) {
+	base := &eventAPI{}
+	seeded := make(chan struct{})
+	coreSession := newEventSession(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/rest/events" {
+			if r.URL.Query().Get("timeout") == "0" {
+				close(seeded)
+				writeSessionJSON(w, `[]`)
+			} else {
+				<-r.Context().Done()
+			}
+			return
+		}
+		select {
+		case <-seeded:
+		default:
+			t.Error("hydration preceded event cursor")
+		}
+		base.ServeHTTP(w, r)
+	}))
+	ctx, cancel := context.WithCancel(context.Background())
+	updates := coreSession.Updates(ctx)
+	defer cancelEventUpdates(t, cancel, updates)
+	select {
+	case first := <-updates:
+		if first.Revision == 0 || !first.State.Connection.Fresh || !first.State.Connection.Online {
+			t.Fatalf("missing initial snapshot: %#v", first)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("Updates did not hydrate")
+	}
+}
+
+func TestUpdatesRetriesFailedHydrationWithHealthyEvents(t *testing.T) {
+	base := &eventAPI{}
+	var mu sync.Mutex
+	statusCalls := 0
+	coreSession := newEventSession(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/rest/events" {
+			waitContext(r.Context(), 10*time.Millisecond)
+			writeSessionJSON(w, `[]`)
+			return
+		}
+		if r.URL.Path == "/rest/system/status" {
+			mu.Lock()
+			statusCalls++
+			first := statusCalls == 1
+			mu.Unlock()
+			if first {
+				http.Error(w, "not authorized", http.StatusUnauthorized)
+				return
+			}
+		}
+		base.ServeHTTP(w, r)
+	}))
+	ctx, cancel := context.WithCancel(context.Background())
+	updates := coreSession.Updates(ctx)
+	defer cancelEventUpdates(t, cancel, updates)
+	deadline := time.After(3 * time.Second)
+	for {
+		select {
+		case next := <-updates:
+			if next.State.Connection.Online && next.State.Connection.Fresh {
+				return
+			}
+		case <-deadline:
+			t.Fatal("healthy events left failed startup snapshot unreconciled")
+		}
 	}
 }
 
