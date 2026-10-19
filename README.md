@@ -320,6 +320,8 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
 | Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
+| 0.2.3   | 2026-10-19 | support Omarchy 4.0.5 and Qt 6.12 palette references     |
+|         |            | fix submenu dismissal and preserve sharing selections  |
 | 0.2.2   | 2026-10-06 | secure pending-device dismissal confirmations           |
 | 0.2.1   | 2026-10-05 | render pending device names as plain text in adapters   |
 | 0.2.0   | 2026-10-05 | improve multi-folder navigation, search, and filtering  |
