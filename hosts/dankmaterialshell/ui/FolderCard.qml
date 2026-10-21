@@ -63,6 +63,7 @@ StyledRect {
             StyledText {
                 Layout.fillWidth: true
                 text: Model.folderMeta(root.folder, root.controller.fresh, root.controller.service ? root.controller.service.localDeviceId : "", root.controller.rescanning(root.folder))
+                textFormat: Text.PlainText
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
