@@ -8,6 +8,7 @@ import "."
 
 TextButton {
     id: root
+    label.textFormat: Text.PlainText
     property bool busy: false
     property string caption: ""
     property string busyCaption: "Working..."

@@ -31,6 +31,7 @@ QQC.Popup {
         StyledText {
             Layout.fillWidth: true
             text: root.controller.view.confirmation?.title || ""
+            textFormat: Text.PlainText
             wrapMode: Text.Wrap
         }
         StyledFlickable {
@@ -51,11 +52,13 @@ QQC.Popup {
                 StyledText {
                     Layout.fillWidth: true
                     text: root.controller.view.confirmation?.detail || ""
+                    textFormat: Text.PlainText
                     wrapMode: Text.Wrap
                 }
                 StyledText {
                     Layout.fillWidth: true
                     text: root.controller.error
+                    textFormat: Text.PlainText
                     visible: !!text
                     wrapMode: Text.Wrap
                     color: Colours.palette.m3error

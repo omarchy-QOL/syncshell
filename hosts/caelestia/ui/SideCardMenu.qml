@@ -17,6 +17,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.controller.error
+        textFormat: Text.PlainText
         visible: !!text
         wrapMode: Text.Wrap
     }

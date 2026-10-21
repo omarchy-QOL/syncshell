@@ -13,6 +13,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.device ? Model.label(root.device) : "No remote devices"
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     StyledText {
@@ -22,6 +23,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.device?.address || ""
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     StyledText {

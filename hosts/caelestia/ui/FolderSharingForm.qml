@@ -18,6 +18,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.controller.service.folderLabel(root.controller.view.draft.folderId)
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     SyncshellDropdown {

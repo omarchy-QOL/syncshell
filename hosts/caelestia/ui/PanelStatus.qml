@@ -35,6 +35,7 @@ ColumnLayout {
         StyledText {
             Layout.fillWidth: true
             text: root.controller.service.device(root.controller.service.localDeviceId)?.name || "This device"
+            textFormat: Text.PlainText
             elide: Text.ElideRight
         }
         BusyButton {

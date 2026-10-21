@@ -14,6 +14,7 @@ RowLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.title
+        textFormat: Text.PlainText
         font: Tokens.font.title.medium
         wrapMode: Text.Wrap
     }

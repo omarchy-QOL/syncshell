@@ -17,12 +17,14 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: "Syncthing " + (root.controller.service.identity.version || "unknown") + " · " + (root.controller.service.installation.available ? "installed" : "not found")
+        textFormat: Text.PlainText
         elide: Text.ElideRight
     }
     StyledText {
         Layout.fillWidth: true
         visible: !root.controller.service.canControlService
         text: root.controller.service.lifecycle.error || "Externally managed. Start Syncthing using its service manager, or authorize its exact unit in settings."
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     StyledText {
@@ -37,6 +39,7 @@ ColumnLayout {
             required property var modelData
             Layout.fillWidth: true
             text: Model.label(modelData) + "\nAffected: " + (modelData.path || modelData.id) + "\n" + Model.errorDetails(modelData)
+            textFormat: Text.PlainText
             wrapMode: Text.Wrap
         }
     }

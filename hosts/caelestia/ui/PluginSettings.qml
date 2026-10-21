@@ -127,6 +127,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: !!root.error
         text: root.error
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     BusyButton {

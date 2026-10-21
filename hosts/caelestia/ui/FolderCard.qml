@@ -15,11 +15,13 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.folder ? Model.label(root.folder) : "No folder selected"
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     StyledText {
         Layout.fillWidth: true
         text: root.folder?.path || ""
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     StyledText {
@@ -31,6 +33,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: !!root.folder
         text: Model.folderMeta(root.folder, root.controller.fresh, root.controller.service.localDeviceId, root.controller.rescanning(root.folder))
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     Flow {
@@ -65,6 +68,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: Model.errorDetails(root.folder)
+        textFormat: Text.PlainText
         visible: !!text
         wrapMode: Text.Wrap
     }
@@ -85,6 +89,7 @@ ColumnLayout {
             font: activityLabel.font
         }
         text: root.controller.folderActivity(root.folder)
+        textFormat: Text.PlainText
         visible: !!root.folder
         elide: Text.ElideMiddle
         maximumLineCount: 1

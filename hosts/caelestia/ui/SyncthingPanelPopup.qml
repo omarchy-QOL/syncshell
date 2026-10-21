@@ -261,6 +261,7 @@ FocusScope {
                 StyledText {
                     Layout.fillWidth: true
                     text: root.controller.error || root.owner.preferences.error || root.controller.service.lastError || root.controller.service.actionNotice
+                    textFormat: Text.PlainText
                     visible: !!text
                     wrapMode: Text.Wrap
                 }

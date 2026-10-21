@@ -42,6 +42,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.controller.view.form === "accept-device"
         text: "Observed address: " + (root.controller.view.draft.address || "unknown")
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     StyledTextField {

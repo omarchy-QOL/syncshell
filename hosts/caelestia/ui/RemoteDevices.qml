@@ -18,6 +18,7 @@ ColumnLayout {
             StyledText {
                 Layout.fillWidth: true
                 text: (deviceOffer.modelData.name || deviceOffer.modelData.id) + " wants to connect"
+                textFormat: Text.PlainText
                 wrapMode: Text.Wrap
             }
             RowLayout {
@@ -46,6 +47,7 @@ ColumnLayout {
             StyledText {
                 Layout.fillWidth: true
                 text: folderOffer.modelData.label + " offered by " + root.controller.service.deviceName(folderOffer.modelData.deviceId)
+                textFormat: Text.PlainText
                 wrapMode: Text.Wrap
             }
             StyledText {

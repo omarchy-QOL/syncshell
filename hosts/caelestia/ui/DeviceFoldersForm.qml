@@ -28,6 +28,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.device ? root.device.name || root.device.id : "Device is no longer configured"
+        textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     StyledText {
