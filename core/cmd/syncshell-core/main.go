@@ -17,7 +17,7 @@ import (
 	"github.com/omarchy-QOL/syncshell/core/internal/waybarconfig"
 )
 
-var buildVersion = "0.2.2"
+var buildVersion = "0.2.4"
 
 type options struct {
 	session.Config
