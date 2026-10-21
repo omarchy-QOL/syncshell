@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls as Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
@@ -11,6 +12,37 @@ import "shared"
 
 ShellRoot {
     id: root
+
+    // Peer names, paths and errors are data, never display markup.
+    component Label: Controls.Label {
+        textFormat: Text.PlainText
+    }
+
+    component Button: Controls.Button {
+        id: button
+        contentItem: Text {
+            text: button.text
+            textFormat: Text.PlainText
+            font: button.font
+            color: button.palette.buttonText
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+        }
+    }
+
+    component CheckBox: Controls.CheckBox {
+        id: checkbox
+        contentItem: Text {
+            text: checkbox.text
+            textFormat: Text.PlainText
+            font: checkbox.font
+            color: checkbox.palette.windowText
+            verticalAlignment: Text.AlignVCenter
+            leftPadding: checkbox.indicator && !checkbox.mirrored ? checkbox.indicator.width + checkbox.spacing : 0
+            rightPadding: checkbox.indicator && checkbox.mirrored ? checkbox.indicator.width + checkbox.spacing : 0
+        }
+    }
 
     property bool popupOpen: false
     property bool moreOpen: false

@@ -227,7 +227,11 @@ QtObject {
         var args = ["omarchy-notification-send"];
         if (Number(visibleMs) > 0)
             args.push("-t", String(Math.round(Number(visibleMs))));
-        args.push("Syncthing", String(message));
+        // Notification bodies support markup; our messages are plain text.
+        args.push("Syncthing", String(message)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;"));
         Quickshell.execDetached(args);
     }
 

@@ -320,7 +320,8 @@ See [CHANGELOG.md](CHANGELOG.md) for details.
 | Release | Date       | What changed                                            |
 | ------- | ---------- | ------------------------------------------------------- |
 | Future  | TBD        | mature alpha DMS, II, Caelestia, and Waybar adapters    |
-| 0.2.4   | 2026-10-19 | distinguish confirmed and unconfirmed device shares     |
+| 0.2.4   | 2026-10-19 | protect adapter messages and tooltips from markup       |
+|         |            | distinguish confirmed and unconfirmed device shares     |
 |         |            | preserve sharing drafts and clean up QML diagnostics    |
 | 0.2.3   | 2026-10-19 | support Omarchy 4.0.5 and Qt 6.12 palette references    |
 |         |            | fix submenu dismissal and preserve sharing selections   |

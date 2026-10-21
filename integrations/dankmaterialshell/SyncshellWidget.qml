@@ -2,11 +2,16 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Widgets
+import qs.Widgets as Widgets
 import qs.Modules.Plugins
 import "shared"
 
 PluginComponent {
     id: root
+
+    component StyledText: Widgets.StyledText {
+        textFormat: Text.PlainText
+    }
 
     layerNamespacePlugin: "syncshell"
     popoutWidth: 480
