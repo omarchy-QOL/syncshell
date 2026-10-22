@@ -218,6 +218,14 @@ func (c *Client) FolderStatus(ctx context.Context, folderID string) (FolderStatu
 	return response, err
 }
 
+// FolderCompletion reads remote sharing state for one folder-device pair.
+func (c *Client) FolderCompletion(ctx context.Context, folderID, deviceID string) (FolderCompletion, error) {
+	var response FolderCompletion
+	query := url.Values{"folder": {folderID}, "device": {deviceID}}
+	err := c.request(ctx, http.MethodGet, "/rest/db/completion?"+query.Encode(), nil, true, &response)
+	return response, err
+}
+
 // Rescan requests one verified folder scan.
 func (c *Client) Rescan(ctx context.Context, folderID string) (RescanDisposition, error) {
 	path := "/rest/db/scan"

@@ -35,7 +35,7 @@ Column {
         if (!syncthing)
             return "Unavailable";
         if (syncthing.installationState === "existing") {
-            var status = flatpakInstallation ? "available" : "executable";
+            let status = flatpakInstallation ? "available" : "executable";
             return "Existing installation found: <font color=\"" + success + "\">" + status + "</font>";
         }
         if (syncthing.installationState === "incomplete") {

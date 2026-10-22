@@ -22,8 +22,8 @@ Item {
         draftFolderId = folder ? String(folder.id || "") : "";
         var selected = [];
         var members = folder && folder.devices ? folder.devices : [];
-        for (var i = 0; i < members.length; i++) {
-            var id = String((members[i] || {}).deviceID || "");
+        for (let i = 0; i < members.length; i++) {
+            let id = String((members[i] || {}).deviceID || "");
             if (id && id !== syncthing.localDeviceId)
                 selected.push(id);
         }

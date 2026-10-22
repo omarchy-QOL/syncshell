@@ -58,7 +58,7 @@ ShellRoot {
         function visit(item) {
             if (item.folder !== undefined && item.stateLabel !== undefined)
                 result.push(item);
-            for (var i = 0; i < item.children.length; i++)
+            for (let i = 0; i < item.children.length; i++)
                 visit(item.children[i]);
         }
         visit(overview);
@@ -69,8 +69,8 @@ ShellRoot {
         function visit(item) {
             if (item.options !== undefined)
                 return item;
-            for (var i = 0; i < item.children.length; i++) {
-                var found = visit(item.children[i]);
+            for (let i = 0; i < item.children.length; i++) {
+                let found = visit(item.children[i]);
                 if (found)
                     return found;
             }
@@ -84,7 +84,7 @@ ShellRoot {
 
     function folders(count) {
         var configured = [];
-        for (var i = 0; i < count; i++) {
+        for (let i = 0; i < count; i++) {
             configured.push({
                 id: "folder-" + i,
                 path: "/tmp/folder-" + i,
@@ -151,7 +151,7 @@ ShellRoot {
     }
 
     function optionByValue(options, value) {
-        for (var i = 0; i < options.length; i++) {
+        for (let i = 0; i < options.length; i++) {
             if (options[i].value === value)
                 return options[i];
         }
@@ -212,7 +212,7 @@ ShellRoot {
                 root.rows = root.viewRows(false);
                 break;
             case 8:
-                var initial = panel.folderViewOptions();
+                let initial = panel.folderViewOptions();
                 root.check(shown.length === 1 && picker.visible, "view rows use selector");
                 root.check(initial.length === 4, "default view includes every folder");
                 root.check(!picker.statusVisible, "selector trigger omits the redundant folder status");

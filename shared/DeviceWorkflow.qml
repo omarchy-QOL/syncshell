@@ -55,7 +55,7 @@ QtObject {
     function removedFolderIds() {
         var original = service.folderIdsForDevice(targetDeviceId);
         var removed = [];
-        for (var index = 0; index < original.length; index++) {
+        for (let index = 0; index < original.length; index++) {
             if (draftIds.indexOf(original[index]) < 0)
                 removed.push(original[index]);
         }

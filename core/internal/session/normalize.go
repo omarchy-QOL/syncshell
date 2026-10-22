@@ -70,7 +70,7 @@ func normalizeFolder(
 ) (Folder, int) {
 	devices := make([]FolderDevice, 0, min(len(folder.Devices), maxFolderDevices))
 	for _, device := range folder.Devices[:min(len(folder.Devices), maxFolderDevices)] {
-		devices = append(devices, FolderDevice{ID: boundedIdentifier(device.DeviceID)})
+		devices = append(devices, FolderDevice{ID: boundedIdentifier(device.DeviceID), RemoteState: "unknown"})
 	}
 	sort.Slice(devices, func(i, j int) bool { return devices[i].ID < devices[j].ID })
 	currentErrors := append([]syncthing.FolderError(nil), errorsResponse.Errors...)

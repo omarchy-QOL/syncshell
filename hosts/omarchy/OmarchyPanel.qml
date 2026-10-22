@@ -265,7 +265,7 @@ Panel {
 
     function folderDisplayLabel(folderId) {
         var options = folderOptions();
-        for (var i = 0; i < options.length; i++) {
+        for (let i = 0; i < options.length; i++) {
             if (options[i].value === folderId)
                 return options[i].label;
         }
@@ -316,10 +316,10 @@ Panel {
     function folderViewOptions() {
         var labels = folderOptions();
         var options = [];
-        for (var i = 0; i < labels.length; i++) {
-            var folder = folderById(labels[i].value);
-            var state = folderState(folder);
-            var group = PanelModel.folderStateGroup(state);
+        for (let i = 0; i < labels.length; i++) {
+            let folder = folderById(labels[i].value);
+            let state = folderState(folder);
+            let group = PanelModel.folderStateGroup(state);
             if (!folderGroupVisible(group))
                 continue;
             options.push({
@@ -400,7 +400,7 @@ Panel {
     }
 
     function ensurePendingOfferSelection() {
-        for (var i = 0; i < pendingOfferRows.length; i++) {
+        for (let i = 0; i < pendingOfferRows.length; i++) {
             if (pendingOfferRows[i].value === selectedPendingOffer)
                 return;
         }
@@ -516,7 +516,7 @@ Panel {
         folderConfirmId = String(choice[0] || "");
         folderConfirmDeviceId = String(choice[1] || "");
         folderConfirmLabel = folderConfirmId;
-        for (var i = 0; i < pendingOfferRows.length; i++) {
+        for (let i = 0; i < pendingOfferRows.length; i++) {
             if (pendingOfferRows[i].value === selected) {
                 folderConfirmLabel = pendingOfferRows[i].label + (pendingOfferRows[i].trailingText ? " " + pendingOfferRows[i].trailingText : "");
                 break;
@@ -531,10 +531,10 @@ Panel {
         if (!value)
             return "";
         try {
-            var choice = JSON.parse(value);
+            let choice = JSON.parse(value);
             if (!(choice instanceof Array) || choice.length !== 2)
                 return "";
-            var deviceId = String(choice[1] || "");
+            let deviceId = String(choice[1] || "");
             return popup.selectedDeviceIds.indexOf(deviceId) >= 0 ? deviceId : "";
         } catch (error) {
             return "";
@@ -799,7 +799,7 @@ Panel {
         onExited: function (exitCode, exitStatus) {
             var selected = String(root.folderPickerOutput || folderPickerStdout.text || "").trim();
             if (exitCode === 0 && selected) {
-                var path = Paths.localFilePath(selected);
+                let path = Paths.localFilePath(selected);
                 popup.addPathText = path;
                 if (!popup.addLabelText)
                     popup.addLabelText = root.pathLabel(path);

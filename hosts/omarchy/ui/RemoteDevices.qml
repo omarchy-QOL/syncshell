@@ -42,7 +42,7 @@ Column {
     signal actionHovered(Item action)
 
     function rowById(rows, id) {
-        for (var i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rows.length; i++) {
             if (String(rows[i].id || "") === String(id || ""))
                 return rows[i];
         }
@@ -79,8 +79,8 @@ Column {
 
     function deviceOptions() {
         var options = [];
-        for (var i = 0; i < remoteRows.length; i++) {
-            var device = remoteRows[i];
+        for (let i = 0; i < remoteRows.length; i++) {
+            let device = remoteRows[i];
             options.push({
                 value: device.id,
                 label: device.name,
@@ -94,7 +94,7 @@ Column {
 
     function pendingOptions() {
         var options = [];
-        for (var i = 0; i < pendingRows.length; i++)
+        for (let i = 0; i < pendingRows.length; i++)
             options.push({
                 value: pendingRows[i].id,
                 label: pendingRows[i].label

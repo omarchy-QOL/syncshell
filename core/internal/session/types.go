@@ -56,7 +56,8 @@ type Device struct {
 
 // FolderDevice is one normalized folder-sharing relationship.
 type FolderDevice struct {
-	ID string `json:"id"`
+	ID          string `json:"id"`
+	RemoteState string `json:"remoteState"`
 }
 
 // FolderStatus is normalized authoritative folder state.

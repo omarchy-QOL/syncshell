@@ -75,7 +75,7 @@ QtObject {
         packageActionRunning = true;
         packageError = "";
         packageStatus = "Complete installation in the Omarchy terminal";
-        operationPollTimer.ticks = 0;
+        operationPoll.ticks = 0;
         _operationSeen = false;
         operationPollTimer.start();
         Quickshell.execDetached(["bash", helperPath, "install"]);
@@ -90,6 +90,7 @@ QtObject {
     }
 
     property Timer operationPollTimer: Timer {
+        id: operationPoll
         property int ticks: 0
         interval: 1500
         repeat: true

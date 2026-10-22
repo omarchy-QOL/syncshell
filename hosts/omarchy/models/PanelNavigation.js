@@ -18,9 +18,9 @@ function isAvailable(item, boundary) {
 
 function availableRows(rows, boundary) {
     var result = [];
-    for (var row = 0; row < rows.length; row++) {
-        var available = [];
-        for (var column = 0; column < rows[row].length; column++) {
+    for (let row = 0; row < rows.length; row++) {
+        let available = [];
+        for (let column = 0; column < rows[row].length; column++) {
             if (isAvailable(rows[row][column], boundary))
                 available.push(rows[row][column]);
         }
@@ -42,8 +42,8 @@ function move(rows, current, dx, dy, boundary) {
 
     var currentRow = -1;
     var currentColumn = -1;
-    for (var row = 0; row < available.length; row++) {
-        var column = available[row].indexOf(current);
+    for (let row = 0; row < available.length; row++) {
+        let column = available[row].indexOf(current);
         if (column >= 0) {
             currentRow = row;
             currentColumn = column;

@@ -34,8 +34,8 @@ FocusScope {
     function moveChoice(direction) {
         if (busy)
             return;
-        for (var step = 1; step <= choices.length; step++) {
-            var index = (selectedChoice + (direction > 0 ? step : -step) + choices.length) % choices.length;
+        for (let step = 1; step <= choices.length; step++) {
+            let index = (selectedChoice + (direction > 0 ? step : -step) + choices.length) % choices.length;
             if (isEnabled(index)) {
                 selectedChoice = index;
                 return;

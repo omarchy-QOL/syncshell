@@ -256,6 +256,7 @@ func (s *Session) loadAuthenticated(
 	truncation.NearbyDevices = max(0,
 		len(nearbyDeviceIDs(discovery, devices, status.MyID))-maxNearbyDevices)
 	truncation.FolderErrors = omittedFolderErrors
+	s.loadRemoteSharing(ctx, normalizedFolders, devices, connections, status.MyID)
 	return hydratedState{
 		identity: Identity{DeviceID: boundedIdentifier(status.MyID),
 			Version: boundedLabel(version.Version)},

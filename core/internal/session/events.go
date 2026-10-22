@@ -13,7 +13,8 @@ const (
 )
 
 var eventTypes = []string{
-	"ConfigSaved", "DeviceConnected", "DeviceDisconnected", "DevicePaused",
+	"ConfigSaved", "ClusterConfigReceived", "FolderCompletion",
+	"DeviceConnected", "DeviceDisconnected", "DevicePaused",
 	"DeviceResumed", "DownloadProgress",
 	"FolderErrors", "FolderPaused", "FolderResumed", "FolderScanProgress",
 	"FolderSummary", "ItemFinished", "ItemStarted", "LocalIndexUpdated",

@@ -112,7 +112,7 @@ QtObject {
     }
 
     function currentLocalDeviceName() {
-        for (var i = 0; i < devices.length; i++) {
+        for (let i = 0; i < devices.length; i++) {
             if (devices[i].deviceID === localDeviceId)
                 return devices[i].name;
         }
@@ -227,7 +227,11 @@ QtObject {
         var args = ["omarchy-notification-send"];
         if (Number(visibleMs) > 0)
             args.push("-t", String(Math.round(Number(visibleMs))));
-        args.push("Syncthing", String(message));
+        // Notification bodies support markup; our messages are plain text.
+        args.push("Syncthing", String(message)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;"));
         Quickshell.execDetached(args);
     }
 
@@ -246,8 +250,8 @@ QtObject {
 
     function scanningFolderIds() {
         var result = [];
-        for (var i = 0; i < folders.length; i++) {
-            var state = folderStatuses[String(folders[i].id || "")] || ({});
+        for (let i = 0; i < folders.length; i++) {
+            let state = folderStatuses[String(folders[i].id || "")] || ({});
             if (String(state.state || "").indexOf("scan") === 0)
                 result.push(String(folders[i].id || ""));
         }
@@ -331,7 +335,7 @@ QtObject {
 
     function configuredFolder(folderId) {
         var wanted = String(folderId || "");
-        for (var i = 0; i < folders.length; i++) {
+        for (let i = 0; i < folders.length; i++) {
             if (String(folders[i].id || "") === wanted)
                 return folders[i];
         }
@@ -404,15 +408,15 @@ QtObject {
         var folder = configuredFolder(folderId);
         var previous = [];
         var members = folder && folder.devices ? folder.devices : [];
-        for (var i = 0; i < members.length; i++) {
-            var memberId = String((members[i] || {}).deviceID || "");
+        for (let i = 0; i < members.length; i++) {
+            let memberId = String((members[i] || {}).deviceID || "");
             if (memberId && memberId !== localDeviceId)
                 previous.push(memberId);
         }
         var names = [];
-        for (var j = 0; j < shared.length; j++) {
-            var name = "";
-            for (var k = 0; k < devices.length; k++) {
+        for (let j = 0; j < shared.length; j++) {
+            let name = "";
+            for (let k = 0; k < devices.length; k++) {
                 if (String(devices[k].deviceID || "") === String(shared[j])) {
                     name = String(devices[k].name || "");
                     break;

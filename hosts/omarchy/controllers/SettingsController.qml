@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.Commons
 import qs.Commons as Commons
 import "../models/SettingsModel.js" as SettingsModel
 
@@ -339,7 +338,7 @@ QtObject {
     property ThemePaletteController themePalette: ThemePaletteController {}
 
     property FileView settingsFile: FileView {
-        id: settingsFile
+        id: settingsDocument
         path: root.settingsPath
         watchChanges: true
         printErrors: false
@@ -364,7 +363,7 @@ QtObject {
     }
 
     property Process settingsProcess: Process {
-        id: settingsProcess
+        id: settingsWorker
         command: []
         stdinEnabled: true
         stdout: StdioCollector {
@@ -382,7 +381,7 @@ QtObject {
             var action = root._settingsAction;
             root.busy = false;
             if (exitCode === 0) {
-                settingsFile.reload();
+                root.settingsFile.reload();
                 if (root._openAfterEnsure) {
                     Quickshell.execDetached(["omarchy", "launch", "config-editor", root.settingsPath]);
                 }
@@ -404,7 +403,7 @@ QtObject {
     }
 
     property Process themeProcess: Process {
-        id: themeProcess
+        id: themeWorker
         command: []
         onExited: function (exitCode) {
             if (!root.settingsReady) {
@@ -420,7 +419,7 @@ QtObject {
     }
 
     property Process removalProcess: Process {
-        id: removalProcess
+        id: removalWorker
         command: []
         onExited: function (exitCode) {
             if (exitCode === 0) {

@@ -3,8 +3,8 @@
 function devices(values) {
   var projected = []
   var source = values || []
-  for (var i = 0; i < source.length; i++) {
-    var device = source[i] || ({})
+  for (let i = 0; i < source.length; i++) {
+    let device = source[i] || ({})
     projected.push({
       deviceID: String(device.id || ""),
       name: String(device.name || ""),
@@ -37,12 +37,15 @@ function folderStatus(value) {
 function folders(values) {
   var projected = []
   var source = values || []
-  for (var i = 0; i < source.length; i++) {
-    var folder = source[i] || ({})
-    var folderDevices = []
-    var shared = folder.devices || []
-    for (var j = 0; j < shared.length; j++) {
-      folderDevices.push({ deviceID: String((shared[j] || {}).id || "") })
+  for (let i = 0; i < source.length; i++) {
+    let folder = source[i] || ({})
+    let folderDevices = []
+    let shared = folder.devices || []
+    for (let j = 0; j < shared.length; j++) {
+      folderDevices.push({
+        deviceID: String((shared[j] || {}).id || ""),
+        remoteState: String((shared[j] || {}).remoteState || "unknown")
+      })
     }
     projected.push({
       id: String(folder.id || ""),
@@ -59,8 +62,8 @@ function folders(values) {
 function folderStatuses(values) {
   var projected = ({})
   var source = values || []
-  for (var i = 0; i < source.length; i++) {
-    var folder = source[i] || ({})
+  for (let i = 0; i < source.length; i++) {
+    let folder = source[i] || ({})
     projected[String(folder.id || "")] = folderStatus(folder.status)
   }
   return projected
@@ -69,7 +72,7 @@ function folderStatuses(values) {
 function syncingFiles(activity) {
   var projected = []
   var files = activity && activity.files ? activity.files : []
-  for (var i = 0; i < files.length; i++) {
+  for (let i = 0; i < files.length; i++) {
     projected.push(String((files[i] || {}).detail || ""))
   }
   return projected
@@ -88,7 +91,7 @@ function truncationWarning(truncation) {
   var state = truncation || ({})
   var keys = ["devices", "folders", "folderDevices",
     "pendingFolders", "pendingOffers", "pendingDevices", "nearbyDevices"]
-  for (var i = 0; i < keys.length; i++) {
+  for (let i = 0; i < keys.length; i++) {
     if (Number(state[keys[i]] || 0) > 0) {
       return "Some Syncthing items exceed panel limits; use the Web UI for "
         + "the hidden entries"

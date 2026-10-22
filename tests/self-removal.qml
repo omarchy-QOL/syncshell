@@ -33,7 +33,7 @@ ShellRoot {
     function displaysError(item) {
         if (item.visible && item.text === service.settingsError)
             return true;
-        for (var i = 0; i < item.children.length; i++) {
+        for (let i = 0; i < item.children.length; i++) {
             if (displaysError(item.children[i]))
                 return true;
         }

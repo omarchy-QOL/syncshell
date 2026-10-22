@@ -92,7 +92,7 @@ QtObject {
             id: id
         };
         var keys = Object.keys(values || ({}));
-        for (var index = 0; index < keys.length; index++) {
+        for (let index = 0; index < keys.length; index++) {
             message[keys[index]] = values[keys[index]];
         }
         var encoded = JSON.stringify(message);
@@ -202,9 +202,9 @@ QtObject {
             code: "core_unavailable",
             message: String(message || "Native core became unavailable")
         };
-        for (var index = 0; index < ids.length; index++) {
-            var id = ids[index];
-            var callback = pending[id];
+        for (let index = 0; index < ids.length; index++) {
+            let id = ids[index];
+            let callback = pending[id];
             if (callback)
                 callback(false, null, failure);
             resultReceived(id, false, null, failure);

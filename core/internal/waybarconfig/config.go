@@ -113,6 +113,7 @@ func installConfig(text, root string) (string, error) {
 		"on-click-right":  quickshell + " ipc call syncshell refresh",
 		"on-click-middle": quickshell + " ipc call syncshell openWebUi",
 		"tooltip":         true,
+		"escape":          true,
 	}
 	encoded, err := json.MarshalIndent(values, "  ", "  ")
 	if err != nil {

@@ -4,12 +4,22 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
 import qs.components
+import qs.components as Components
 import qs.components.controls
+import qs.components.controls as Controls
 import qs.services
 import "../../../syncshell/shared"
 
 ColumnLayout {
   id: root
+
+  component StyledText: Components.StyledText {
+    textFormat: Text.PlainText
+  }
+
+  component TextButton: Controls.TextButton {
+    label.textFormat: Text.PlainText
+  }
   implicitWidth: 420
   spacing: Tokens.spacing.medium
   property bool moreOpen: false

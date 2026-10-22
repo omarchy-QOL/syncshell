@@ -72,7 +72,7 @@ QtObject {
 
     function device(deviceId) {
         var wanted = String(deviceId || "");
-        for (var index = 0; index < devices.length; index++) {
+        for (let index = 0; index < devices.length; index++) {
             if (String(devices[index].id || "") === wanted)
                 return devices[index];
         }
@@ -86,8 +86,8 @@ QtObject {
 
     function remoteDevices() {
         var result = [];
-        for (var index = 0; index < devices.length; index++) {
-            var value = devices[index] || ({});
+        for (let index = 0; index < devices.length; index++) {
+            let value = devices[index] || ({});
             if (String(value.id || "") !== "" && String(value.id || "") !== localDeviceId)
                 result.push(value);
         }
@@ -97,7 +97,7 @@ QtObject {
     function shareableDevices() {
         var result = [];
         var remote = remoteDevices();
-        for (var index = 0; index < remote.length; index++) {
+        for (let index = 0; index < remote.length; index++) {
             if (remote[index].untrusted !== true)
                 result.push(remote[index]);
         }
@@ -108,8 +108,8 @@ QtObject {
         var value = folder(folderId);
         var members = value && value.devices ? value.devices : [];
         var result = [];
-        for (var index = 0; index < members.length; index++) {
-            var id = String((members[index] || {}).id || "");
+        for (let index = 0; index < members.length; index++) {
+            let id = String((members[index] || {}).id || "");
             if (id !== "" && id !== localDeviceId)
                 result.push(id);
         }
@@ -119,9 +119,9 @@ QtObject {
     function folderIdsForDevice(deviceId) {
         var wanted = String(deviceId || "");
         var result = [];
-        for (var folderIndex = 0; folderIndex < folders.length; folderIndex++) {
-            var members = folders[folderIndex].devices || [];
-            for (var memberIndex = 0; memberIndex < members.length; memberIndex++) {
+        for (let folderIndex = 0; folderIndex < folders.length; folderIndex++) {
+            let members = folders[folderIndex].devices || [];
+            for (let memberIndex = 0; memberIndex < members.length; memberIndex++) {
                 if (String((members[memberIndex] || {}).id || "") === wanted) {
                     result.push(String(folders[folderIndex].id || ""));
                     break;
@@ -134,13 +134,13 @@ QtObject {
     function pendingFolderOffers() {
         var result = [];
         var folderIds = Object.keys(pendingFolders).sort();
-        for (var folderIndex = 0; folderIndex < folderIds.length; folderIndex++) {
-            var folderId = folderIds[folderIndex];
-            var offeredBy = (pendingFolders[folderId] || {}).offeredBy || ({});
-            var deviceIds = Object.keys(offeredBy).sort();
-            for (var deviceIndex = 0; deviceIndex < deviceIds.length; deviceIndex++) {
-                var deviceId = deviceIds[deviceIndex];
-                var offer = offeredBy[deviceId] || ({});
+        for (let folderIndex = 0; folderIndex < folderIds.length; folderIndex++) {
+            let folderId = folderIds[folderIndex];
+            let offeredBy = (pendingFolders[folderId] || {}).offeredBy || ({});
+            let deviceIds = Object.keys(offeredBy).sort();
+            for (let deviceIndex = 0; deviceIndex < deviceIds.length; deviceIndex++) {
+                let deviceId = deviceIds[deviceIndex];
+                let offer = offeredBy[deviceId] || ({});
                 result.push({
                     folderId: folderId,
                     deviceId: deviceId,
@@ -154,7 +154,7 @@ QtObject {
 
     function folder(folderId) {
         var wanted = String(folderId || "");
-        for (var index = 0; index < folders.length; index++) {
+        for (let index = 0; index < folders.length; index++) {
             if (String(folders[index].id || "") === wanted)
                 return folders[index];
         }
@@ -236,7 +236,7 @@ QtObject {
 
     function scanningFolderIds() {
         var result = [];
-        for (var index = 0; index < folders.length; index++) {
+        for (let index = 0; index < folders.length; index++) {
             if (scanning(folders[index].id))
                 result.push(String(folders[index].id));
         }

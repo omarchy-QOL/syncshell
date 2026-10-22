@@ -10,8 +10,8 @@ var SupportedVersion = 2;
 
 function stripComment(line) {
     var quote = "";
-    for (var i = 0; i < line.length; i++) {
-        var character = line.charAt(i);
+    for (let i = 0; i < line.length; i++) {
+        let character = line.charAt(i);
         if ((character === "\"" || character === "'") && !quote) {
             quote = character;
         } else if (character === quote) {
@@ -49,11 +49,11 @@ function parse(raw, allowOlder) {
     var serviceSectionSeen = false;
     var rootStyleSetting = false;
 
-    for (var i = 0; i < lines.length; i++) {
-        var line = stripComment(lines[i]).trim();
+    for (let i = 0; i < lines.length; i++) {
+        let line = stripComment(lines[i]).trim();
         if (!line)
             continue;
-        var header = line.match(/^\[([A-Za-z_][A-Za-z0-9_-]*)\]$/);
+        let header = line.match(/^\[([A-Za-z_][A-Za-z0-9_-]*)\]$/);
         if (header) {
             section = header[1];
             if (section !== "style" && section !== "service") {
@@ -68,11 +68,11 @@ function parse(raw, allowOlder) {
                 serviceSectionSeen = true;
             continue;
         }
-        var assignment = line.match(/^([A-Za-z_][A-Za-z0-9_-]*)\s*=\s*(.+)$/);
+        let assignment = line.match(/^([A-Za-z_][A-Za-z0-9_-]*)\s*=\s*(.+)$/);
         if (!assignment) {
             return invalid("Invalid settings syntax on line " + (i + 1));
         }
-        var key = assignment[1];
+        let key = assignment[1];
         if (key === "version" && !section) {
             if (version !== null) {
                 return invalid("Duplicate setting version on line " + (i + 1));
@@ -83,8 +83,8 @@ function parse(raw, allowOlder) {
             }
             continue;
         }
-        var styleSetting = key === "icon_style" || key === "web_ui_theme";
-        var serviceSetting = key === "service_state" || key === "probe_interval_seconds";
+        let styleSetting = key === "icon_style" || key === "web_ui_theme";
+        let serviceSetting = key === "service_state" || key === "probe_interval_seconds";
         if ((section === "service" && !serviceSetting) || (section !== "service" && !styleSetting)) {
             return invalid("Unknown setting " + (section ? section + "." : "") + key + " on line " + (i + 1));
         }
@@ -94,13 +94,13 @@ function parse(raw, allowOlder) {
             return invalid("Duplicate setting " + key + " on line " + (i + 1));
         }
         if (key === "probe_interval_seconds") {
-            var interval = parseInteger(assignment[2]);
+            let interval = parseInteger(assignment[2]);
             if (interval === null || interval < MinimumProbeIntervalSeconds || interval > MaximumProbeIntervalSeconds) {
                 return invalid("probe_interval_seconds must be an integer between " + MinimumProbeIntervalSeconds + " and " + MaximumProbeIntervalSeconds);
             }
             values[key] = interval;
         } else {
-            var value = parseValue(assignment[2]);
+            let value = parseValue(assignment[2]);
             if (value === null) {
                 return invalid(key + " must use a quoted value");
             }
@@ -175,12 +175,12 @@ function migrate(raw) {
     var intervalSeen = false;
     function addServiceDefaults() {
         if (!stateSeen) {
-            var state = 'service_state = "' + previous.serviceState + '"';
+            let state = 'service_state = "' + previous.serviceState + '"';
             output.push(state);
             additions.push(state);
         }
         if (!intervalSeen) {
-            var interval = "probe_interval_seconds = " + previous.probeIntervalSeconds;
+            let interval = "probe_interval_seconds = " + previous.probeIntervalSeconds;
             output.push(interval);
             additions.push(interval);
         }

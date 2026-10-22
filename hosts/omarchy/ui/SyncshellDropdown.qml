@@ -114,14 +114,14 @@ Item {
         return optionStatusVisible(o) ? String(o.statusHelpText || "") : "";
     }
     function currentLabel() {
-        for (var i = 0; i < options.length; i++) {
+        for (let i = 0; i < options.length; i++) {
             if (optionValue(options[i]) === value)
                 return optionLabel(options[i]);
         }
         return value;
     }
     function currentTrailingLabel() {
-        for (var i = 0; i < options.length; i++) {
+        for (let i = 0; i < options.length; i++) {
             if (optionValue(options[i]) === value)
                 return optionTrailingText(options[i]);
         }
@@ -132,7 +132,7 @@ Item {
         var text = label.toLowerCase();
         var needle = query.trim().toLowerCase();
         var position = 0;
-        for (var i = 0; i < needle.length; i++) {
+        for (let i = 0; i < needle.length; i++) {
             position = text.indexOf(needle[i], position);
             if (position < 0)
                 return false;
@@ -399,7 +399,7 @@ Item {
                         currentIndex: -1
 
                         function indexOfValue(v) {
-                            for (var i = 0; i < root.matchingOptions.length; i++)
+                            for (let i = 0; i < root.matchingOptions.length; i++)
                                 if (root.optionValue(root.matchingOptions[i]) === v)
                                     return i;
                             return -1;
