@@ -37,7 +37,7 @@ ColumnLayout {
                     disabled: root.controller.busy
                     onClicked: root.controller.confirm("device.dismiss-pending", {
                         deviceId: deviceOffer.modelData.id
-                    }, "Dismiss device invitation?", deviceOffer.modelData.name || deviceOffer.modelData.id)
+                    }, "Dismiss pending request from " + (deviceOffer.modelData.name || deviceOffer.modelData.id) + "?", "It can reappear if the device connects again.")
                 }
             }
         }

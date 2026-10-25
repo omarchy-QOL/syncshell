@@ -66,7 +66,7 @@ ColumnLayout {
             disabled: !root.folder || !root.controller.fresh || root.controller.busy
             onClicked: root.controller.confirm("folder.forget", {
                 folderId: root.folder.id
-            }, "Forget folder?", Model.label(root.folder) + "\nDirectory contents are kept.")
+            }, "Forget " + Model.label(root.folder) + " (" + root.folder.id + ")?", "This removes only its Syncthing configuration. The directory and data files will not be deleted. " + (root.folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal .stfolder marker. " : "") + "Rejoining the same remote folder requires this exact Folder ID.")
         }
     }
     StyledText {

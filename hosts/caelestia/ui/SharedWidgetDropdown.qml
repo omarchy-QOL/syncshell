@@ -51,7 +51,19 @@ Item {
     QQC.Popup {
         id: menu
         parent: trigger
-        y: root.boundary ? Math.max(-trigger.mapToItem(root.boundary, 0, 0).y, Math.min(trigger.height, root.boundary.height - trigger.mapToItem(root.boundary, 0, 0).y - height)) : trigger.height
+        // mapToItem() does not notify when an enclosing flickable scrolls, so
+        // a binding kept the position from before focus scrolled the form.
+        function place() {
+            if (!root.boundary) {
+                y = trigger.height;
+                return;
+            }
+            const top = trigger.mapToItem(root.boundary, 0, 0).y;
+            y = Math.max(-top, Math.min(trigger.height, root.boundary.height - top - height));
+        }
+        onAboutToShow: place()
+        onHeightChanged: if (visible)
+            place()
         width: trigger.width
         height: Math.min(root.boundary?.height || 540, 540, contentColumn.implicitHeight + padding * 2)
         padding: root.Tokens.padding.medium
@@ -60,7 +72,7 @@ Item {
         closePolicy: QQC.Popup.CloseOnEscape | QQC.Popup.CloseOnPressOutside
         onOpened: {
             search.forceActiveFocus();
-            list.currentIndex = 0;
+            list.currentIndex = Math.max(0, root.filtered.findIndex(o => o.value === root.value));
         }
         onClosed: if (root.alive && root.visible)
             trigger.forceActiveFocus()

@@ -60,7 +60,7 @@ ColumnLayout {
             disabled: !root.device || !root.controller.fresh || root.controller.busy
             onClicked: root.controller.confirm("device.remove", {
                 deviceId: root.device.id
-            }, "Remove device?", Model.label(root.device) + "\nFiles are kept on both devices.")
+            }, "Remove " + Model.label(root.device) + " from this device?", "Folder sharing with it will be removed locally. Local folders and files remain. The other device is unchanged.")
         }
     }
 }
