@@ -18,7 +18,7 @@ ShellRoot {
         width: 420
         height: 420
 
-        SyncshellDropdown {
+        SharedWidgetDropdown {
             id: dropdown
             x: 20
             y: 20

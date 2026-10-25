@@ -54,7 +54,7 @@ Item {
         onHoveredChanged: root.hovered(hovered)
     }
 
-    SyncshellToolTip {
+    SharedWidgetToolTip {
         visible: root.tooltipText !== "" && tooltipHover.hovered
         text: root.tooltipText
         tooltipBackground: root.tooltipBackground

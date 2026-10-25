@@ -177,7 +177,7 @@ Item {
                 id: triggerHover
                 onHoveredChanged: root.hovered(hovered)
             }
-            SyncshellToolTip {
+            SharedWidgetToolTip {
                 visible: triggerHover.hovered && !popup.opened && root.helpText !== ""
                 text: root.helpText
                 fontFamily: root.fontFamily
@@ -239,7 +239,7 @@ Item {
                 HoverHandler {
                     id: statusHover
                 }
-                SyncshellToolTip {
+                SharedWidgetToolTip {
                     visible: statusHover.hovered && root.statusHelpText !== ""
                     text: root.statusHelpText
                     fontFamily: root.fontFamily
@@ -464,7 +464,7 @@ Item {
                                 color: root.optionStatusColor(option.modelData)
                             }
 
-                            SyncshellToolTip {
+                            SharedWidgetToolTip {
                                 visible: optionMouse.containsMouse && root.optionStatusHelpText(option.modelData) !== ""
                                 text: root.optionStatusHelpText(option.modelData)
                                 fontFamily: root.fontFamily

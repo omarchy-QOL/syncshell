@@ -6,38 +6,31 @@ import qs.Ui
 BorderSurface {
     id: root
 
-    property var folder: ({})
+    property var device: ({})
     property bool online: false
     property bool mutationBusy: false
-    property bool rescanning: false
-    property string stateLabel: "UNKNOWN"
-    property color stateColor: foreground
-    property string meta: ""
-    property bool activityActive: false
-    property string activityDots: ""
-    property string activityDetail: ""
-    property string activityAction: ""
+    property bool actionBusy: false
+    property string stateLabel: "DISCONNECTED"
+    property color stateColor: Commons.Color.muted
     property color foreground: Commons.Color.foreground
     property color dim: Qt.darker(foreground, 1.5)
-    property color urgent: Commons.Color.urgent
     required property color warning
-    required property color success
-    required property color syncColor
     property string fontFamily: Style.font.family
     property var controller
     property Item keyboardCursor: null
 
-    readonly property bool problem: folder && folder.problem
-    readonly property bool syncing: folder && folder.syncing
-    readonly property bool canOpen: folder && String(folder.path || "") !== ""
-    readonly property color cardBorderColor: rescanning ? warning : (problem ? urgent : (syncing ? foreground : dim))
-    readonly property var keyboardRows: [[openFolderButton, copyIdButton], [errorHint, folderActionButton]]
+    readonly property color cardBorderColor: device && device.paused ? warning : dim
+    readonly property int sharedFolderCount: device && device.folderIds ? device.folderIds.length : 0
+    readonly property int totalFolderCount: controller && controller.folderRows ? controller.folderRows.length : 0
+    readonly property var keyboardRows: [[editDeviceButton, copyIdButton], [deviceActionButton]]
 
     signal actionHovered(Item action)
-    signal openRequested
-    signal forgetRequested
-    signal errorDetailsRequested(string folderId)
-    signal rescanRequested
+    signal editRequested
+    signal pauseRequested(bool paused)
+
+    function formatRate(value) {
+        return controller.formatBytes(Math.max(0, Number(value || 0))) + "/s";
+    }
 
     implicitHeight: nameActions.implicitHeight + details.implicitHeight + Style.space(14)
     color: "transparent"
@@ -51,13 +44,13 @@ BorderSurface {
         anchors.top: parent.top
         spacing: Style.space(2)
 
-        TooltipButton {
-            id: openFolderButton
+        SharedWidgetTooltipButton {
+            id: editDeviceButton
             width: Math.min(implicitWidth, Math.max(Style.space(48), root.width - stateBadge.width - copyIdButton.width - nameActions.spacing - Style.space(8)))
             clip: true
-            iconText: "\uf07b"
-            text: String(root.folder.label || "Unnamed folder")
-            helpText: root.canOpen ? "Open " + String(root.folder.path || "") : "Folder unavailable"
+            iconText: "\uf108"
+            text: String(root.device.name || "Unnamed device")
+            helpText: "Open this device in the Web UI"
             bordered: true
             leftAlign: true
             foreground: root.foreground
@@ -66,22 +59,22 @@ BorderSurface {
             iconSize: Style.font.body
             horizontalPadding: Style.space(6)
             verticalPadding: Style.space(2)
-            enabled: root.canOpen
-            hasCursor: root.keyboardCursor === openFolderButton
+            enabled: root.online
+            hasCursor: root.keyboardCursor === editDeviceButton
             onHovered: function (hovered) {
                 if (hovered)
-                    root.actionHovered(openFolderButton);
+                    root.actionHovered(editDeviceButton);
             }
-            onClicked: root.openRequested()
+            onClicked: root.editRequested()
         }
 
-        IdCopyButton {
+        SharedWidgetIdCopyButton {
             id: copyIdButton
             variant: "panel"
-            size: openFolderButton.implicitHeight
-            value: String(root.folder.id || "")
-            notice: "Folder ID copied"
-            helpText: "Copy folder ID"
+            size: editDeviceButton.implicitHeight
+            value: String(root.device.id || "")
+            notice: "Remote device ID copied"
+            helpText: "Copy device ID"
             controller: root.controller
             foreground: root.foreground
             fontFamily: root.fontFamily
@@ -125,59 +118,44 @@ BorderSurface {
         anchors.right: parent.right
         anchors.top: nameActions.bottom
         anchors.leftMargin: Style.space(8)
-        anchors.rightMargin: folderActionButton.width + Style.space(14)
+        anchors.rightMargin: deviceActionButton.width + Style.space(14)
         anchors.topMargin: Style.space(6)
         spacing: Style.space(1)
 
-        ActivityText {
+        Text {
             width: parent.width
-            active: root.activityActive
-            dots: root.activityDots
-            detail: root.activityDetail
-            action: root.activityAction
-            syncColor: root.syncColor
-            removalColor: root.urgent
-            uploadColor: root.success
-            fontFamily: root.fontFamily
+            text: "\uf07b  " + root.sharedFolderCount + "/" + root.totalFolderCount + " folder" + (root.totalFolderCount === 1 ? "" : "s") + " shared"
+            textFormat: Text.PlainText
+            color: root.dim
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.caption
+            elide: Text.ElideRight
         }
 
         Row {
             width: parent.width
-            spacing: root.problem ? Style.space(4) : 0
+            spacing: Style.space(10)
 
             Text {
-                width: Math.max(0, parent.width - errorHint.width - parent.spacing)
-                text: root.meta
+                text: "\uf019  " + root.formatRate(root.device.downloadBps)
                 textFormat: Text.PlainText
-                color: root.problem ? root.urgent : root.dim
+                color: root.dim
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.caption
-                elide: Text.ElideRight
             }
 
-            Button {
-                id: errorHint
-                visible: root.problem
-                width: visible ? implicitWidth : 0
-                text: '(see "More" below)'
-                foreground: root.urgent
-                fontFamily: root.fontFamily
-                fontSize: Style.font.caption
-                horizontalPadding: 0
-                verticalPadding: 0
-                hasCursor: root.keyboardCursor === errorHint
-                onHovered: function (hovered) {
-                    if (hovered)
-                        root.actionHovered(errorHint);
-                }
-                onClicked: root.errorDetailsRequested(root.folder.id)
+            Text {
+                text: "\uf093  " + root.formatRate(root.device.uploadBps)
+                textFormat: Text.PlainText
+                color: root.dim
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.caption
             }
         }
 
         Text {
-            visible: root.canOpen
             width: parent.width
-            text: String(root.folder.path || "")
+            text: "\uf0e8  " + String(root.device.address || "Address unavailable")
             textFormat: Text.PlainText
             color: root.dim
             font.family: root.fontFamily
@@ -186,21 +164,21 @@ BorderSurface {
         }
     }
 
-    BusyButton {
-        id: folderActionButton
+    SharedWidgetBusyButton {
+        id: deviceActionButton
         z: 1
-        visible: root.folder
+        visible: root.device
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         width: implicitWidth
-        height: openFolderButton.height
-        iconText: root.folder.paused ? "󰅙" : "󰑐"
-        text: root.folder.paused ? "FORGET" : "RESCAN"
-        busyText: "RESCANNING"
-        busy: root.rescanning
-        tooltipText: root.folder.paused ? "Remove only this unlinked Syncthing configuration" : "Rescan this folder for local changes"
+        height: editDeviceButton.height
+        iconText: root.device.paused ? "\uf04b" : "\uf04c"
+        text: root.device.paused ? "RESUME" : "PAUSE"
+        busyText: root.device.paused ? "RESUMING" : "PAUSING"
+        busy: root.actionBusy
+        tooltipText: root.device.paused ? "Resume synchronization with this device" : "Pause synchronization with this device"
         bordered: true
-        foreground: root.folder.paused ? root.urgent : root.foreground
+        foreground: root.foreground
         busyForeground: root.warning
         fontFamily: root.fontFamily
         fontSize: Style.font.body
@@ -208,16 +186,11 @@ BorderSurface {
         horizontalPadding: Style.space(6)
         verticalPadding: Style.space(2)
         canActivate: root.online && !root.mutationBusy
-        hasCursor: root.keyboardCursor === folderActionButton
+        hasCursor: root.keyboardCursor === deviceActionButton
         onHovered: function (hovered) {
             if (hovered)
-                root.actionHovered(folderActionButton);
+                root.actionHovered(deviceActionButton);
         }
-        onClicked: {
-            if (root.folder.paused)
-                root.forgetRequested();
-            else
-                root.rescanRequested();
-        }
+        onClicked: root.pauseRequested(!root.device.paused)
     }
 }

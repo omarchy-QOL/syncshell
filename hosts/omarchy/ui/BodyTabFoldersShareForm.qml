@@ -63,7 +63,7 @@ Item {
         anchors.topMargin: 0
         spacing: Style.space(6)
 
-        InlineFormHeader {
+        BodyFormHeader {
             title: "SHARE " + String(root.folder && root.folder.label || "FOLDER")
             foreground: root.foreground
             cancelColor: root.urgent
@@ -83,7 +83,7 @@ Item {
             wrapMode: Text.WordWrap
         }
 
-        SyncshellMultiSelect {
+        SharedWidgetMultiSelect {
             id: devicePicker
             visible: options.length > 0
             width: parent.width

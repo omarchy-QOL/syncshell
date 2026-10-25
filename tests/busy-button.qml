@@ -25,7 +25,7 @@ ShellRoot {
                 anchors.centerIn: parent
                 spacing: 16
 
-                BusyButton {
+                SharedWidgetBusyButton {
                     id: button
                     text: "RESCAN"
                     busyText: "RESCANNING A LONG FOLDER LABEL"
@@ -36,7 +36,7 @@ ShellRoot {
                     onClicked: root.activations++
                 }
 
-                BusyButton {
+                SharedWidgetBusyButton {
                     id: pulseButton
                     text: "Refresh Sync.status"
                     busyText: "Rechecking Syncthing"
