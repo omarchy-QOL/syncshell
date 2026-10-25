@@ -15,13 +15,13 @@ ColumnLayout {
     Flow {
         Layout.fillWidth: true
         spacing: root.style.spacing
-        BusyButton {
+        SharedWidgetBusyButton {
             style: root.style
             text: "Web UI"
             enabled: root.host.service.online && !root.controller.blocked
             onClicked: root.host.service.openWebUi()
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             style: root.style
             text: "Rescan all"
             busyText: "Rescanning"
@@ -29,7 +29,7 @@ ColumnLayout {
             enabled: root.host.service.online && !root.controller.blocked
             onClicked: root.host.service.rescanAllFolders()
         }
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             style: root.style
             text: "Refresh"
             actionIcon: "refresh"
@@ -39,7 +39,7 @@ ColumnLayout {
             help: "Refresh status and recheck reported folder errors"
             onClicked: root.host.service.refreshStatus()
         }
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             objectName: "settings"
             style: root.style
             text: "Settings"
@@ -50,7 +50,7 @@ ColumnLayout {
             }
         }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: "Arrows / hjkl navigate · r refresh · w Web UI · p pause · s rescan · q close"

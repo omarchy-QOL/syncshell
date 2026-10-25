@@ -9,14 +9,14 @@ ColumnLayout {
     spacing: style.spacing
     enabled: !settings.saving
     Component.onCompleted: Qt.callLater(probe.focusControl)
-    InlineFormHeader {
+    BodyFormHeader {
         style: root.style
         title: "Syncshell settings"
         Layout.fillWidth: true
         onCanceled: root.settings.cancel()
     }
     RowLayout {
-        NativeText {
+        SharedWidgetNativeText {
             style: root.style
             text: "Monochrome icon"
             Layout.fillWidth: true
@@ -40,7 +40,7 @@ ColumnLayout {
             }
         }
     }
-    FormField {
+    SharedWidgetFormField {
         id: probe
         style: root.style
         Layout.fillWidth: true
@@ -49,7 +49,7 @@ ColumnLayout {
         text: String(root.settings.draft.probeIntervalSeconds || "")
         onEdited: value => root.settings.edit("probeIntervalSeconds", value)
     }
-    FormField {
+    SharedWidgetFormField {
         style: root.style
         Layout.fillWidth: true
         objectName: "settings-refresh"
@@ -57,7 +57,7 @@ ColumnLayout {
         text: String(root.settings.draft.refreshIntervalSeconds || "")
         onEdited: value => root.settings.edit("refreshIntervalSeconds", value)
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         style: root.style
         controller: root.host.controller
         Layout.fillWidth: true
@@ -80,20 +80,20 @@ ColumnLayout {
         ]
         onChosen: id => root.settings.edit("webUi", id)
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Saved choice"
         value: root.settings.values.webUi
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         objectName: "actual-webui-theme"
         style: root.style
         Layout.fillWidth: true
         label: "Selected theme"
         value: root.host.service.webUi.theme || "Unknown"
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         objectName: "reapply-profile"
         style: root.style
         text: "Apply selected choice again"
@@ -101,14 +101,14 @@ ColumnLayout {
         enabled: root.host.service.online && !root.host.controller.blocked
         onClicked: root.settings.save(root.style.palette, true)
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.host.paletteController.error
         tone: "danger"
         visible: text !== ""
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         objectName: "retry-palette"
         style: root.style
         text: "Retry host colors"
@@ -116,13 +116,13 @@ ColumnLayout {
         enabled: root.host.paletteController.selected && root.host.service.online && !root.host.controller.blocked
         onClicked: root.host.paletteController.retry()
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.settings.error
         visible: text !== ""
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: root.style
         objectName: "save-settings"
         text: "Save settings"
@@ -130,7 +130,7 @@ ColumnLayout {
         busyText: "Saving settings"
         onClicked: root.settings.save(root.style.palette)
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: root.style
         objectName: "cleanup-profiles"
         text: "Restore default and remove owned profiles"
@@ -140,7 +140,7 @@ ColumnLayout {
             root.host.controller.ask("webui.remove-profile", {}, "Clean up Syncshell Web UI profiles?", "Restore the default Syncthing Web UI, then remove only this adapter's owned profiles. Syncthing folders and configuration are kept.");
         }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: "Removal keeps private settings. First clean up profiles above, stop ii, then run: python3 ~/.config/quickshell/ii/syncshell/manage.py remove --target ~/.config/quickshell/ii --shell-stopped. See the host README for profile cleanup retry."

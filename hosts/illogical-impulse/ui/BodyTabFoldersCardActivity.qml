@@ -1,6 +1,6 @@
 import QtQuick
 
-NativeText {
+SharedWidgetNativeText {
     id: root
     objectName: "activity-" + folderId
     property var service

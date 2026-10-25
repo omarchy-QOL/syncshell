@@ -103,11 +103,11 @@ FocusScope {
             Layout.fillWidth: true
             visible: !root.side
             active: visible
-            sourceComponent: PanelFooter { host: root.host }
+            sourceComponent: FooterActions { host: root.host }
         }
     }
-    Component { id: mainBody; SyncthingPanelPopup { host: root.host } }
-    Component { id: sideBody; SideCardMenu { host: root.host } }
+    Component { id: mainBody; SyncshellPanelMain { host: root.host } }
+    Component { id: sideBody; BodyFormSideCard { host: root.host } }
     Connections {
         target: root.Window.window
         function onActiveFocusItemChanged() {

@@ -7,8 +7,8 @@ ColumnLayout {
     required property var controller
     RowLayout {
         Layout.fillWidth: true
-        FolderSelector { style: root.style; controller: root.controller; Layout.fillWidth: true }
-        SquareActionButton {
+        BodyTabFoldersSelector { style: root.style; controller: root.controller; Layout.fillWidth: true }
+        SharedWidgetSquareActionButton {
             objectName: "add-folder"
             style: root.style
             text: "Add folder"
@@ -20,7 +20,7 @@ ColumnLayout {
     }
     RowLayout {
         visible: root.controller.folder !== null
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "share-folder"
             style: root.style
             text: "Share"
@@ -28,7 +28,7 @@ ColumnLayout {
             enabled: root.controller.service.online && !root.controller.blocked
             onClicked: source => { root.controller.rememberTrigger(source); root.controller.shareFolder(root.controller.folder); }
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "folder-pause"
             style: root.style
             text: root.controller.folder && root.controller.folder.paused ? "Resume" : "Pause"
@@ -40,14 +40,14 @@ ColumnLayout {
                     (folder.paused ? "Resume " : "Pause ") + (folder.label || folder.id) + "?", folder.path);
             }
         }
-        NativeText { style: root.style; Layout.fillWidth: true; muted: true; text: root.controller.folderRows.length + " of " + root.controller.service.folders.length + " folders" }
+        SharedWidgetNativeText { style: root.style; Layout.fillWidth: true; muted: true; text: root.controller.folderRows.length + " of " + root.controller.service.folders.length + " folders" }
     }
     Loader {
         Layout.fillWidth: true
         active: root.controller.folder !== null
-        sourceComponent: FolderCard { style: root.style; controller: root.controller; folder: root.controller.folder }
+        sourceComponent: BodyTabFoldersCard { style: root.style; controller: root.controller; folder: root.controller.folder }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         visible: !root.controller.folder

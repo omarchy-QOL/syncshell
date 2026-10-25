@@ -7,14 +7,14 @@ ColumnLayout {
     required property var controller
     property bool accepting: false
     spacing: style.spacing
-    InlineFormHeader {
+    BodyFormHeader {
         style: root.style
         Layout.fillWidth: true
         title: root.accepting ? "Accept device" : "Add device"
         enabled: !root.controller.pending
         onCanceled: root.controller.discard()
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
@@ -28,14 +28,14 @@ ColumnLayout {
                 label: device.name || device.id, description: (device.addresses || []).join(", ")})))
         onChosen: id => root.controller.chooseDeviceSource(id)
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         visible: !root.accepting && root.controller.service.nearbyDevices.length === 0
         text: "No nearby devices discovered. Copy the device ID from the other peer and enter it manually."
         muted: true
     }
-    FormField {
+    SharedWidgetFormField {
         id: deviceId
         objectName: "device-id"
         style: root.style
@@ -47,21 +47,21 @@ ColumnLayout {
         onEdited: value => root.controller.edit("deviceId", value)
         onAccepted: root.controller.save()
     }
-    IdCopyButton {
+    SharedWidgetIdCopyButton {
             controller: root.controller
         objectName: "copy-request-device-id"
         style: root.style
         value: root.controller.draft.deviceId || ""
         visible: root.accepting
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Observed address"
         value: root.controller.draft.address || "Not reported"
         visible: root.accepting
     }
-    FormField {
+    SharedWidgetFormField {
         objectName: "device-name"
         style: root.style
         Layout.fillWidth: true
@@ -71,13 +71,13 @@ ColumnLayout {
         onEdited: value => root.controller.edit("deviceName", value)
         onAccepted: root.controller.save()
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: "Add this device on the other peer to complete the connection. Share folders separately."
         muted: true
     }
-    NativeText {
+    SharedWidgetNativeText {
         objectName: "device-validation"
         style: root.style
         Layout.fillWidth: true
@@ -85,7 +85,7 @@ ColumnLayout {
         visible: text !== ""
         tone: "warning"
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         objectName: "save-device"
         style: root.style
         text: root.accepting ? "Accept device" : "Add device"

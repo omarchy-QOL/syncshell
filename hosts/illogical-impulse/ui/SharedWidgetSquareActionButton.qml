@@ -1,5 +1,5 @@
 import QtQuick
 
-BusyButton {
+SharedWidgetBusyButton {
     iconOnly: true
 }

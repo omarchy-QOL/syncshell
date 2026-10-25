@@ -7,14 +7,14 @@ RowLayout {
     property string label: ""
     property string value: ""
     property string tone: "foreground"
-    NativeText {
+    SharedWidgetNativeText {
         style: parent.style
         Layout.preferredWidth: 96
         Layout.alignment: Qt.AlignTop
         text: parent.label
         muted: true
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: parent.style
         text: parent.value
         tone: parent.tone

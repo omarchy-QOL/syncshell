@@ -7,19 +7,19 @@ ColumnLayout {
     required property var controller
     readonly property var service: controller.service
     spacing: style.spacing
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: "Invitations · " + root.service.pendingDevices.length + " devices · " + root.controller.offerRows.length + " folders"
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: "No pending invitations"
         muted: true
         visible: root.service.pendingDevices.length === 0 && root.controller.offerRows.length === 0
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
@@ -33,7 +33,7 @@ ColumnLayout {
     }
     RowLayout {
         visible: root.controller.pendingDevice !== null
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "accept-pending-device"
             style: root.style
             text: "Accept device"
@@ -43,7 +43,7 @@ ColumnLayout {
                 root.controller.addDevice(root.controller.pendingDevice, true);
             }
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "dismiss-pending-device"
             style: root.style
             text: "Dismiss"
@@ -56,7 +56,7 @@ ColumnLayout {
             }
         }
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
@@ -67,14 +67,14 @@ ColumnLayout {
         options: root.controller.offerRows
         onChosen: id => root.controller.pendingOfferId = id
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         visible: root.controller.selectedOffer !== null
         text: root.controller.selectedOffer ? root.controller.selectedOffer.description : ""
         muted: true
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         visible: !!root.controller.selectedOffer && root.controller.selectedOffer.offer.encrypted
@@ -83,7 +83,7 @@ ColumnLayout {
     }
     RowLayout {
         visible: root.controller.selectedOffer !== null
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "accept-pending-folder"
             style: root.style
             text: root.controller.selectedOffer && root.controller.selectedOffer.offer.encrypted ? "Open Web UI" : "Accept folder"
@@ -93,7 +93,7 @@ ColumnLayout {
                 root.controller.addFolder(root.controller.selectedOffer.offer);
             }
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "dismiss-pending-folder"
             style: root.style
             text: "Dismiss"

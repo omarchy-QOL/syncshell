@@ -43,12 +43,12 @@ ShellRoot {
         visible: true
         width: 900; height: 900
         color: fixtureHost.style.background
-        UI.PanelPane { id: main; host: fixtureHost; x: 12; y: 12; width: 430; height: 870 }
+        UI.SyncshellPanelPopup { id: main; host: fixtureHost; x: 12; y: 12; width: 430; height: 870 }
         Loader {
             id: side
             x: 460; y: 12; width: 420; height: 870
             active: controller.formVisible || controller.confirmationVisible || settings.opened
-            sourceComponent: UI.PanelPane { host: fixtureHost; side: true }
+            sourceComponent: UI.SyncshellPanelPopup { host: fixtureHost; side: true }
         }
         TestCase { id: input; when: false }
     }

@@ -7,14 +7,14 @@ ColumnLayout {
     required property var style
     required property var controller
     readonly property var service: controller.service
-    InlineFormHeader {
+    BodyFormHeader {
         style: root.style
         Layout.fillWidth: true
         title: "Device folders"
         enabled: !root.controller.pending
         onCanceled: root.controller.discard()
     }
-    SyncshellMultiSelect {
+    SharedWidgetMultiSelect {
         id: choices
         enabled: !root.controller.blocked
         style: root.style
@@ -27,7 +27,7 @@ ColumnLayout {
         options: Model.deviceFolderOptions(root.service.folders, root.service.device(root.controller.draft.deviceId), root.service.online && root.service.connection.fresh, false)
         onChanged: ids => root.controller.edit("folderIds", ids)
     }
-    SyncshellMultiSelect {
+    SharedWidgetMultiSelect {
         style: root.style
         controller: root.controller
         enabled: !root.controller.blocked
@@ -39,12 +39,12 @@ ColumnLayout {
         options: Model.deviceFolderOptions(root.service.folders, root.service.device(root.controller.draft.deviceId), root.service.online && root.service.connection.fresh, true)
         onChanged: ids => root.controller.edit("folderIds", ids)
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: "Unchecked folders stop sharing with this device. Add new shares from a folder's Share action."
     }
-    NativeText {
+    SharedWidgetNativeText {
         objectName: "sharing-change-summary"
         style: root.style
         Layout.fillWidth: true
@@ -52,7 +52,7 @@ ColumnLayout {
         text: root.controller.noSharingChange ? "No shares selected for removal"
             : root.controller.removedShareIds.length + " shares will be removed; files are kept"
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: root.style
         objectName: "save-sharing"
         text: "Save sharing"

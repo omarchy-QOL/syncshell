@@ -10,31 +10,31 @@ ColumnLayout {
     readonly property var service: controller.service
     readonly property var displayStatus: Model.deviceDisplay(device, service.online && service.connection.fresh)
     spacing: style.spacing
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.device.name || root.device.id
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Status"
         value: root.displayStatus.label
         tone: root.displayStatus.role
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Address"
         value: root.device.address || "Unknown"
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Transfer"
         value: "Down " + Model.bytes(root.device.downloadBps) + "/s · Up " + Model.bytes(root.device.uploadBps) + "/s"
     }
-    IdCopyButton {
+    SharedWidgetIdCopyButton {
             controller: root.controller
         style: root.style
         value: root.device.id
@@ -42,7 +42,7 @@ ColumnLayout {
     Flow {
         Layout.fillWidth: true
         spacing: 4
-        BusyButton {
+        SharedWidgetBusyButton {
             style: root.style
             objectName: "device-pause"
             text: root.device.paused ? "Resume" : "Pause"
@@ -54,7 +54,7 @@ ColumnLayout {
                 }, (root.device.paused ? "Resume " : "Pause ") + root.device.name + "?", root.device.id);
             }
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             style: root.style
             text: "Web UI"
             enabled: root.service.online && !root.controller.blocked
@@ -63,7 +63,7 @@ ColumnLayout {
             }, "", root.device.id)
         }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.displayStatus.help
@@ -71,7 +71,7 @@ ColumnLayout {
     }
     Repeater {
         model: root.service.folders.filter(folder => (folder.devices || []).some(member => member.id === root.device.id))
-        NativeText {
+        SharedWidgetNativeText {
             required property var modelData
             style: root.style
             Layout.fillWidth: true

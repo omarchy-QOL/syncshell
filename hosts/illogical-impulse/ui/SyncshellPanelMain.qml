@@ -8,7 +8,7 @@ ColumnLayout {
     readonly property var controller: host.controller
     readonly property var service: host.service
     spacing: style.spacing
-    PanelStatus {
+    Header {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
@@ -29,35 +29,35 @@ ColumnLayout {
             }
         }
     }
-    FolderOverview {
+    BodyTabFolders {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
         visible: root.controller.tab === "folders"
     }
-    RemoteDevices {
+    BodyTabDevices {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
         visible: root.controller.tab === "devices"
     }
-    PendingInvitations {
+    BodyInvitations {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: root.style
         text: root.controller.more ? "Less" : "More"
         onClicked: root.controller.more = !root.controller.more
     }
-    MoreDetails {
+    BodyMore {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
         visible: root.controller.more
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         objectName: "connection-error"
@@ -65,13 +65,13 @@ ColumnLayout {
         text: root.service.lastError
         visible: text !== ""
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.service.actionNotice
         visible: text !== ""
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: root.style
         text: root.controller.confirmation ? "Resume confirmation" : "Resume draft"
         visible: root.controller.confirmation !== null || root.controller.view !== "" && !root.controller.formVisible

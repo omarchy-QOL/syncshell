@@ -13,7 +13,7 @@ Item {
     Loader {
         anchors.fill: parent
         active: root.host !== null && root.host.style !== null
-        sourceComponent: BusyButton {
+        sourceComponent: SharedWidgetBusyButton {
             style: root.host.style
             text: ""
             accessibleLabel: "Syncshell"
@@ -21,7 +21,7 @@ Item {
             selected: root.host.opened
             onClicked: root.host.toggle(root)
             onAlternate: root.host.toggle(root)
-            MonoIcon {
+            SharedWidgetMonoIcon {
                 style: root.host.style
                 monochrome: root.host.settings.values.monochrome
                 anchors.centerIn: parent

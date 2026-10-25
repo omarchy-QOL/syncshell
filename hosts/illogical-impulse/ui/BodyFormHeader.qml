@@ -5,12 +5,12 @@ RowLayout {
     required property var style
     property string title: ""
     signal canceled
-    NativeText {
+    SharedWidgetNativeText {
         style: parent.style
         text: parent.title
         Layout.fillWidth: true
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: parent.style
         text: "Cancel"
         onClicked: parent.canceled()

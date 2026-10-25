@@ -8,7 +8,7 @@ ColumnLayout {
     required property var controller
     RowLayout {
         Layout.fillWidth: true
-        SyncshellDropdown {
+        SharedWidgetDropdown {
             style: root.style
             controller: root.controller
             Layout.fillWidth: true
@@ -22,7 +22,7 @@ ColumnLayout {
             })
             onChosen: id => root.controller.deviceId = id
         }
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             objectName: "add-device"
             style: root.style
             text: "Add device"
@@ -36,7 +36,7 @@ ColumnLayout {
     }
     RowLayout {
         visible: root.controller.device !== null
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "folders"
             style: root.style
             text: "Folders"
@@ -47,7 +47,7 @@ ColumnLayout {
                 root.controller.deviceFolders(root.controller.device);
             }
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "remove-device"
             style: root.style
             text: "Remove"
@@ -64,13 +64,13 @@ ColumnLayout {
     Loader {
         Layout.fillWidth: true
         active: root.controller.device !== null
-        sourceComponent: DeviceCard {
+        sourceComponent: BodyTabDevicesCard {
             style: root.style
             controller: root.controller
             device: root.controller.device
         }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         visible: !root.controller.device

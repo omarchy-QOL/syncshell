@@ -77,7 +77,7 @@ Scope {
                 value: mainPane.footerHeight + root.style.margin + root.style.spacing / 2
             }
         }
-        PanelPane {
+        SyncshellPanelPopup {
             id: mainPane
             host: root.host
             anchors.fill: parent
@@ -106,7 +106,7 @@ Scope {
             anchors.margins: 6
             sourceComponent: root.style.surfaceComponent
         }
-        PanelPane {
+        SyncshellPanelPopup {
             id: sidePane
             host: root.host
             side: true
@@ -135,7 +135,7 @@ Scope {
                 root.controller.restoreTrigger();
         }
     }
-    DirectoryPicker {
+    BodyTabFoldersAddFormPicker {
         controller: root.controller
         parentWindow: side.contentItem.Window.window
         onOpening: {

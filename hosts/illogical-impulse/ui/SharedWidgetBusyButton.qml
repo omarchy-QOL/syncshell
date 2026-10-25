@@ -61,7 +61,7 @@ Item {
     Binding { target: root.item; property: "contentColor"; value: root.style.colorFor(root.tone) }
     Binding { target: root.item; property: "destructive"; value: root.tone === "danger" }
     Binding { target: root.item; property: "selectionState"; value: root.selectionState; when: !root.iconOnly }
-    DisabledHelp {
+    SharedWidgetDisabledHelp {
         control: root
         style: root.style
         text: root.disabledReason || root.help

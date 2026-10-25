@@ -1,5 +1,5 @@
 import QtQuick
 
-AddRemoteDeviceForm {
+BodyTabDevicesAddForm {
     accepting: true
 }

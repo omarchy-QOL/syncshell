@@ -1,6 +1,6 @@
 import QtQuick
 
-SyncshellDropdown {
+SharedWidgetDropdown {
     id: root
     selectorKey: "folder"
     options: controller.folderRows
@@ -9,7 +9,7 @@ SyncshellDropdown {
     help: "Select a configured folder, including local-only folders"
     onChosen: id => controller.folderId = id
     headerAccessory: Component {
-        BusyButton {
+        SharedWidgetBusyButton {
             objectName: "folder-view-options"
             style: root.style
             text: "View"
@@ -18,5 +18,5 @@ SyncshellDropdown {
             onClicked: root.controller.viewOptionsOpen = !root.controller.viewOptionsOpen
         }
     }
-    optionsContent: Component { FolderViewOptions { style: root.style; controller: root.controller } }
+    optionsContent: Component { BodyTabFoldersViewOptions { style: root.style; controller: root.controller } }
 }

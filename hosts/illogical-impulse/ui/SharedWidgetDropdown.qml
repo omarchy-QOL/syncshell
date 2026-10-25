@@ -121,7 +121,7 @@ Item {
         else popup.close();
     }
     Component.onCompleted: if (expanded) popup.open()
-    BusyButton {
+    SharedWidgetBusyButton {
         id: trigger
         objectName: root.selectorKey + "-trigger"
         anchors.fill: parent
@@ -160,7 +160,7 @@ Item {
             Keys.onPressed: event => root.handleKey(event)
             RowLayout {
                 Layout.fillWidth: true
-                NativeField {
+                SharedWidgetNativeField {
                     id: search
                     objectName: root.selectorKey + "-search"
                     style: root.style
@@ -199,14 +199,14 @@ Item {
                     sourceComponent: root.optionsContent
                 }
             }
-            NativeText {
+            SharedWidgetNativeText {
                 style: root.style
                 visible: !root.controller.viewOptionsOpen
                 Layout.fillWidth: true
                 muted: true
                 text: root.filtered.length + " of " + root.options.length + " results"
             }
-            BusyButton {
+            SharedWidgetBusyButton {
                 objectName: root.selectorKey + "-all"
                 style: root.style
                 visible: root.multiple && !root.controller.viewOptionsOpen
@@ -232,7 +232,7 @@ Item {
                 Binding { target: list.item; property: "activeFocusOnTab"; value: true }
                 Keys.onPressed: event => root.handleKey(event)
             }
-            NativeText {
+            SharedWidgetNativeText {
                 objectName: root.selectorKey + "-empty"
                 style: root.style
                 visible: root.filtered.length === 0

@@ -8,7 +8,7 @@ ColumnLayout {
     required property var controller
     readonly property var service: controller.service
     RowLayout {
-        MonoIcon {
+        SharedWidgetMonoIcon {
             style: root.style
             Layout.preferredWidth: root.style.controlHeight + 8
             Layout.preferredHeight: Layout.preferredWidth
@@ -16,33 +16,33 @@ ColumnLayout {
             source: Qt.resolvedUrl("../../../assets/" + (monochrome ? "mono/" : "")
                 + "status-" + Model.iconVariant(root.service) + ".svg")
         }
-        NativeText {
+        SharedWidgetNativeText {
             style: root.style
             text: "Syncshell"
             Layout.fillWidth: true
         }
-        IdCopyButton {
+        SharedWidgetIdCopyButton {
             controller: root.controller
             style: root.style
             value: root.service.localDeviceId
         }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.service.deviceName(root.service.localDeviceId) || "This device"
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.service.summaryText
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.service.folderCount + " folders · " + root.service.connectedDeviceCount + "/" + root.service.deviceCount + " devices connected"
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         objectName: "tracked-totals"
@@ -50,7 +50,7 @@ ColumnLayout {
         value: root.controller.tracked.files + " files · " + Model.bytes(root.controller.tracked.bytes)
             + (root.service.online && root.service.connection.fresh ? "" : " (last reported)")
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         id: serviceChoice
         style: root.style
         controller: root.controller
@@ -87,7 +87,7 @@ ColumnLayout {
             root.controller.ask("lifecycle." + id, {}, id + " Syncthing?", "Applies only to the verified syncthing.service user unit.");
         }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         visible: !root.service.canControlService

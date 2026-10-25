@@ -129,15 +129,15 @@ ShellRoot {
             id: main
             x: 12; y: 12; width: Math.min(420, window.width - 24); height: window.height - 30
             active: root.presented
-            sourceComponent: UI.PanelPane { host: fixtureHost }
+            sourceComponent: UI.SyncshellPanelPopup { host: fixtureHost }
         }
         Loader {
             id: side
             x: 450; y: 12; width: 380; height: 770
             active: root.presented && (controller.formVisible || controller.confirmationVisible || settings.opened)
-            sourceComponent: UI.PanelPane { host: fixtureHost; side: true }
+            sourceComponent: UI.SyncshellPanelPopup { host: fixtureHost; side: true }
         }
-        UI.DirectoryPicker { id: picker; controller: controller; parentWindow: window }
+        UI.BodyTabFoldersAddFormPicker { id: picker; controller: controller; parentWindow: window }
         Syncshell.IllogicalBarEntry { id: bar; x: window.width - 40; y: window.height - 40 }
         TestCase { id: input; when: false }
     }

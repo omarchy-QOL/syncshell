@@ -12,31 +12,31 @@ ColumnLayout {
         service.busy && service._actionName === "folder.rescan" && service._actionTargetId === folder.id)
     readonly property var status: folder.status || ({})
     spacing: style.spacing
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.folder.label || Model.basename(root.folder.path)
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Status"
         value: root.displayStatus.label
         tone: root.displayStatus.role
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Path"
         value: root.folder.path
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Contents"
         value: (root.status.globalFiles || 0) + " files · " + Model.bytes(root.status.globalBytes)
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Remaining"
@@ -53,7 +53,7 @@ ColumnLayout {
             value: Math.max(0, 1 - Number(root.status.needBytes || 0) / Math.max(1, Number(root.status.globalBytes || 1)))
         }
     }
-    ActivityText {
+    BodyTabFoldersCardActivity {
         style: root.style
         service: root.service
         folderId: root.folder.id
@@ -61,7 +61,7 @@ ColumnLayout {
     }
     Repeater {
         model: root.folder.devices || []
-        NativeText {
+        SharedWidgetNativeText {
             required property var modelData
             style: root.style
             Layout.fillWidth: true
@@ -71,20 +71,20 @@ ColumnLayout {
             tone: share.role
         }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.displayStatus.help
         muted: true
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: (root.folder.devices || []).filter(row => row.id !== root.service.localDeviceId).length
             ? "Shared with remote devices listed above" : "Local only: no remote devices selected"
         muted: true
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         objectName: "folder-errors"
         style: root.style
         text: "Show affected paths and errors"
@@ -95,7 +95,7 @@ ColumnLayout {
     Flow {
         Layout.fillWidth: true
         spacing: 4
-        BusyButton {
+        SharedWidgetBusyButton {
             style: root.style
             text: "Rescan"
             enabled: root.service.online && !root.folder.paused && !root.controller.blocked
@@ -103,17 +103,17 @@ ColumnLayout {
             busyText: "Rescanning"
             onClicked: root.service.rescanFolder(root.folder.id)
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             style: root.style
             text: "Open"
             onClicked: Qt.openUrlExternally("file://" + root.folder.path.split("/").map(encodeURIComponent).join("/"))
         }
-        IdCopyButton {
+        SharedWidgetIdCopyButton {
             controller: root.controller
             style: root.style
             value: root.folder.id
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             style: root.style
             text: "Forget"
             enabled: root.folder.paused === true && root.service.online && !root.controller.blocked
@@ -127,7 +127,7 @@ ColumnLayout {
             }
         }
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.status.error || ""
@@ -135,14 +135,14 @@ ColumnLayout {
     }
     Repeater {
         model: root.status.errors || []
-        NativeText {
+        SharedWidgetNativeText {
             required property var modelData
             style: root.style
             Layout.fillWidth: true
             text: modelData.path + ": " + modelData.error
         }
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: root.style
         text: "Recheck errors"
         visible: Model.folderGroup(root.folder, true) === "errors"

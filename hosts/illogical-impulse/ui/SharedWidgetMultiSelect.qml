@@ -1,5 +1,5 @@
 import QtQuick
 
-SyncshellDropdown {
+SharedWidgetDropdown {
     multiple: true
 }

@@ -9,7 +9,7 @@ ColumnLayout {
     readonly property bool fresh: service.online && service.connection.fresh
     objectName: "diagnostics"
     spacing: style.spacing
-    NativeText {
+    SharedWidgetNativeText {
         objectName: "diagnostic-summary"
         style: root.style
         Layout.fillWidth: true
@@ -25,19 +25,19 @@ ColumnLayout {
             required property var modelData
             objectName: "diagnostic-" + modelData.id
             Layout.fillWidth: true
-            NativeText {
+            SharedWidgetNativeText {
                 style: root.style
                 Layout.fillWidth: true
                 text: diagnostic.modelData.label + " · " + diagnostic.modelData.id
                 tone: "danger"
             }
-            InfoPair {
+            SharedWidgetInfoPair {
                 style: root.style
                 Layout.fillWidth: true
                 label: "Affected"
                 value: diagnostic.modelData.path
             }
-            NativeText {
+            SharedWidgetNativeText {
                 style: root.style
                 Layout.fillWidth: true
                 text: diagnostic.modelData.reason
@@ -46,7 +46,7 @@ ColumnLayout {
             }
             Repeater {
                 model: diagnostic.modelData.errors
-                NativeText {
+                SharedWidgetNativeText {
                     required property var modelData
                     style: root.style
                     Layout.fillWidth: true
@@ -54,7 +54,7 @@ ColumnLayout {
                     tone: "danger"
                 }
             }
-            NativeText {
+            SharedWidgetNativeText {
                 objectName: "diagnostic-count-" + diagnostic.modelData.id
                 style: root.style
                 Layout.fillWidth: true
@@ -65,38 +65,38 @@ ColumnLayout {
             }
         }
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Freshness"
         value: root.fresh ? "Current" : "Stale / unavailable"
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Endpoint"
         value: root.service.connection.endpoint || "Discovering"
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Version"
         value: root.service.identity.version || "Unknown"
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         style: root.style
         Layout.fillWidth: true
         label: "Installation"
         value: root.service.installation.executablePath || "Not detected"
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         objectName: "installation-help"
         style: root.style
         text: "Installation help"
         help: "Syncthing installation is managed outside this plugin"
         onClicked: Qt.openUrlExternally("https://docs.syncthing.net/intro/getting-started.html")
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         muted: true
@@ -104,14 +104,14 @@ ColumnLayout {
             ? "For an incomplete installation, repair Syncthing using your system package manager. Externally managed services must be started by their owner."
             : "Install Syncthing using your system package manager, then refresh. This plugin does not install system packages."
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.service.lifecycle.error || ""
         visible: text !== ""
         tone: "danger"
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: Object.keys(root.service.truncation).length ? "Some results were truncated. Open Web UI for the complete list." : ""

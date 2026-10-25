@@ -7,13 +7,13 @@ ColumnLayout {
     required property var style
     required property var controller
     readonly property var allGroups: ["ready", "active", "errors", "paused", "unknown"]
-    NativeText { style: root.style; text: "Show folders"; Layout.fillWidth: true }
+    SharedWidgetNativeText { style: root.style; text: "Show folders"; Layout.fillWidth: true }
     GridLayout {
         columns: 2
         Layout.fillWidth: true
         Repeater {
             model: ["all"].concat(root.allGroups)
-            BusyButton {
+            SharedWidgetBusyButton {
                 required property string modelData
                 objectName: "group-" + modelData
                 style: root.style
@@ -29,10 +29,10 @@ ColumnLayout {
             }
         }
     }
-    NativeText { style: root.style; text: "Sort"; Layout.fillWidth: true }
+    SharedWidgetNativeText { style: root.style; text: "Sort"; Layout.fillWidth: true }
     Repeater {
         model: [{id: "name", label: "Name A-Z"}, {id: "active", label: "Active first"}, {id: "errors", label: "Errors first"}]
-        BusyButton {
+        SharedWidgetBusyButton {
             required property var modelData
             objectName: "sort-" + modelData.id
             Layout.fillWidth: true
@@ -43,7 +43,7 @@ ColumnLayout {
         }
     }
     RowLayout {
-        BusyButton { objectName: "reset-view"; style: root.style; text: "Reset defaults"; onClicked: root.controller.resetView() }
-        BusyButton { objectName: "view-options-back"; style: root.style; text: "Back"; onClicked: root.controller.viewOptionsOpen = false }
+        SharedWidgetBusyButton { objectName: "reset-view"; style: root.style; text: "Reset defaults"; onClicked: root.controller.resetView() }
+        SharedWidgetBusyButton { objectName: "view-options-back"; style: root.style; text: "Back"; onClicked: root.controller.viewOptionsOpen = false }
     }
 }

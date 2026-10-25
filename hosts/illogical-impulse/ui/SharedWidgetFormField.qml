@@ -14,8 +14,8 @@ ColumnLayout {
     signal accepted
     spacing: style.spacing / 2
     function focusControl() { input.focusControl(); }
-    NativeText { style: root.style; text: root.label; Layout.fillWidth: true }
-    NativeField {
+    SharedWidgetNativeText { style: root.style; text: root.label; Layout.fillWidth: true }
+    SharedWidgetNativeField {
         id: input
         objectName: root.objectName + "-input"
         style: root.style
@@ -24,5 +24,5 @@ ColumnLayout {
         onEdited: value => root.edited(value)
         onAccepted: root.accepted()
     }
-    NativeText { style: root.style; text: root.help; visible: text !== ""; muted: true; Layout.fillWidth: true }
+    SharedWidgetNativeText { style: root.style; text: root.help; visible: text !== ""; muted: true; Layout.fillWidth: true }
 }

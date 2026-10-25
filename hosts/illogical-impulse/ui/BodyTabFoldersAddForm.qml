@@ -9,14 +9,14 @@ ColumnLayout {
     readonly property var service: controller.service
     readonly property bool accepting: !!controller.draft.pendingDeviceId
     spacing: style.spacing
-    InlineFormHeader {
+    BodyFormHeader {
         style: root.style
         Layout.fillWidth: true
         title: root.accepting ? "Accept folder invitation" : "Add folder"
         enabled: !root.controller.pending
         onCanceled: root.controller.discard()
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
@@ -29,14 +29,14 @@ ColumnLayout {
         help: "Choose the exact folder and offering device. Encrypted offers require the Web UI."
         onChosen: id => root.controller.chooseFolderOffer(id)
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: root.style
         text: "Open Web UI for encrypted invitations"
         visible: root.controller.offerRows.some(row => row.offer.encrypted)
         enabled: root.service.online && !root.controller.blocked
         onClicked: root.service.openWebUi()
     }
-    FormField {
+    SharedWidgetFormField {
         id: path
         objectName: "folder-path"
         style: root.style
@@ -49,14 +49,14 @@ ColumnLayout {
         onEdited: value => root.controller.edit("path", value)
         onAccepted: root.controller.save()
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         objectName: "browse-directory"
         style: root.style
         text: "Browse directory"
         enabled: !root.controller.blocked
         onClicked: root.controller.browseRequested()
     }
-    FormField {
+    SharedWidgetFormField {
         objectName: "folder-id"
         style: root.style
         Layout.fillWidth: true
@@ -68,7 +68,7 @@ ColumnLayout {
         onEdited: value => root.controller.edit("folderId", value)
         onAccepted: root.controller.save()
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         objectName: "new-folder-id"
         style: root.style
         text: "New ID"
@@ -77,7 +77,7 @@ ColumnLayout {
         enabled: root.service.online && !root.controller.blocked
         onClicked: root.controller.generateFolderId()
     }
-    NativeText {
+    SharedWidgetNativeText {
         objectName: "folder-preparation-error"
         style: root.style
         Layout.fillWidth: true
@@ -85,7 +85,7 @@ ColumnLayout {
         visible: text !== ""
         tone: "danger"
     }
-    FormField {
+    SharedWidgetFormField {
         objectName: "folder-label"
         style: root.style
         Layout.fillWidth: true
@@ -96,7 +96,7 @@ ColumnLayout {
         onEdited: value => root.controller.edit("label", value)
         onAccepted: root.controller.save()
     }
-    SyncshellMultiSelect {
+    SharedWidgetMultiSelect {
         style: root.style
         controller: root.controller
         Layout.fillWidth: true
@@ -109,7 +109,7 @@ ColumnLayout {
         enabled: !root.controller.blocked
         onChanged: ids => root.controller.edit("deviceIds", ids)
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         muted: true
@@ -117,7 +117,7 @@ ColumnLayout {
             : (root.controller.draft.deviceIds || []).length ? "Selected peers receive a sharing offer; they must accept it."
             : "Local only: no remote device will receive this folder until you choose one."
     }
-    NativeText {
+    SharedWidgetNativeText {
         objectName: "folder-validation"
         style: root.style
         Layout.fillWidth: true
@@ -125,7 +125,7 @@ ColumnLayout {
         visible: text !== ""
         tone: "warning"
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         objectName: "save-folder"
         style: root.style
         text: root.accepting ? "Accept folder" : "Add folder"

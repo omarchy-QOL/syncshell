@@ -5,19 +5,19 @@ ColumnLayout {
     id: root
     required property var style
     required property var controller
-    InlineFormHeader {
+    BodyFormHeader {
         style: root.style
         Layout.fillWidth: true
         title: "Folder sharing"
         enabled: !root.controller.pending
         onCanceled: root.controller.discard()
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.controller.draft.folderId || ""
     }
-    SyncshellMultiSelect {
+    SharedWidgetMultiSelect {
         id: choices
         enabled: !root.controller.blocked
         style: root.style
@@ -33,12 +33,12 @@ ColumnLayout {
                 }))
         onChanged: ids => root.controller.edit("deviceIds", ids)
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: "Clear every selection to stop sharing with all remote devices. Files remain on each device."
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         muted: true
@@ -47,7 +47,7 @@ ColumnLayout {
             : (root.controller.draft.deviceIds || []).length === 0 ? "Local only: this folder is not shared with a remote device."
             : "Newly selected devices receive an invitation and must accept it."
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         style: root.style
         objectName: "save-sharing"
         text: "Save sharing"

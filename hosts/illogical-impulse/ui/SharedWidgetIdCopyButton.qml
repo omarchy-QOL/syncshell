@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
 
-BusyButton {
+SharedWidgetBusyButton {
     id: root
     required property var controller
     property string value: ""

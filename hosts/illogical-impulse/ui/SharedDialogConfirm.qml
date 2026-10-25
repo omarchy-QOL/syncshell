@@ -5,18 +5,18 @@ ColumnLayout {
     id: root
     required property var style
     required property var controller
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.controller.confirmation ? root.controller.confirmation.title : ""
     }
-    NativeText {
+    SharedWidgetNativeText {
         style: root.style
         Layout.fillWidth: true
         text: root.controller.confirmation ? root.controller.confirmation.detail : ""
     }
     RowLayout {
-        BusyButton {
+        SharedWidgetBusyButton {
             id: cancel
             objectName: "confirmation-cancel"
             style: root.style
@@ -24,7 +24,7 @@ ColumnLayout {
             enabled: !root.controller.pending
             onClicked: root.controller.cancelConfirmation()
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             style: root.style
             objectName: "confirmation-submit"
             text: root.controller.confirmation ? root.controller.confirmation.presentation.label : "Confirm"

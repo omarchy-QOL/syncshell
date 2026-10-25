@@ -140,16 +140,16 @@ edits inside the installed payload intentionally cause checksum conflicts.
 
 Paths below are relative to `hosts/illogical-impulse/`.
 
-| Responsibility            | Files                                               |
-| ------------------------- | --------------------------------------------------- |
-| Lifetime and integration  | `IllogicalHost.qml`, `IllogicalService.qml`         |
-| Focus and picker          | `IllogicalPanel.qml`, `ui/DirectoryPicker.qml`      |
-| Geometry and navigation   | `models/PanelModel.js`, `models/PanelNavigation.js` |
-| Drafts and action targets | `controllers/PanelController.qml`                   |
-| Private settings          | `controllers/SettingsController.qml`                |
-| Palette refresh           | `controllers/ThemePaletteController.qml`            |
-| Views and forms           | Responsibility-named files under `ui/`              |
-| Native controls/chrome    | `ui/ii/`, `ui/waffle/`                              |
+| Responsibility            | Files                                                      |
+| ------------------------- | ---------------------------------------------------------- |
+| Lifetime and integration  | `IllogicalHost.qml`, `IllogicalService.qml`                |
+| Focus and picker          | `IllogicalPanel.qml`, `ui/BodyTabFoldersAddFormPicker.qml` |
+| Geometry and navigation   | `models/PanelModel.js`, `models/PanelNavigation.js`        |
+| Drafts and action targets | `controllers/PanelController.qml`                          |
+| Private settings          | `controllers/SettingsController.qml`                       |
+| Palette refresh           | `controllers/ThemePaletteController.qml`                   |
+| Views and forms           | Responsibility-named files under `ui/`                     |
+| Native controls/chrome    | `ui/ii/`, `ui/waffle/`                                     |
 
 Controllers and workflow layouts are shared within this adapter. Small native
 control components retain each family's actual APIs, icons, typography,
