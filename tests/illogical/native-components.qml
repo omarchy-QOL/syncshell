@@ -146,6 +146,13 @@ ShellRoot {
     function check(value, message) {
         if (!value) { console.error("[fail] " + fixtureHost.style.family + " step " + step + ": " + message); Qt.exit(1); throw Error(message); }
     }
+    // Focus and filtering settle on later event-loop turns, which can exceed
+    // the step interval on a loaded machine; the condition must still hold.
+    function settle(condition, message) {
+        for (let waited = 0; !condition() && waited < 2000; waited += 20)
+            input.wait(20);
+        check(condition(), message);
+    }
     function item(name) {
         var value = input.findChild(window.contentItem, name);
         check(value !== null, "find production control " + name);
@@ -165,7 +172,7 @@ ShellRoot {
     function edit(name, value) {
         var control = item(name);
         control.focusControl();
-        input.wait(30);
+        settle(() => control.item.activeFocus, "editor owns keyboard focus: " + name);
         input.keyClick(Qt.Key_A, Qt.ControlModifier);
         check(control.item.selectedText.length === control.item.text.length, "Ctrl+A selects editor contents: " + name);
         input.keyClick(Qt.Key_Backspace);
@@ -188,18 +195,18 @@ ShellRoot {
             input.wait(300);
             input.mouseMove(disabled, disabled.width / 2, disabled.height / 2);
             input.wait(500);
-            check(item("forget-disabled-tooltip").item.visible, "disabled Forget explains pause precondition");
+            settle(() => item("forget-disabled-tooltip").item.visible, "disabled Forget explains pause precondition");
             input.mouseMove(window.contentItem, window.width - 5, 5);
             oldHeight = main.item.implicitHeight;
             click("folder-trigger");
         },
         () => {
-            check(item("folder").popupItem.visible, "anchored menu visible");
+            settle(() => item("folder").popupItem.visible, "anchored menu visible");
             check(main.item.implicitHeight === oldHeight, "menu does not reflow panel");
             var popup = item("folder").popupItem;
             check(popup.x >= 0 && popup.y >= 0 && popup.y + popup.height <= window.height, "menu bounded by window");
             edit("folder-search", "/two");
-            check(item("folder").filtered.length === 1, "metadata search distinguishes duplicate basenames");
+            settle(() => item("folder").filtered.length === 1, "metadata search distinguishes duplicate basenames");
             input.keyClick(Qt.Key_Return);
             check(controller.folderId === "b", "Enter selects exact stable ID");
             click("folder-trigger");
@@ -216,7 +223,7 @@ ShellRoot {
         },
         () => { click("reset-view"); click("view-options-back"); input.keyClick(Qt.Key_Escape); },
         () => {
-            check(!controller.selector && item("folder-trigger").item.activeFocus, "selector returns focus");
+            settle(() => !controller.selector && item("folder-trigger").item.activeFocus, "selector returns focus");
             click("add-folder");
         },
         () => {
@@ -230,10 +237,10 @@ ShellRoot {
             click("browse-directory");
         },
         () => {
-            check(picker.visible, "production directory picker opens");
+            settle(() => picker.visible, "production directory picker opens");
             picker.reject();
             input.wait(20);
-            check(item("folder-path").item.activeFocus, "picker cancellation returns editor focus");
+            settle(() => item("folder-path").item.activeFocus, "picker cancellation returns editor focus");
             click("browse-directory");
             picker.selectedFolder = "file:///tmp/selected%20directory";
             picker.accept();
@@ -251,7 +258,7 @@ ShellRoot {
             service.settle(false, {}, {code: "path_missing", message: "Directory missing"});
         },
         () => {
-            check(item("confirmation-cancel").item.activeFocus, "Cancel focused first");
+            settle(() => item("confirmation-cancel").item.activeFocus, "Cancel focused first");
             check(controller.confirmation.args.path === "/tmp/new-directory", "missing-directory target frozen");
             capture("confirmation");
             click("confirmation-submit");
@@ -323,7 +330,7 @@ ShellRoot {
         () => { edit("folder-search", "/one"); input.keyClick(Qt.Key_Return); click("share-folder"); },
         () => { click("sharing-trigger"); },
         () => {
-            check(item("sharing-list").item.activeFocus, "sharing popup owns keyboard focus");
+            settle(() => item("sharing-list").item.activeFocus, "sharing popup owns keyboard focus");
             input.keyClick(Qt.Key_Down); input.keyClick(Qt.Key_Space); input.keyClick(Qt.Key_Escape);
             check(controller.draft.deviceIds.length === 0, "multi-select can remove all shares");
             click("save-sharing");
@@ -338,7 +345,10 @@ ShellRoot {
             check(!item("save-sharing").enabled, "no-op removal disabled");
             click("device-folders-trigger");
         },
-        () => { input.keyClick(Qt.Key_Down); input.keyClick(Qt.Key_Space); input.keyClick(Qt.Key_Escape); },
+        () => {
+            settle(() => item("device-folders-list").item.activeFocus, "device folders popup owns keyboard focus");
+            input.keyClick(Qt.Key_Down); input.keyClick(Qt.Key_Space); input.keyClick(Qt.Key_Escape);
+        },
         () => {
             check(controller.removedShareIds.length === 1 && controller.removedShareIds[0] === "a", "confirmed group retains hidden unconfirmed share");
             click("save-sharing");
@@ -367,7 +377,7 @@ ShellRoot {
             click("tab-folders");
             item("share-folder").focusControl();
             input.keyClick(Qt.Key_L);
-            check(item("folder-pause").item.activeFocus, "spatial horizontal action navigation");
+            settle(() => item("folder-pause").item.activeFocus, "spatial horizontal action navigation");
             input.keyClick(Qt.Key_J);
             check(main.item.scrollItem.contentY >= 0, "navigation scroll remains bounded");
             capture("panel");
@@ -395,7 +405,7 @@ ShellRoot {
             root.presented = true;
         },
         () => {
-            check(controller.tab === "devices" && item("devices").popupItem.visible, "reconstruction restores tab and open selector");
+            settle(() => controller.tab === "devices" && item("devices").popupItem.visible, "reconstruction restores tab and open selector");
             check(item("devices-search").text === "Peer", "reconstruction restores selector query");
             input.keyClick(Qt.Key_Escape);
             click("tab-folders");
@@ -427,13 +437,13 @@ ShellRoot {
         () => { click("folder-trigger"); },
         () => {
             var selector = item("folder"), list = item("folder-list").item;
-            check(selector.filtered.length === 40, "many rows remain searchable");
-            check(selector.filtered[list.currentIndex].id === "many-39" && list.activeFocus,
+            settle(() => selector.filtered.length === 40, "many rows remain searchable");
+            settle(() => selector.filtered[list.currentIndex].id === "many-39" && list.activeFocus,
                 "selected row focused and positioned on reopen");
             check(list.currentItem && list.currentItem.y >= list.contentY - 1
                 && list.currentItem.y + list.currentItem.height <= list.contentY + list.height + 1,
                 "selected native row is fully visible after measuring long rows");
-            check(selector.popupItem.width <= window.width && selector.popupItem.y + selector.popupItem.height <= window.height,
+            settle(() => selector.popupItem.width <= window.width && selector.popupItem.y + selector.popupItem.height <= window.height,
                 "narrow large-font menu remains bounded");
             capture("many-narrow-large-font");
             input.keyClick(Qt.Key_L);
@@ -456,14 +466,15 @@ ShellRoot {
         },
         () => {
             var selector = item("service"), list = item("service-list").item;
-            check(selector.filtered[list.currentIndex].id === "stop", "service menu skips disabled start");
+            settle(() => list.activeFocus, "service menu owns keyboard focus");
+            settle(() => selector.filtered[list.currentIndex].id === "stop", "service menu skips disabled start");
             input.keyClick(Qt.Key_Down);
-            check(selector.filtered[list.currentIndex].id === "disable", "service navigation skips enabled-on-login no-op");
+            settle(() => selector.filtered[list.currentIndex].id === "disable", "service navigation skips enabled-on-login no-op");
             input.keyClick(Qt.Key_Up); input.keyClick(Qt.Key_Return);
         },
         () => {
             check(controller.confirmation.action === "lifecycle.stop", "service choice opens exact confirmation");
-            check(item("confirmation-cancel").item.activeFocus, "service confirmation focuses Cancel first");
+            settle(() => item("confirmation-cancel").item.activeFocus, "service confirmation focuses Cancel first");
             click("confirmation-submit");
             check(service.calls[service.calls.length - 1].action === "lifecycle.stop", "verified service action submitted once");
             service.settle(true, {});
@@ -485,14 +496,14 @@ ShellRoot {
         },
         () => { edit("folder-search", "no-such-folder-xyz"); },
         () => {
-            check(item("folder-empty").visible && item("folder-empty").text.indexOf("No matches") === 0, "no-match menu explains recovery");
+            settle(() => item("folder-empty").visible && item("folder-empty").text.indexOf("No matches") === 0, "no-match menu explains recovery");
             input.mouseClick(window.contentItem, window.width - 20, 100, Qt.LeftButton);
         },
         () => {
-            check(controller.selector === "", "outside click dismisses production popup");
-            check(item("folder-trigger").item.activeFocus, "outside dismissal restores trigger focus");
+            settle(() => controller.selector === "", "outside click dismisses production popup");
+            settle(() => item("folder-trigger").item.activeFocus, "outside dismissal restores trigger focus");
             input.keyClick(Qt.Key_Tab);
-            check(!item("folder-trigger").item.activeFocus, "ordinary Tab advances native focus");
+            settle(() => !item("folder-trigger").item.activeFocus, "ordinary Tab advances native focus");
             click("settings");
         },
         () => {
@@ -500,7 +511,7 @@ ShellRoot {
             toggle.focusControl(); input.keyClick(Qt.Key_Space);
             check(settings.draft.monochrome !== before, "native toggle edits settings by keyboard");
             input.keyClick(Qt.Key_J);
-            check(item("settings-probe").item.activeFocus, "directional navigation includes settings switch");
+            settle(() => item("settings-probe").item.activeFocus, "directional navigation includes settings switch");
             click("cancel");
             controller.queries = Object.assign({}, controller.queries, {folder: ""});
             service.online = false;
@@ -519,7 +530,7 @@ ShellRoot {
             click("folder-trigger");
         },
         () => {
-            check(item("folder-empty").visible && item("folder-empty").text === "No choices available", "empty selector explains absence of choices");
+            settle(() => item("folder-empty").visible && item("folder-empty").text === "No choices available", "empty selector explains absence of choices");
             input.keyClick(Qt.Key_Return);
             check(controller.selector === "folder", "empty selector Enter cannot invent a target");
             input.keyClick(Qt.Key_Escape);
