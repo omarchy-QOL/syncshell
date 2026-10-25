@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Widgets
+import "UiConstants.js" as UiConstants
 
 ColumnLayout {
     id: root
@@ -14,36 +15,60 @@ ColumnLayout {
         enabled: !root.controller.submitting
         onCancelled: root.controller.closeForm()
     }
+    StyledText {
+        text: "Local directory"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+    }
     RowLayout {
         Layout.fillWidth: true
         DankTextField {
             Layout.fillWidth: true
-            labelText: "Local directory"
+            implicitHeight: UiConstants.CONTROL_HEIGHT + 4
+            topPadding: 2
+            bottomPadding: 2
+            font.pixelSize: Theme.fontSizeSmall
             text: root.controller.draft.path || ""
             placeholderText: "/path/to/my/folder"
             enabled: !root.controller.busy
             onTextEdited: root.controller.setDraft("path", text)
         }
-        DankActionButton {
+        SharedWidgetSquareActionButton {
             iconName: "folder_open"
-            tooltipText: "Browse for directory"
+            help: "Browse for directory"
             enabled: !root.controller.busy
             onClicked: root.controller.directoryPickerRequested()
         }
     }
+    StyledText {
+        text: "Label"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+    }
     DankTextField {
         Layout.fillWidth: true
-        labelText: "Label"
+        implicitHeight: UiConstants.CONTROL_HEIGHT + 4
+        topPadding: 2
+        bottomPadding: 2
+        font.pixelSize: Theme.fontSizeSmall
         text: root.controller.draft.label || ""
         placeholderText: "Derived from directory when empty"
         enabled: !root.controller.busy
         onTextEdited: root.controller.setDraft("label", text)
     }
+    StyledText {
+        text: "Folder ID"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+    }
     RowLayout {
         Layout.fillWidth: true
         DankTextField {
             Layout.fillWidth: true
-            labelText: "Folder ID"
+            implicitHeight: UiConstants.CONTROL_HEIGHT + 4
+            topPadding: 2
+            bottomPadding: 2
+            font.pixelSize: Theme.fontSizeSmall
             text: root.controller.draft.folderId || ""
             enabled: !root.controller.busy && !root.controller.draft.pendingDeviceId
             onTextEdited: root.controller.setDraft("folderId", text)
@@ -84,6 +109,7 @@ ColumnLayout {
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Add folder"
+        primary: true
         busy: root.controller.submitting
         enabled: !!root.controller.service && root.controller.service.online && !!root.controller.draft.path && !!root.controller.draft.folderId
         onClicked: root.controller.submit()

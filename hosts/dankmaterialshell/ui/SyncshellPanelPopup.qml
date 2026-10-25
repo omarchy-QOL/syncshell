@@ -31,7 +31,9 @@ FocusScope {
     readonly property real availableHeight: Math.max(140, screenHeight - (barPosition <= 1 && parentPopout ? parentPopout.storedBarThickness + parentPopout.storedBarSpacing * 2 : 0) - Theme.spacingL * 2)
     readonly property real sideExtra: sideOpen && side !== "stack" ? sideWidth + Theme.spacingM : 0
     readonly property real wantedWidth: Math.min(screenWidth - Theme.spacingL * 2, mainWidth + sideExtra + Theme.spacingS * 2)
-    readonly property var panes: Model.paneLayout(mainPane.implicitHeight, sidePane.implicitHeight, availableHeight, triggerRowY, sideOpen, side === "stack", barPosition, mainTop, Theme.spacingM, footer.implicitHeight)
+    // DMS draws main and side form on one popout surface, so a form anchored
+    // at its trigger row left an empty band above it; align it to the top.
+    readonly property var panes: Model.paneLayout(mainPane.implicitHeight, sidePane.implicitHeight, availableHeight, 0, sideOpen, side === "stack", barPosition, mainTop, Theme.spacingM, footer.implicitHeight)
     signal widthRequested(real value)
 
     implicitHeight: panes.height

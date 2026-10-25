@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Widgets
+import "UiConstants.js" as UiConstants
 
 ColumnLayout {
     id: root
@@ -37,9 +38,17 @@ ColumnLayout {
         enabled: !root.controller.busy
         onSelected: value => root.controller.setDraft("deviceId", value)
     }
+    StyledText {
+        text: "Device ID"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+    }
     DankTextField {
         Layout.fillWidth: true
-        labelText: "Device ID"
+        implicitHeight: UiConstants.CONTROL_HEIGHT + 4
+        topPadding: 2
+        bottomPadding: 2
+        font.pixelSize: Theme.fontSizeSmall
         text: root.controller.draft.deviceId || ""
         placeholderText: "XXXXXXX-XXXXXXX-..."
         enabled: !root.controller.busy
@@ -51,9 +60,17 @@ ColumnLayout {
         text: "No nearby device found. Use the device ID."
         color: Theme.warning
     }
+    StyledText {
+        text: "Remote device name"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+    }
     DankTextField {
         Layout.fillWidth: true
-        labelText: "Remote device name"
+        implicitHeight: UiConstants.CONTROL_HEIGHT + 4
+        topPadding: 2
+        bottomPadding: 2
+        font.pixelSize: Theme.fontSizeSmall
         text: root.controller.draft.name || ""
         placeholderText: "Optional"
         enabled: !root.controller.busy
@@ -62,6 +79,7 @@ ColumnLayout {
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Add remote device"
+        primary: true
         busy: root.controller.submitting
         enabled: !!root.controller.service && root.controller.service.online && !!root.controller.draft.deviceId
         onClicked: root.controller.submit()

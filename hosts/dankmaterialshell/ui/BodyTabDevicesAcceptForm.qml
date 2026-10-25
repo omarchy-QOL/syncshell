@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Widgets
+import "UiConstants.js" as UiConstants
 
 ColumnLayout {
     id: root
@@ -13,9 +14,17 @@ ColumnLayout {
         enabled: !root.controller.submitting
         onCancelled: root.controller.closeForm()
     }
+    StyledText {
+        text: "Remote device name"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+    }
     DankTextField {
         Layout.fillWidth: true
-        labelText: "Remote device name"
+        implicitHeight: UiConstants.CONTROL_HEIGHT + 4
+        topPadding: 2
+        bottomPadding: 2
+        font.pixelSize: Theme.fontSizeSmall
         text: root.controller.draft.name || ""
         enabled: !root.controller.busy
         onTextEdited: root.controller.setDraft("name", text)
@@ -34,10 +43,13 @@ ColumnLayout {
     }
     SharedWidgetIdCopyButton {
         value: root.controller.draft.deviceId || ""
+        caption: "device ID"
+        helpText: "Copy device ID"
     }
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Accept device"
+        primary: true
         busy: root.controller.submitting
         enabled: !!root.controller.service && root.controller.service.online
         onClicked: root.controller.submit()
