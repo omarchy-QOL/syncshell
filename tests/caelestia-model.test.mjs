@@ -148,3 +148,41 @@ test("share descriptions preserve remote acceptance and pause explanations", () 
       { id: "peer", connected: true }, false)), "Remote acceptance unconfirmed");
   }
 });
+test("hover cannot open the overview: Bar.checkPopout opens popouts whose entry equals a bar entry name", () => {
+  const manifest = JSON.parse(readFileSync(new URL("../integrations/caelestia/manifest.json", import.meta.url), "utf8"));
+  const bars = manifest.entryPoints.filter(e => e.type === "bar-entry").map(e => e.properties.name);
+  const popouts = manifest.entryPoints.filter(e => e.type === "bar-popout").map(e => e.properties.entry);
+  assert.deepEqual(popouts, [model.overviewPopout]);
+  assert.ok(popouts.every(entry => !bars.includes(entry)));
+});
+test("status icon and tooltip follow Omarchy precedence without inventing success", () => {
+  const base = { phase: "ready", online: true, canControlService: false, lifecycle: {}, installation: { available: true },
+    folderProblemCount: 0, syncingFolderCount: 0, refreshing: false, busy: false, currentActivity: {}, summaryText: "Up to date" };
+  const s = over => Object.assign({}, base, over);
+  assert.equal(model.statusVariant(null), "notify");
+  assert.equal(model.statusVariant(s({ phase: "core-unavailable", online: false })), "notify");
+  assert.equal(model.statusVariant(s({ canControlService: true, lifecycle: { active: false }, online: false })), "pause");
+  assert.equal(model.statusVariant(s({ online: false, phase: "discovering" })), "sync");
+  assert.equal(model.statusVariant(s({ online: false, phase: "error" })), "notify");
+  assert.equal(model.statusVariant(s({ folderProblemCount: 1, syncingFolderCount: 1 })), "notify");
+  assert.equal(model.statusVariant(s({ refreshing: true })), "sync");
+  assert.equal(model.statusVariant(s({})), "default");
+  assert.equal(model.barTooltip(null), "Syncthing unavailable");
+  assert.equal(model.barTooltip(s({})), "Syncthing: Up to date");
+  assert.equal(model.barTooltip(s({ syncingFolderCount: 2 })), "Syncthing: Sync in progress...");
+  // refreshing alone shows the sync icon but is not a sync in progress
+  assert.equal(model.barTooltip(s({ refreshing: true })), "Syncthing: Up to date");
+  assert.equal(model.barTooltip(s({ online: false, syncingFolderCount: 2, summaryText: "Syncthing unavailable" })), "Syncthing: Syncthing unavailable");
+  assert.equal(model.barTooltip(s({ installation: { available: false } })), "Syncthing: Syncthing is not installed");
+  assert.equal(model.barTooltip(s({ canControlService: true, lifecycle: { active: false } })), "Syncthing: Syncing stopped");
+});
+test("counts are formatted and pluralized like Omarchy", () => {
+  const omarchy = vm.createContext({});
+  // Only formatCount is compared; drop the QML JS directives.
+  vm.runInContext(readFileSync(new URL("../hosts/omarchy/models/PanelModel.js", import.meta.url), "utf8").replace(/^\.(pragma|import) .*$/gm, ""), omarchy);
+  for (const n of [0, 1, 999, 1000, 1500, 9999, 10000, 153000, 1250000])
+    assert.equal(model.formatCount(n), omarchy.formatCount(n));
+  assert.equal(model.plural(1, "shared folder"), "1 shared folder");
+  assert.equal(model.plural(2, "shared folder"), "2 shared folders");
+  assert.equal(model.statusIconUrl("/opt/p q", "sync", true), "file:///opt/p%20q/assets/mono/status-sync.svg");
+});

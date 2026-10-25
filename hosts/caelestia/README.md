@@ -89,7 +89,13 @@ certificate and expected-device-ID settings. API keys never enter QML.
 
 ## Use, ownership and removal
 
-Both bar clicks open the panel. Search supports the Omarchy fuzzy matcher;
+Hovering the bar icon shows a compact status tooltip with Omarchy's wording.
+Either click toggles the overview. Its popout entry deliberately differs from
+the bar entry name, because the SDK's `Bar.checkPopout` opens every popout
+whose entry matches a hovered bar entry. An opened overview stays until
+Escape, `q`, the icon or an outside click closes it: moving the pointer away
+does not close it, and a hovered host popout hands it back when it closes.
+Search supports the Omarchy fuzzy matcher;
 folder filters can combine states. Tab and arrow keys navigate controls.
 Outside editors: `r` rescans, `w` opens Web UI, `p` links/unlinks the folder,
 `s` opens settings and `q` closes. Escape dismisses the innermost menu,
@@ -104,7 +110,10 @@ requires a shell restart because this loader does not reload JS.
 
 The host's `ShellState.componentsFor(screen)` supplies the actual bar/popout
 and window references. A scoped layer-shell focus binding is restored when
-the panel closes. Geometry compensates for the host's center anchor and
+the panel closes. The bar entry records the opening anchor: the loader
+completes the panel before parenting it, so the panel cannot read the host
+state in `Component.onCompleted`. Geometry compensates for the host's center
+anchor and
 padding so a taller side form does not move the main pane. This pin has a
 left-side bar: the form opens rightward and stacks on narrow screens.
 
