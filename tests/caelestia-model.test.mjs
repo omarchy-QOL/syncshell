@@ -15,7 +15,7 @@ const folders = [
 ];
 const ids = rows => Array.from(rows, row => row.value);
 test("fuzzy search matches the current Omarchy behavior", () => {
-  const source = readFileSync(new URL("../hosts/omarchy/ui/SyncshellDropdown.qml", import.meta.url), "utf8");
+  const source = readFileSync(new URL("../hosts/omarchy/ui/SharedWidgetDropdown.qml", import.meta.url), "utf8");
   const reference = vm.createContext({});
   vm.runInContext(source.match(/^    function matchesSearch\([^]*?^    }/m)[0], reference);
   for (const label of ["Documents", "Archive 2026", "Shared Photos", "", "aabb"])
