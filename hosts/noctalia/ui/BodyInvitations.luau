@@ -1,4 +1,6 @@
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
+-- Noctalia lists invitations below both tabs instead of inside each tab;
+-- hence a Body file of its own.
 local BodyInvitations = {}
 
 function BodyInvitations.render(controller)

@@ -2,6 +2,8 @@ local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
 local Service = require("./SettingsPageServiceControls.luau")
 local Removal = require("./SettingsSelfRemovalSteps.luau")
+-- Noctalia renders settings as a page in the panel body, not as Omarchy's
+-- in-panel SettingsMenu; hence the different file name.
 local Settings = {}
 
 function Settings.render(controller)
