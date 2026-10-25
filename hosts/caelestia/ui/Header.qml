@@ -63,9 +63,6 @@ ColumnLayout {
                     caption: "device ID"
                     help: "Copy device ID"
                 }
-                Item {
-                    Layout.fillWidth: true
-                }
             }
         }
         // Omarchy hides the toggle when this host may not control the service.

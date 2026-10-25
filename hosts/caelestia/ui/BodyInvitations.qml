@@ -11,6 +11,8 @@ ColumnLayout {
     id: root
     required property var controller
     signal formRequested(string kind, var target, Item trigger)
+    // An empty column would still add the body's spacing above More.
+    visible: controller.service.pendingDevices.length + controller.service.pendingFolderOffers().length > 0
     Repeater {
         model: root.controller.service.pendingDevices
         ColumnLayout {
