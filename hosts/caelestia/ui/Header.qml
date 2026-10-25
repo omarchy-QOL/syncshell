@@ -50,8 +50,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 spacing: Tokens.spacing.small
                 StyledText {
-                    Layout.maximumWidth: implicitWidth
-                    Layout.fillWidth: true
+                    Layout.preferredWidth: implicitWidth
+                    Layout.minimumWidth: 0
                     text: root.service.device(root.service.localDeviceId)?.name || "This device"
                     textFormat: Text.PlainText
                     color: Colours.palette.m3onSurfaceVariant
