@@ -1,5 +1,7 @@
 .pragma library
 
+var overviewPopout = "syncshell-overview";
+
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function byId(rows, id) { return (rows || []).find(row => row.id === id) || null; }
 function label(row) { return String(row.label || row.name || row.path || row.id || ""); }
@@ -35,9 +37,14 @@ function selectedId(rows, id) {
     return byId(rows, id) ? id : rows.length ? rows[0].id : "";
 }
 function initialView() {
-    return { tab: "folders", folderId: "", deviceId: "", search: "", filters: ["active", "errors", "paused", "ready", "unknown"],
+    return { tab: "folders", anchorCenter: 0, folderId: "", deviceId: "", search: "", filters: ["active", "errors", "paused", "ready", "unknown"],
         sort: "name", more: false, form: "", draft: {}, confirmation: null,
         formAnchor: 0, settingsDraft: null };
+}
+function barTooltip(adapter) {
+    if (!adapter) return "Syncthing unavailable";
+    if (adapter.online && adapter.syncingFolderCount > 0) return "Syncthing: Sync in progress...";
+    return "Syncthing: " + adapter.summaryText;
 }
 function toggle(ids, id) { return ids.includes(id) ? ids.filter(x => x !== id) : ids.concat([id]); }
 

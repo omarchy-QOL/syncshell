@@ -18,6 +18,7 @@ QtObject {
     property string pendingStyle: ""
     property string lastPaletteAttempt: ""
     property var views: ({})
+    property var pinnedOverviews: ({})
     readonly property Shared.AdapterService adapter: worker.item as Shared.AdapterService
     readonly property bool eligible: plugin && plugin.enabled && !retired && plugin.generation === ownerGeneration && owners.length > 0 && preferences.valid
 
@@ -34,6 +35,16 @@ QtObject {
         if (!owners.includes(token))
             owners = owners.concat([token]);
         Qt.callLater(maybeStart);
+    }
+    function pinOverview(screenName, pinned) {
+        if (!!pinnedOverviews[screenName] === pinned)
+            return;
+        let next = Object.assign({}, pinnedOverviews);
+        if (pinned)
+            next[screenName] = true;
+        else
+            delete next[screenName];
+        pinnedOverviews = next;
     }
     function hasScreen(name) {
         return owners.some(owner => owner.screenName === name);

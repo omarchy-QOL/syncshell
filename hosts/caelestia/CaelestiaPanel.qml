@@ -18,8 +18,6 @@ FocusScope {
     readonly property var host: window ? ShellState.componentsFor(window.screen) : null
     readonly property var popouts: host?.bar?.popouts
     readonly property var controller: window && CaelestiaService.adapter && CaelestiaService.hasScreen(window.screen.name) ? CaelestiaService.controller(window.screen.name) : null
-    property real openingCenter: 0
-    property bool initialized: false
     readonly property real hostPadding: Tokens.padding.extraLargeIncreased
     readonly property bool active: !!popouts && popouts.hasCurrent && popouts.currentName === entryPoint.properties.entry
     readonly property SyncshellPanelPopup content: panel.item as SyncshellPanelPopup
@@ -37,32 +35,34 @@ FocusScope {
     Binding {
         target: root.popouts
         property: "currentCenter"
-        when: root.active && root.initialized && !!panel.item
+        when: root.active && !!panel.item
         value: (root.content?.geometry.center || 0) + root.host.panels.anchors.topMargin + root.hostPadding / 2
         restoreMode: Binding.RestoreBindingOrValue
     }
     HyprlandFocusGrab {
         active: root.active
         windows: root.window ? [root.window] : []
-        onCleared: if (root.popouts)
-            root.popouts.close()
+        onCleared: root.close()
     }
     Loader {
         id: panel
         anchors.fill: parent
-        active: root.initialized && !!root.controller && !!root.host
+        active: !!root.controller && !!root.host
         sourceComponent: SyncshellPanelPopup {
             controller: root.controller
             owner: CaelestiaService
             availableWidth: root.host.panels.width - root.hostPadding
             availableHeight: root.host.panels.height - root.hostPadding
-            anchorCenter: root.openingCenter - root.host.panels.anchors.topMargin - root.hostPadding / 2
-            onDismissed: root.popouts.close()
+            // The bar entry owns the opening anchor; the loader completes this
+            // item before it has a window, so the host state is not readable yet.
+            anchorCenter: (root.controller.view.anchorCenter || 0) - root.host.panels.anchors.topMargin - root.hostPadding / 2
+            onDismissed: root.close()
         }
     }
-    Component.onCompleted: {
-        CaelestiaService.attach(entryPoint, settings);
-        openingCenter = popouts ? popouts.currentCenter : 0;
-        initialized = true;
+    function close() {
+        CaelestiaService.pinOverview(window?.screen?.name || "", false);
+        if (popouts)
+            popouts.close();
     }
+    Component.onCompleted: CaelestiaService.attach(entryPoint, settings)
 }

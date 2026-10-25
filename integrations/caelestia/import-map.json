@@ -12,7 +12,8 @@
     "\"ui\"": "syncshell.syncshell.hosts.caelestia.ui",
     "\"../../shared\"": "syncshell.syncshell.shared",
     "\"controllers\"": "syncshell.syncshell.hosts.caelestia.controllers",
-    "\"models/Ownership.js\"": "\"models/Ownership.js\""
+    "\"models/Ownership.js\"": "\"models/Ownership.js\"",
+    "\"models/PanelModel.js\"": "\"models/PanelModel.js\""
   },
   "hosts/caelestia/controllers": {
     "QtQuick": "QtQuick",
