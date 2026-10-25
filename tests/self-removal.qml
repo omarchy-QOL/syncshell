@@ -13,7 +13,7 @@ ShellRoot {
     Item {
         width: 600
         height: 600
-        SelfRemovalDialog {
+        SettingsSelfRemovalDialog {
             id: dialog
             anchors.fill: parent
             opened: true

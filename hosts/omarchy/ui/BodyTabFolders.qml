@@ -31,7 +31,7 @@ Column {
     readonly property var keyboardRows: {
         var rows = [[folderSelector, addFolderButton, shareFolderButton, linkFolderButton]];
         for (let i = 0; i < folderCards.count; i++) {
-            let card = folderCards.itemAt(i) as FolderCard;
+            let card = folderCards.itemAt(i) as BodyTabFoldersCard;
             if (card)
                 rows = rows.concat(card.keyboardRows);
         }
@@ -64,7 +64,7 @@ Column {
         width: parent.width
         spacing: Style.space(6)
 
-        FolderSelector {
+        BodyTabFoldersSelector {
             id: folderSelector
             visible: root.controller.folderRows.length > 0
             Layout.fillWidth: true
@@ -89,7 +89,7 @@ Column {
             font.pixelSize: Style.font.bodySmall
         }
 
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             id: addFolderButton
             glyph: "\uf067"
             helpText: "Add folder (locally)"
@@ -107,7 +107,7 @@ Column {
             }
         }
 
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             id: shareFolderButton
             visible: root.controller.folderRows.length > 0
             glyph: "\uf1e0"
@@ -123,7 +123,7 @@ Column {
             onClicked: root.controller.toggleFolderSharing()
         }
 
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             id: linkFolderButton
             readonly property var targetFolder: root.controller.currentFolder()
             readonly property bool mutationBusy: root.syncthing && root.syncthing.folderMutationBusy
@@ -145,7 +145,7 @@ Column {
         }
     }
 
-    SideCardMenu {
+    BodyFormSideCard {
         panel: root.cardAnchor
         trigger: root.addTrigger
         shown: root.controller.addOpen && root.visible && root.controller.opened
@@ -157,7 +157,7 @@ Column {
             }
         }
 
-        contentItem: AddFolderForm {
+        contentItem: BodyTabFoldersAddForm {
             id: addForm
             controller: root.controller
             syncthing: root.syncthing
@@ -170,7 +170,7 @@ Column {
         }
     }
 
-    SideCardMenu {
+    BodyFormSideCard {
         panel: root.cardAnchor
         trigger: shareFolderButton
         shown: root.controller.folderShareOpen && root.visible && root.controller.opened
@@ -180,7 +180,7 @@ Column {
             folderSharingForm.resetDraft();
         }
 
-        contentItem: FolderSharingForm {
+        contentItem: BodyTabFoldersShareForm {
             id: folderSharingForm
             controller: root.controller
             syncthing: root.syncthing
@@ -199,7 +199,7 @@ Column {
             id: folderCards
             model: root.controller.visibleFolderRows
 
-            FolderCard {
+            BodyTabFoldersCard {
                 required property var modelData
                 width: parent.width
                 folder: modelData
@@ -250,7 +250,7 @@ Column {
             width: parent.width
             spacing: Style.space(6)
 
-            SyncshellDropdown {
+            SharedWidgetDropdown {
                 id: pendingOfferSelector
                 Layout.fillWidth: true
                 Layout.preferredHeight: Style.spacing.controlHeight
@@ -271,7 +271,7 @@ Column {
                 }
             }
 
-            SquareActionButton {
+            SharedWidgetSquareActionButton {
                 id: acceptFolderButton
                 glyph: "\uf00c"
                 helpText: "Accept folder request"
@@ -289,7 +289,7 @@ Column {
                 }
             }
 
-            SquareActionButton {
+            SharedWidgetSquareActionButton {
                 id: rejectFolderButton
                 glyph: "\uf00d"
                 helpText: "Reject folder request"

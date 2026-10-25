@@ -39,7 +39,7 @@ Item {
         anchors.topMargin: 0
         spacing: Style.space(6)
 
-        InlineFormHeader {
+        BodyFormHeader {
             title: "ACCEPT REMOTE DEVICE REQUEST"
             foreground: root.foreground
             cancelColor: root.urgent
@@ -117,7 +117,7 @@ Item {
                 elide: Text.ElideMiddle
             }
 
-            IdCopyButton {
+            SharedWidgetIdCopyButton {
                 Layout.preferredWidth: Style.space(18)
                 Layout.preferredHeight: Style.space(18)
                 value: String(root.device && root.device.id || "")

@@ -170,7 +170,7 @@ Column {
             HoverHandler {
                 id: installationStatusHover
             }
-            SyncshellToolTip {
+            SharedWidgetToolTip {
                 visible: installationStatusHover.hovered
                 text: root.installationStatusText()
                 textFormat: Text.StyledText
@@ -191,14 +191,14 @@ Column {
             HoverHandler {
                 id: executablePathHover
             }
-            SyncshellToolTip {
+            SharedWidgetToolTip {
                 visible: executablePathHover.hovered && root.executablePath !== ""
                 text: root.executablePath
                 fontFamily: root.fontFamily
             }
         }
 
-        TooltipButton {
+        SharedWidgetTooltipButton {
             id: installationHelp
             Layout.preferredWidth: Style.spacing.controlHeight
             Layout.preferredHeight: Style.spacing.controlHeight
