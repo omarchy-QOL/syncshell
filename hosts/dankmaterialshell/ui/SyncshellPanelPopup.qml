@@ -243,17 +243,21 @@ FocusScope {
                         Layout.fillWidth: true
                     }
                 }
-                BodyTabFolders {
+                // A stack sizes to the taller tab, so switching tabs keeps the
+                // panel height like Omarchy's.
+                StackLayout {
                     Layout.fillWidth: true
-                    controller: root.controller
-                    parentPopout: root.parentPopout
-                    visible: root.controller.tab === "folders"
-                }
-                BodyTabDevices {
-                    Layout.fillWidth: true
-                    controller: root.controller
-                    parentPopout: root.parentPopout
-                    visible: root.controller.tab === "devices"
+                    currentIndex: root.controller.tab === "folders" ? 0 : 1
+                    BodyTabFolders {
+                        Layout.fillWidth: true
+                        controller: root.controller
+                        parentPopout: root.parentPopout
+                    }
+                    BodyTabDevices {
+                        Layout.fillWidth: true
+                        controller: root.controller
+                        parentPopout: root.parentPopout
+                    }
                 }
                 BodyMore {
                     Layout.fillWidth: true
