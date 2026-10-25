@@ -12,7 +12,7 @@ Ui.PanelActionButton {
         id: tooltipHover
     }
 
-    SyncshellToolTip {
+    SharedWidgetToolTip {
         visible: root.enabled && root.helpText !== "" && tooltipHover.hovered
         text: root.helpText
         fontFamily: root.fontFamily

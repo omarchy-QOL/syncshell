@@ -106,7 +106,7 @@ Item {
         anchors.topMargin: 0
         spacing: Style.space(6)
 
-        InlineFormHeader {
+        BodyFormHeader {
             title: "SHARED WITH " + String(root.device && root.device.name || "DEVICE")
             foreground: root.foreground
             cancelColor: root.urgent
@@ -126,7 +126,7 @@ Item {
             wrapMode: Text.WordWrap
         }
 
-        SyncshellMultiSelect {
+        SharedWidgetMultiSelect {
             id: folderPicker
             visible: root.originalFolderIds.length > 0
             enabled: options.length > 0 && !root.submitting
@@ -174,7 +174,7 @@ Item {
             }
         }
 
-        SyncshellMultiSelect {
+        SharedWidgetMultiSelect {
             id: unconfirmedPicker
             visible: root.originalFolderIds.length > 0
             enabled: options.length > 0 && !root.submitting

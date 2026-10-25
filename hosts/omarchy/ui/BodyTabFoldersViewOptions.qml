@@ -211,7 +211,7 @@ Item {
             onHoveredChanged: if (hovered)
                 root.keyboardIndex = choice.navigationIndex
         }
-        SyncshellToolTip {
+        SharedWidgetToolTip {
             visible: choiceHover.hovered
             text: choice.helpText
             fontFamily: root.fontFamily
@@ -231,7 +231,7 @@ Item {
         height: Style.spacing.controlHeight
         spacing: Style.spacing.controlGap
 
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             glyph: "\uf1de"
             helpText: "Filter and sort folders"
             selected: !root.viewDefault
@@ -372,7 +372,7 @@ Item {
                 width: parent.width
                 height: resetButton.implicitHeight
 
-                TooltipButton {
+                SharedWidgetTooltipButton {
                     id: resetButton
                     anchors.right: parent.right
                     text: "Reset defaults"
