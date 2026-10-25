@@ -7,7 +7,7 @@ ColumnLayout {
     id: root
     required property var controller
     spacing: Theme.spacingS
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: "Accept remote device"
         enabled: !root.controller.submitting
@@ -20,7 +20,7 @@ ColumnLayout {
         enabled: !root.controller.busy
         onTextEdited: root.controller.setDraft("name", text)
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         Layout.fillWidth: true
         label: "Address"
         value: root.controller.draft.address || "Unknown"
@@ -32,10 +32,10 @@ ColumnLayout {
         wrapMode: Text.WrapAnywhere
         elide: Text.ElideNone
     }
-    IdCopyButton {
+    SharedWidgetIdCopyButton {
         value: root.controller.draft.deviceId || ""
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Accept device"
         busy: root.controller.submitting

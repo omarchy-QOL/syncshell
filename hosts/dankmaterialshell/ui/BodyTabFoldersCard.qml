@@ -32,7 +32,7 @@ StyledRect {
                 Layout.fillWidth: true
                 maximumLineCount: 1
             }
-            IdCopyButton {
+            SharedWidgetIdCopyButton {
                 value: root.folder ? root.folder.id : ""
             }
             StyledText {
@@ -48,12 +48,12 @@ StyledRect {
             color: Theme.surfaceVariantText
             maximumLineCount: 1
             elide: Text.ElideMiddle
-            SyncshellToolTip {
+            SharedWidgetToolTip {
                 anchors.fill: parent
                 text: parent.text
             }
         }
-        ActivityText {
+        BodyTabFoldersCardActivity {
             Layout.fillWidth: true
             service: root.controller.service
             folderId: root.folder ? root.folder.id : ""
@@ -67,7 +67,7 @@ StyledRect {
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
-            BusyButton {
+            SharedWidgetBusyButton {
                 text: root.folder && root.folder.paused ? "Forget" : "Rescan"
                 busyText: root.folder && root.folder.paused ? "Forgetting" : "Rescanning"
                 help: !root.controller.fresh ? "Refresh current status before changing this folder" : root.folder && root.folder.paused ? "Forget this folder without deleting its files" : "Rescan local changes"

@@ -19,12 +19,12 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.controller.moreOpen
         spacing: Theme.spacingS
-        InfoPair {
+        SharedWidgetInfoPair {
             Layout.fillWidth: true
             label: "Syncthing status"
             value: root.controller.fresh ? "Current" : "Last reported errors; current status is unavailable"
         }
-        InfoPair {
+        SharedWidgetInfoPair {
             Layout.fillWidth: true
             label: "Installation"
             value: root.service ? root.service.installation.executablePath || "Not found" : "Unknown"
@@ -62,7 +62,7 @@ ColumnLayout {
             visible: !!root.service && Object.values(root.service.truncation).some(n => n > 0)
             wrapMode: Text.Wrap
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             text: "Recheck errors"
             busy: !!root.service && root.service.busy
             enabled: !!root.service && root.service.online

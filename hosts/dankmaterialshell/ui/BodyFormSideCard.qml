@@ -33,40 +33,40 @@ StyledRect {
     }
     Component {
         id: confirmation
-        CompactConfirmDialog {
+        SharedDialogConfirm {
             controller: root.controller
         }
     }
     Component {
         id: folder
-        AddFolderForm {
+        BodyTabFoldersAddForm {
             controller: root.controller
             parentPopout: root.parentPopout
         }
     }
     Component {
         id: device
-        AddRemoteDeviceForm {
+        BodyTabDevicesAddForm {
             controller: root.controller
             parentPopout: root.parentPopout
         }
     }
     Component {
         id: accept
-        AcceptRemoteDeviceForm {
+        BodyTabDevicesAcceptForm {
             controller: root.controller
         }
     }
     Component {
         id: sharing
-        FolderSharingForm {
+        BodyTabFoldersShareForm {
             controller: root.controller
             parentPopout: root.parentPopout
         }
     }
     Component {
         id: deviceFolders
-        DeviceFoldersForm {
+        BodyTabDevicesFoldersForm {
             controller: root.controller
             parentPopout: root.parentPopout
         }

@@ -8,7 +8,7 @@ ColumnLayout {
     required property var controller
     property var parentPopout: null
     spacing: Theme.spacingS
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: "Add folder"
         enabled: !root.controller.submitting
@@ -48,7 +48,7 @@ ColumnLayout {
             enabled: !root.controller.busy && !root.controller.draft.pendingDeviceId
             onTextEdited: root.controller.setDraft("folderId", text)
         }
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             iconName: "refresh"
             help: "Generate a new folder ID"
             enabled: !root.controller.busy && !root.controller.draft.pendingDeviceId
@@ -65,7 +65,7 @@ ColumnLayout {
     StyledText {
         text: "Share with devices"
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
         placeholder: "Local only"
@@ -81,7 +81,7 @@ ColumnLayout {
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Add folder"
         busy: root.controller.submitting

@@ -12,7 +12,7 @@ StyledText {
     elide: Text.ElideMiddle
     color: Theme.surfaceVariantText
     visible: text !== ""
-    SyncshellToolTip {
+    SharedWidgetToolTip {
         anchors.fill: parent
         text: root.text
     }

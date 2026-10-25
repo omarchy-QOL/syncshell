@@ -242,7 +242,7 @@ Item {
                             onEntered: list.currentIndex = index
                             onClicked: root.choose(index)
                         }
-                        SyncshellToolTip {
+                        SharedWidgetToolTip {
                             anchors.fill: parent
                             text: modelData.help || ""
                         }

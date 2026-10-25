@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell.Io
 
-SquareActionButton {
+SharedWidgetSquareActionButton {
     id: root
     property string value: ""
     property bool copied: false

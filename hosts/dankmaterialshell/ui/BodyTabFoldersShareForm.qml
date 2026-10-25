@@ -8,7 +8,7 @@ ColumnLayout {
     required property var controller
     property var parentPopout: null
     spacing: Theme.spacingS
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: "Share folder"
         enabled: !root.controller.submitting
@@ -19,7 +19,7 @@ ColumnLayout {
         text: root.controller.service ? root.controller.service.folderLabel(root.controller.draft.folderId) : ""
         textFormat: Text.PlainText
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
         placeholder: "Local only"
@@ -34,7 +34,7 @@ ColumnLayout {
         text: "Select the devices that should share this folder. Saving an empty selection makes it local only."
         color: Theme.surfaceVariantText
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Save sharing"
         busy: root.controller.submitting

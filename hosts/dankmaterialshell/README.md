@@ -55,24 +55,24 @@ manageable through the Syncthing API, without granting service authority.
 Paths below are relative to `hosts/dankmaterialshell/`. Equivalent QML host
 responsibilities use the same filenames; native APIs are not interchangeable.
 
-| Area                       | Files                                                         |
-| -------------------------- | ------------------------------------------------------------- |
-| Bar and popout composition | `DankPanel.qml`, `ui/SyncthingPanelPopup.qml`                 |
-| Worker and settings        | `DankService.qml`, `controllers/SettingsController.qml`       |
-| Selection and drafts       | `controllers/PanelController.qml`, `models/PanelModel.js`     |
-| Header and More            | `ui/PanelStatus.qml`, `ui/MoreDetails.qml`                    |
-| Folder/device cards        | `ui/FolderCard.qml`, `ui/DeviceCard.qml`                      |
-| Folder creation            | `ui/AddFolderForm.qml`                                        |
-| Device creation/acceptance | `ui/AddRemoteDeviceForm.qml`, `ui/AcceptRemoteDeviceForm.qml` |
-| Sharing forms              | `ui/FolderSharingForm.qml`, `ui/DeviceFoldersForm.qml`        |
-| Selection and filters      | `ui/SyncshellDropdown.qml`, `ui/FolderViewOptions.qml`        |
-| Side forms/confirmations   | `ui/SideCardMenu.qml`, `ui/CompactConfirmDialog.qml`          |
-| Settings presentation      | `ui/PluginSettings.qml`                                       |
+| Area                       | Files                                                                |
+| -------------------------- | -------------------------------------------------------------------- |
+| Bar and popout composition | `DankPanel.qml`, `ui/SyncshellPanelPopup.qml`                        |
+| Worker and settings        | `DankService.qml`, `controllers/SettingsController.qml`              |
+| Selection and drafts       | `controllers/PanelController.qml`, `models/PanelModel.js`            |
+| Header and More            | `ui/Header.qml`, `ui/BodyMore.qml`                                   |
+| Folder/device cards        | `ui/BodyTabFoldersCard.qml`, `ui/BodyTabDevicesCard.qml`             |
+| Folder creation            | `ui/BodyTabFoldersAddForm.qml`                                       |
+| Device creation/acceptance | `ui/BodyTabDevicesAddForm.qml`, `ui/BodyTabDevicesAcceptForm.qml`    |
+| Sharing forms              | `ui/BodyTabFoldersShareForm.qml`, `ui/BodyTabDevicesFoldersForm.qml` |
+| Selection and filters      | `ui/SharedWidgetDropdown.qml`, `ui/BodyTabFoldersViewOptions.qml`    |
+| Side forms/confirmations   | `ui/BodyFormSideCard.qml`, `ui/SharedDialogConfirm.qml`              |
+| Settings presentation      | `ui/SettingsPage.qml`                                                |
 
-Single- and multi-select share `SyncshellDropdown.qml`; the `multiple` mode
+Single- and multi-select share `SharedWidgetDropdown.qml`; the `multiple` mode
 retains checked IDs while filtering. `MonoIcon` is replaced by native
 `DankSVGIcon`; action tooltips use native buttons or the bounded plain-text
-`SyncshellToolTip`. Service choices share the Cancel-first confirmation.
+`SharedWidgetToolTip`. Service choices share the Cancel-first confirmation.
 There is no cross-shell visual facade or copied Omarchy control library.
 
 ## Release gates

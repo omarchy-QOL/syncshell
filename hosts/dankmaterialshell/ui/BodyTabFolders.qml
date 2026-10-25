@@ -10,24 +10,24 @@ ColumnLayout {
     spacing: Theme.spacingS
     RowLayout {
         Layout.fillWidth: true
-        FolderSelector {
+        BodyTabFoldersSelector {
             Layout.fillWidth: true
             controller: root.controller
             parentPopout: root.parentPopout
         }
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             iconName: "add"
             help: "Add folder"
             enabled: root.controller.fresh && !root.controller.busy
             onClicked: root.controller.begin("add-folder", {}, this)
         }
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             iconName: "share"
             help: "Choose this folder's devices"
             enabled: !!root.controller.folder && root.controller.fresh && !root.controller.busy
             onClicked: root.controller.begin("share-folder", root.controller.folder, this)
         }
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             iconName: root.controller.folder && root.controller.folder.paused ? "link" : "link_off"
             help: root.controller.folder && root.controller.folder.paused ? "Resume folder synchronization" : "Pause folder synchronization; keep its files and shares"
             busy: !!root.controller.service && root.controller.service.busy
@@ -35,7 +35,7 @@ ColumnLayout {
             onClicked: root.controller.toggleFolder()
         }
     }
-    FolderCard {
+    BodyTabFoldersCard {
         Layout.fillWidth: true
         controller: root.controller
     }

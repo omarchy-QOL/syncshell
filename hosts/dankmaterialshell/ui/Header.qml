@@ -35,7 +35,7 @@ ColumnLayout {
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.surfaceVariantText
                 }
-                IdCopyButton {
+                SharedWidgetIdCopyButton {
                     value: root.service ? root.service.localDeviceId : ""
                 }
             }
@@ -45,23 +45,23 @@ ColumnLayout {
             checked: !!root.service && root.service.lifecycle.active === true
             enabled: !!root.service && root.service.canControlService && !root.controller.busy && !root.controller.form && !root.controller.confirmation
             onToggled: root.controller.requestServiceToggle(this)
-            SyncshellToolTip {
+            SharedWidgetToolTip {
                 anchors.fill: parent
                 text: root.service && root.service.canControlService ? "Start or stop Syncthing without changing autostart" : "Externally managed. Authorize the matching user service in Syncshell settings to control it here."
             }
         }
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         Layout.fillWidth: true
         label: "Folders"
         value: root.service ? String(root.service.folderCount) : "-"
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         Layout.fillWidth: true
         label: "Devices"
         value: root.controller.fresh ? root.service.connectedDeviceCount + " of " + root.service.deviceCount + " connected" : "Connection unknown"
     }
-    InfoPair {
+    SharedWidgetInfoPair {
         Layout.fillWidth: true
         label: "Tracked"
         value: root.totals.files + " files · " + Model.bytes(root.totals.bytes)

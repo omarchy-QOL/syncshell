@@ -28,7 +28,7 @@ StyledRect {
                 textFormat: Text.PlainText
                 maximumLineCount: 1
             }
-            IdCopyButton {
+            SharedWidgetIdCopyButton {
                 value: root.device ? root.device.id : ""
             }
             StyledText {
@@ -37,12 +37,12 @@ StyledRect {
                 color: Theme.primary
             }
         }
-        InfoPair {
+        SharedWidgetInfoPair {
             Layout.fillWidth: true
             label: "Shared folders"
             value: root.device ? String(root.controller.service.folderIdsForDevice(root.device.id).length) : "0"
         }
-        InfoPair {
+        SharedWidgetInfoPair {
             Layout.fillWidth: true
             label: "Download / upload"
             value: root.device && root.controller.fresh ? Model.bytes(root.device.downloadBps) + "/s · " + Model.bytes(root.device.uploadBps) + "/s" : "Unknown"
@@ -55,7 +55,7 @@ StyledRect {
             maximumLineCount: 1
             elide: Text.ElideMiddle
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             Layout.alignment: Qt.AlignRight
             text: root.device && root.device.paused ? "Resume" : "Pause"
             busy: !!root.controller.service && root.controller.service.busy

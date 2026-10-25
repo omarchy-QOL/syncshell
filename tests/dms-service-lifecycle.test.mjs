@@ -69,7 +69,7 @@ test("foreign same-ID global service is not overwritten", () => {
 
 test("outside close retains controller drafts and dismisses transient surfaces", () => {
   const popup = readFileSync(new URL(
-    "../hosts/dankmaterialshell/ui/SyncthingPanelPopup.qml", import.meta.url), "utf8");
+    "../hosts/dankmaterialshell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
   const closed = method(popup, "onPopoutClosed");
   assert.doesNotMatch(closed, /closeForm/);
   assert.match(closed, /transientSurfaceTracker.closeAll/);
@@ -77,7 +77,7 @@ test("outside close retains controller drafts and dismisses transient surfaces",
 
 test("closing inactive selectors cannot steal focus from the active one", () => {
   const dropdown = readFileSync(new URL(
-    "../hosts/dankmaterialshell/ui/SyncshellDropdown.qml", import.meta.url), "utf8");
+    "../hosts/dankmaterialshell/ui/SharedWidgetDropdown.qml", import.meta.url), "utf8");
   let focused = 0;
   const selector = instance(dropdown, "close", {
     opened: false, trigger: { forceActiveFocus() { focused++; } },
@@ -92,7 +92,7 @@ test("closing inactive selectors cannot steal focus from the active one", () => 
 
 test("returning to a retained confirmation restores Cancel selection", () => {
   const side = readFileSync(new URL(
-    "../hosts/dankmaterialshell/ui/SideCardMenu.qml", import.meta.url), "utf8");
+    "../hosts/dankmaterialshell/ui/BodyFormSideCard.qml", import.meta.url), "utf8");
   let cancelled = 0;
   let focused = 0;
   const pane = instance(side, "focusContent", {
@@ -114,7 +114,7 @@ test("connection edits retry even when startup never reached a handshake", () =>
     /onConnectionKeyChanged:\s*if\s*\(service\)\s*restartTimer\.restart\(\)/);
 });
 
-for (const name of ["BusyButton", "SquareActionButton"]) {
+for (const name of ["SharedWidgetBusyButton", "SharedWidgetSquareActionButton"]) {
   test(`${name} rejects held activation keys even after a fast action settles`, () => {
     const source = readFileSync(new URL(
       `../hosts/dankmaterialshell/ui/${name}.qml`, import.meta.url), "utf8");

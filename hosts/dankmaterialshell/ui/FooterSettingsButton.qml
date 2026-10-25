@@ -1,7 +1,7 @@
 import QtQuick
 import qs.Services
 
-SquareActionButton {
+SharedWidgetSquareActionButton {
     id: root
     property string pluginId: "syncshell"
     property bool waiting: false

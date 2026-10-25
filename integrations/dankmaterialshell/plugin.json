@@ -11,7 +11,7 @@
     "daemon": "./hosts/dankmaterialshell/DankService.qml",
     "widget": "./hosts/dankmaterialshell/DankPanel.qml"
   },
-  "settings": "./hosts/dankmaterialshell/ui/PluginSettings.qml",
+  "settings": "./hosts/dankmaterialshell/ui/SettingsPage.qml",
   "requires_dms": ">=1.6.2",
   "dependencies": ["syncthing"],
   "permissions": ["process", "network", "settings_read", "settings_write"]

@@ -203,7 +203,7 @@ FocusScope {
                 id: body
                 width: parent.width
                 spacing: Theme.spacingS
-                PanelStatus {
+                Header {
                     Layout.fillWidth: true
                     controller: root.controller
                     iconStyle: root.host ? root.host.settings.values.iconStyle : "themed"
@@ -232,19 +232,19 @@ FocusScope {
                     currentIndex: root.controller.tab === "folders" ? 0 : 1
                     onTabClicked: index => root.controller.tab = index === 0 ? "folders" : "devices"
                 }
-                FolderOverview {
+                BodyTabFolders {
                     Layout.fillWidth: true
                     controller: root.controller
                     parentPopout: root.parentPopout
                     visible: root.controller.tab === "folders"
                 }
-                RemoteDevices {
+                BodyTabDevices {
                     Layout.fillWidth: true
                     controller: root.controller
                     parentPopout: root.parentPopout
                     visible: root.controller.tab === "devices"
                 }
-                MoreDetails {
+                BodyMore {
                     Layout.fillWidth: true
                     controller: root.controller
                 }
@@ -261,7 +261,7 @@ FocusScope {
             }
             RowLayout {
                 Layout.fillWidth: true
-                BusyButton {
+                SharedWidgetBusyButton {
                     Layout.fillWidth: true
                     text: "Rescan all"
                     busyText: "Rescanning"
@@ -270,14 +270,14 @@ FocusScope {
                     help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan every linked folder; paused folders are skipped"
                     onClicked: root.controller.service.rescanAllFolders()
                 }
-                BusyButton {
+                SharedWidgetBusyButton {
                     Layout.fillWidth: true
                     text: "Refresh"
                     busy: !!root.controller.service && root.controller.service.refreshing
                     enabled: !!root.controller.service && !root.controller.busy
                     onClicked: root.controller.service.refresh()
                 }
-                SettingsMenu {
+                FooterSettingsButton {
                     id: settings
                     pluginId: root.pluginId
                     onOpening: root.closePopout()
@@ -298,7 +298,7 @@ FocusScope {
             }
         }
     }
-    SideCardMenu {
+    BodyFormSideCard {
         id: sidePane
         controller: root.controller
         parentPopout: root.parentPopout

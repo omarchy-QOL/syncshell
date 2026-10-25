@@ -67,7 +67,7 @@ Plugins.PluginSettings {
                 textFormat: Text.PlainText
                 color: Theme.warning
             }
-            BusyButton {
+            SharedWidgetBusyButton {
                 text: "Apply Web UI selection"
                 busy: !!root.host && root.host.theme.busy
                 enabled: !!root.host && !!root.host.service && root.host.service.online
@@ -179,7 +179,7 @@ Plugins.PluginSettings {
                     text: "Cancel"
                     onClicked: root.confirmCleanup = false
                 }
-                BusyButton {
+                SharedWidgetBusyButton {
                     text: "Restore default and clean profiles"
                     busy: !!root.host && root.host.theme.busy
                     onClicked: {

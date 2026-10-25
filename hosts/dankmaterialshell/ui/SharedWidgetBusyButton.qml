@@ -51,7 +51,7 @@ FocusScope {
         visible: root.busy
         running: root.busy
     }
-    SyncshellToolTip {
+    SharedWidgetToolTip {
         anchors.fill: parent
         text: root.help
     }

@@ -2,7 +2,7 @@ import QtQuick
 import qs.Common
 import qs.Widgets
 
-SyncshellDropdown {
+SharedWidgetDropdown {
     id: root
     required property var controller
     property bool filtersOpen: false
@@ -21,7 +21,7 @@ SyncshellDropdown {
                 text: root.filtersOpen ? "Hide filters" : "Filter and sort"
                 onClicked: root.filtersOpen = !root.filtersOpen
             }
-            FolderViewOptions {
+            BodyTabFoldersViewOptions {
                 width: parent.width
                 controller: root.controller
                 visible: root.filtersOpen

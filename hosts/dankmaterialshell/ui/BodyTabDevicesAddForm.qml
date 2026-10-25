@@ -8,7 +8,7 @@ ColumnLayout {
     required property var controller
     property var parentPopout: null
     spacing: Theme.spacingS
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: "Add remote device"
         enabled: !root.controller.submitting
@@ -17,7 +17,7 @@ ColumnLayout {
     StyledText {
         text: "Device source"
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         parentPopout: root.parentPopout
         placeholder: "Custom device ID"
@@ -59,7 +59,7 @@ ColumnLayout {
         enabled: !root.controller.busy
         onTextEdited: root.controller.setDraft("name", text)
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Add remote device"
         busy: root.controller.submitting

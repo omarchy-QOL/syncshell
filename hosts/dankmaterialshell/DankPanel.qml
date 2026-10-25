@@ -56,7 +56,7 @@ PluginComponent {
         }
     }
     popoutContent: Component {
-        SyncthingPanelPopup {
+        SyncshellPanelPopup {
             controller: panelController
             host: root.host
             pluginId: root.pluginId

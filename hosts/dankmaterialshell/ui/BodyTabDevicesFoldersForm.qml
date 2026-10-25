@@ -17,7 +17,7 @@ ColumnLayout {
                 }));
     }
     spacing: Theme.spacingS
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: "Shared folders"
         enabled: !root.controller.submitting
@@ -31,7 +31,7 @@ ColumnLayout {
     StyledText {
         text: "Existing shares"
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
         placeholder: "No folders shared"
@@ -47,7 +47,7 @@ ColumnLayout {
         wrapMode: Text.WordWrap
         color: Theme.surfaceVariantText
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
         placeholder: "No folders shared"
@@ -62,7 +62,7 @@ ColumnLayout {
         text: "Uncheck folders to remove their shares with this device. Files are kept; newly added shares are not changed."
         color: Theme.surfaceVariantText
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Save shares"
         busy: root.controller.submitting
