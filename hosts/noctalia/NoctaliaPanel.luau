@@ -15,6 +15,8 @@ local BodyTabFoldersShareForm = require("./ui/BodyTabFoldersShareForm.luau")
 local BodyTabDevicesFoldersForm = require("./ui/BodyTabDevicesFoldersForm.luau")
 local SettingsPage = require("./ui/SettingsPage.luau")
 local Confirmation = require("./ui/SharedDialogConfirm.luau")
+local FooterActions = require("./ui/FooterActions.luau")
+local FooterShortcutHint = require("./ui/FooterShortcutHint.luau")
 
 local controller
 local opened = false
@@ -82,13 +84,8 @@ local function render()
         SharedWidgetControls.notice(controller, message ~= "" and message or "", (controller.status.error or v.noticeKind == "error" or v.noticeKind == "uncertain") and "error"
             or (v.noticeKind == "success" and "tertiary" or "on_surface_variant"), "action details"),
         ui.scroll({ key = "body", flexGrow = 1, gap = 10 }, body),
-        ui.row({ gap = 6 }, {
-            SharedWidgetControls.button("Web UI", function() controller:send("webui.open", {}) end, enabled and (controller.snapshot.connection or {}).online, nil, controller:actionKey("webui"), "Open the selected Syncthing instance in your browser"),
-            SharedWidgetControls.button("Rescan all", function() controller:rescanAll() end, controller:canRescan(), nil, controller:actionKey("rescan-all"), "Rescan linked folders for local changes; requires a current connection and a folder not already scanning"),
-            SharedWidgetControls.button("Refresh", function() controller:refresh() end, enabled, nil, controller:actionKey("refresh"), "Refresh Syncthing state, rescan folders with errors, or retry connection discovery"),
-            SharedWidgetControls.button("Settings", function() controller:openForm("settings") end, not controller:busy()),
-        }),
-        SharedWidgetControls.label("[r]escan [w]eb UI [p]ause/start [s]ettings [q]close | Tab: focus", "on_surface_variant"),
+        FooterActions.render(controller, enabled),
+        FooterShortcutHint.render(),
     })
     table.insert(tree.children, Navigation.decorate(controller, tree))
     panel.render(tree)
