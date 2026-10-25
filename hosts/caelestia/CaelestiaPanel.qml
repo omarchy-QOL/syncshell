@@ -17,7 +17,9 @@ FocusScope {
     readonly property var window: QsWindow.window
     readonly property var host: window ? ShellState.componentsFor(window.screen) : null
     readonly property var popouts: host?.bar?.popouts
-    readonly property var controller: window && CaelestiaService.adapter && CaelestiaService.hasScreen(window.screen.name) ? CaelestiaService.controller(window.screen.name) : null
+    // Read-only: the bar entry creates the controller before opening, and
+    // creating it here mutated `views` inside this binding (binding loop).
+    readonly property var controller: window && CaelestiaService.adapter && CaelestiaService.hasScreen(window.screen.name) ? CaelestiaService.views[window.screen.name] ?? null : null
     readonly property real hostPadding: Tokens.padding.extraLargeIncreased
     readonly property bool active: !!popouts && popouts.hasCurrent && popouts.currentName === entryPoint.properties.entry
     readonly property SyncshellPanelPopup content: panel.item as SyncshellPanelPopup
