@@ -37,6 +37,7 @@ ColumnLayout {
     }
     BodyTabFoldersCard {
         Layout.fillWidth: true
+        Layout.fillHeight: true
         controller: root.controller
     }
     Repeater {

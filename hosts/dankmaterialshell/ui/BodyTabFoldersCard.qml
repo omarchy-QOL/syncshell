@@ -64,6 +64,11 @@ StyledRect {
             service: root.controller.service
             folderId: root.folder ? root.folder.id : ""
         }
+        // Spare tab height stays inside the card, above the meta row, as in
+        // Omarchy's card.
+        Item {
+            Layout.fillHeight: true
+        }
         RowLayout {
             Layout.fillWidth: true
             StyledText {

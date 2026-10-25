@@ -42,6 +42,7 @@ ColumnLayout {
     }
     BodyTabDevicesCard {
         Layout.fillWidth: true
+        Layout.fillHeight: true
         controller: root.controller
     }
     Repeater {

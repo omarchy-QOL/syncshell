@@ -61,6 +61,9 @@ StyledRect {
             maximumLineCount: 1
             elide: Text.ElideMiddle
         }
+        Item {
+            Layout.fillHeight: true
+        }
         SharedWidgetBusyButton {
             Layout.alignment: Qt.AlignRight
             controlHeight: UiConstants.SMALL_CONTROL_HEIGHT
