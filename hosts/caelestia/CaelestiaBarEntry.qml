@@ -76,7 +76,7 @@ Item {
         onClicked: root.toggle()
     }
     SharedWidgetToolTip {
-        x: root.width + Tokens.spacing.medium
+        x: root.width + root.Tokens.spacing.medium
         y: (root.height - height) / 2
         visible: hover.hovered && !root.overviewOpen
         text: Model.barTooltip(CaelestiaService.adapter)

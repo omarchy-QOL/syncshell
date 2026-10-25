@@ -54,7 +54,7 @@ Item {
         y: root.boundary ? Math.max(-trigger.mapToItem(root.boundary, 0, 0).y, Math.min(trigger.height, root.boundary.height - trigger.mapToItem(root.boundary, 0, 0).y - height)) : trigger.height
         width: trigger.width
         height: Math.min(root.boundary?.height || 540, 540, contentColumn.implicitHeight + padding * 2)
-        padding: Tokens.padding.medium
+        padding: root.Tokens.padding.medium
         modal: true
         focus: true
         closePolicy: QQC.Popup.CloseOnEscape | QQC.Popup.CloseOnPressOutside
@@ -66,7 +66,7 @@ Item {
             trigger.forceActiveFocus()
         background: StyledRect {
             color: Colours.palette.m3surfaceContainerHigh
-            radius: Tokens.rounding.medium
+            radius: root.Tokens.rounding.medium
         }
         contentItem: ColumnLayout {
             id: contentColumn
@@ -114,7 +114,7 @@ Item {
                 implicitHeight: Math.min(220, contentHeight)
                 clip: true
                 model: root.filtered
-                spacing: Tokens.spacing.extraSmall
+                spacing: root.Tokens.spacing.extraSmall
                 keyNavigationEnabled: true
                 QQC.ScrollBar.vertical: StyledScrollBar {
                     flickable: list

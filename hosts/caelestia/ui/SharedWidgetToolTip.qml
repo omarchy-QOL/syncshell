@@ -8,9 +8,11 @@ import qs.services
 
 QQC.ToolTip {
     id: root
+    // Popup items carry no screen; resolve tokens through the visual parent.
+    readonly property Item tokens: parent
     delay: 500
-    padding: Tokens.padding.medium
-    width: Math.min(Tokens.font.body.small.pointSize * 36, label.implicitWidth + padding * 2)
+    padding: tokens.Tokens.padding.medium
+    width: Math.min(tokens.Tokens.font.body.small.pointSize * 36, label.implicitWidth + padding * 2)
     contentItem: StyledText {
         id: label
         text: root.text
@@ -19,6 +21,6 @@ QQC.ToolTip {
     }
     background: StyledRect {
         color: Colours.palette.m3surfaceContainerHigh
-        radius: Tokens.rounding.medium
+        radius: root.tokens.Tokens.rounding.medium
     }
 }

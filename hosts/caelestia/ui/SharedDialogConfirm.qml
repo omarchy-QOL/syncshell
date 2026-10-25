@@ -13,6 +13,8 @@ import "."
 QQC.Popup {
     id: root
     required property var controller
+    // Popup items carry no screen; resolve tokens through the visual parent.
+    readonly property Item tokens: parent
     modal: true
     focus: true
     closePolicy: QQC.Popup.NoAutoClose
@@ -20,11 +22,11 @@ QQC.Popup {
     height: Math.min(parent.height, contentColumn.implicitHeight + padding * 2)
     x: (parent.width - width) / 2
     y: Math.max(0, (parent.height - height) / 2)
-    padding: Tokens.padding.large
+    padding: tokens.Tokens.padding.large
     onOpened: cancel.forceActiveFocus()
     background: StyledRect {
         color: Colours.palette.m3surfaceContainerHigh
-        radius: Tokens.rounding.medium
+        radius: root.tokens.Tokens.rounding.medium
     }
     contentItem: ColumnLayout {
         id: contentColumn
