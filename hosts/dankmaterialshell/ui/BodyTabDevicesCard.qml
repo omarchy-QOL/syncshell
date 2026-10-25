@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import qs.Common
 import qs.Widgets
 import "../models/PanelModel.js" as Model
+import "UiConstants.js" as UiConstants
 
 StyledRect {
     id: root
@@ -30,6 +31,8 @@ StyledRect {
             }
             SharedWidgetIdCopyButton {
                 value: root.device ? root.device.id : ""
+                caption: "device ID"
+                helpText: "Copy device ID"
             }
             StyledText {
                 text: Model.deviceStatus(root.device, root.controller.fresh)
@@ -57,6 +60,8 @@ StyledRect {
         }
         SharedWidgetBusyButton {
             Layout.alignment: Qt.AlignRight
+            controlHeight: UiConstants.SMALL_CONTROL_HEIGHT
+            iconName: root.device && root.device.paused ? "play_arrow" : "pause"
             text: root.device && root.device.paused ? "Resume" : "Pause"
             busy: !!root.controller.service && root.controller.service.busy
             enabled: !!root.device && root.controller.fresh

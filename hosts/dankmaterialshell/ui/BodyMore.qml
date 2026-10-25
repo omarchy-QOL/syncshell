@@ -9,10 +9,13 @@ ColumnLayout {
     required property var controller
     readonly property var service: controller.service
     spacing: Theme.spacingS
-    DankButton {
-        Layout.fillWidth: true
+    // A flat disclosure row, as Omarchy's chevron More/Less.
+    SharedWidgetTooltipButton {
+        flat: true
+        leftAlign: true
         text: root.controller.moreOpen ? "Less" : "More"
         iconName: root.controller.moreOpen ? "expand_less" : "expand_more"
+        Accessible.name: root.controller.moreOpen ? "Hide details" : "Show details"
         onClicked: root.controller.moreOpen = !root.controller.moreOpen
     }
     ColumnLayout {

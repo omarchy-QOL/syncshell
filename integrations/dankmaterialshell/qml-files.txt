@@ -24,7 +24,6 @@ hosts/dankmaterialshell/ui/BodyTabFoldersSelector.qml
 hosts/dankmaterialshell/ui/BodyTabFoldersShareForm.qml
 hosts/dankmaterialshell/ui/BodyTabFoldersViewOptions.qml
 hosts/dankmaterialshell/ui/FooterActions.qml
-hosts/dankmaterialshell/ui/FooterSettingsButton.qml
 hosts/dankmaterialshell/ui/FooterShortcutHint.qml
 hosts/dankmaterialshell/ui/Header.qml
 hosts/dankmaterialshell/ui/SettingsPage.qml
@@ -33,6 +32,10 @@ hosts/dankmaterialshell/ui/SharedWidgetBusyButton.qml
 hosts/dankmaterialshell/ui/SharedWidgetDropdown.qml
 hosts/dankmaterialshell/ui/SharedWidgetIdCopyButton.qml
 hosts/dankmaterialshell/ui/SharedWidgetInfoPair.qml
+hosts/dankmaterialshell/ui/SharedWidgetMonoIcon.qml
 hosts/dankmaterialshell/ui/SharedWidgetSquareActionButton.qml
 hosts/dankmaterialshell/ui/SharedWidgetToolTip.qml
+hosts/dankmaterialshell/ui/SharedWidgetTooltipActionButton.qml
+hosts/dankmaterialshell/ui/SharedWidgetTooltipButton.qml
 hosts/dankmaterialshell/ui/SyncshellPanelPopup.qml
+hosts/dankmaterialshell/ui/UiConstants.js

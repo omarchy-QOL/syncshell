@@ -12,7 +12,7 @@ RowLayout {
         font.weight: Font.Medium
         Layout.fillWidth: true
     }
-    DankButton {
+    SharedWidgetTooltipButton {
         text: "Cancel"
         onClicked: root.cancelled()
     }

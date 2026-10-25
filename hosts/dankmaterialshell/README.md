@@ -68,7 +68,7 @@ responsibilities use the same filenames; native APIs are not interchangeable.
 | Sharing forms              | `ui/BodyTabFoldersShareForm.qml`, `ui/BodyTabDevicesFoldersForm.qml` |
 | Selection and filters      | `ui/SharedWidgetDropdown.qml`, `ui/BodyTabFoldersViewOptions.qml`    |
 | Side forms/confirmations   | `ui/BodyFormSideCard.qml`, `ui/SharedDialogConfirm.qml`              |
-| Settings presentation      | `ui/SettingsPage.qml`, `ui/FooterSettingsButton.qml`                 |
+| Settings presentation      | `ui/SettingsPage.qml`, gear in `ui/FooterActions.qml`                |
 
 Single- and multi-select share `SharedWidgetDropdown.qml`; the `multiple` mode
 retains checked IDs while filtering. `MonoIcon` is replaced by native

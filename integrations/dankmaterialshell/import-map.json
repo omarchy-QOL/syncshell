@@ -18,5 +18,7 @@
   "\"controllers\"": "\"controllers\"",
   "\"ui\"": "\"ui\"",
   "\"../controllers\"": "\"../controllers\"",
-  "\"../models/PanelModel.js\"": "\"../models/PanelModel.js\""
+  "\"../models/PanelModel.js\"": "\"../models/PanelModel.js\"",
+  "\"models/PanelModel.js\"": "\"models/PanelModel.js\"",
+  "\"UiConstants.js\"": "\"UiConstants.js\""
 }

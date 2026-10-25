@@ -4,14 +4,16 @@ import qs.Widgets
 import qs.Modules.Plugins
 import "controllers"
 import "ui"
+import "models/PanelModel.js" as Model
 
 PluginComponent {
     id: root
     layerNamespacePlugin: "syncshell"
-    popoutWidth: 440 + Theme.spacingS * 2
+    popoutWidth: 384 * Math.max(1, Theme.fontScale) + Theme.spacingS * 2
     property var service: null
     property var host: null
-    readonly property string stateIcon: !service || !service.online ? "cloud_off" : service.folderProblemCount ? "sync_problem" : service.syncingFolderCount ? "sync" : "cloud_done"
+    readonly property string iconVariant: Model.statusVariant(service)
+    readonly property bool themedIcon: !host || host.settings.values.iconStyle !== "branded"
     pillRightClickAction: function () {
         root.triggerPopout();
     }
@@ -34,25 +36,59 @@ PluginComponent {
         id: panelController
         service: root.service
     }
+    // Hover shows a status tooltip like Omarchy's bar; it never opens the panel.
+    function showTooltip(item, hovered) {
+        var pill = item;
+        while (pill && pill.popoutTarget === undefined)
+            pill = pill.parent;
+        if (!hovered || (pill && pill.popoutTarget && pill.popoutTarget.shouldBeVisible)) {
+            if (tooltipLoader.item)
+                tooltipLoader.item.hide();
+            tooltipLoader.active = false;
+            return;
+        }
+        tooltipLoader.active = true;
+        var screen = root.parentScreen || Screen;
+        var text = Model.barTooltip(root.service);
+        if (root.isVertical) {
+            var mid = item.mapToItem(null, item.width / 2, item.height / 2);
+            var left = root.axis?.edge === "left";
+            var x = left ? root.barThickness + root.barSpacing + Theme.spacingXS : screen.width - root.barThickness - root.barSpacing - Theme.spacingXS;
+            tooltipLoader.item.show(text, x, mid.y, screen, left, !left);
+        } else {
+            var top = item.mapToItem(null, item.width / 2, 0);
+            var bottom = root.axis?.edge === "bottom";
+            var y = bottom ? screen.height - root.barThickness - root.barSpacing - Theme.spacingXS - (Theme.fontSizeSmall * 1.5 + Theme.spacingS * 2) : root.barThickness + root.barSpacing + Theme.spacingXS;
+            tooltipLoader.item.show(text, top.x, y, screen, false, false);
+        }
+    }
+    Loader {
+        id: tooltipLoader
+        active: false
+        sourceComponent: DankTooltip {}
+    }
     horizontalBarPill: Component {
-        Row {
-            spacing: Theme.spacingXS
-            DankIcon {
-                name: root.stateIcon
-                size: root.iconSize
-                color: root.service && root.service.folderProblemCount ? Theme.error : Theme.primary
-            }
-            StyledText {
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.service ? String(root.service.folderCount) : "-"
+        SharedWidgetMonoIcon {
+            id: pillIcon
+            size: root.iconSize
+            variant: root.iconVariant
+            themed: root.themedIcon
+            tint: Theme.surfaceText
+            HoverHandler {
+                onHoveredChanged: root.showTooltip(pillIcon, hovered)
             }
         }
     }
     verticalBarPill: Component {
-        DankIcon {
-            name: root.stateIcon
+        SharedWidgetMonoIcon {
+            id: pillIcon
             size: root.iconSize
-            color: root.service && root.service.folderProblemCount ? Theme.error : Theme.primary
+            variant: root.iconVariant
+            themed: root.themedIcon
+            tint: Theme.surfaceText
+            HoverHandler {
+                onHoveredChanged: root.showTooltip(pillIcon, hovered)
+            }
         }
     }
     popoutContent: Component {

@@ -1,15 +1,34 @@
 import QtQuick
 import Quickshell.Io
+import qs.Common
+import "UiConstants.js" as UiConstants
 
-SharedWidgetSquareActionButton {
+// Compact "copy ID" chip as in Omarchy: icon plus a short caption, never the ID.
+SharedWidgetTooltipButton {
     id: root
     property string value: ""
+    property string caption: "ID"
+    property string helpText: "Copy ID"
     property bool copied: false
     property string error: ""
+    controlHeight: UiConstants.SMALL_CONTROL_HEIGHT
+    flat: true
     iconName: copied ? "check" : "content_copy"
-    help: error || (copied ? "Copied" : "Copy ID")
-    busy: copy.running
-    enabled: value !== ""
+    text: copied ? "Copied" : caption
+    help: error || (copied ? "Copied" : helpText)
+    enabled: value !== "" && !copy.running
+    implicitWidth: Math.max(captionMetrics.advanceWidth, copiedMetrics.advanceWidth) + Theme.fontSizeSmall + 4 + Theme.spacingXS + Theme.spacingM * 2
+    TextMetrics {
+        id: captionMetrics
+        text: root.caption
+        font.pixelSize: Theme.fontSizeSmall
+    }
+    TextMetrics {
+        id: copiedMetrics
+        text: "Copied"
+        font.pixelSize: Theme.fontSizeSmall
+    }
+    onValueChanged: copied = false
     onClicked: {
         error = "";
         copy.command = ["dms", "cl", "copy", value];
@@ -25,7 +44,7 @@ SharedWidgetSquareActionButton {
     }
     Timer {
         id: reset
-        interval: 1800
+        interval: UiConstants.COPY_FEEDBACK_MS
         onTriggered: root.copied = false
     }
 }

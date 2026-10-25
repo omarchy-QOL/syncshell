@@ -4,6 +4,7 @@ import Quickshell
 import qs.Common
 import qs.Widgets
 import "../models/PanelModel.js" as Model
+import "UiConstants.js" as UiConstants
 
 Item {
     id: root
@@ -33,7 +34,7 @@ Item {
         }
         return placeholder;
     }
-    implicitHeight: 40
+    implicitHeight: UiConstants.CONTROL_HEIGHT
     implicitWidth: 220
     signal selected(string value)
     signal toggled(string value)
@@ -94,24 +95,50 @@ Item {
         }
     }
 
-    DankButton {
+    // Tonal field at Omarchy's control height; a filled DankButton made the
+    // selected label hard to read.
+    FocusScope {
         id: trigger
         width: parent.width
-        text: ""
-        onClicked: root.open()
-        RowLayout {
+        height: root.implicitHeight
+        activeFocusOnTab: root.enabled
+        Keys.onPressed: event => {
+            if ([Qt.Key_Space, Qt.Key_Return, Qt.Key_Enter, Qt.Key_Down].indexOf(event.key) < 0)
+                return;
+            event.accepted = true;
+            if (!event.isAutoRepeat && root.enabled)
+                root.open();
+        }
+        StyledRect {
             anchors.fill: parent
-            anchors.margins: Theme.spacingS
-            StyledText {
-                text: root.displayText
-                textFormat: Text.PlainText
-                maximumLineCount: 1
-                elide: Text.ElideRight
-                Layout.fillWidth: true
+            radius: Theme.cornerRadius / 2
+            color: Theme.surfaceContainerHigh
+            border.width: trigger.activeFocus || root.opened ? 2 : 0
+            border.color: Theme.primary
+            opacity: root.enabled ? 1 : 0.5
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: Theme.spacingM
+                anchors.rightMargin: Theme.spacingS
+                StyledText {
+                    text: root.displayText
+                    textFormat: Text.PlainText
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.surfaceText
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
+                }
+                DankIcon {
+                    name: root.opened ? "expand_less" : "expand_more"
+                    size: 16
+                    color: Theme.surfaceVariantText
+                }
             }
-            DankIcon {
-                name: root.opened ? "expand_less" : "expand_more"
-                size: 18
+            StateLayer {
+                anchors.fill: parent
+                disabled: !root.enabled
+                onClicked: root.open()
             }
         }
     }

@@ -4,6 +4,7 @@ import Quickshell
 import qs.Common
 import qs.Widgets
 import "../models/PanelModel.js" as Model
+import "UiConstants.js" as UiConstants
 
 StyledRect {
     id: root
@@ -34,6 +35,8 @@ StyledRect {
             }
             SharedWidgetIdCopyButton {
                 value: root.folder ? root.folder.id : ""
+                caption: "folder ID"
+                helpText: "Copy folder ID"
             }
             StyledText {
                 text: root.folder ? root.controller.folderStatus(root.folder) : ""
@@ -68,6 +71,8 @@ StyledRect {
                 font.pixelSize: Theme.fontSizeSmall
             }
             SharedWidgetBusyButton {
+                controlHeight: UiConstants.SMALL_CONTROL_HEIGHT
+                iconName: root.folder && root.folder.paused ? "delete" : "refresh"
                 text: root.folder && root.folder.paused ? "Forget" : "Rescan"
                 busyText: root.folder && root.folder.paused ? "Forgetting" : "Rescanning"
                 help: !root.controller.fresh ? "Refresh current status before changing this folder" : root.folder && root.folder.paused ? "Forget this folder without deleting its files" : "Rescan local changes"

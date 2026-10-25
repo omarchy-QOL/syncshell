@@ -1,15 +1,18 @@
 import QtQuick
 import QtQuick.Controls
 import qs.Common
-import qs.Widgets
+import "UiConstants.js" as UiConstants
 
+// Text action whose width covers both captions, so busy text never resizes it.
 FocusScope {
     id: root
     property string text: ""
     property string busyText: "Working"
+    property string iconName: ""
     property bool busy: false
     property string help: ""
-    property color textColor: Theme.surfaceText
+    property bool primary: false
+    property real controlHeight: UiConstants.CONTROL_HEIGHT
     signal clicked
 
     function activateKey(event) {
@@ -19,40 +22,35 @@ FocusScope {
         if (!event.isAutoRepeat && enabled && !busy)
             clicked();
     }
-
-    implicitWidth: Math.max(labelMetrics.width, busyMetrics.width) + Theme.spacingL * 2 + 20
-    implicitHeight: button.height
-    TextMetrics {
-        id: labelMetrics
-        text: root.text
-        font.pixelSize: Theme.fontSizeMedium
-    }
+    Keys.onPressed: event => activateKey(event)
+    implicitWidth: Math.max(button.implicitWidth, busyMetrics.advanceWidth + Theme.spacingM * 2 + (iconName ? Theme.fontSizeSmall + 4 + Theme.spacingXS : 0))
+    implicitHeight: controlHeight
     TextMetrics {
         id: busyMetrics
         text: root.busyText
-        font.pixelSize: Theme.fontSizeMedium
+        font.pixelSize: Theme.fontSizeSmall
     }
-    DankButton {
+    SharedWidgetTooltipButton {
         id: button
         focus: true
-        width: root.width
+        anchors.fill: parent
+        controlHeight: root.controlHeight
         text: root.busy ? root.busyText : root.text
-        textColor: root.textColor
+        iconName: root.busy ? "" : root.iconName
+        help: root.help
+        primary: root.primary
+        handlesKeys: false
         enabled: root.enabled && !root.busy
         onClicked: if (!root.busy)
             root.clicked()
-        Keys.onPressed: event => root.activateKey(event)
     }
     BusyIndicator {
         anchors.right: parent.right
+        anchors.rightMargin: Theme.spacingXS
         anchors.verticalCenter: parent.verticalCenter
-        width: 18
-        height: 18
+        width: root.controlHeight * 0.6
+        height: width
         visible: root.busy
         running: root.busy
-    }
-    SharedWidgetToolTip {
-        anchors.fill: parent
-        text: root.help
     }
 }

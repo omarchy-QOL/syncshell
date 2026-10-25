@@ -17,7 +17,8 @@ SharedWidgetDropdown {
         Column {
             width: parent.width
             spacing: Theme.spacingS
-            DankButton {
+            SharedWidgetTooltipButton {
+                iconName: "filter_list"
                 text: root.filtersOpen ? "Hide filters" : "Filter and sort"
                 onClicked: root.filtersOpen = !root.filtersOpen
             }

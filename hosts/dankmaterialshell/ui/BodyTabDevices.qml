@@ -54,12 +54,13 @@ ColumnLayout {
                 textFormat: Text.PlainText
             }
             RowLayout {
-                DankButton {
+                SharedWidgetTooltipButton {
+                    primary: true
                     text: "Accept"
                     enabled: root.controller.fresh && !root.controller.busy
                     onClicked: root.controller.begin("accept-device", modelData, this)
                 }
-                DankButton {
+                SharedWidgetTooltipButton {
                     text: "Dismiss"
                     enabled: root.controller.fresh && !root.controller.busy
                     onClicked: root.controller.requestConfirmation("device.dismiss-pending", modelData, this)

@@ -41,15 +41,15 @@ ColumnLayout {
                     label: "Errors first"
                 }
             ]
-            DankButton {
+            SharedWidgetTooltipButton {
                 required property var modelData
                 text: modelData.label
-                textColor: root.controller.sort === modelData.value ? Theme.primary : Theme.surfaceText
+                checked: root.controller.sort === modelData.value
                 onClicked: root.controller.sort = modelData.value
             }
         }
     }
-    DankButton {
+    SharedWidgetTooltipButton {
         text: "Reset filters"
         onClicked: root.controller.resetFilters()
     }

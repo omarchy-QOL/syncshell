@@ -1,28 +1,58 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
+import qs.Services
 import qs.Widgets
+import "UiConstants.js" as UiConstants
 
 ColumnLayout {
     id: root
     required property var controller
     property string pluginId: "syncshell"
+    property bool settingsWaiting: false
     signal settingsOpening
+    // DMS owns plugin settings in its own window; the gear opens them there
+    // instead of Omarchy's in-panel SettingsMenu.
     function openSettings() {
-        settings.clicked();
+        settingsOpening();
+        settingsWaiting = true;
+        PopoutService.openSettingsWithTab("plugins");
+        finishSettings();
     }
-    spacing: Theme.spacingS
-    DankButton {
+    function finishSettings() {
+        if (settingsWaiting && PopoutService.settingsModal) {
+            PopoutService.settingsModal.openPluginSettings(pluginId);
+            settingsWaiting = false;
+        }
+    }
+    spacing: UiConstants.SECTION_SPACING
+    Connections {
+        target: PopoutService
+        function onSettingsModalChanged() {
+            root.finishSettings();
+        }
+    }
+    Rectangle {
+        Layout.fillWidth: true
+        implicitHeight: 1
+        color: Theme.outline
+        opacity: 0.4
+    }
+    SharedWidgetTooltipButton {
         text: "Web UI"
+        iconName: "open_in_new"
+        help: "Open the Syncthing Web UI"
         enabled: !!root.controller.service && root.controller.service.online && !root.controller.busy
         onClicked: root.controller.service.openWebUi()
     }
     RowLayout {
         Layout.fillWidth: true
+        spacing: Theme.spacingS
         SharedWidgetBusyButton {
             Layout.fillWidth: true
-            text: "Rescan all"
+            text: "Rescan all folders"
             busyText: "Rescanning"
+            iconName: "refresh"
             busy: !!root.controller.service && root.controller.service.busy && root.controller.service._actionName === "folder.rescan-all"
             enabled: root.controller.fresh && !root.controller.busy && root.controller.service.folders.some(f => !f.paused)
             help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan every linked folder; paused folders are skipped"
@@ -30,15 +60,18 @@ ColumnLayout {
         }
         SharedWidgetBusyButton {
             Layout.fillWidth: true
-            text: "Refresh"
+            text: "Refresh status"
+            busyText: "Refreshing"
+            iconName: "monitor_heart"
+            help: "Reload Syncthing status now"
             busy: !!root.controller.service && root.controller.service.refreshing
             enabled: !!root.controller.service && !root.controller.busy
             onClicked: root.controller.service.refresh()
         }
-        FooterSettingsButton {
-            id: settings
-            pluginId: root.pluginId
-            onOpening: root.settingsOpening()
+        SharedWidgetSquareActionButton {
+            iconName: "settings"
+            help: "Syncshell settings"
+            onClicked: root.openSettings()
         }
     }
 }

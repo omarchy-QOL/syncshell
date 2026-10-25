@@ -56,7 +56,8 @@ ColumnLayout {
                 wrapMode: Text.Wrap
             }
             RowLayout {
-                DankButton {
+                SharedWidgetTooltipButton {
+                    primary: true
                     text: modelData.encrypted ? "Open Web UI" : "Accept"
                     enabled: root.controller.fresh && !root.controller.busy
                     onClicked: {
@@ -66,7 +67,7 @@ ColumnLayout {
                             root.controller.begin("add-folder", modelData, this);
                     }
                 }
-                DankButton {
+                SharedWidgetTooltipButton {
                     text: "Dismiss"
                     enabled: root.controller.fresh && !root.controller.busy
                     onClicked: root.controller.requestConfirmation("folder.dismiss-pending", modelData, this)

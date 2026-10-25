@@ -5,6 +5,7 @@ import qs.Common
 import qs.Widgets
 import qs.Modals.FileBrowser
 import "../models/PanelModel.js" as Model
+import "UiConstants.js" as UiConstants
 
 FocusScope {
     id: root
@@ -13,7 +14,7 @@ FocusScope {
     property var parentPopout: null
     property var closePopout: function () {}
     property string pluginId: "syncshell"
-    property real mainWidth: 440 * Math.max(1, Theme.fontScale)
+    property real mainWidth: UiConstants.CONTENT_WIDTH * Math.max(1, Theme.fontScale)
     property real sideWidth: 360 * Math.max(1, Theme.fontScale)
     property string side: "right"
     property real originalTriggerX: 0
@@ -192,7 +193,7 @@ FocusScope {
         y: root.panes.mainY
         width: Math.min(root.mainWidth, root.width)
         height: root.panes.mainHeight
-        spacing: Theme.spacingS
+        spacing: UiConstants.SECTION_SPACING
         DankFlickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -202,7 +203,7 @@ FocusScope {
             ColumnLayout {
                 id: body
                 width: parent.width
-                spacing: Theme.spacingS
+                spacing: UiConstants.SECTION_SPACING
                 Header {
                     Layout.fillWidth: true
                     controller: root.controller
@@ -215,22 +216,30 @@ FocusScope {
                     textFormat: Text.PlainText
                     color: Theme.error
                 }
-                DankTabBar {
+                // Header, then a rule, then the body; FooterActions opens with
+                // the second rule, as in Omarchy's three-part panel.
+                Rectangle {
                     Layout.fillWidth: true
-                    tabHeight: 40
-                    showIcons: false
-                    model: [
-                        {
-                            text: "Folders",
-                            icon: "folder"
-                        },
-                        {
-                            text: "Devices",
-                            icon: "devices"
-                        }
-                    ]
-                    currentIndex: root.controller.tab === "folders" ? 0 : 1
-                    onTabClicked: index => root.controller.tab = index === 0 ? "folders" : "devices"
+                    implicitHeight: 1
+                    color: Theme.outline
+                    opacity: 0.4
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacingS
+                    SharedWidgetTooltipButton {
+                        text: "Folders (" + (root.controller.service ? root.controller.service.folders.length : 0) + ")"
+                        checked: root.controller.tab === "folders"
+                        onClicked: root.controller.tab = "folders"
+                    }
+                    SharedWidgetTooltipButton {
+                        text: "Devices (" + (root.controller.service ? root.controller.service.remoteDevices().length : 0) + ")"
+                        checked: root.controller.tab === "devices"
+                        onClicked: root.controller.tab = "devices"
+                    }
+                    Item {
+                        Layout.fillWidth: true
+                    }
                 }
                 BodyTabFolders {
                     Layout.fillWidth: true
@@ -253,7 +262,7 @@ FocusScope {
         ColumnLayout {
             id: footer
             Layout.fillWidth: true
-            spacing: Theme.spacingS
+            spacing: UiConstants.SECTION_SPACING
             FooterActions {
                 id: footerActions
                 Layout.fillWidth: true

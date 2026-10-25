@@ -12,17 +12,18 @@ ColumnLayout {
     readonly property var totals: Model.totals(service ? service.folders : [])
     RowLayout {
         Layout.fillWidth: true
-        DankSVGIcon {
-            source: Qt.resolvedUrl("../../../assets/" + (root.iconStyle === "themed" ? "mono/" : "") + "status-default.svg")
-            Layout.preferredWidth: 36
-            Layout.preferredHeight: 36
-            colorOverride: root.iconStyle === "themed" ? Theme.surfaceText : "transparent"
+        SharedWidgetMonoIcon {
+            size: 36
+            variant: Model.statusVariant(root.service)
+            themed: root.iconStyle === "themed"
+            opacity: !root.service || !root.service.online || variant === "pause" ? 0.5 : 1
         }
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 0
             StyledText {
                 text: "Syncthing"
+                font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.Medium
             }
             RowLayout {
@@ -31,16 +32,25 @@ ColumnLayout {
                     text: root.service ? root.service.deviceName(root.service.localDeviceId) : "Starting"
                     textFormat: Text.PlainText
                     maximumLineCount: 1
-                    Layout.fillWidth: true
+                    Layout.preferredWidth: implicitWidth
+                    Layout.minimumWidth: 0
+                    elide: Text.ElideRight
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.surfaceVariantText
                 }
                 SharedWidgetIdCopyButton {
                     value: root.service ? root.service.localDeviceId : ""
+                    caption: "device ID"
+                    helpText: "Copy device ID"
                 }
             }
         }
+        Item {
+            Layout.fillWidth: true
+        }
+        // Omarchy hides the toggle when this host may not control the service.
         DankToggle {
+            visible: !!root.service && root.service.canControlService
             hideText: true
             checked: !!root.service && root.service.lifecycle.active === true
             enabled: !!root.service && root.service.canControlService && !root.controller.busy && !root.controller.form && !root.controller.confirmation
@@ -64,7 +74,7 @@ ColumnLayout {
     SharedWidgetInfoPair {
         Layout.fillWidth: true
         label: "Tracked"
-        value: root.totals.files + " files · " + Model.bytes(root.totals.bytes)
+        value: Model.formatCount(root.totals.files) + " files · " + Model.bytes(root.totals.bytes)
     }
     StyledText {
         Layout.fillWidth: true

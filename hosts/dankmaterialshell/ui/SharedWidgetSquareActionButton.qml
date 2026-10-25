@@ -1,12 +1,15 @@
 import QtQuick
 import QtQuick.Controls
-import qs.Widgets
+import "UiConstants.js" as UiConstants
 
+// Toolbar square action (add, share, link) with a busy state.
 FocusScope {
     id: root
     property string iconName: ""
     property string help: ""
     property bool busy: false
+    property bool danger: false
+    property real size: UiConstants.CONTROL_HEIGHT
     signal clicked
 
     function activateKey(event) {
@@ -16,26 +19,26 @@ FocusScope {
         if (!event.isAutoRepeat && enabled && !busy)
             clicked();
     }
-    implicitWidth: button.width
-    implicitHeight: button.height
-    DankActionButton {
+    Keys.onPressed: event => activateKey(event)
+    implicitWidth: button.implicitWidth
+    implicitHeight: button.implicitHeight
+    SharedWidgetTooltipActionButton {
         id: button
         focus: true
+        anchors.fill: parent
+        size: root.size
         iconName: root.busy ? "" : root.iconName
+        help: root.help
+        danger: root.danger
+        handlesKeys: false
         enabled: root.enabled && !root.busy
-        onClicked: if (!root.busy)
-            root.clicked()
-        Keys.onPressed: event => root.activateKey(event)
+        onClicked: root.clicked()
     }
     BusyIndicator {
         anchors.centerIn: parent
-        width: 22
-        height: 22
+        width: root.size * 0.7
+        height: width
         running: root.busy
         visible: root.busy
-    }
-    SharedWidgetToolTip {
-        anchors.fill: parent
-        text: root.help
     }
 }
