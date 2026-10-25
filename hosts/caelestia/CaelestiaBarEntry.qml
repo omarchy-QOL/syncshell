@@ -44,7 +44,10 @@ Item {
         CaelestiaService.pinOverview(screenName, true);
     }
     function show() {
-        popouts.currentCenter = CaelestiaService.controller(screenName).view.anchorCenter;
+        // While the overview is current its panel binds the center; writing it
+        // here would override that binding and shift the panel.
+        if (popouts.currentName !== Model.overviewPopout)
+            popouts.currentCenter = CaelestiaService.controller(screenName).view.anchorCenter;
         popouts.currentName = Model.overviewPopout;
         popouts.hasCurrent = true;
     }
