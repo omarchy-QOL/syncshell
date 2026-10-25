@@ -23,7 +23,19 @@ QQC.Popup {
     x: (parent.width - width) / 2
     y: Math.max(0, (parent.height - height) / 2)
     padding: tokens.Tokens.padding.large
+    // Return focus to the control that asked for confirmation, not the tabs.
+    property Item returnFocus: null
+    onAboutToShow: returnFocus = parent?.Window.window?.activeFocusItem ?? null
     onOpened: cancel.forceActiveFocus()
+    onClosed: {
+        const target = returnFocus;
+        returnFocus = null;
+        if (target)
+            Qt.callLater(() => {
+                if (target.visible && target.enabled)
+                    target.forceActiveFocus();
+            });
+    }
     background: StyledRect {
         color: Colours.palette.m3surfaceContainerHigh
         radius: root.tokens.Tokens.rounding.medium
