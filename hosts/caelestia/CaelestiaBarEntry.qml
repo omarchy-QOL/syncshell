@@ -57,8 +57,14 @@ Item {
     Connections {
         target: root.popouts
         function onHasCurrentChanged() {
-            if (!root.popouts.hasCurrent && root.pinned)
-                root.show();
+            if (root.popouts.hasCurrent || !root.pinned)
+                return;
+            // The host wrapper binds focus to hasCurrent, so re-showing takes
+            // keyboard focus from the overview; hand it back to the same item.
+            const focused = root.popouts.currentName === Model.overviewPopout ? root.Window.window?.activeFocusItem : null;
+            root.show();
+            if (focused)
+                focused.forceActiveFocus();
         }
     }
     MaterialIcon {
