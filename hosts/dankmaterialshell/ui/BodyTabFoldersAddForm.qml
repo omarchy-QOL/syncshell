@@ -89,6 +89,8 @@ ColumnLayout {
     }
     StyledText {
         text: "Share with devices"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true

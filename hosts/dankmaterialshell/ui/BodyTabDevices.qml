@@ -34,6 +34,7 @@ ColumnLayout {
         }
         SharedWidgetSquareActionButton {
             iconName: "close"
+            danger: true
             help: "Remove device and its shares; keep files"
             enabled: !!root.controller.device && root.controller.fresh && !root.controller.busy
             onClicked: root.controller.requestConfirmation("device.remove", root.controller.device, this)

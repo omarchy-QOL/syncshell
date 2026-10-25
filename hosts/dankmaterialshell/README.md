@@ -71,10 +71,12 @@ responsibilities use the same filenames; native APIs are not interchangeable.
 | Settings presentation      | `ui/SettingsPage.qml`, gear in `ui/FooterActions.qml`                |
 
 Single- and multi-select share `SharedWidgetDropdown.qml`; the `multiple` mode
-retains checked IDs while filtering. `MonoIcon` is replaced by native
-`DankSVGIcon`; action tooltips use native buttons or the bounded plain-text
-`SharedWidgetToolTip`. Service choices share the Cancel-first confirmation.
-There is no cross-shell visual facade or copied Omarchy control library.
+retains checked IDs while filtering. Omarchy files without a DMS twin: DMS
+plugin settings replace `SettingsMenu` (`SettingsPage.qml`), the DMS plugin
+manager owns removal (`SettingsSelfRemovalDialog`), and no host dialog needs
+`SharedDialogChoice`. The panel follows Omarchy's three parts: `Header`, a
+rule, the `Body*` area, and `FooterActions`, which starts with the second
+rule. Control sizes come from `ui/UiConstants.js`.
 
 ## Release gates
 
