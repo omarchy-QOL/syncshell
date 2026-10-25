@@ -1,7 +1,7 @@
-local Controls = require("./Controls.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Model = require("../models/PanelModel.luau")
-local DeviceCard = require("./DeviceCard.luau")
-local Dropdown = require("./SyncshellDropdown.luau")
+local BodyTabDevicesCard = require("./BodyTabDevicesCard.luau")
+local Dropdown = require("./SharedWidgetDropdown.luau")
 local Devices = {}
 
 function Devices.render(controller)
@@ -14,9 +14,9 @@ function Devices.render(controller)
                 or (device.paused and "Paused" or (device.connected and "Connected" or "Offline"))) .. " | " .. device.id })
     end
     return ui.column({ gap = 8 }, {
-        Controls.button("Add device", function() controller:openForm("addDevice") end, not controller:busy()),
+        SharedWidgetControls.button("Add device", function() controller:openForm("addDevice") end, not controller:busy()),
         Dropdown.render(controller, view, "device", "Device", rows, view.deviceId, function(id) view.deviceId = id end),
-        DeviceCard.render(controller, Model.find(devices, view.deviceId)),
+        BodyTabDevicesCard.render(controller, Model.find(devices, view.deviceId)),
     })
 end
 

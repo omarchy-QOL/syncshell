@@ -2,29 +2,29 @@ local SnapshotStore = require("./transport/SnapshotStore.luau")
 local Controller = require("./controllers/PanelController.luau")
 local Navigation = require("./models/PanelNavigation.luau")
 local Model = require("./models/PanelModel.luau")
-local Controls = require("./ui/Controls.luau")
-local PanelStatus = require("./ui/PanelStatus.luau")
-local FolderSelector = require("./ui/FolderSelector.luau")
-local FolderCard = require("./ui/FolderCard.luau")
-local RemoteDevices = require("./ui/RemoteDevices.luau")
-local Invitations = require("./ui/Invitations.luau")
-local MoreDetails = require("./ui/MoreDetails.luau")
-local AddFolderForm = require("./ui/AddFolderForm.luau")
-local AddDeviceForm = require("./ui/AddRemoteDeviceForm.luau")
-local FolderSharingForm = require("./ui/FolderSharingForm.luau")
-local DeviceFoldersForm = require("./ui/DeviceFoldersForm.luau")
-local SettingsMenu = require("./ui/SettingsMenu.luau")
-local Confirmation = require("./ui/CompactConfirmDialog.luau")
+local SharedWidgetControls = require("./ui/SharedWidgetControls.luau")
+local Header = require("./ui/Header.luau")
+local BodyTabFoldersSelector = require("./ui/BodyTabFoldersSelector.luau")
+local BodyTabFoldersCard = require("./ui/BodyTabFoldersCard.luau")
+local BodyTabDevices = require("./ui/BodyTabDevices.luau")
+local BodyInvitations = require("./ui/BodyInvitations.luau")
+local BodyMore = require("./ui/BodyMore.luau")
+local BodyTabFoldersAddForm = require("./ui/BodyTabFoldersAddForm.luau")
+local AddDeviceForm = require("./ui/BodyTabDevicesAddForm.luau")
+local BodyTabFoldersShareForm = require("./ui/BodyTabFoldersShareForm.luau")
+local BodyTabDevicesFoldersForm = require("./ui/BodyTabDevicesFoldersForm.luau")
+local SettingsPage = require("./ui/SettingsPage.luau")
+local Confirmation = require("./ui/SharedDialogConfirm.luau")
 
 local controller
 local opened = false
 
 local function formTree(form)
-    if form.kind == "addFolder" or form.kind == "acceptFolder" then return AddFolderForm.render(controller, form) end
+    if form.kind == "addFolder" or form.kind == "acceptFolder" then return BodyTabFoldersAddForm.render(controller, form) end
     if form.kind == "addDevice" or form.kind == "acceptDevice" then return AddDeviceForm.render(controller, form) end
-    if form.kind == "sharing" then return FolderSharingForm.render(controller, form) end
-    if form.kind == "deviceFolders" then return DeviceFoldersForm.render(controller, form) end
-    return SettingsMenu.render(controller)
+    if form.kind == "sharing" then return BodyTabFoldersShareForm.render(controller, form) end
+    if form.kind == "deviceFolders" then return BodyTabDevicesFoldersForm.render(controller, form) end
+    return SettingsPage.render(controller)
 end
 
 local function render()
@@ -34,11 +34,11 @@ local function render()
     panel.setWantsSecondTicks(controller:needsTicks())
     if v.details then
         panel.render(ui.column({ key = "details", padding = 12, gap = 8 }, {
-            Controls.label(v.details.title),
-            ui.scroll({ flexGrow = 1 }, { Controls.label(v.details.text) }),
+            SharedWidgetControls.label(v.details.title),
+            ui.scroll({ flexGrow = 1 }, { SharedWidgetControls.label(v.details.text) }),
             ui.row({ gap = 8 }, {
-                Controls.button("Back", function() v.details = nil; controller:save() end),
-                Controls.button("Copy full details", function() controller:copy(v.details.text) end),
+                SharedWidgetControls.button("Back", function() v.details = nil; controller:save() end),
+                SharedWidgetControls.button("Copy full details", function() controller:copy(v.details.text) end),
             }),
         }))
         return
@@ -52,43 +52,43 @@ local function render()
         table.insert(body, formTree(v.form))
     else
         table.insert(body, ui.row({ gap = 8 }, {
-            Controls.button("Folders", function() v.section = "folders"; controller:save() end, true, v.section == "folders" and "primary" or "ghost"),
-            Controls.button("Devices", function() v.section = "devices"; controller:save() end, true, v.section == "devices" and "primary" or "ghost"),
+            SharedWidgetControls.button("Folders", function() v.section = "folders"; controller:save() end, true, v.section == "folders" and "primary" or "ghost"),
+            SharedWidgetControls.button("Devices", function() v.section = "devices"; controller:save() end, true, v.section == "devices" and "primary" or "ghost"),
         }))
         if v.section == "folders" then
-            table.insert(body, FolderSelector.render(controller))
-            table.insert(body, Controls.button("Add folder", function() controller:openForm("addFolder") end, not controller:busy()))
-            table.insert(body, FolderCard.render(controller, Model.find(controller.snapshot.folders, v.folderId)))
+            table.insert(body, BodyTabFoldersSelector.render(controller))
+            table.insert(body, SharedWidgetControls.button("Add folder", function() controller:openForm("addFolder") end, not controller:busy()))
+            table.insert(body, BodyTabFoldersCard.render(controller, Model.find(controller.snapshot.folders, v.folderId)))
         else
-            table.insert(body, RemoteDevices.render(controller))
+            table.insert(body, BodyTabDevices.render(controller))
         end
-        table.insert(body, Invitations.render(controller))
-        table.insert(body, MoreDetails.render(controller))
+        table.insert(body, BodyInvitations.render(controller))
+        table.insert(body, BodyMore.render(controller))
     end
     if controller.selectionView then
         local selection = controller.selectionView
         panel.render(ui.column({ key = "selection", padding = 12, gap = 8 }, {
-            Controls.label(selection.title),
-            Controls.notice(controller, controller.status.error or v.message, "on_surface_variant", "action details"),
+            SharedWidgetControls.label(selection.title),
+            SharedWidgetControls.notice(controller, controller.status.error or v.message, "on_surface_variant", "action details"),
             ui.scroll({ key = "selection-body", flexGrow = 1 }, { selection.tree }),
-            Controls.button("Back to " .. (v.form and "form" or "overview"), selection.close),
+            SharedWidgetControls.button("Back to " .. (v.form and "form" or "overview"), selection.close),
         }))
         return
     end
     local enabled = controller.status.ready and not controller:busy()
     local message = controller.status.error or v.message
     local tree = ui.column({ padding = 12, gap = 8 }, {
-        PanelStatus.render(controller),
-        Controls.notice(controller, message ~= "" and message or "", (controller.status.error or v.noticeKind == "error" or v.noticeKind == "uncertain") and "error"
+        Header.render(controller),
+        SharedWidgetControls.notice(controller, message ~= "" and message or "", (controller.status.error or v.noticeKind == "error" or v.noticeKind == "uncertain") and "error"
             or (v.noticeKind == "success" and "tertiary" or "on_surface_variant"), "action details"),
         ui.scroll({ key = "body", flexGrow = 1, gap = 10 }, body),
         ui.row({ gap = 6 }, {
-            Controls.button("Web UI", function() controller:send("webui.open", {}) end, enabled and (controller.snapshot.connection or {}).online, nil, controller:actionKey("webui"), "Open the selected Syncthing instance in your browser"),
-            Controls.button("Rescan all", function() controller:rescanAll() end, controller:canRescan(), nil, controller:actionKey("rescan-all"), "Rescan linked folders for local changes; requires a current connection and a folder not already scanning"),
-            Controls.button("Refresh", function() controller:refresh() end, enabled, nil, controller:actionKey("refresh"), "Refresh Syncthing state, rescan folders with errors, or retry connection discovery"),
-            Controls.button("Settings", function() controller:openForm("settings") end, not controller:busy()),
+            SharedWidgetControls.button("Web UI", function() controller:send("webui.open", {}) end, enabled and (controller.snapshot.connection or {}).online, nil, controller:actionKey("webui"), "Open the selected Syncthing instance in your browser"),
+            SharedWidgetControls.button("Rescan all", function() controller:rescanAll() end, controller:canRescan(), nil, controller:actionKey("rescan-all"), "Rescan linked folders for local changes; requires a current connection and a folder not already scanning"),
+            SharedWidgetControls.button("Refresh", function() controller:refresh() end, enabled, nil, controller:actionKey("refresh"), "Refresh Syncthing state, rescan folders with errors, or retry connection discovery"),
+            SharedWidgetControls.button("Settings", function() controller:openForm("settings") end, not controller:busy()),
         }),
-        Controls.label("[r]escan [w]eb UI [p]ause/start [s]ettings [q]close | Tab: focus", "on_surface_variant"),
+        SharedWidgetControls.label("[r]escan [w]eb UI [p]ause/start [s]ettings [q]close | Tab: focus", "on_surface_variant"),
     })
     table.insert(tree.children, Navigation.decorate(controller, tree))
     panel.render(tree)

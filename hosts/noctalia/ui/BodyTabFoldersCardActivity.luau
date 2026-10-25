@@ -1,4 +1,4 @@
-local Controls = require("./Controls.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Activity = {}
 
 function Activity.render(controller, folderId)
@@ -8,8 +8,8 @@ function Activity.render(controller, folderId)
     local live = (controller.snapshot.connection or {}).online and (controller.snapshot.connection or {}).fresh
     local dots = live and string.rep(".", controller.activityPhase or 0) or ""
     return ui.column({ gap = 4 }, {
-        Controls.label((live and "File syncing" or "Last reported activity") .. dots .. " | " .. activity.action, color),
-        Controls.label(activity.path .. "\n" .. activity.detail, color),
+        SharedWidgetControls.label((live and "File syncing" or "Last reported activity") .. dots .. " | " .. activity.action, color),
+        SharedWidgetControls.label(activity.path .. "\n" .. activity.detail, color),
     })
 end
 

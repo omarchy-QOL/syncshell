@@ -1,4 +1,4 @@
-local Controls = require("../ui/Controls.luau")
+local SharedWidgetControls = require("../ui/SharedWidgetControls.luau")
 local Navigation = {}
 
 local function caption(node)
@@ -54,7 +54,7 @@ function Navigation.decorate(controller, tree)
         return true
     end
     local action = selected and actions[selected]
-    if not action then return Controls.label("Alt+Up/Down: choose an action | Alt+Enter: activate", "on_surface_variant") end
+    if not action then return SharedWidgetControls.label("Alt+Up/Down: choose an action | Alt+Enter: activate", "on_surface_variant") end
     return ui.column({ key = "keyboard-action", gap = 2 }, {
         ui.label({ text = "Action " .. tostring(selected) .. "/" .. tostring(#actions) .. ": " .. action.label,
             color = "primary", maxLines = 2 }),

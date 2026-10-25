@@ -1,4 +1,4 @@
-local Controls = require("./Controls.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Help = {}
 
 function Help.render(controller)
@@ -10,13 +10,13 @@ function Help.render(controller)
     elseif installation.available == false then text = "No local Syncthing executable found. For a remote or container instance, configure its endpoint and credentials. For a local instance, install Syncthing through your distribution or the official downloads page."
     else text = "Installation status is not available yet. Refresh or check the worker error above." end
     return ui.column({ gap = 6 }, {
-        Controls.label("Installation and recovery"), Controls.label(text),
+        SharedWidgetControls.label("Installation and recovery"), SharedWidgetControls.label(text),
         ui.row({ gap = 6 }, {
-            Controls.button("Installation help", function() controller:openDocumentation("installation") end),
-            Controls.button("Startup help", function() controller:openDocumentation("startup") end),
+            SharedWidgetControls.button("Installation help", function() controller:openDocumentation("installation") end),
+            SharedWidgetControls.button("Startup help", function() controller:openDocumentation("startup") end),
         }),
-        Controls.button("Connection and service settings", function() controller.host.openSettings() end),
-        Controls.label("After installing or repairing Syncthing, Refresh to check again. Use the original package manager or launcher for Syncthing removal; removing this plugin does not uninstall Syncthing or delete synchronized data.", "on_surface_variant"),
+        SharedWidgetControls.button("Connection and service settings", function() controller.host.openSettings() end),
+        SharedWidgetControls.label("After installing or repairing Syncthing, Refresh to check again. Use the original package manager or launcher for Syncthing removal; removing this plugin does not uninstall Syncthing or delete synchronized data.", "on_surface_variant"),
     })
 end
 

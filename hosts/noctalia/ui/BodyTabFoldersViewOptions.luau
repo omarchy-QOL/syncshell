@@ -1,10 +1,10 @@
 local Model = require("../models/PanelModel.luau")
-local Controls = require("./Controls.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Options = {}
 
 function Options.render(controller)
     local v = controller.view
-    local children = { Controls.button(v.filtersOpen and "Hide filters and sort" or "Filters and sort", function()
+    local children = { SharedWidgetControls.button(v.filtersOpen and "Hide filters and sort" or "Filters and sort", function()
         v.filtersOpen = not v.filtersOpen; controller:save()
     end, true, "ghost", "folder-filters") }
     if not v.filtersOpen then return ui.column({ gap = 6 }, children) end
@@ -14,8 +14,8 @@ function Options.render(controller)
         ui.toggle({ key = "filter-all", checked = all, onChange = function(value)
             for key in v.filters do v.filters[key] = Model.bool(value) end
             controller:save()
-        end }), Controls.label(any and not all and "All (mixed)" or "All"),
-        Controls.button("Reset", function()
+        end }), SharedWidgetControls.label(any and not all and "All (mixed)" or "All"),
+        SharedWidgetControls.button("Reset", function()
             for key in v.filters do v.filters[key] = true end
             v.sort, v.search = "name", ""
             v.filtersOpen = false
@@ -28,7 +28,7 @@ function Options.render(controller)
     for _, key in { "ready", "active", "errors", "paused", "unknown" } do
         table.insert(children, ui.row({ gap = 8 }, {
             ui.toggle({ key = "filter-" .. key, checked = v.filters[key], onChange = function(value) v.filters[key] = Model.bool(value); controller:save() end }),
-            Controls.label(string.upper(string.sub(key, 1, 1)) .. string.sub(key, 2)),
+            SharedWidgetControls.label(string.upper(string.sub(key, 1, 1)) .. string.sub(key, 2)),
         }))
     end
     local modes = { "name", "active", "errors" }

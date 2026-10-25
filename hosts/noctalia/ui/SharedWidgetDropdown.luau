@@ -1,4 +1,4 @@
-local Controls = require("./Controls.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Dropdown = {}
 local pageSize = 6
 
@@ -10,7 +10,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     local chosen
     for _, row in rows do if row.id == selected then chosen = row end end
     local function close() state.open = false; controller:save() end
-    local children = { Controls.button(label .. " | " .. (options.selectedLabel or (chosen and chosen.label) or "Choose"), function()
+    local children = { SharedWidgetControls.button(label .. " | " .. (options.selectedLabel or (chosen and chosen.label) or "Choose"), function()
         state.open = not state.open
         if state.open then
             owner.disclosures = {}
@@ -61,21 +61,21 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     for index = first, math.min(first + pageSize - 1, #matches) do
         local row = matches[index]
         table.insert(list, ui.column({ key = row.id, gap = 2 }, {
-            Controls.button((row.id == selected and "Selected: " or "") .. row.label, function()
+            SharedWidgetControls.button((row.id == selected and "Selected: " or "") .. row.label, function()
                 state.open = false; choose(row.id); controller:save()
             end, row.enabled ~= false and not controller:busy(), index == cursor and "primary" or "ghost", "option-" .. key .. "-" .. row.id),
-            Controls.label(row.description or row.id, "on_surface_variant"),
+            SharedWidgetControls.label(row.description or row.id, "on_surface_variant"),
         }))
     end
-    if #matches == 0 then table.insert(list, Controls.label(options.empty or (#rows == 0 and "No available items" or "No matching items"))) end
+    if #matches == 0 then table.insert(list, SharedWidgetControls.label(options.empty or (#rows == 0 and "No available items" or "No matching items"))) end
     table.insert(children, ui.scroll({ key = "results-" .. key .. "-" .. tostring(state.cursor), height = 260, gap = 4 }, list))
     table.insert(children, ui.row({ gap = 6 }, {
-        Controls.button("Previous", function() state.cursor = matches[math.max(1, first - pageSize)].id; controller:save() end, first > 1),
-        Controls.button("Next", function() state.cursor = matches[first + pageSize].id; controller:save() end, first + pageSize <= #matches),
-        Controls.button("Back", close, true, "ghost", "back-" .. key),
+        SharedWidgetControls.button("Previous", function() state.cursor = matches[math.max(1, first - pageSize)].id; controller:save() end, first > 1),
+        SharedWidgetControls.button("Next", function() state.cursor = matches[first + pageSize].id; controller:save() end, first + pageSize <= #matches),
+        SharedWidgetControls.button("Back", close, true, "ghost", "back-" .. key),
     }))
-    table.insert(children, Controls.label(tostring(#matches) .. " results | Alt+Up/Down: select | Enter in search: choose | Alt+Left: back", "on_surface_variant"))
-    local tree = Controls.column({ gap = 6 }, children)
+    table.insert(children, SharedWidgetControls.label(tostring(#matches) .. " results | Alt+Up/Down: select | Enter in search: choose | Alt+Left: back", "on_surface_variant"))
+    local tree = SharedWidgetControls.column({ gap = 6 }, children)
     controller.selectionView = { title = label, tree = tree, close = close }
     return tree
 end

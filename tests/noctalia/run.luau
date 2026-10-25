@@ -200,20 +200,20 @@ for _, spec in forms do
     assert(c.view.form.kind == spec[1], "form failed to open: " .. spec[1])
     c:save()
     local components = {
-        addFolder = "AddFolderForm", acceptFolder = "AddFolderForm", sharing = "FolderSharingForm",
-        addDevice = "AddRemoteDeviceForm", acceptDevice = "AddRemoteDeviceForm", deviceFolders = "DeviceFoldersForm", settings = "SettingsMenu",
+        addFolder = "BodyTabFoldersAddForm", acceptFolder = "BodyTabFoldersAddForm", sharing = "BodyTabFoldersShareForm",
+        addDevice = "BodyTabDevicesAddForm", acceptDevice = "BodyTabDevicesAddForm", deviceFolders = "BodyTabDevicesFoldersForm", settings = "SettingsPage",
     }
     -- require is intentionally literal, matching the host module contract.
     local modules = {
-        AddFolderForm = require("../../hosts/noctalia/ui/AddFolderForm.luau"),
-        FolderSharingForm = require("../../hosts/noctalia/ui/FolderSharingForm.luau"),
-        AddRemoteDeviceForm = require("../../hosts/noctalia/ui/AddRemoteDeviceForm.luau"),
-        DeviceFoldersForm = require("../../hosts/noctalia/ui/DeviceFoldersForm.luau"),
-        SettingsMenu = require("../../hosts/noctalia/ui/SettingsMenu.luau"),
+        BodyTabFoldersAddForm = require("../../hosts/noctalia/ui/BodyTabFoldersAddForm.luau"),
+        BodyTabFoldersShareForm = require("../../hosts/noctalia/ui/BodyTabFoldersShareForm.luau"),
+        BodyTabDevicesAddForm = require("../../hosts/noctalia/ui/BodyTabDevicesAddForm.luau"),
+        BodyTabDevicesFoldersForm = require("../../hosts/noctalia/ui/BodyTabDevicesFoldersForm.luau"),
+        SettingsPage = require("../../hosts/noctalia/ui/SettingsPage.luau"),
     }
     validate(modules[components[spec[1]]].render(c, c.view.form))
 end
-local Picker = require("../../hosts/noctalia/ui/DirectoryPicker.luau")
+local Picker = require("../../hosts/noctalia/ui/BodyTabFoldersAddFormPicker.luau")
 c.view.form = { path = "/draft", token = 100 }
 Picker.open(c, "/somewhere")
 local callback = commands[#commands].callback
@@ -222,8 +222,8 @@ callback({ exitCode = 0, stdout = encode({ path = "/late", parent = "/", entries
 equal(c.view.form.path, "/draft", "late picker callback preserves canceled draft")
 equal(c.view.form.picker, nil, "late picker callback cannot reopen browser")
 print("Noctalia model, controller, JSON, frame and form checks passed")
-local MultiSelect = require("../../hosts/noctalia/ui/SyncshellMultiSelect.luau")
-local Invitations = require("../../hosts/noctalia/ui/Invitations.luau")
+local MultiSelect = require("../../hosts/noctalia/ui/SharedWidgetMultiSelect.luau")
+local BodyInvitations = require("../../hosts/noctalia/ui/BodyInvitations.luau")
 local many = {}
 for index = 1, 256 do table.insert(many, { id = tostring(index), name = "Duplicate name" }) end
 local manyForm = { token = 200, search = "", selected = { ["unavailable"] = true } }
@@ -235,7 +235,7 @@ for folder = 1, 32 do
     c.snapshot.pendingFolders[tostring(folder)] = { offeredBy = offered }
 end
 local invitationTree
-withBudget(function() invitationTree = Invitations.render(c) end, 25)
+withBudget(function() invitationTree = BodyInvitations.render(c) end, 25)
 validate(invitationTree)
 c.view.form = { token = 201, picker = { path = "/", location = "/", after = "", history = {}, cursor = 1, parent = "/", entries = {} } }
 for index = 1, 256 do table.insert(c.view.form.picker.entries, { name = tostring(index), path = "/" .. tostring(index) }) end

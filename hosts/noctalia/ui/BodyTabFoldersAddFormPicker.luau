@@ -1,4 +1,4 @@
-local Controls = require("./Controls.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Form = require("../models/FormModel.luau")
 local Picker = {}
 local pageSize = 8
@@ -61,40 +61,40 @@ function Picker.render(controller, form)
         else return false end
         return true
     end
-    local children = { Controls.formHeader(controller, "Choose directory"),
-        Controls.label("Location", "on_surface_variant"),
+    local children = { SharedWidgetControls.formHeader(controller, "Choose directory"),
+        SharedWidgetControls.label("Location", "on_surface_variant"),
         ui.input({ key = "picker-location-" .. p.path .. "-" .. p.after, value = p.location, focus = true,
             enabled = not p.loading, onChange = function(value) p.location = value; controller:save() end, onSubmit = go }),
         ui.row({ gap = 6 }, {
-            Controls.button("Go", go, not p.loading),
-            Controls.button("Back", function() Picker.back(controller, p) end, #p.history > 0, "ghost", "picker-back"),
-            Controls.button("Parent directory", function() Picker.open(controller, p.parent) end,
+            SharedWidgetControls.button("Go", go, not p.loading),
+            SharedWidgetControls.button("Back", function() Picker.back(controller, p) end, #p.history > 0, "ghost", "picker-back"),
+            SharedWidgetControls.button("Parent directory", function() Picker.open(controller, p.parent) end,
                 not p.loading and p.parent ~= nil and p.parent ~= p.path),
         }),
-        Controls.label(p.path),
+        SharedWidgetControls.label(p.path),
     }
-    if p.loading then table.insert(children, Controls.label("Reading directories...")) end
-    if p.error then table.insert(children, Controls.label(p.error, "error")) end
+    if p.loading then table.insert(children, SharedWidgetControls.label("Reading directories...")) end
+    if p.error then table.insert(children, SharedWidgetControls.label(p.error, "error")) end
     local list, first = {}, p.cursor
     for index = first, math.min(first + pageSize - 1, #p.entries) do
         local entry = p.entries[index]
-        table.insert(list, Controls.button(entry.name, function() Picker.open(controller, entry.path) end,
+        table.insert(list, SharedWidgetControls.button(entry.name, function() Picker.open(controller, entry.path) end,
             not p.loading, index == p.cursor and "primary" or "ghost", entry.path))
     end
-    if not p.loading and not p.error and #p.entries == 0 then table.insert(list, Controls.label("No subdirectories")) end
+    if not p.loading and not p.error and #p.entries == 0 then table.insert(list, SharedWidgetControls.label("No subdirectories")) end
     table.insert(children, ui.scroll({ key = "directories-" .. tostring(p.cursor), height = 220, gap = 4 }, list))
     table.insert(children, ui.row({ gap = 6 }, {
-        Controls.button("Previous rows", function() p.cursor = math.max(1, first - pageSize); controller:save() end, first > 1),
-        Controls.button("Next rows", function() p.cursor = first + pageSize; controller:save() end, first + pageSize <= #p.entries),
+        SharedWidgetControls.button("Previous rows", function() p.cursor = math.max(1, first - pageSize); controller:save() end, first > 1),
+        SharedWidgetControls.button("Next rows", function() p.cursor = first + pageSize; controller:save() end, first + pageSize <= #p.entries),
     }))
-    if p.next and p.next ~= "" then table.insert(children, Controls.button("Next directory page", function()
+    if p.next and p.next ~= "" then table.insert(children, SharedWidgetControls.button("Next directory page", function()
         Picker.open(controller, p.path, p.next)
     end, not p.loading)) end
-    table.insert(children, Controls.button("Use this directory", function()
+    table.insert(children, SharedWidgetControls.button("Use this directory", function()
         form.path, form.pathRevision, form.picker = p.path, (form.pathRevision or 0) + 1, nil
         controller:save()
     end, not p.loading and not p.error, "primary"))
-    table.insert(children, Controls.label("Alt+Up/Down: select directory | Alt+Enter: open | Alt+Left: back", "on_surface_variant"))
+    table.insert(children, SharedWidgetControls.label("Alt+Up/Down: select directory | Alt+Enter: open | Alt+Left: back", "on_surface_variant"))
     return ui.column({ gap = 8 }, children)
 end
 

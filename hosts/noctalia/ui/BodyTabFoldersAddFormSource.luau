@@ -1,6 +1,6 @@
-local Controls = require("./Controls.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Model = require("../models/PanelModel.luau")
-local Dropdown = require("./SyncshellDropdown.luau")
+local Dropdown = require("./SharedWidgetDropdown.luau")
 local Source = {}
 
 function Source.render(controller, form)
@@ -32,11 +32,11 @@ function Source.render(controller, form)
         end))
     end
     if form.pendingDeviceId then
-        table.insert(children, Controls.label("Accepting " .. form.folderId .. " from " .. form.pendingDeviceId))
+        table.insert(children, SharedWidgetControls.label("Accepting " .. form.folderId .. " from " .. form.pendingDeviceId))
     end
     if encrypted > 0 then
-        table.insert(children, Controls.label(tostring(encrypted) .. " encrypted folder offers require the Web UI", "on_surface_variant"))
-        table.insert(children, Controls.button("Open encrypted offers in Web UI", function() controller:send("webui.open", {}) end,
+        table.insert(children, SharedWidgetControls.label(tostring(encrypted) .. " encrypted folder offers require the Web UI", "on_surface_variant"))
+        table.insert(children, SharedWidgetControls.button("Open encrypted offers in Web UI", function() controller:send("webui.open", {}) end,
             not controller:busy() and (controller.snapshot.connection or {}).online))
     end
     return ui.column({ gap = 6 }, children)

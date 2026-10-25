@@ -1,4 +1,4 @@
-local Controls = require("./Controls.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Model = require("../models/PanelModel.luau")
 local MultiSelect = {}
 local pageSize = 6
@@ -14,7 +14,7 @@ function MultiSelect.render(controller, form, rows, help, options)
     if summary == "" then summary = #rows == 0 and "No available items" or "None selected" end
     local function close() form.disclosures[key] = false; controller:save() end
     local children = {
-        Controls.button(options.label .. " | " .. summary, function()
+        SharedWidgetControls.button(options.label .. " | " .. summary, function()
             form.disclosures = { [key] = not form.disclosures[key] }
             if form.selectors then for _, item in form.selectors do item.open = false end end
             controller:save()
@@ -49,7 +49,7 @@ function MultiSelect.render(controller, form, rows, help, options)
         end
         controller:save(); return true
     end
-    table.insert(children, Controls.label(help, "on_surface_variant"))
+    table.insert(children, SharedWidgetControls.label(help, "on_surface_variant"))
     table.insert(children, ui.input({ key = "share-search-" .. tostring(form.token) .. "-" .. key,
         value = query, focus = true, placeholder = "Search names, paths, IDs or status",
         onChange = function(text) form.queries[key], form.shareCursors[key] = text, nil; controller:save() end,
@@ -62,21 +62,21 @@ function MultiSelect.render(controller, form, rows, help, options)
             ui.toggle({ key = "share-" .. row.id, checked = form.selected[row.id] == true,
                 enabled = not controller:busy() and not row.untrusted,
                 onChange = function(value) form.selected[row.id] = Model.bool(value); controller:save() end }),
-            Controls.label(text),
+            SharedWidgetControls.label(text),
         }))
     end
-    if #matches == 0 then table.insert(list, Controls.label(#rows == 0 and "No available items" or "No matching items")) end
+    if #matches == 0 then table.insert(list, SharedWidgetControls.label(#rows == 0 and "No available items" or "No matching items")) end
     table.insert(children, ui.scroll({ key = "share-results-" .. key .. "-" .. tostring(form.shareCursors[key]), height = 260, gap = 6 }, list))
     table.insert(children, ui.row({ gap = 6 }, {
-        Controls.button("Previous", function() form.shareCursors[key] = matches[math.max(1, first - pageSize)].row.id; controller:save() end, first > 1),
-        Controls.button("Next", function() form.shareCursors[key] = matches[first + pageSize].row.id; controller:save() end, first + pageSize <= #matches),
-        Controls.button("Back", close, true, "ghost", "back-shares-" .. key),
+        SharedWidgetControls.button("Previous", function() form.shareCursors[key] = matches[math.max(1, first - pageSize)].row.id; controller:save() end, first > 1),
+        SharedWidgetControls.button("Next", function() form.shareCursors[key] = matches[first + pageSize].row.id; controller:save() end, first + pageSize <= #matches),
+        SharedWidgetControls.button("Back", close, true, "ghost", "back-shares-" .. key),
     }))
     if not options.group then
         for id, checked in form.selected do
             if checked and not available[id] then
-                table.insert(children, Controls.label("Selected item is no longer available: " .. id, "error"))
-                table.insert(children, Controls.button("Clear unavailable selection", function()
+                table.insert(children, SharedWidgetControls.label("Selected item is no longer available: " .. id, "error"))
+                table.insert(children, SharedWidgetControls.button("Clear unavailable selection", function()
                     form.selected[id] = nil; controller:save()
                 end, not controller:busy(), "ghost", "clear-share-" .. id))
             end
@@ -84,12 +84,12 @@ function MultiSelect.render(controller, form, rows, help, options)
     end
     local encrypted = false
     for _, row in rows do if row.untrusted then encrypted = true end end
-    if encrypted then table.insert(children, Controls.button("Manage encrypted sharing in Web UI", function()
+    if encrypted then table.insert(children, SharedWidgetControls.button("Manage encrypted sharing in Web UI", function()
         controller:send("webui.open", {})
     end, not controller:busy() and (controller.snapshot.connection or {}).online)) end
-    table.insert(children, Controls.label(tostring(selected) .. " selected in this group, including hidden rows", "on_surface_variant"))
-    table.insert(children, Controls.label("Alt+Up/Down: select | Enter in search: toggle | Alt+Left: back", "on_surface_variant"))
-    local tree = Controls.column({ gap = 6 }, children)
+    table.insert(children, SharedWidgetControls.label(tostring(selected) .. " selected in this group, including hidden rows", "on_surface_variant"))
+    table.insert(children, SharedWidgetControls.label("Alt+Up/Down: select | Enter in search: toggle | Alt+Left: back", "on_surface_variant"))
+    local tree = SharedWidgetControls.column({ gap = 6 }, children)
     controller.selectionView = { title = options.label, tree = tree, close = close }
     return tree
 end
