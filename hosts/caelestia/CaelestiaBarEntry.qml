@@ -37,26 +37,25 @@ Item {
             popouts.hasCurrent = false;
             return;
         }
-        var center = root.mapToItem(bar, 0, height / 2).y;
         CaelestiaService.controller(screenName).update({
-            anchorCenter: center
+            anchorCenter: root.mapToItem(bar, 0, height / 2).y
         });
-        popouts.currentCenter = center;
-        popouts.currentName = Model.overviewPopout;
-        popouts.hasCurrent = true;
+        show();
         CaelestiaService.pinOverview(screenName, true);
     }
-    // Hover elsewhere on the drawer clears the host popout; keep an explicitly
-    // opened overview until it is dismissed or another popout takes over.
+    function show() {
+        popouts.currentCenter = CaelestiaService.controller(screenName).view.anchorCenter;
+        popouts.currentName = Model.overviewPopout;
+        popouts.hasCurrent = true;
+    }
+    // The host closes popouts when the pointer leaves them, and hovering
+    // another bar icon swaps in its popout. Keep an explicitly opened overview
+    // until it is dismissed, returning to it when a hover popout closes.
     Connections {
         target: root.popouts
         function onHasCurrentChanged() {
-            if (!root.popouts.hasCurrent && root.pinned && root.popouts.currentName === Model.overviewPopout)
-                root.popouts.hasCurrent = true;
-        }
-        function onCurrentNameChanged() {
-            if (root.popouts.currentName !== Model.overviewPopout)
-                CaelestiaService.pinOverview(root.screenName, false);
+            if (!root.popouts.hasCurrent && root.pinned)
+                root.show();
         }
     }
     MaterialIcon {
