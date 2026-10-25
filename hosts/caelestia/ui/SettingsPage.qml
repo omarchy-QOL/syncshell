@@ -7,6 +7,8 @@ import qs.components.controls
 import "."
 import "../models/PanelModel.js" as Model
 
+// Caelestia opens settings as a side-card form, not as Omarchy's in-panel
+// SettingsMenu; hence the different file name.
 ColumnLayout {
     id: root
     required property var owner

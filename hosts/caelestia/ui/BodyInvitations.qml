@@ -5,6 +5,8 @@ import QtQuick.Layouts
 import qs.components
 import "."
 
+// Caelestia lists device and folder invitations below both tabs, which share
+// one toolbar, so there is no BodyTabDevices; hence this file name.
 ColumnLayout {
     id: root
     required property var controller
