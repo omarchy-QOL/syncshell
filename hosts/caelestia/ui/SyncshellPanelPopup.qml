@@ -143,6 +143,7 @@ FocusScope {
                 id: header
                 Layout.fillWidth: true
                 controller: root.controller
+                brandedIcon: root.owner.settings?.icon === "branded"
             }
             StyledFlickable {
                 id: bodyScroll
@@ -163,7 +164,7 @@ FocusScope {
                     RowLayout {
                         SharedWidgetBusyButton {
                             id: folderTab
-                            caption: "Folders"
+                            caption: "Folders (" + root.controller.service.folderCount + ")"
                             isToggle: true
                             type: TextButton.Tonal
                             checked: root.controller.view.tab === "folders"
@@ -172,7 +173,7 @@ FocusScope {
                             })
                         }
                         SharedWidgetBusyButton {
-                            caption: "Devices"
+                            caption: "Devices (" + root.controller.service.remoteDevices().length + ")"
                             isToggle: true
                             type: TextButton.Tonal
                             checked: root.controller.view.tab === "devices"
@@ -242,11 +243,27 @@ FocusScope {
                         controller: root.controller
                         onFormRequested: (kind, target, trigger) => root.form(kind, target, trigger)
                     }
-                    SharedWidgetBusyButton {
-                        caption: root.controller.view.more ? "Less" : "More"
+                    // A disclosure, as in Omarchy: chevron plus More/Less.
+                    IconTextButton {
+                        id: moreToggle
+                        type: TextButton.Text
+                        icon: root.controller.view.more ? "expand_less" : "expand_more"
+                        text: root.controller.view.more ? "Less" : "More"
+                        activeFocusOnTab: true
+                        border.width: activeFocus ? 2 : 0
+                        border.color: Colours.palette.m3primary
+                        Accessible.role: Accessible.Button
+                        Accessible.name: root.controller.view.more ? "Hide details" : "Show details"
                         onClicked: root.controller.update({
                             more: !root.controller.view.more
                         })
+                        Keys.onPressed: event => {
+                            if ([Qt.Key_Return, Qt.Key_Enter, Qt.Key_Space].includes(event.key)) {
+                                event.accepted = true;
+                                if (!event.isAutoRepeat)
+                                    clicked();
+                            }
+                        }
                     }
                     BodyMore {
                         Layout.fillWidth: true

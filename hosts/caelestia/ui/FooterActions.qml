@@ -10,12 +10,13 @@ ColumnLayout {
     readonly property Item settingsTrigger: settingsButton
     signal settingsRequested(Item trigger)
     SharedWidgetBusyButton {
-        Layout.fillWidth: true
-        caption: "Open Web UI"
+        caption: "Web UI"
+        help: "Open the Syncthing Web UI"
         disabled: !root.controller.service.online || root.controller.busy
         onClicked: root.controller.service.openWebUi()
     }
     RowLayout {
+        Layout.fillWidth: true
         SharedWidgetBusyButton {
             caption: "Rescan all"
             busyCaption: "Rescanning..."
@@ -30,9 +31,13 @@ ColumnLayout {
             disabled: root.controller.service.busy
             onClicked: root.controller.service.refresh()
         }
-        SharedWidgetBusyButton {
+        Item {
+            Layout.fillWidth: true
+        }
+        SharedWidgetSquareActionButton {
             id: settingsButton
-            caption: "Settings"
+            icon: "settings"
+            help: "Settings"
             disabled: root.controller.busy
             onClicked: root.settingsRequested(settingsButton)
         }

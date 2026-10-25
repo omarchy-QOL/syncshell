@@ -67,11 +67,36 @@ Item {
                 focused.forceActiveFocus();
         }
     }
+    readonly property bool svgIcon: root.settings.icon === "themed" || root.settings.icon === "branded"
+    readonly property string iconVariant: Model.statusVariant(CaelestiaService.adapter)
+    readonly property string iconRoot: CaelestiaService.adapter?.bundleRoot ?? ""
+    readonly property color iconColour: CaelestiaService.adapter?.online ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+    // Legacy glyph settings keep working.
     MaterialIcon {
         anchors.centerIn: parent
+        visible: !root.svgIcon
         text: root.settings.icon
-        color: CaelestiaService.adapter?.online ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+        color: root.iconColour
         fontStyle: Tokens.font.icon.medium
+    }
+    SharedWidgetMonoIcon {
+        anchors.centerIn: parent
+        width: Tokens.font.icon.medium.pointSize * 1.4
+        height: width
+        visible: root.settings.icon === "themed"
+        source: visible ? Model.statusIconUrl(root.iconRoot, root.iconVariant, true) : ""
+        tint: root.iconColour
+    }
+    Image {
+        anchors.centerIn: parent
+        width: Tokens.font.icon.medium.pointSize * 1.4
+        height: width
+        visible: root.settings.icon === "branded"
+        source: visible ? Model.statusIconUrl(root.iconRoot, root.iconVariant, false) : ""
+        sourceSize.width: width
+        sourceSize.height: height
+        fillMode: Image.PreserveAspectFit
+        smooth: true
     }
     HoverHandler {
         id: hover

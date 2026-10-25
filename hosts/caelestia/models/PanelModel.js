@@ -41,11 +41,36 @@ function initialView() {
         sort: "name", more: false, form: "", draft: {}, confirmation: null,
         formAnchor: 0, settingsDraft: null };
 }
-function barTooltip(adapter) {
-    if (!adapter) return "Syncthing unavailable";
-    if (adapter.online && adapter.syncingFolderCount > 0) return "Syncthing: Sync in progress...";
-    return "Syncthing: " + adapter.summaryText;
+function syncInProgress(a) {
+    return !!a && a.online && (a.syncingFolderCount > 0 || !!(a.currentActivity && a.currentActivity.detail)
+        || (a.busy && String(a._actionName).indexOf("folder.rescan") === 0));
 }
+// Same precedence as Omarchy's iconVariant.
+function statusVariant(a) {
+    if (!a || String(a.phase).indexOf("core-") === 0) return "notify";
+    if (a.canControlService && a.lifecycle && a.lifecycle.active === false) return "pause";
+    if (!a.online) return a.phase === "discovering" || a.phase === "loading" ? "sync" : "notify";
+    if (a.folderProblemCount > 0) return "notify";
+    if (a.refreshing || syncInProgress(a)) return "sync";
+    return "default";
+}
+function statusIconUrl(bundleRoot, variant, themed) {
+    return bundleRoot ? fileUrl(bundleRoot + "/assets/" + (themed ? "mono/" : "") + "status-" + variant + ".svg") : "";
+}
+function barTooltip(a) {
+    if (!a) return "Syncthing unavailable";
+    if (a.installation && a.installation.available === false) return "Syncthing: Syncthing is not installed";
+    if (a.canControlService && a.lifecycle && a.lifecycle.active === false) return "Syncthing: Syncing stopped";
+    if (syncInProgress(a)) return "Syncthing: Sync in progress...";
+    return "Syncthing: " + a.summaryText;
+}
+function formatCount(value) {
+    var count = Math.max(0, Number(value || 0));
+    if (count >= 1000000) return (count / 1000000).toFixed(1) + "m";
+    if (count >= 1000) return (count / 1000).toFixed(count >= 10000 ? 0 : 1) + "k";
+    return String(Math.round(count));
+}
+function plural(count, noun) { return count + " " + noun + (count === 1 ? "" : "s"); }
 function toggle(ids, id) { return ids.includes(id) ? ids.filter(x => x !== id) : ids.concat([id]); }
 
 

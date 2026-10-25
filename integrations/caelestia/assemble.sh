@@ -19,7 +19,10 @@ for file in syncshell-core x86_64/syncshell-core aarch64/syncshell-core; do
   install -Dm755 -- "$root/bin/$file" "$target/bin/$file"
 done
 cp -a -- "$root/webui" "$target/webui"
-install -Dm644 -- "$root/assets/status-default.svg" "$target/assets/status-default.svg"
+for variant in default notify pause sync; do
+  install -Dm644 -- "$root/assets/status-$variant.svg" "$target/assets/status-$variant.svg"
+  install -Dm644 -- "$root/assets/mono/status-$variant.svg" "$target/assets/mono/status-$variant.svg"
+done
 install -Dm644 -- "$root/assets/LICENSE.md" "$target/assets/LICENSE.md"
 install -m644 -- "$root/LICENSE" "$root/CHANGELOG.md" "$target/"
 install -m644 -- "$root/hosts/caelestia/README.md" "$target/README.md"

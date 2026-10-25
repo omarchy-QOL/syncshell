@@ -9,9 +9,15 @@ import "../models/PanelModel.js" as Model
 ColumnLayout {
     id: root
     required property var controller
+    SharedWidgetInfoPair {
+        Layout.fillWidth: true
+        label: "Syncthing status"
+        value: root.controller.service.summaryText
+    }
     StyledText {
         Layout.fillWidth: true
-        text: root.controller.fresh ? "Status is current" : "Last reported errors; current status is unavailable"
+        visible: !root.controller.fresh
+        text: "Last reported errors; current status is unavailable"
         wrapMode: Text.Wrap
     }
     StyledText {

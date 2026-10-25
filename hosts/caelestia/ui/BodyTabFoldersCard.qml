@@ -12,11 +12,20 @@ ColumnLayout {
     id: root
     required property var controller
     readonly property var folder: controller.folder
-    StyledText {
+    RowLayout {
         Layout.fillWidth: true
-        text: root.folder ? Model.label(root.folder) : "No folder selected"
-        textFormat: Text.PlainText
-        wrapMode: Text.Wrap
+        StyledText {
+            Layout.fillWidth: true
+            text: root.folder ? Model.label(root.folder) : "No folder selected"
+            textFormat: Text.PlainText
+            wrapMode: Text.Wrap
+        }
+        SharedWidgetIdCopyButton {
+            visible: !!root.folder
+            value: root.folder ? root.folder.id : ""
+            caption: "folder ID"
+            help: "Copy folder ID"
+        }
     }
     StyledText {
         Layout.fillWidth: true
@@ -43,11 +52,6 @@ ColumnLayout {
             caption: "Open"
             disabled: !root.folder
             onClicked: Qt.openUrlExternally(Model.fileUrl(Paths.resolveFolderPath(root.folder.path, root.controller.service.homePath)))
-        }
-        SharedWidgetBusyButton {
-            caption: "Copy ID"
-            disabled: !root.folder
-            copyValue: root.folder ? root.folder.id : ""
         }
         SharedWidgetBusyButton {
             caption: "Rescan"

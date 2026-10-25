@@ -13,7 +13,7 @@ QtObject {
             return "Plugin settings are unavailable";
         if (s.schemaVersion !== 1)
             return "Incompatible Syncshell settings schema";
-        if (!["sync", "cloud_sync", "folder"].includes(s.icon))
+        if (!["themed", "branded", "sync", "cloud_sync", "folder"].includes(s.icon))
             return "Unsupported bar icon";
         if (!Number.isInteger(s.probeSeconds) || s.probeSeconds < 1 || s.probeSeconds > 3600)
             return "Probe interval must be 1 to 3600 seconds";

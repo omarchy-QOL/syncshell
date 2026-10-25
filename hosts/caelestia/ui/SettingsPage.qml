@@ -38,11 +38,11 @@ ColumnLayout {
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true
-        options: ["sync", "cloud_sync", "folder"].map(s => ({
-                    value: s,
-                    label: s
+        options: [["themed", "Syncthing (themed)"], ["branded", "Syncthing (branded)"], ["sync", "Glyph: sync"], ["cloud_sync", "Glyph: cloud_sync"], ["folder", "Glyph: folder"]].map(([value, label]) => ({
+                    value: value,
+                    label: label
                 }))
-        value: root.draft.icon || "sync"
+        value: root.draft.icon || "themed"
         onChosen: value => root.setValue("icon", value)
     }
     Repeater {

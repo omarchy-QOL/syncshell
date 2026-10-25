@@ -36,7 +36,8 @@
     "Quickshell": "Quickshell",
     "Qt.labs.folderlistmodel": "Qt.labs.folderlistmodel",
     "qs.components.containers": "qs.components.containers",
-    "\"../../../shared/Paths.js\"": "\"../../../shared/Paths.js\""
+    "\"../../../shared/Paths.js\"": "\"../../../shared/Paths.js\"",
+    "QtQuick.Effects": "QtQuick.Effects"
   },
   "shared": {
     "QtQuick": "QtQuick",

@@ -25,6 +25,9 @@ hosts/caelestia/ui/SettingsPage.qml
 hosts/caelestia/ui/SharedDialogConfirm.qml
 hosts/caelestia/ui/SharedWidgetBusyButton.qml
 hosts/caelestia/ui/SharedWidgetDropdown.qml
+hosts/caelestia/ui/SharedWidgetIdCopyButton.qml
+hosts/caelestia/ui/SharedWidgetInfoPair.qml
+hosts/caelestia/ui/SharedWidgetMonoIcon.qml
 hosts/caelestia/ui/SharedWidgetSquareActionButton.qml
 hosts/caelestia/ui/SharedWidgetToolTip.qml
 hosts/caelestia/ui/SyncshellPanelPopup.qml

@@ -10,11 +10,20 @@ ColumnLayout {
     id: root
     required property var controller
     readonly property var device: controller.device
-    StyledText {
+    RowLayout {
         Layout.fillWidth: true
-        text: root.device ? Model.label(root.device) : "No remote devices"
-        textFormat: Text.PlainText
-        wrapMode: Text.Wrap
+        StyledText {
+            Layout.fillWidth: true
+            text: root.device ? Model.label(root.device) : "No remote devices"
+            textFormat: Text.PlainText
+            wrapMode: Text.Wrap
+        }
+        SharedWidgetIdCopyButton {
+            visible: !!root.device
+            value: root.device ? root.device.id : ""
+            caption: "device ID"
+            help: "Copy device ID"
+        }
     }
     StyledText {
         Layout.fillWidth: true
@@ -33,17 +42,12 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: root.device ? root.controller.service.folderIdsForDevice(root.device.id).length + " shared folders" : "No folders shared"
+        text: root.device ? Model.plural(root.controller.service.folderIdsForDevice(root.device.id).length, "shared folder") : "No folders shared"
         wrapMode: Text.Wrap
     }
     Flow {
         Layout.fillWidth: true
         spacing: 6
-        SharedWidgetBusyButton {
-            caption: "Copy ID"
-            disabled: !root.device
-            copyValue: root.device ? root.device.id : ""
-        }
         SharedWidgetBusyButton {
             caption: root.device?.paused ? "Resume" : "Pause"
             disabled: !root.device || !root.controller.fresh || root.controller.busy
