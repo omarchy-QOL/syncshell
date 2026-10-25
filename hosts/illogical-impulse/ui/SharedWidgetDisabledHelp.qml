@@ -18,9 +18,9 @@ Item {
         x = point.x;
         y = point.y;
         inView = true;
-        for (var node = control.parent; node; node = node.parent) {
+        for (let node = control.parent; node; node = node.parent) {
             if (!node.clip) continue;
-            var local = control.mapToItem(node, 0, 0);
+            let local = control.mapToItem(node, 0, 0);
             if (local.x < 0 || local.y < 0 || local.x + width > node.width || local.y + height > node.height)
                 inView = false;
         }

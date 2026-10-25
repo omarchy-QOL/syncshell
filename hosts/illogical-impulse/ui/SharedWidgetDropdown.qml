@@ -39,7 +39,7 @@ Item {
         else { chosen(id); controller.closeSelector(); }
     }
     function enabledIndex(start, direction) {
-        for (var index = start; index >= 0 && index < filtered.length; index += direction)
+        for (let index = start; index >= 0 && index < filtered.length; index += direction)
             if (filtered[index].enabled !== false) return index;
         return -1;
     }
@@ -58,14 +58,14 @@ Item {
         if (controller.viewOptionsOpen) {
             if (event.key === Qt.Key_Escape) { controller.viewOptionsOpen = false; event.accepted = true; }
             else {
-                var focused = root.Window.window ? root.Window.window.activeFocusItem : null;
+                let focused = root.Window.window ? root.Window.window.activeFocusItem : null;
                 if (focused && typeof focused.cursorPosition !== "undefined") return;
-                var dx = event.key === Qt.Key_Left || event.key === Qt.Key_H ? -1
+                let dx = event.key === Qt.Key_Left || event.key === Qt.Key_H ? -1
                     : event.key === Qt.Key_Right || event.key === Qt.Key_L ? 1 : 0;
-                var dy = event.key === Qt.Key_Up || event.key === Qt.Key_K ? -1
+                let dy = event.key === Qt.Key_Up || event.key === Qt.Key_K ? -1
                     : event.key === Qt.Key_Down || event.key === Qt.Key_J ? 1 : 0;
                 if ((dx || dy) && viewOptions.item) {
-                    var next = Navigation.move(viewOptions.item, focused, dx, dy);
+                    let next = Navigation.move(viewOptions.item, focused, dx, dy);
                     if (next) { next.focusControl(); root.revealOption(next); }
                     event.accepted = true;
                 }
@@ -79,13 +79,13 @@ Item {
         else if (event.key === Qt.Key_Down || !editing && event.key === Qt.Key_J) {
             if (list.item) {
                 if (!editing) {
-                    var next = enabledIndex(list.item.currentIndex + 1, 1);
+                    let next = enabledIndex(list.item.currentIndex + 1, 1);
                     if (next >= 0) list.item.currentIndex = next;
                 }
                 focusList();
             }
         } else if (event.key === Qt.Key_Up || !editing && event.key === Qt.Key_K) {
-            var previous = list.item ? enabledIndex(list.item.currentIndex - 1, -1) : -1;
+            let previous = list.item ? enabledIndex(list.item.currentIndex - 1, -1) : -1;
             if (previous >= 0) list.item.currentIndex = previous;
             else search.focusControl();
         } else if (!editing && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
@@ -293,7 +293,7 @@ Item {
                     optionScroll.contentY = 0;
                     optionFocus.restart();
                 } else {
-                    var accessory = Navigation.find(popup.contentItem, "folder-view-options");
+                    let accessory = Navigation.find(popup.contentItem, "folder-view-options");
                     if (accessory) accessory.focusControl();
                 }
             });

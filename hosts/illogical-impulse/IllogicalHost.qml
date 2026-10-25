@@ -20,14 +20,14 @@ Scope {
     readonly property string family: Config.options.panelFamily
     property string presentationFamily: "ii"
     readonly property alias paletteController: paletteController
-    readonly property alias service: service
-    readonly property alias controller: controller
-    readonly property alias settings: settings
+    readonly property alias service: illogicalService
+    readonly property alias controller: panelController
+    readonly property alias settings: settingsController
     readonly property var style: presentation.item
 
     function close() {
         openTimer.stop();
-        controller.presentationActive = false;
+        panelController.presentationActive = false;
         opened = false;
         if (trigger)
             trigger.forceActiveFocus();
@@ -62,7 +62,7 @@ Scope {
     function shutdown() {
         close();
         enabled = false;
-        service.core.terminate();
+        illogicalService.core.terminate();
     }
 
     onFamilyChanged: {
@@ -96,32 +96,32 @@ Scope {
         id: openTimer
         onTriggered: {
             if (root.enabled && !GlobalStates.screenLocked && Quickshell.screens.indexOf(root.invokingScreen) >= 0) {
-                controller.presentationActive = true;
+                panelController.presentationActive = true;
                 root.opened = true;
-                controller.reopen();
+                panelController.reopen();
             }
         }
     }
     IllogicalService {
-        id: service
-        active: root.enabled && Config.ready && settings.ready
-        monochromeIcon: settings.values.monochrome
-        probeIntervalSeconds: settings.values.probeIntervalSeconds
-        refreshIntervalSeconds: settings.values.refreshIntervalSeconds
+        id: illogicalService
+        active: root.enabled && Config.ready && settingsController.ready
+        monochromeIcon: settingsController.values.monochrome
+        probeIntervalSeconds: settingsController.values.probeIntervalSeconds
+        refreshIntervalSeconds: settingsController.values.refreshIntervalSeconds
     }
     PanelController {
-        id: controller
-        service: service
+        id: panelController
+        service: illogicalService
         onCloseRequested: root.close()
     }
     SettingsController {
-        id: settings
-        service: service
+        id: settingsController
+        service: illogicalService
     }
     ThemePaletteController {
         id: paletteController
-        service: service
-        settings: settings
+        service: illogicalService
+        settings: settingsController
         palette: root.style ? root.style.palette : ({})
     }
     Loader {

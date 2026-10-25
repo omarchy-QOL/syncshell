@@ -69,7 +69,7 @@ FocusScope {
         else if (event.key === Qt.Key_W) host.service.openWebUi();
         else if (event.key === Qt.Key_S) host.service.rescanAllFolders();
         else if (event.key === Qt.Key_P && controller.tab === "folders" && controller.folder && !controller.blocked) {
-            var folder = controller.folder;
+            let folder = controller.folder;
             controller.ask(folder.paused ? "folder.resume" : "folder.pause", {folderId: folder.id},
                 (folder.paused ? "Resume " : "Pause ") + (folder.label || folder.id) + "?", folder.path);
         } else if (event.key === Qt.Key_Q) host.close();

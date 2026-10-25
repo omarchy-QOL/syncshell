@@ -90,7 +90,7 @@ QtObject {
             return false;
         }
         if (view) {
-            var same = view === viewName && (viewName === "add-device"
+            let same = view === viewName && (viewName === "add-device"
                 || viewName === "add-folder" && draft.pendingDeviceId === (values.pendingDeviceId || "")
                     && (!values.pendingDeviceId || draft.folderId === values.folderId)
                 || viewName !== "add-folder" && viewName !== "add-device"
@@ -273,7 +273,7 @@ QtObject {
         if (view === "share-folder")
             return execute("folder.set-sharing", draft, draftGeneration);
         if (view === "device-folders") {
-            var removed = removedShareIds.slice();
+            let removed = removedShareIds.slice();
             return ask("device.remove-folder-shares", {
                 deviceId: draft.deviceId,
                 folderIds: removed
@@ -297,7 +297,7 @@ QtObject {
         if (!ok) {
             error = String(failure && failure.message || "Operation failed");
             if (action === "folder.add-existing" && failure && failure.code === "path_missing" && !completed.args.createDirectory) {
-                var args = Model.clone(completed.args);
+                let args = Model.clone(completed.args);
                 args.createDirectory = true;
                 ask(action, args, "Create this directory?", args.path);
             }

@@ -62,7 +62,7 @@ QtObject {
         });
         saving = true;
         if (reapply === true || submitted.webUi !== values.webUi) {
-            var accepted = submitted.webUi === "default" ? service.setWebUiTheme("default") : service.applyWebProfile(submitted.webUi, submitted.webUi === "themed" ? palette : ({}));
+            let accepted = submitted.webUi === "default" ? service.setWebUiTheme("default") : service.applyWebProfile(submitted.webUi, submitted.webUi === "themed" ? palette : ({}));
             if (!accepted) {
                 error = "Profile update is unavailable; check the connection";
                 saving = false;
@@ -130,7 +130,7 @@ QtObject {
         onLoaded: {
             if (root.writePending) { Qt.callLater(root.writeSettings); return; }
             try {
-                var next = JSON.parse(text());
+                let next = JSON.parse(text());
                 if (next.version !== 1)
                     throw new Error("Unsupported settings version");
                 if (typeof next.monochrome !== "boolean" || !Number.isInteger(next.probeIntervalSeconds) || next.probeIntervalSeconds < 1 || next.probeIntervalSeconds > 3600 || !Number.isInteger(next.refreshIntervalSeconds) || next.refreshIntervalSeconds < 60 || next.refreshIntervalSeconds > 3600 || ["default", "modern", "themed"].indexOf(next.webUi) < 0)
