@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 
+// Illogical lists invitations below both tabs instead of inside each tab;
+// hence a Body file of its own.
 ColumnLayout {
     id: root
     required property var style

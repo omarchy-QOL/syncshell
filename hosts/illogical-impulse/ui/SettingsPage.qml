@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 
+// Illogical opens settings as a side-card page, not as Omarchy's in-panel
+// SettingsMenu; hence the different file name.
 ColumnLayout {
     id: root
     required property var host

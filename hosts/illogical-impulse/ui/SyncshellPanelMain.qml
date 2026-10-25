@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 
+// The frame (SyncshellPanelPopup) shows either this main content or the side
+// card in the same pane; Omarchy has no separate file for it.
 ColumnLayout {
     id: root
     required property var host
