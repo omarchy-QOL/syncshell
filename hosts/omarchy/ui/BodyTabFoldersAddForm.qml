@@ -58,7 +58,7 @@ Item {
         anchors.topMargin: 0
         spacing: Style.space(6)
 
-        InlineFormHeader {
+        BodyFormHeader {
             title: "ADD FOLDER"
             foreground: root.foreground
             cancelColor: root.urgent
@@ -67,7 +67,7 @@ Item {
             onCanceled: root.controller.closeAddFolder()
         }
 
-        SyncshellDropdown {
+        SharedWidgetDropdown {
             id: pendingFolderPicker
             visible: options.length > 1
             width: parent.width
@@ -115,7 +115,7 @@ Item {
                 foreground: root.foreground
             }
 
-            TooltipButton {
+            SharedWidgetTooltipButton {
                 text: "BROWSE"
                 Layout.preferredHeight: addPathField.implicitHeight
                 helpText: "Choose an existing local directory"
@@ -169,7 +169,7 @@ Item {
                 onAccepted: root.controller.submitAddFolder()
             }
 
-            TooltipButton {
+            SharedWidgetTooltipButton {
                 text: "NEW ID"
                 Layout.preferredHeight: addIdField.implicitHeight
                 helpText: "Generate a new Syncthing folder ID"
@@ -197,7 +197,7 @@ Item {
             wrapMode: Text.WordWrap
         }
 
-        SyncshellMultiSelect {
+        SharedWidgetMultiSelect {
             id: devicePicker
             width: parent.width
             label: "Share with devices"

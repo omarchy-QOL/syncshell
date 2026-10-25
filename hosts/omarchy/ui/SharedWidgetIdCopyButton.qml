@@ -55,7 +55,7 @@ Item {
     Component {
         id: panelButton
 
-        TooltipPanelActionButton {
+        SharedWidgetTooltipActionButton {
             size: root.size
             iconText: "󰆏"
             helpText: root.helpText
@@ -74,7 +74,7 @@ Item {
     Component {
         id: regularButton
 
-        TooltipButton {
+        SharedWidgetTooltipButton {
             text: root.text
             iconText: "󰆏"
             helpText: root.helpText

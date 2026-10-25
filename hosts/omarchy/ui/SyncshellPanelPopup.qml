@@ -5,7 +5,6 @@ import QtQuick.Controls
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
-import "UiConstants.js" as UiConstants
 import "../models/PanelNavigation.js" as PanelNavigation
 
 KeyboardPanel {
@@ -18,10 +17,6 @@ KeyboardPanel {
     property alias selectedDeviceIds: folderOverview.selectedDeviceIds
     property alias pendingFolderValue: folderOverview.pendingFolderValue
     property string activeSection: "folders"
-    property Timer refreshFeedbackTimer: Timer {
-        interval: UiConstants.REFRESH_FEEDBACK_MIN_MS
-        onTriggered: Qt.callLater(refreshStatusButton.finishRefreshFeedback)
-    }
     property bool cursorActive: false
     property var cursorAction: null
     property int sectionCursorIndex: 0
@@ -30,8 +25,7 @@ KeyboardPanel {
         rows = rows.concat(activeSection === "devices" ? remoteDevices.keyboardRows : folderOverview.keyboardRows);
         rows.push([moreButton]);
         rows = rows.concat(moreDetails.keyboardRows);
-        rows.push([webUiButton]);
-        rows.push([rescanAllButton, refreshStatusButton, settingsButton]);
+        rows = rows.concat(fixedActions.keyboardRows);
         return rows;
     }
 
@@ -255,7 +249,7 @@ KeyboardPanel {
             if (root.controller.deviceConfirmOpen)
                 return;
             if (key === "r") {
-                rescanAllButton.activate();
+                fixedActions.activateRescanAll();
             } else if (key === "w")
                 root.controller.openWebUi();
             else if (key === "p")
@@ -307,7 +301,7 @@ KeyboardPanel {
             width: panelFlick.width - x
             spacing: Style.space(12)
 
-            PanelStatus {
+            Header {
                 visible: !root.controller.settingsMenuOpen
                 controller: root.controller
                 syncthing: root.controller.syncthing
@@ -352,7 +346,7 @@ KeyboardPanel {
                     }
                 }
 
-                FolderOverview {
+                BodyTabFolders {
                     id: folderOverview
                     visible: root.activeSection === "folders"
                     cardAnchor: sideCardAnchor
@@ -371,7 +365,7 @@ KeyboardPanel {
                     }
                 }
 
-                RemoteDevices {
+                BodyTabDevices {
                     id: remoteDevices
                     visible: root.activeSection === "devices"
                     cardAnchor: sideCardAnchor
@@ -412,7 +406,7 @@ KeyboardPanel {
                 }
             }
 
-            MoreDetails {
+            BodyMore {
                 id: moreDetails
                 visible: !root.controller.settingsMenuOpen && root.controller.moreOpen
                 controller: root.controller
@@ -445,7 +439,7 @@ KeyboardPanel {
         }
     }
 
-    Column {
+    FooterActions {
         id: fixedActions
         parent: keyCatcher
         visible: !root.controller.settingsMenuOpen
@@ -454,173 +448,23 @@ KeyboardPanel {
         anchors.bottom: shortcutHint.top
         anchors.bottomMargin: Style.space(12)
         anchors.left: parent.left
-        spacing: Style.space(12)
-
-        PanelSeparator {
-            foreground: root.controller.foreground
-        }
-
-        Row {
-            spacing: Style.space(6)
-
-            Button {
-                id: webUiButton
-                text: "Web UI"
-                height: Style.spacing.controlHeight
-                bordered: true
-                foreground: root.controller.foreground
-                fontFamily: root.controller.fontFamily
-                fontSize: Style.font.body
-                horizontalPadding: Style.space(6)
-                verticalPadding: Style.space(4)
-                enabled: root.controller.syncthing !== null && root.controller.syncthing.online
-                hasCursor: root.cursorActive && root.cursorAction === webUiButton
-                onHovered: function (hovered) {
-                    if (hovered)
-                        root.selectKeyboardAction(webUiButton);
-                }
-                onClicked: root.controller.openWebUi()
-            }
-
-            Repeater {
-                model: ["TUI", "GUI"]
-
-                BusyButton {
-                    required property string modelData
-                    text: modelData
-                    height: Style.spacing.controlHeight
-                    tooltipText: "To be added soon."
-                    canActivate: false
-                    bordered: true
-                    foreground: root.controller.foreground
-                    disabledForeground: root.controller.dim
-                    fontFamily: root.controller.fontFamily
-                    fontSize: Style.font.body
-                    horizontalPadding: Style.space(6)
-                    verticalPadding: Style.space(4)
-                }
-            }
-        }
-
-        Row {
-            spacing: Style.spacing.sm
-
-            BusyButton {
-                id: rescanAllButton
-                height: Style.spacing.controlHeight
-                iconText: "󰑐"
-                text: "Rescan all folders"
-                busyText: "Rescanning..."
-                tooltipText: "Rescan all folders for local changes."
-                busy: root.controller.syncthing && root.controller.syncthing.folderMutationAction === "rescan-all"
-                bordered: true
-                foreground: root.controller.foreground
-                busyForeground: root.controller.warning
-                fontFamily: root.controller.fontFamily
-                fontSize: Style.font.body
-                iconSize: Style.font.body
-                horizontalPadding: Style.space(5)
-                verticalPadding: Style.space(4)
-                canActivate: root.controller.syncthing && root.controller.syncthing.online && root.controller.rescannableFolderCount > 0 && !root.controller.syncthing.refreshing && !root.controller.syncthing.folderMutationBusy
-                hasCursor: root.cursorActive && root.cursorAction === rescanAllButton
-                onHovered: function (hovered) {
-                    if (hovered)
-                        root.selectKeyboardAction(rescanAllButton);
-                }
-                onClicked: root.controller.syncthing.rescanAllFolders()
-            }
-
-            BusyButton {
-                id: refreshStatusButton
-                property bool refreshRequested: false
-                property bool refreshSucceeded: false
-
-                function finishRefreshFeedback() {
-                    if (!refreshSucceeded || refreshRequested || root.refreshFeedbackTimer.running)
-                        return;
-                    refreshSucceeded = false;
-                    root.controller.showNotice("Syncthing status refreshed", UiConstants.BRIEF_NOTICE_VISIBLE_MS);
-                }
-
-                iconText: "\uf21e"
-                height: Style.spacing.controlHeight
-                text: "Refresh Sync.status"
-                busyText: "Rechecking Syncthing"
-                pulseBusyIcon: true
-                tooltipText: "Request latest Syncthing state.\n" + "Active folders with current errors\n" + "rescanned and errors rechecked."
-                bordered: true
-                foreground: root.controller.foreground
-                busyForeground: root.controller.warning
-                fontFamily: root.controller.fontFamily
-                fontSize: Style.font.body
-                iconSize: Style.font.body
-                horizontalPadding: Style.space(5)
-                verticalPadding: Style.space(4)
-                busy: refreshRequested || root.refreshFeedbackTimer.running
-                canActivate: root.controller.syncthing && root.controller.syncthing.online && root.controller.syncthing.canRefresh && !root.refreshFeedbackTimer.running
-                hasCursor: root.cursorActive && root.cursorAction === refreshStatusButton
-                onHovered: function (hovered) {
-                    if (hovered)
-                        root.selectKeyboardAction(refreshStatusButton);
-                }
-                onClicked: {
-                    refreshSucceeded = false;
-                    refreshRequested = root.controller.syncthing.refresh(true, function (ok) {
-                        refreshStatusButton.refreshSucceeded = ok;
-                        refreshStatusButton.finishRefreshFeedback();
-                    });
-                    if (refreshRequested)
-                        root.refreshFeedbackTimer.restart();
-                }
-
-                Connections {
-                    target: root.controller.syncthing
-                    function onRefreshingChanged() {
-                        if (!root.controller.syncthing.refreshing) {
-                            refreshStatusButton.refreshRequested = false;
-                            refreshStatusButton.finishRefreshFeedback();
-                        }
-                    }
-                }
-            }
-
-            TooltipButton {
-                id: settingsButton
-                width: Style.spacing.controlHeight
-                height: Style.spacing.controlHeight
-                iconText: "\uf013"
-                helpText: "Settings"
-                bordered: true
-                foreground: root.controller.foreground
-                fontFamily: root.controller.fontFamily
-                iconSize: Style.font.body
-                enabled: root.controller.syncthing !== null
-                hasCursor: root.cursorActive && root.cursorAction === settingsButton
-                onHovered: function (hovered) {
-                    if (hovered)
-                        root.selectKeyboardAction(settingsButton);
-                }
-                onClicked: root.controller.openSettingsMenu()
-            }
+        controller: root.controller
+        keyboardCursor: root.cursorActive ? root.cursorAction : null
+        onActionHovered: function (action) {
+            root.selectKeyboardAction(action);
         }
     }
 
-    Text {
+    FooterShortcutHint {
         id: shortcutHint
         parent: keyCatcher
         z: root.controller.removalConfirmOpen ? 12 : 0
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        text: root.controller.settingsMenuOpen || root.controller.settingsMigrationOpen ? "" : "[r]escan  [w]ebUI  [p]ause/continue  [s]ettings"
-        textFormat: Text.PlainText
-        color: root.controller.dim
-        font.family: root.controller.fontFamily
-        font.pixelSize: Style.font.caption
-        font.bold: true
-        font.letterSpacing: 0.8
+        controller: root.controller
     }
 
-    ChoiceDialog {
+    SharedDialogChoice {
         id: serviceStateDialog
         parent: keyCatcher
         anchors.fill: parent
@@ -635,7 +479,7 @@ KeyboardPanel {
         }
     }
 
-    ChoiceDialog {
+    SharedDialogChoice {
         id: migrationDialog
         parent: keyCatcher
         anchors.fill: parent
@@ -653,7 +497,7 @@ KeyboardPanel {
         }
     }
 
-    CompactConfirmDialog {
+    SharedDialogConfirm {
         id: folderConfirmDialog
         parent: keyCatcher
         anchors.fill: parent
@@ -686,7 +530,7 @@ KeyboardPanel {
         onConfirmed: root.controller.confirmFolderAction()
     }
 
-    CompactConfirmDialog {
+    SharedDialogConfirm {
         id: deviceConfirmDialog
         implicitWidth: Style.space(root.controller.deviceConfirmAction === "remove" ? 320 : 390)
         parent: keyCatcher
@@ -706,7 +550,7 @@ KeyboardPanel {
         onConfirmed: root.controller.confirmDeviceAction()
     }
 
-    SelfRemovalDialog {
+    SettingsSelfRemovalDialog {
         id: removalDialog
         parent: keyCatcher
         anchors.fill: parent

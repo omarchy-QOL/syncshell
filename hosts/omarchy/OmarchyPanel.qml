@@ -836,7 +836,7 @@ Panel {
                 opacity: root.syncthing && root.syncthing.online ? 1.0 : 0.55
 
                 // Keep the effect warm under the brand icon for reliable live switches.
-                MonoIcon {
+                SharedWidgetMonoIcon {
                     anchors.fill: parent
                     source: root.themedIconSource
                     tint: button.foreground
@@ -867,7 +867,7 @@ Panel {
         onPressed: root.toggle()
     }
 
-    SyncthingPanelPopup {
+    SyncshellPanelPopup {
         id: popup
         anchorItem: button
         controller: root

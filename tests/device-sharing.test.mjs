@@ -18,7 +18,7 @@ function model(name) {
 const facade = model("FacadeModel");
 const panel = model("PanelModel");
 const source = readFileSync(new URL(
-  "../hosts/omarchy/ui/DeviceFoldersForm.qml", import.meta.url), "utf8");
+  "../hosts/omarchy/ui/BodyTabDevicesFoldersForm.qml", import.meta.url), "utf8");
 
 function form(device) {
   const context = vm.createContext({
