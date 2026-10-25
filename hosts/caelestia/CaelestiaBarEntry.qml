@@ -10,6 +10,8 @@ import "."
 import "ui"
 import "models/PanelModel.js" as Model
 
+// Omarchy keeps its bar button inside OmarchyPanel; Caelestia's manifest
+// needs a separate bar-entry entry point next to the popout.
 Item {
     id: root
     required property pluginEntryPoint entryPoint
