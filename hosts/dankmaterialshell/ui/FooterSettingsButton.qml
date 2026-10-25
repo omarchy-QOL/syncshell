@@ -1,6 +1,8 @@
 import QtQuick
 import qs.Services
 
+// DMS opens plugin settings in its own window, so this footer button replaces
+// Omarchy's in-panel SettingsMenu; hence the different file name.
 SharedWidgetSquareActionButton {
     id: root
     property string pluginId: "syncshell"

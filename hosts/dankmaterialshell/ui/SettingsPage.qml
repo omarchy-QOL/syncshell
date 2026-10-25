@@ -5,6 +5,8 @@ import qs.Widgets
 import qs.Modules.Plugins as Plugins
 import "../controllers"
 
+// DMS shows plugin settings as a page in its settings window, not as
+// Omarchy's in-panel SettingsMenu; hence the different file name.
 Plugins.PluginSettings {
     id: root
     property var savedSettings: SettingsData.getPluginSettingsForPlugin(pluginId)
