@@ -66,13 +66,13 @@ QQC.Popup {
             }
         }
         RowLayout {
-            BusyButton {
+            SharedWidgetBusyButton {
                 id: cancel
                 caption: "Cancel"
                 disabled: root.controller.busy
                 onClicked: root.controller.cancelConfirmation()
             }
-            BusyButton {
+            SharedWidgetBusyButton {
                 caption: "Confirm"
                 busy: root.controller.busy
                 onClicked: root.controller.acceptConfirmation()

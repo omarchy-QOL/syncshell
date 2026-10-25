@@ -139,7 +139,7 @@ FocusScope {
             width: Math.min(root.mainWidth, root.width)
             height: root.geometry.mainHeight
             spacing: root.gap
-            PanelStatus {
+            Header {
                 id: header
                 Layout.fillWidth: true
                 controller: root.controller
@@ -161,7 +161,7 @@ FocusScope {
                     width: parent.width
                     spacing: root.gap
                     RowLayout {
-                        BusyButton {
+                        SharedWidgetBusyButton {
                             id: folderTab
                             caption: "Folders"
                             isToggle: true
@@ -171,7 +171,7 @@ FocusScope {
                                 tab: "folders"
                             })
                         }
-                        BusyButton {
+                        SharedWidgetBusyButton {
                             caption: "Devices"
                             isToggle: true
                             type: TextButton.Tonal
@@ -182,7 +182,7 @@ FocusScope {
                         }
                     }
                     RowLayout {
-                        SyncshellDropdown {
+                        SharedWidgetDropdown {
                             id: mainSelector
                             Layout.fillWidth: true
                             searchOwner: root.controller
@@ -197,21 +197,21 @@ FocusScope {
                                     deviceId: value
                                 })
                         }
-                        SquareActionButton {
+                        SharedWidgetSquareActionButton {
                             id: add
                             icon: "add"
                             help: "Add " + (root.controller.view.tab === "folders" ? "folder" : "device")
                             disabled: !root.controller.fresh || root.controller.busy
                             onClicked: root.form(root.controller.view.tab === "folders" ? "add-folder" : "add-device", null, add)
                         }
-                        SquareActionButton {
+                        SharedWidgetSquareActionButton {
                             id: share
                             icon: root.controller.view.tab === "folders" ? "share" : "folder_shared"
                             help: root.controller.view.tab === "folders" ? "Share folder" : "Review device folders"
                             disabled: !root.controller.fresh || root.controller.busy || !(root.controller.view.tab === "folders" ? root.controller.folder : root.controller.device)
                             onClicked: root.form(root.controller.view.tab === "folders" ? "share-folder" : "device-folders", root.controller.view.tab === "folders" ? root.controller.folder : root.controller.device, share)
                         }
-                        SquareActionButton {
+                        SharedWidgetSquareActionButton {
                             visible: root.controller.view.tab === "folders"
                             icon: root.controller.folder?.paused ? "link" : "link_off"
                             help: root.controller.folder?.paused ? "Link folder" : "Unlink folder"
@@ -227,28 +227,28 @@ FocusScope {
                         text: "Selected folder is hidden by the filter"
                         wrapMode: Text.Wrap
                     }
-                    FolderCard {
+                    BodyTabFoldersCard {
                         Layout.fillWidth: true
                         controller: root.controller
                         visible: root.controller.view.tab === "folders"
                     }
-                    DeviceCard {
+                    BodyTabDevicesCard {
                         Layout.fillWidth: true
                         controller: root.controller
                         visible: root.controller.view.tab === "devices"
                     }
-                    RemoteDevices {
+                    BodyInvitations {
                         Layout.fillWidth: true
                         controller: root.controller
                         onFormRequested: (kind, target, trigger) => root.form(kind, target, trigger)
                     }
-                    BusyButton {
+                    SharedWidgetBusyButton {
                         caption: root.controller.view.more ? "Less" : "More"
                         onClicked: root.controller.update({
                             more: !root.controller.view.more
                         })
                     }
-                    MoreDetails {
+                    BodyMore {
                         Layout.fillWidth: true
                         controller: root.controller
                         visible: root.controller.view.more
@@ -265,14 +265,14 @@ FocusScope {
                     visible: !!text
                     wrapMode: Text.Wrap
                 }
-                BusyButton {
+                SharedWidgetBusyButton {
                     Layout.fillWidth: true
                     caption: "Open Web UI"
                     disabled: !root.controller.service.online || root.controller.busy
                     onClicked: root.controller.service.openWebUi()
                 }
                 RowLayout {
-                    BusyButton {
+                    SharedWidgetBusyButton {
                         caption: "Rescan all"
                         busyCaption: "Rescanning..."
                         busy: root.controller.service.busy && root.controller.service._actionName === "folder.rescan-all"
@@ -280,13 +280,13 @@ FocusScope {
                         disabled: !root.controller.fresh || root.controller.busy || !root.controller.service.folders.some(f => !f.paused)
                         onClicked: root.controller.service.rescanAllFolders()
                     }
-                    BusyButton {
+                    SharedWidgetBusyButton {
                         caption: "Refresh"
                         busy: root.controller.service.refreshing
                         disabled: root.controller.service.busy
                         onClicked: root.controller.service.refresh()
                     }
-                    BusyButton {
+                    SharedWidgetBusyButton {
                         id: settingsButton
                         caption: "Settings"
                         disabled: root.controller.busy
@@ -319,7 +319,7 @@ FocusScope {
                 QQC.ScrollBar.vertical: StyledScrollBar {
                     flickable: sideScroll
                 }
-                SideCardMenu {
+                BodyFormSideCard {
                     id: sideContent
                     width: parent.width
                     controller: root.controller
@@ -329,7 +329,7 @@ FocusScope {
             }
         }
     }
-    CompactConfirmDialog {
+    SharedDialogConfirm {
         parent: root
         controller: root.controller
     }

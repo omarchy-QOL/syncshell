@@ -49,7 +49,7 @@ ColumnLayout {
         visible: !!text
         wrapMode: Text.Wrap
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Recheck errors"
         busy: root.controller.busy
         disabled: busy || !root.controller.fresh

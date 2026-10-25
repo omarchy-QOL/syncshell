@@ -9,13 +9,13 @@ import "."
 ColumnLayout {
     id: root
     required property var controller
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: root.controller.view.form === "accept-device" ? "Accept device" : "Add device"
         busy: root.controller.busy
         onCancelled: root.controller.cancelForm()
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         visible: root.controller.view.form !== "accept-device"
         placeholder: "Nearby devices"
@@ -55,7 +55,7 @@ ColumnLayout {
             deviceId: text
         })
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Copy ID"
         copyValue: root.controller.view.draft.deviceId || ""
         disabled: !copyValue
@@ -71,7 +71,7 @@ ColumnLayout {
         text: "Add this device on the other device too, then select folders to share."
         wrapMode: Text.Wrap
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Add device"
         busy: root.controller.busy
         onClicked: root.controller.submitForm()

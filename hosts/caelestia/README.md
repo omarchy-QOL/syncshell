@@ -198,18 +198,19 @@ marketplace support.
 
 ## Customization and refactor decisions
 
-| Responsibility       | File or directory                             |
-| -------------------- | --------------------------------------------- |
-| Loader and bar       | `CaelestiaPanel.qml`, `CaelestiaBarEntry.qml` |
-| Worker ownership     | `CaelestiaService.qml`, `models/Ownership.js` |
-| Selection and drafts | `controllers/PanelController.qml`             |
-| Settings and palette | `controllers/`                                |
-| Cards and forms      | `ui/FolderCard.qml`, `ui/AddFolderForm.qml`   |
-| Layout and overflow  | `ui/SyncthingPanelPopup.qml`                  |
-| Native package       | `integrations/caelestia/` in the source tree  |
+| Responsibility       | File or directory                                           |
+| -------------------- | ----------------------------------------------------------- |
+| Loader and bar       | `CaelestiaPanel.qml`, `CaelestiaBarEntry.qml`               |
+| Worker ownership     | `CaelestiaService.qml`, `models/Ownership.js`               |
+| Selection and drafts | `controllers/PanelController.qml`                           |
+| Settings and palette | `controllers/`                                              |
+| Cards and forms      | `ui/BodyTabFoldersCard.qml`, `ui/BodyTabFoldersAddForm.qml` |
+| Layout and overflow  | `ui/SyncshellPanelPopup.qml`                                |
+| Native package       | `integrations/caelestia/` in the source tree                |
 
 Equivalent components keep the cross-host filenames. The accepted-device
-form shares `AddRemoteDeviceForm`; the initial values and read-only ID differ.
+form shares `BodyTabDevicesAddForm`; the initial values and read-only ID
+differ.
 Folder overview, view options and settings-menu composition stay in the
 cohesive panel instead of adding forwarding wrappers. Activity, ID copy and
 small information pairs are composed directly in their cards. Native

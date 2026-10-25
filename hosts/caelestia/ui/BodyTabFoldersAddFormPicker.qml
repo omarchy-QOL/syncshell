@@ -33,11 +33,11 @@ ColumnLayout {
         onAccepted: root.directory = Paths.resolveFolderPath(text, Quickshell.env("HOME"))
     }
     RowLayout {
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Up"
             onClicked: root.directory = root.directory.replace(/\/+$/, "").replace(/\/[^/]*$/, "") || "/"
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Go"
             onClicked: root.directory = Paths.resolveFolderPath(path.text, Quickshell.env("HOME"))
         }
@@ -60,7 +60,7 @@ ColumnLayout {
         QQC.ScrollBar.vertical: StyledScrollBar {
             flickable: list
         }
-        delegate: BusyButton {
+        delegate: SharedWidgetBusyButton {
             required property string fileName
             required property string filePath
             width: ListView.view.width
@@ -74,11 +74,11 @@ ColumnLayout {
         wrapMode: Text.Wrap
     }
     RowLayout {
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Cancel"
             onClicked: root.cancelled()
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Choose"
             disabled: directories.status !== FolderListModel.Ready
             onClicked: root.selected(root.directory)

@@ -19,7 +19,7 @@ ColumnLayout {
                     detail: [f.path, f.id, Model.remoteShareDescription(Model.remoteShare(f, device || {}, controller.fresh))].filter(Boolean).join(" · ")
                 }));
     }
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: "Device folders"
         busy: root.controller.busy
@@ -34,7 +34,7 @@ ColumnLayout {
     StyledText {
         text: "Existing shares"
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
         options: root.options(true)
@@ -56,7 +56,7 @@ ColumnLayout {
             visible: root.options(false).length > 0
         }
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
         options: root.options(false)
@@ -71,7 +71,7 @@ ColumnLayout {
         text: "Uncheck shares to remove. Files remain on both devices. Use Share folder to restore a share."
         wrapMode: Text.Wrap
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Review removals"
         busy: root.controller.busy
         onClicked: root.controller.submitForm()

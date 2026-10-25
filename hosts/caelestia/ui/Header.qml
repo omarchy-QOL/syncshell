@@ -38,7 +38,7 @@ ColumnLayout {
             textFormat: Text.PlainText
             elide: Text.ElideRight
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Copy ID"
             disabled: !root.controller.service.localDeviceId
             copyValue: root.controller.service.localDeviceId

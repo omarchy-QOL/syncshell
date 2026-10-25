@@ -22,13 +22,13 @@ ColumnLayout {
                 wrapMode: Text.Wrap
             }
             RowLayout {
-                BusyButton {
+                SharedWidgetBusyButton {
                     id: acceptDevice
                     caption: "Accept"
                     disabled: root.controller.busy
                     onClicked: root.formRequested("accept-device", deviceOffer.modelData, acceptDevice)
                 }
-                BusyButton {
+                SharedWidgetBusyButton {
                     caption: "Dismiss"
                     disabled: root.controller.busy
                     onClicked: root.controller.confirm("device.dismiss-pending", {
@@ -57,13 +57,13 @@ ColumnLayout {
                 wrapMode: Text.Wrap
             }
             RowLayout {
-                BusyButton {
+                SharedWidgetBusyButton {
                     id: acceptFolder
                     caption: folderOffer.modelData.encrypted ? "Open Web UI" : "Accept"
                     disabled: root.controller.busy
                     onClicked: root.formRequested("add-folder", folderOffer.modelData, acceptFolder)
                 }
-                BusyButton {
+                SharedWidgetBusyButton {
                     caption: "Dismiss"
                     disabled: root.controller.busy
                     onClicked: root.controller.confirm("folder.dismiss-pending", {

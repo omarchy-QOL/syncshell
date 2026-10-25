@@ -32,7 +32,7 @@ TextButton {
         font: root.font
         text: root.copyValue ? "Copied" : ""
     }
-    SyncshellToolTip {
+    SharedWidgetToolTip {
         visible: (hover.hovered || root.activeFocus) && !!root.help
         text: root.help
     }

@@ -39,19 +39,19 @@ ColumnLayout {
     Flow {
         Layout.fillWidth: true
         spacing: 6
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Copy ID"
             disabled: !root.device
             copyValue: root.device ? root.device.id : ""
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: root.device?.paused ? "Resume" : "Pause"
             disabled: !root.device || !root.controller.fresh || root.controller.busy
             onClicked: root.controller.send(root.device.paused ? "device.resume" : "device.pause", {
                 deviceId: root.device.id
             })
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Remove"
             disabled: !root.device || !root.controller.fresh || root.controller.busy
             onClicked: root.controller.confirm("device.remove", {

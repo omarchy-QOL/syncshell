@@ -9,7 +9,7 @@ import "../models/PanelModel.js" as Model
 ColumnLayout {
     id: root
     required property var controller
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: "Folder sharing"
         busy: root.controller.busy
@@ -21,7 +21,7 @@ ColumnLayout {
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
         disabled: root.controller.busy || !!root.controller.view.confirmation
@@ -40,7 +40,7 @@ ColumnLayout {
         text: "New devices receive a share offer. Unchecked devices lose this share; their files are kept. Encrypted sharing is managed in Web UI."
         wrapMode: Text.Wrap
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Review sharing"
         busy: root.controller.busy
         onClicked: root.controller.submitForm()

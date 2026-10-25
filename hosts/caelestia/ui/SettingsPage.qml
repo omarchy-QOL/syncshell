@@ -20,7 +20,7 @@ ColumnLayout {
             settingsDraft: next
         });
     }
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: "Syncshell settings"
         busy: root.controller.busy
@@ -34,7 +34,7 @@ ColumnLayout {
     StyledText {
         text: "Bar icon"
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         options: ["sync", "cloud_sync", "folder"].map(s => ({
                     value: s,
@@ -109,7 +109,7 @@ ColumnLayout {
         text: "External instances remain status-only. The core verifies that the unit owns the selected configuration."
         wrapMode: Text.Wrap
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Save settings"
         busy: root.controller.busy
         onClicked: {
@@ -130,7 +130,7 @@ ColumnLayout {
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: root.owner.adapter.lifecycle.unitFileState === "enabled" ? "Disable service autostart" : "Enable service autostart"
         disabled: root.controller.busy || !root.owner.adapter.canControlService
         onClicked: root.controller.confirm(root.owner.adapter.lifecycle.unitFileState === "enabled" ? "lifecycle.disable" : "lifecycle.enable", {}, caption + "?", "Change startup for the verified user service.")
@@ -138,7 +138,7 @@ ColumnLayout {
     StyledText {
         text: "Syncthing Web UI"
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         options: [
             {
@@ -157,12 +157,12 @@ ColumnLayout {
         value: root.draft.webUiStyle || "default"
         onChosen: value => root.setValue("webUiStyle", value)
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Apply Web UI selection"
         busy: root.controller.busy
         onClicked: root.owner.applyWebUi(root.draft.webUiStyle)
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Restore default UI and clean owned profiles"
         label.width: width - horizontalPadding * 2
         label.wrapMode: Text.Wrap

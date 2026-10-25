@@ -39,17 +39,17 @@ ColumnLayout {
     Flow {
         Layout.fillWidth: true
         spacing: 6
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Open"
             disabled: !root.folder
             onClicked: Qt.openUrlExternally(Model.fileUrl(Paths.resolveFolderPath(root.folder.path, root.controller.service.homePath)))
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Copy ID"
             disabled: !root.folder
             copyValue: root.folder ? root.folder.id : ""
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Rescan"
             busyCaption: "Rescanning..."
             busy: root.controller.rescanning(root.folder)
@@ -57,7 +57,7 @@ ColumnLayout {
             disabled: !root.folder || !!root.folder.paused || !root.controller.fresh || root.controller.busy
             onClicked: root.controller.service.rescanFolder(root.folder.id)
         }
-        BusyButton {
+        SharedWidgetBusyButton {
             caption: "Forget"
             disabled: !root.folder || !root.controller.fresh || root.controller.busy
             onClicked: root.controller.confirm("folder.forget", {
@@ -75,7 +75,7 @@ ColumnLayout {
     StyledText {
         id: activityLabel
         animate: true
-        SyncshellToolTip {
+        SharedWidgetToolTip {
             text: activityLabel.text
             visible: activityHover.hovered && !!text
         }

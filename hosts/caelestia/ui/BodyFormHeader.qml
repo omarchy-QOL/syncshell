@@ -18,7 +18,7 @@ RowLayout {
         font: Tokens.font.title.medium
         wrapMode: Text.Wrap
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Cancel"
         disabled: root.busy
         onClicked: root.cancelled()

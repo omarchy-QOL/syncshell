@@ -39,7 +39,7 @@ Item {
     signal chosen(string value)
     signal toggled(string value)
 
-    BusyButton {
+    SharedWidgetBusyButton {
         id: trigger
         anchors.fill: parent
         caption: root.multiple ? (root.selectedIds.length ? root.selectedIds.length + " selected" : root.placeholder) : (root.options.find(o => o.value === root.value)?.label || root.placeholder)
@@ -90,7 +90,7 @@ Item {
                         list.currentIndex = 0;
                     }
                 }
-                SquareActionButton {
+                SharedWidgetSquareActionButton {
                     visible: !!root.filterController
                     icon: "filter_list"
                     help: "Folder filters and sort order"
@@ -102,7 +102,7 @@ Item {
                 text: root.filtered.length + " of " + root.totalCount + " results"
                 color: Colours.palette.m3onSurfaceVariant
             }
-            FolderViewOptions {
+            BodyTabFoldersViewOptions {
                 Layout.fillWidth: true
                 visible: !!root.filterController && root.filtersOpen
                 controller: root.filterController
@@ -119,7 +119,7 @@ Item {
                 QQC.ScrollBar.vertical: StyledScrollBar {
                     flickable: list
                 }
-                delegate: BusyButton {
+                delegate: SharedWidgetBusyButton {
                     required property var modelData
                     required property int index
                     width: ListView.view.width
@@ -147,7 +147,7 @@ Item {
                 visible: !root.filtered.length
                 text: "No matches"
             }
-            BusyButton {
+            SharedWidgetBusyButton {
                 visible: root.multiple
                 caption: "Done"
                 onClicked: menu.close()

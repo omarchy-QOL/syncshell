@@ -11,7 +11,7 @@ ColumnLayout {
     id: root
     required property var controller
     signal browseRequested
-    InlineFormHeader {
+    BodyFormHeader {
         Layout.fillWidth: true
         title: root.controller.view.draft.pendingDeviceId ? "Accept folder" : "Add folder"
         busy: root.controller.busy
@@ -27,7 +27,7 @@ ColumnLayout {
             path: text
         })
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Browse directories"
         disabled: root.controller.busy
         onClicked: root.browseRequested()
@@ -50,7 +50,7 @@ ColumnLayout {
             folderId: text
         })
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Generate ID"
         disabled: root.controller.busy || !!root.controller.view.confirmation || !!root.controller.view.draft.pendingDeviceId
         onClicked: root.controller.suggestFolderId()
@@ -63,7 +63,7 @@ ColumnLayout {
     StyledText {
         text: "Share with selected devices"
     }
-    SyncshellDropdown {
+    SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
         disabled: root.controller.busy || !!root.controller.view.confirmation
@@ -82,7 +82,7 @@ ColumnLayout {
         text: (!(root.controller.view.draft.deviceIds || []).length ? "Local only: not shared with other devices. " : "Only the selected devices will share this folder. ") + "Existing files are kept. Missing directories require confirmation."
         wrapMode: Text.Wrap
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Add folder"
         busy: root.controller.busy
         onClicked: root.controller.submitForm()

@@ -12,7 +12,7 @@ IconButton {
     activeFocusOnTab: enabled
     border.width: activeFocus ? 2 : 0
     border.color: Colours.palette.m3primary
-    SyncshellToolTip {
+    SharedWidgetToolTip {
         visible: (root.hovered || root.activeFocus) && !!root.help
         text: root.help
     }

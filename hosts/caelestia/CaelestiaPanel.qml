@@ -22,7 +22,7 @@ FocusScope {
     property bool initialized: false
     readonly property real hostPadding: Tokens.padding.extraLargeIncreased
     readonly property bool active: !!popouts && popouts.hasCurrent && popouts.currentName === entryPoint.properties.entry
-    readonly property SyncthingPanelPopup content: panel.item as SyncthingPanelPopup
+    readonly property SyncshellPanelPopup content: panel.item as SyncshellPanelPopup
     implicitWidth: content?.implicitWidth || 0
     implicitHeight: content?.implicitHeight || 0
     focus: true
@@ -51,7 +51,7 @@ FocusScope {
         id: panel
         anchors.fill: parent
         active: root.initialized && !!root.controller && !!root.host
-        sourceComponent: SyncthingPanelPopup {
+        sourceComponent: SyncshellPanelPopup {
             controller: root.controller
             owner: CaelestiaService
             availableWidth: root.host.panels.width - root.hostPadding

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
-const source = readFileSync(new URL("../hosts/caelestia/ui/SyncthingPanelPopup.qml", import.meta.url), "utf8");
+const source = readFileSync(new URL("../hosts/caelestia/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
 const handler = "(" + source.match(/^    Keys\.onPressed: (event => \{[^]*?^    \})/m)[1] + ")";
 const Qt = Object.fromEntries(["Escape", "Up", "Down", "Left", "Right", "R", "W", "P", "S", "Q"].map(k => ["Key_" + k, k]));
 test("p requests the service toggle on either tab, even with no selection", () => {
@@ -33,7 +33,7 @@ test("p requests the service toggle on either tab, even with no selection", () =
 });
 
 test("busy buttons reject held keys and busy activation even with custom disabled bindings", () => {
-  const source = readFileSync(new URL("../hosts/caelestia/ui/BusyButton.qml", import.meta.url), "utf8");
+  const source = readFileSync(new URL("../hosts/caelestia/ui/SharedWidgetBusyButton.qml", import.meta.url), "utf8");
   const handler = "(" + source.match(/^    Keys\.onPressed: (event => \{[^]*?^    \})/m)[1] + ")";
   let clicks = 0;
   const context = vm.createContext({ Qt: { Key_Return: 13, Key_Enter: 10, Key_Space: 32 },

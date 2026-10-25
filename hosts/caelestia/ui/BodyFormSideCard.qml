@@ -23,7 +23,7 @@ ColumnLayout {
     }
     Component {
         id: folder
-        AddFolderForm {
+        BodyTabFoldersAddForm {
             controller: root.controller
             onBrowseRequested: root.controller.update({
                 picking: true
@@ -32,32 +32,32 @@ ColumnLayout {
     }
     Component {
         id: sharing
-        FolderSharingForm {
+        BodyTabFoldersShareForm {
             controller: root.controller
         }
     }
     Component {
         id: deviceFolders
-        DeviceFoldersForm {
+        BodyTabDevicesFoldersForm {
             controller: root.controller
         }
     }
     Component {
         id: device
-        AddRemoteDeviceForm {
+        BodyTabDevicesAddForm {
             controller: root.controller
         }
     }
     Component {
         id: settings
-        PluginSettings {
+        SettingsPage {
             controller: root.controller
             owner: root.owner
         }
     }
     Component {
         id: picker
-        DirectoryPicker {
+        BodyTabFoldersAddFormPicker {
             initialPath: root.controller.view.draft.path || ""
             onSelected: path => {
                 root.controller.draft({

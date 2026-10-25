@@ -43,7 +43,7 @@ ColumnLayout {
                     label: "Unknown"
                 }
             ]
-            BusyButton {
+            SharedWidgetBusyButton {
                 required property var modelData
                 Layout.fillWidth: true
                 caption: modelData.label
@@ -74,7 +74,7 @@ ColumnLayout {
                 label: "Errors first"
             }
         ]
-        BusyButton {
+        SharedWidgetBusyButton {
             required property var modelData
             Layout.fillWidth: true
             caption: modelData.label
@@ -86,7 +86,7 @@ ColumnLayout {
             })
         }
     }
-    BusyButton {
+    SharedWidgetBusyButton {
         caption: "Reset"
         onClicked: root.controller.update({
             filters: root.groups.slice(),
