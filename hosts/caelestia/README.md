@@ -206,6 +206,7 @@ marketplace support.
 | Settings and palette | `controllers/`                                              |
 | Cards and forms      | `ui/BodyTabFoldersCard.qml`, `ui/BodyTabFoldersAddForm.qml` |
 | Layout and overflow  | `ui/SyncshellPanelPopup.qml`                                |
+| Footer               | `ui/FooterActions.qml`, `ui/FooterShortcutHint.qml`         |
 | Native package       | `integrations/caelestia/` in the source tree                |
 
 Equivalent components keep the cross-host filenames. The accepted-device

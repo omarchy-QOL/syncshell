@@ -18,6 +18,8 @@ hosts/caelestia/ui/BodyTabFoldersAddFormPicker.qml
 hosts/caelestia/ui/BodyTabFoldersCard.qml
 hosts/caelestia/ui/BodyTabFoldersShareForm.qml
 hosts/caelestia/ui/BodyTabFoldersViewOptions.qml
+hosts/caelestia/ui/FooterActions.qml
+hosts/caelestia/ui/FooterShortcutHint.qml
 hosts/caelestia/ui/Header.qml
 hosts/caelestia/ui/SettingsPage.qml
 hosts/caelestia/ui/SharedDialogConfirm.qml
