@@ -37,9 +37,19 @@ function Model.folderGroup(folder, online)
     return "unknown"
 end
 
+-- Plain scans instead of patterns: the host's budget hook reads the CPU clock
+-- during pattern matching, which made this per-folder helper the hot spot.
 function Model.folderLabel(folder)
-    local path = string.gsub(folder.path or "", "/+$", "")
-    local name = string.match(path, "([^/]+)$")
+    local path = folder.path or ""
+    local last = #path
+    while last > 0 and string.byte(path, last) == 47 do last -= 1 end
+    local slash, from = 0, 1
+    while true do
+        local found = string.find(path, "/", from, true)
+        if not found or found > last then break end
+        slash, from = found, found + 1
+    end
+    local name = last > slash and string.sub(path, slash + 1, last) or nil
     return name or (folder.label ~= "" and folder.label) or folder.id
 end
 
@@ -54,12 +64,16 @@ function Model.folderRows(snapshot, view)
             table.insert(rows, { id = folder.id, label = name, path = folder.path, group = group })
         end
     end
+    -- Lowercase each label once; the sort compares O(n log n) times within
+    -- the host's per-callback CPU budget.
+    local keys = {}
+    for _, row in rows do keys[row] = string.lower(row.label) end
     table.sort(rows, function(a, b)
         if view.sort ~= "name" then
             local ap, bp = a.group == view.sort, b.group == view.sort
             if ap ~= bp then return ap end
         end
-        if string.lower(a.label) ~= string.lower(b.label) then return string.lower(a.label) < string.lower(b.label) end
+        if keys[a] ~= keys[b] then return keys[a] < keys[b] end
         return a.id < b.id
     end)
     return rows
