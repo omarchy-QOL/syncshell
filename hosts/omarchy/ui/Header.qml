@@ -172,19 +172,19 @@ Column {
         width: parent.width
         spacing: Style.spacing.labelGap
 
-        HeaderInfoPair {
+        SharedWidgetInfoPair {
             label: "Folders"
             value: root.syncthing ? String(root.syncthing.folderCount) : "—"
             foreground: root.foreground
             fontFamily: root.fontFamily
         }
-        HeaderInfoPair {
+        SharedWidgetInfoPair {
             label: "Devices"
             value: root.syncthing ? root.syncthing.connectedDeviceCount + " of " + root.syncthing.deviceCount + " connected" : "—"
             foreground: root.foreground
             fontFamily: root.fontFamily
         }
-        HeaderInfoPair {
+        SharedWidgetInfoPair {
             label: "Tracked"
             value: root.controller.formatCount(root.controller.trackedFiles) + " files · " + root.controller.formatBytes(root.controller.trackedBytes)
             foreground: root.foreground
