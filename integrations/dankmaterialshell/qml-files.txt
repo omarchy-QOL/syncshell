@@ -23,7 +23,9 @@ hosts/dankmaterialshell/ui/BodyTabFoldersCardActivity.qml
 hosts/dankmaterialshell/ui/BodyTabFoldersSelector.qml
 hosts/dankmaterialshell/ui/BodyTabFoldersShareForm.qml
 hosts/dankmaterialshell/ui/BodyTabFoldersViewOptions.qml
+hosts/dankmaterialshell/ui/FooterActions.qml
 hosts/dankmaterialshell/ui/FooterSettingsButton.qml
+hosts/dankmaterialshell/ui/FooterShortcutHint.qml
 hosts/dankmaterialshell/ui/Header.qml
 hosts/dankmaterialshell/ui/SettingsPage.qml
 hosts/dankmaterialshell/ui/SharedDialogConfirm.qml

@@ -61,13 +61,14 @@ responsibilities use the same filenames; native APIs are not interchangeable.
 | Worker and settings        | `DankService.qml`, `controllers/SettingsController.qml`              |
 | Selection and drafts       | `controllers/PanelController.qml`, `models/PanelModel.js`            |
 | Header and More            | `ui/Header.qml`, `ui/BodyMore.qml`                                   |
+| Footer                     | `ui/FooterActions.qml`, `ui/FooterShortcutHint.qml`                  |
 | Folder/device cards        | `ui/BodyTabFoldersCard.qml`, `ui/BodyTabDevicesCard.qml`             |
 | Folder creation            | `ui/BodyTabFoldersAddForm.qml`                                       |
 | Device creation/acceptance | `ui/BodyTabDevicesAddForm.qml`, `ui/BodyTabDevicesAcceptForm.qml`    |
 | Sharing forms              | `ui/BodyTabFoldersShareForm.qml`, `ui/BodyTabDevicesFoldersForm.qml` |
 | Selection and filters      | `ui/SharedWidgetDropdown.qml`, `ui/BodyTabFoldersViewOptions.qml`    |
 | Side forms/confirmations   | `ui/BodyFormSideCard.qml`, `ui/SharedDialogConfirm.qml`              |
-| Settings presentation      | `ui/SettingsPage.qml`                                                |
+| Settings presentation      | `ui/SettingsPage.qml`, `ui/FooterSettingsButton.qml`                 |
 
 Single- and multi-select share `SharedWidgetDropdown.qml`; the `multiple` mode
 retains checked IDs while filtering. `MonoIcon` is replaced by native

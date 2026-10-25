@@ -108,7 +108,7 @@ FocusScope {
             controller.requestServiceToggle(null);
             break;
         case Qt.Key_S:
-            settings.clicked();
+            footerActions.openSettings();
             break;
         case Qt.Key_Q:
             closeInner();
@@ -254,40 +254,15 @@ FocusScope {
             id: footer
             Layout.fillWidth: true
             spacing: Theme.spacingS
-            DankButton {
-                text: "Web UI"
-                enabled: !!root.controller.service && root.controller.service.online && !root.controller.busy
-                onClicked: root.controller.service.openWebUi()
-            }
-            RowLayout {
+            FooterActions {
+                id: footerActions
                 Layout.fillWidth: true
-                SharedWidgetBusyButton {
-                    Layout.fillWidth: true
-                    text: "Rescan all"
-                    busyText: "Rescanning"
-                    busy: !!root.controller.service && root.controller.service.busy && root.controller.service._actionName === "folder.rescan-all"
-                    enabled: root.controller.fresh && !root.controller.busy && root.controller.service.folders.some(f => !f.paused)
-                    help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan every linked folder; paused folders are skipped"
-                    onClicked: root.controller.service.rescanAllFolders()
-                }
-                SharedWidgetBusyButton {
-                    Layout.fillWidth: true
-                    text: "Refresh"
-                    busy: !!root.controller.service && root.controller.service.refreshing
-                    enabled: !!root.controller.service && !root.controller.busy
-                    onClicked: root.controller.service.refresh()
-                }
-                FooterSettingsButton {
-                    id: settings
-                    pluginId: root.pluginId
-                    onOpening: root.closePopout()
-                }
+                controller: root.controller
+                pluginId: root.pluginId
+                onSettingsOpening: root.closePopout()
             }
-            StyledText {
+            FooterShortcutHint {
                 Layout.fillWidth: true
-                text: "[r] rescan   [w] Web UI   [p] start/stop   [s] settings"
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.surfaceVariantText
             }
             StyledText {
                 Layout.fillWidth: true
