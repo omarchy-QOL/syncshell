@@ -417,7 +417,7 @@ QtObject {
             ["--credential-file", credentialFile], ["--tls-certificate", tlsCertificate],
             ["--expected-device-id", expectedDeviceId]
         ];
-        for (var index = 0; index < targets.length; index++) {
+        for (let index = 0; index < targets.length; index++) {
             if (targets[index][1])
                 args.push(targets[index][0], targets[index][1]);
         }

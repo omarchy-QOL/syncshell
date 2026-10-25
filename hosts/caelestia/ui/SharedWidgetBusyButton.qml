@@ -75,9 +75,9 @@ TextButton {
     function ensureVisible() {
         var ancestor = parent;
         while (ancestor) {
-            var viewport = ancestor as Flickable;
+            let viewport = ancestor as Flickable;
             if (viewport) {
-                var position = mapToItem(viewport.contentItem, 0, 0).y;
+                let position = mapToItem(viewport.contentItem, 0, 0).y;
                 viewport.contentY = Math.max(0, Math.min(position, Math.max(viewport.contentY, position + height - viewport.height), viewport.contentHeight - viewport.height));
                 break;
             }

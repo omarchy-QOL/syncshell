@@ -41,7 +41,7 @@ QtObject {
     function release(token) {
         owners = owners.filter(value => value !== token);
         if (token.screenName && !hasScreen(token.screenName) && views[token.screenName]) {
-            var next = Object.assign({}, views);
+            let next = Object.assign({}, views);
             next[token.screenName].retire();
             next[token.screenName].destroy();
             delete next[token.screenName];
@@ -75,7 +75,7 @@ QtObject {
     }
     function controller(screenName) {
         if (!views[screenName]) {
-            var next = Object.assign({}, views);
+            let next = Object.assign({}, views);
             next[screenName] = controllerComponent.createObject(root, {
                 service: adapter,
                 screenName: screenName
@@ -98,12 +98,12 @@ QtObject {
     property Timer paletteUpdate: Timer {
         interval: 300
         onTriggered: {
-            if (root.eligible && root.adapter.online && !root.adapter.busy && !root.adapter.refreshing && root.adapter.webUi.theme === "syncshell-caelestia-themed" && root.lastPaletteAttempt !== JSON.stringify(theme.palette))
+            if (root.eligible && root.adapter.online && !root.adapter.busy && !root.adapter.refreshing && root.adapter.webUi.theme === "syncshell-caelestia-themed" && root.lastPaletteAttempt !== JSON.stringify(root.theme.palette))
                 root.applyWebUi("themed");
         }
     }
     property Connections paletteChanges: Connections {
-        target: theme
+        target: root.theme
         function onPaletteChanged() {
             root.paletteUpdate.restart();
         }
@@ -163,11 +163,9 @@ QtObject {
         PanelController {}
     }
     property SettingsController preferences: SettingsController {
-        id: preferences
         settings: root.settings
     }
     property ThemePaletteController theme: ThemePaletteController {
-        id: theme
     }
     property Loader worker: Loader {
         active: !!root.plugin

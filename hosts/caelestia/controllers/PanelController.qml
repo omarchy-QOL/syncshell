@@ -84,8 +84,8 @@ QtObject {
     }
     function reconcile() {
         if (view.form === "device-folders" && !submittedAction && !view.confirmation) {
-            var current = service.folderIdsForDevice(view.draft.deviceId);
-            var original = view.draft.originalFolderIds || [];
+            let current = service.folderIdsForDevice(view.draft.deviceId);
+            let original = view.draft.originalFolderIds || [];
             draft({
                 folderIds: current.filter(id => !original.includes(id) || view.draft.folderIds.includes(id)),
                 originalFolderIds: current.slice()
@@ -261,7 +261,7 @@ QtObject {
                 deviceIds: d.deviceIds
             }, "Update folder sharing?", "Review the selected devices. Directory contents are kept.");
         } else if (view.form === "device-folders") {
-            var removed = d.originalFolderIds.filter(id => !d.folderIds.includes(id));
+            let removed = d.originalFolderIds.filter(id => !d.folderIds.includes(id));
             if (!removed.length) {
                 error = "Uncheck a folder to remove its share";
                 return;
@@ -293,7 +293,7 @@ QtObject {
             if (!root.acceptingResults)
                 return;
             if (action === "folder.suggest-id") {
-                var applySuggestion = root.idSuggestionPending && root.view.form === "add-folder" && !root.view.draft.pendingDeviceId;
+                let applySuggestion = root.idSuggestionPending && root.view.form === "add-folder" && !root.view.draft.pendingDeviceId;
                 root.idSuggestionPending = false;
                 if (applySuggestion) {
                     if (ok && data && data.folderId)

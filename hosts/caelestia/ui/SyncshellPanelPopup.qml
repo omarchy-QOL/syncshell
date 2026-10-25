@@ -41,7 +41,7 @@ FocusScope {
             item.forceActiveFocus();
             return true;
         }
-        for (var child of item.children || [])
+        for (let child of item.children || [])
             if (focusFirst(child))
                 return true;
         return false;
@@ -53,7 +53,7 @@ FocusScope {
             item.forceActiveFocus();
             return true;
         }
-        for (var child of item.children || [])
+        for (let child of item.children || [])
             if (focusEditor(child))
                 return true;
         return false;
@@ -92,11 +92,11 @@ FocusScope {
         if (editor && (editor.cursorPosition !== undefined || editor.inputMethodComposing !== undefined))
             return;
         if ([Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right].includes(event.key)) {
-            var candidate = editor;
-            var forward = event.key === Qt.Key_Down || event.key === Qt.Key_Right;
-            for (var i = 0; candidate && i < 150; i++) {
+            let candidate = editor;
+            let forward = event.key === Qt.Key_Down || event.key === Qt.Key_Right;
+            for (let i = 0; candidate && i < 150; i++) {
                 candidate = candidate.nextItemInFocusChain(forward);
-                var ancestor = candidate;
+                let ancestor = candidate;
                 while (ancestor && ancestor !== root)
                     ancestor = ancestor.parent;
                 if (ancestor === root && candidate.activeFocusOnTab && candidate.enabled && candidate.visible) {
