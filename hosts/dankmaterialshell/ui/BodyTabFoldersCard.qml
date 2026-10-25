@@ -12,8 +12,11 @@ StyledRect {
     readonly property var folder: controller.folder
     readonly property var status: folder ? folder.status || {} : ({})
     implicitHeight: content.implicitHeight + Theme.spacingM * 2
-    radius: Theme.cornerRadius
-    color: Theme.surfaceContainer
+    // Outlined like Omarchy's card; the popout already uses the container tone.
+    radius: Theme.cornerRadius / 2
+    color: "transparent"
+    border.width: 1
+    border.color: Qt.alpha(Theme.outline, 0.5)
     ColumnLayout {
         id: content
         anchors.fill: parent

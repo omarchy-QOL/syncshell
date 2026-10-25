@@ -10,8 +10,11 @@ StyledRect {
     required property var controller
     readonly property var device: controller.device
     implicitHeight: content.implicitHeight + Theme.spacingM * 2
-    color: Theme.surfaceContainer
-    radius: Theme.cornerRadius
+    // Outlined like Omarchy's card; the popout already uses the container tone.
+    radius: Theme.cornerRadius / 2
+    color: "transparent"
+    border.width: 1
+    border.color: Qt.alpha(Theme.outline, 0.5)
     ColumnLayout {
         id: content
         anchors.fill: parent
