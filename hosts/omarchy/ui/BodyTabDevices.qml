@@ -165,7 +165,7 @@ Column {
         width: parent.width
         spacing: Style.space(6)
 
-        SyncshellDropdown {
+        SharedWidgetDropdown {
             id: deviceSelector
             visible: root.remoteRows.length > 0
             Layout.fillWidth: true
@@ -197,7 +197,7 @@ Column {
             font.pixelSize: Style.font.bodySmall
         }
 
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             id: addDeviceButton
             glyph: "\uf067"
             helpText: "Add device"
@@ -217,7 +217,7 @@ Column {
             }
         }
 
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             id: deviceFoldersButton
             visible: root.remoteRows.length > 0
             glyph: "󰉓"
@@ -238,7 +238,7 @@ Column {
             }
         }
 
-        SquareActionButton {
+        SharedWidgetSquareActionButton {
             id: removeDeviceButton
             glyph: "\uf00d"
             helpText: "Remove selected device"
@@ -254,7 +254,7 @@ Column {
         }
     }
 
-    DeviceCard {
+    BodyTabDevicesCard {
         id: deviceCard
         visible: !!root.selectedDevice
         width: parent.width
@@ -291,7 +291,7 @@ Column {
         wrapMode: Text.WordWrap
     }
 
-    SideCardMenu {
+    BodyFormSideCard {
         panel: root.cardAnchor
         trigger: deviceFoldersButton
         shown: root.foldersOpen && root.selectedDevice && root.visible && root.controller.opened
@@ -301,7 +301,7 @@ Column {
             foldersForm.reset();
         }
 
-        contentItem: DeviceFoldersForm {
+        contentItem: BodyTabDevicesFoldersForm {
             id: foldersForm
             controller: root.controller
             syncthing: root.syncthing
@@ -318,7 +318,7 @@ Column {
         }
     }
 
-    SideCardMenu {
+    BodyFormSideCard {
         panel: root.cardAnchor
         trigger: addDeviceButton
         shown: root.addOpen && root.visible && root.controller.opened
@@ -328,7 +328,7 @@ Column {
             addForm.reset();
         }
 
-        contentItem: AddRemoteDeviceForm {
+        contentItem: BodyTabDevicesAddForm {
             id: addForm
             controller: root.controller
             syncthing: root.syncthing
@@ -360,7 +360,7 @@ Column {
             width: parent.width
             spacing: Style.space(6)
 
-            SyncshellDropdown {
+            SharedWidgetDropdown {
                 id: pendingSelector
                 Layout.fillWidth: true
                 Layout.preferredHeight: Style.spacing.controlHeight
@@ -382,7 +382,7 @@ Column {
                 }
             }
 
-            SquareActionButton {
+            SharedWidgetSquareActionButton {
                 id: acceptDeviceButton
                 glyph: "\uf00c"
                 helpText: "Accept remote device connection"
@@ -397,7 +397,7 @@ Column {
                 onClicked: root.openAccept()
             }
 
-            SquareActionButton {
+            SharedWidgetSquareActionButton {
                 id: dismissDeviceButton
                 glyph: "\uf00d"
                 helpText: "Dismiss incoming device request"
@@ -414,7 +414,7 @@ Column {
         }
     }
 
-    SideCardMenu {
+    BodyFormSideCard {
         panel: root.cardAnchor
         trigger: acceptDeviceButton
         shown: root.acceptOpen && root.selectedPending && root.visible && root.controller.opened
@@ -424,7 +424,7 @@ Column {
             acceptForm.reset();
         }
 
-        contentItem: AcceptRemoteDeviceForm {
+        contentItem: BodyTabDevicesAcceptForm {
             id: acceptForm
             controller: root.controller
             syncthing: root.syncthing

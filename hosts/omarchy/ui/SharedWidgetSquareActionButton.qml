@@ -2,7 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 
-BusyButton {
+SharedWidgetBusyButton {
     id: root
 
     property string glyph: ""

@@ -43,7 +43,7 @@ Column {
                     width: hero.iconSize
                     height: width
 
-                    MonoIcon {
+                    SharedWidgetMonoIcon {
                         anchors.fill: parent
                         source: root.controller.themedIconSource
                         tint: root.foreground
@@ -72,7 +72,7 @@ Column {
                     foreground: hero.foreground
                     onToggled: root.controller.toggleSyncing()
 
-                    SyncshellToolTip {
+                    SharedWidgetToolTip {
                         visible: powerSwitch.containsMouse
                         text: root.controller.toggleHint
                         fontFamily: hero.fontFamily
@@ -105,7 +105,7 @@ Column {
                 elide: Text.ElideRight
             }
 
-            IdCopyButton {
+            SharedWidgetIdCopyButton {
                 id: copyDeviceIdButton
                 anchors.left: deviceNameText.right
                 anchors.leftMargin: Style.space(4)
@@ -172,19 +172,19 @@ Column {
         width: parent.width
         spacing: Style.spacing.labelGap
 
-        InfoPair {
+        HeaderInfoPair {
             label: "Folders"
             value: root.syncthing ? String(root.syncthing.folderCount) : "—"
             foreground: root.foreground
             fontFamily: root.fontFamily
         }
-        InfoPair {
+        HeaderInfoPair {
             label: "Devices"
             value: root.syncthing ? root.syncthing.connectedDeviceCount + " of " + root.syncthing.deviceCount + " connected" : "—"
             foreground: root.foreground
             fontFamily: root.fontFamily
         }
-        InfoPair {
+        HeaderInfoPair {
             label: "Tracked"
             value: root.controller.formatCount(root.controller.trackedFiles) + " files · " + root.controller.formatBytes(root.controller.trackedBytes)
             foreground: root.foreground
