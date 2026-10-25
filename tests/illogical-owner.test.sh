@@ -23,22 +23,21 @@ python3 - "$work/workers.jsonl" <<'PY'
 import json,os,sys,time
 from pathlib import Path
 path=Path(sys.argv[1])
+# Each worker records which earlier workers were still alive when it started.
 # Child signal handling can finish just after the QML engine exits.
 for _ in range(50):
     events=[json.loads(line) for line in path.read_text().splitlines()]
+    starts=[event for event in events if event['event']=='started']
+    for event in starts:
+        assert not event['alive'], f'overlapping worker ownership: {events}'
     live=set()
-    starts=0
-    for event in events:
-        if event['event']=='started':
-            assert not live, f'overlapping worker ownership: {events}'
-            live.add(event['pid']); starts+=1
-        else: live.remove(event['pid'])
-    for pid in list(live):
-        try: os.kill(pid,0)
-        except ProcessLookupError: live.remove(pid)
+    for event in starts:
+        try: os.kill(event['pid'],0)
+        except ProcessLookupError: continue
+        live.add(event['pid'])
     if not live: break
     time.sleep(.02)
-assert starts==3, events
+assert len(starts)==3, events
 assert not live, events
 for pid in {event['pid'] for event in events}:
     try: os.kill(pid,0)

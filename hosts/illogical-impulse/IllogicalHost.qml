@@ -19,6 +19,7 @@ Scope {
     property Item trigger: null
     readonly property string family: Config.options.panelFamily
     property string presentationFamily: "ii"
+    property bool predecessorExited: false
     readonly property alias paletteController: paletteController
     readonly property alias service: illogicalService
     readonly property alias controller: panelController
@@ -102,9 +103,43 @@ Scope {
             }
         }
     }
+    // Quickshell builds the reloaded generation before it destroys this one, so
+    // the next worker waits until the previous generation's worker has exited.
+    PersistentProperties {
+        id: handover
+        reloadableId: "syncshell-illogical-worker"
+        property int workerPid: 0
+        onLoaded: {
+            if (workerPid > 0) {
+                predecessorExit.running = true;
+                predecessorTimeout.start();
+            } else
+                root.predecessorExited = true;
+        }
+    }
+    Process {
+        id: predecessorExit
+        command: ["tail", "--pid=" + handover.workerPid, "-f", "/dev/null"]
+        onExited: root.predecessorExited = true
+    }
+    Timer {
+        // A reused PID must not block startup forever.
+        id: predecessorTimeout
+        interval: 5000
+        onTriggered: root.predecessorExited = true
+    }
+    Connections {
+        target: illogicalService.core.coreProcess
+        function onStarted() {
+            handover.workerPid = illogicalService.core.coreProcess.processId;
+        }
+        function onExited() {
+            handover.workerPid = 0;
+        }
+    }
     IllogicalService {
         id: illogicalService
-        active: root.enabled && Config.ready && settingsController.ready
+        active: root.enabled && Config.ready && settingsController.ready && root.predecessorExited
         monochromeIcon: settingsController.values.monochrome
         probeIntervalSeconds: settingsController.values.probeIntervalSeconds
         refreshIntervalSeconds: settingsController.values.refreshIntervalSeconds

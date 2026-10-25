@@ -10,7 +10,8 @@ ShellRoot {
     property int waited: 0
     property bool awaitingReload: false
     PersistentProperties { id: history; reloadableId: "syncshell-owner-test"; property int step: 0 }
-    Loader { id: owner; active: true; sourceComponent: Syncshell.IllogicalHost {} }
+    // Reload-aware like the shell.qml entry, so persistent state crosses reloads.
+    LazyLoader { id: owner; active: true; component: Syncshell.IllogicalHost {} }
     function check(value, message) {
         if (!value) { console.error("[fail] " + message); Qt.exit(1); }
     }

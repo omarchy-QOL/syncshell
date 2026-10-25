@@ -9,9 +9,26 @@ import time
 
 log = Path(os.environ['SYNCSHELL_WORKER_LOG'])
 
-def event(kind):
+def event(kind, **extra):
     with log.open('a') as file:
-        file.write(json.dumps({'event': kind, 'pid': os.getpid(), 'time': time.time()}) + '\n')
+        file.write(json.dumps({'event': kind, 'pid': os.getpid(), 'time': time.time(), **extra}) + '\n')
+
+def alive_workers():
+    # Quickshell kills a destroyed Process outright, so an earlier worker may
+    # never log 'stopped'; check whether it still exists instead.
+    if not log.exists():
+        return []
+    alive = []
+    for line in log.read_text().splitlines():
+        record = json.loads(line)
+        if record['event'] != 'started':
+            continue
+        try:
+            os.kill(record['pid'], 0)
+        except ProcessLookupError:
+            continue
+        alive.append(record['pid'])
+    return alive
 
 def send(value):
     print(json.dumps(dict(v=2, **value)), flush=True)
@@ -21,7 +38,7 @@ def terminate(*args):
 
 signal.signal(signal.SIGTERM, terminate)
 atexit.register(lambda: event('stopped'))
-event('started')
+event('started', alive=alive_workers())
 send({'type': 'hello', 'build': {'version': 'owner-fixture'}})
 send({'type': 'snapshot', 'revision': 1, 'state': {'connection': {'online': True, 'fresh': True},
     'identity': {'deviceId': 'local'}, 'folders': [], 'devices': []}})
