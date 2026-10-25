@@ -34,7 +34,7 @@ ShellRoot {
             when: false
         }
 
-        FolderOverview {
+        BodyTabFolders {
             id: overview
             width: parent.width
             cardAnchor: parent

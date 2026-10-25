@@ -12,7 +12,7 @@ Ui.Button {
         id: tooltipHover
     }
 
-    SyncshellToolTip {
+    SharedWidgetToolTip {
         visible: root.helpText !== "" && tooltipHover.hovered
         text: root.helpText
         tooltipBackground: root.tooltipBackground

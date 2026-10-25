@@ -60,7 +60,7 @@ Item {
         anchors.topMargin: 0
         spacing: Style.space(6)
 
-        InlineFormHeader {
+        BodyFormHeader {
             title: "ADD REMOTE DEVICE"
             foreground: root.foreground
             cancelColor: root.urgent
@@ -69,7 +69,7 @@ Item {
             onCanceled: root.canceled()
         }
 
-        SyncshellDropdown {
+        SharedWidgetDropdown {
             id: sourceSelector
             width: parent.width
             label: "Device source"

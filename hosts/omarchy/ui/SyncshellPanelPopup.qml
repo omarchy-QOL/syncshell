@@ -307,7 +307,7 @@ KeyboardPanel {
             width: panelFlick.width - x
             spacing: Style.space(12)
 
-            PanelStatus {
+            Header {
                 visible: !root.controller.settingsMenuOpen
                 controller: root.controller
                 syncthing: root.controller.syncthing
@@ -352,7 +352,7 @@ KeyboardPanel {
                     }
                 }
 
-                FolderOverview {
+                BodyTabFolders {
                     id: folderOverview
                     visible: root.activeSection === "folders"
                     cardAnchor: sideCardAnchor
@@ -371,7 +371,7 @@ KeyboardPanel {
                     }
                 }
 
-                RemoteDevices {
+                BodyTabDevices {
                     id: remoteDevices
                     visible: root.activeSection === "devices"
                     cardAnchor: sideCardAnchor
@@ -412,7 +412,7 @@ KeyboardPanel {
                 }
             }
 
-            MoreDetails {
+            BodyMore {
                 id: moreDetails
                 visible: !root.controller.settingsMenuOpen && root.controller.moreOpen
                 controller: root.controller
@@ -485,7 +485,7 @@ KeyboardPanel {
             Repeater {
                 model: ["TUI", "GUI"]
 
-                BusyButton {
+                SharedWidgetBusyButton {
                     required property string modelData
                     text: modelData
                     height: Style.spacing.controlHeight
@@ -505,7 +505,7 @@ KeyboardPanel {
         Row {
             spacing: Style.spacing.sm
 
-            BusyButton {
+            SharedWidgetBusyButton {
                 id: rescanAllButton
                 height: Style.spacing.controlHeight
                 iconText: "󰑐"
@@ -530,7 +530,7 @@ KeyboardPanel {
                 onClicked: root.controller.syncthing.rescanAllFolders()
             }
 
-            BusyButton {
+            SharedWidgetBusyButton {
                 id: refreshStatusButton
                 property bool refreshRequested: false
                 property bool refreshSucceeded: false
@@ -584,7 +584,7 @@ KeyboardPanel {
                 }
             }
 
-            TooltipButton {
+            SharedWidgetTooltipButton {
                 id: settingsButton
                 width: Style.spacing.controlHeight
                 height: Style.spacing.controlHeight
@@ -620,7 +620,7 @@ KeyboardPanel {
         font.letterSpacing: 0.8
     }
 
-    ChoiceDialog {
+    SharedDialogChoice {
         id: serviceStateDialog
         parent: keyCatcher
         anchors.fill: parent
@@ -635,7 +635,7 @@ KeyboardPanel {
         }
     }
 
-    ChoiceDialog {
+    SharedDialogChoice {
         id: migrationDialog
         parent: keyCatcher
         anchors.fill: parent
@@ -653,7 +653,7 @@ KeyboardPanel {
         }
     }
 
-    CompactConfirmDialog {
+    SharedDialogConfirm {
         id: folderConfirmDialog
         parent: keyCatcher
         anchors.fill: parent
@@ -686,7 +686,7 @@ KeyboardPanel {
         onConfirmed: root.controller.confirmFolderAction()
     }
 
-    CompactConfirmDialog {
+    SharedDialogConfirm {
         id: deviceConfirmDialog
         implicitWidth: Style.space(root.controller.deviceConfirmAction === "remove" ? 320 : 390)
         parent: keyCatcher
@@ -706,7 +706,7 @@ KeyboardPanel {
         onConfirmed: root.controller.confirmDeviceAction()
     }
 
-    SelfRemovalDialog {
+    SettingsSelfRemovalDialog {
         id: removalDialog
         parent: keyCatcher
         anchors.fill: parent

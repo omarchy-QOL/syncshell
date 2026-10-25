@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Commons
 
-SyncshellDropdown {
+SharedWidgetDropdown {
     id: root
 
     required property var controller
@@ -18,7 +18,7 @@ SyncshellDropdown {
     options: controller.folderViewOptions()
     helpText: "Select a configured folder,\nincluding unshared folders"
     searchHeaderAccessory: Component {
-        FolderViewOptions {
+        BodyTabFoldersViewOptions {
             controller: root.controller
             resultCount: root.matchingOptions.length
             totalCount: root.controller.folderRows.length
