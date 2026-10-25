@@ -50,10 +50,4 @@ ColumnLayout {
             }
         }
     }
-    SharedWidgetNativeText {
-        style: root.style
-        Layout.fillWidth: true
-        text: "Arrows / hjkl navigate · r refresh · w Web UI · p pause · s rescan · q close"
-        muted: true
-    }
 }

@@ -103,7 +103,10 @@ FocusScope {
             Layout.fillWidth: true
             visible: !root.side
             active: visible
-            sourceComponent: FooterActions { host: root.host }
+            sourceComponent: ColumnLayout {
+                FooterActions { host: root.host; Layout.fillWidth: true }
+                FooterShortcutHint { style: root.style; Layout.fillWidth: true }
+            }
         }
     }
     Component { id: mainBody; SyncshellPanelMain { host: root.host } }
