@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "UiConstants.js" as UiConstants
 
 ColumnLayout {
@@ -17,9 +17,9 @@ ColumnLayout {
     StyledText {
         text: "Remote device name"
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
-    DankTextField {
+    DTextField {
         Layout.fillWidth: true
         implicitHeight: UiConstants.CONTROL_HEIGHT + 4
         topPadding: 2

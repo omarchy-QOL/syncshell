@@ -1,16 +1,16 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 
 RowLayout {
     property string label: ""
     property string value: ""
-    property color valueColor: Theme.surfaceText
+    property color valueColor: Theme.onSurface
     spacing: Theme.spacingS
     StyledText {
         text: label
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
         textFormat: Text.PlainText
     }
     StyledText {

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "UiConstants.js" as UiConstants
 
 ColumnLayout {
@@ -18,11 +18,11 @@ ColumnLayout {
     StyledText {
         text: "Local directory"
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
     RowLayout {
         Layout.fillWidth: true
-        DankTextField {
+        DTextField {
             Layout.fillWidth: true
             implicitHeight: UiConstants.CONTROL_HEIGHT + 4
             topPadding: 2
@@ -43,9 +43,9 @@ ColumnLayout {
     StyledText {
         text: "Label"
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
-    DankTextField {
+    DTextField {
         Layout.fillWidth: true
         implicitHeight: UiConstants.CONTROL_HEIGHT + 4
         topPadding: 2
@@ -59,11 +59,11 @@ ColumnLayout {
     StyledText {
         text: "Folder ID"
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
     RowLayout {
         Layout.fillWidth: true
-        DankTextField {
+        DTextField {
             Layout.fillWidth: true
             implicitHeight: UiConstants.CONTROL_HEIGHT + 4
             topPadding: 2
@@ -83,14 +83,14 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: "Reuse the exact ID to join an existing folder. A new ID creates a different folder identity."
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
         font.pixelSize: Theme.fontSizeSmall
         wrapMode: Text.WordWrap
     }
     StyledText {
         text: "Share with devices"
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true
@@ -105,7 +105,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: (root.controller.draft.ids || []).length ? "Only the selected devices will share this folder." : "Local only: not shared with other devices."
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
         font.pixelSize: Theme.fontSizeSmall
     }
     SharedWidgetBusyButton {

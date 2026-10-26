@@ -1,9 +1,9 @@
 import QtQuick
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "UiConstants.js" as UiConstants
 
-// Square icon-only button with a DMS tooltip; size follows Omarchy's controls.
+// Icon-only button at Omarchy's control size; DIconButton starts at 40 px.
 FocusScope {
     id: root
     property string iconName: ""
@@ -16,7 +16,6 @@ FocusScope {
     activeFocusOnTab: enabled
     implicitWidth: size
     implicitHeight: size
-    opacity: enabled ? 1 : 0.5
     Accessible.role: Accessible.Button
     Accessible.name: help
     Keys.onPressed: event => {
@@ -30,17 +29,19 @@ FocusScope {
     }
     StyledRect {
         anchors.fill: parent
-        radius: Theme.cornerRadius / 2
-        color: Theme.surfaceContainerHigh
-        border.width: root.activeFocus ? 2 : 0
-        border.color: Theme.primary
-        DankIcon {
+        radius: stateLayer.pressed ? Theme.buttonRadius(width, height, root.size, true, false) : Theme.fullRadius(width, height)
+        color: root.enabled ? Theme.chipSurface : Theme.onSurface_12
+        FocusRing {
+            visible: root.activeFocus
+        }
+        DIcon {
             anchors.centerIn: parent
             name: root.iconName
             size: Math.round(root.size * 0.6)
-            color: !root.enabled ? Theme.surfaceVariantText : root.danger ? Theme.error : Theme.surfaceText
+            color: !root.enabled ? Theme.onSurface_38 : root.danger ? Theme.error : Theme.onSurfaceVariant
         }
         StateLayer {
+            id: stateLayer
             anchors.fill: parent
             disabled: !root.enabled
             tooltipText: root.help || null

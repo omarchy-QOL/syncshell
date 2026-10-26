@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 
 ColumnLayout {
     id: root
@@ -17,7 +17,7 @@ ColumnLayout {
     StyledText {
         text: "Share with devices"
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true
@@ -34,7 +34,7 @@ ColumnLayout {
         text: "Select the devices that should share this folder. Saving an empty selection makes it local only."
         wrapMode: Text.WordWrap
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
     SharedWidgetBusyButton {
         Layout.fillWidth: true

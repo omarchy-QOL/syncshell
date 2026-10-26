@@ -1,6 +1,6 @@
 import QtQuick
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 
 StyledRect {
     id: root
@@ -18,8 +18,8 @@ StyledRect {
     }
     implicitHeight: Math.min(maximumHeight, formLoader.implicitHeight + Theme.spacingM * 2)
     radius: Theme.cornerRadius
-    color: Theme.surfaceContainer
-    DankFlickable {
+    color: Theme.cardSurface
+    DFlickable {
         anchors.fill: parent
         anchors.margins: Theme.spacingM
         contentHeight: formLoader.implicitHeight

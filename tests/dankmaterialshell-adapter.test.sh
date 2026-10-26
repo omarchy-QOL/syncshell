@@ -7,7 +7,7 @@ trap 'find "$work" -depth -delete' EXIT
 
 bash "$root/integrations/dankmaterialshell/assemble.sh" "$work/Syncshell"
 jq -e --arg version "$(jq -er .version "$root/manifest.json")" \
-  '.version == $version and .requires_dms == ">=1.6.2" and
+  '.version == $version and .requires_dms == ">=2.0.0" and
    .type == "composite" and .id == "syncshell" and
    (.permissions | index("settings_write")) != null' \
   "$work/Syncshell/plugin.json" >/dev/null
@@ -25,7 +25,7 @@ test -f "$work/Syncshell/assets/mono/status-default.svg"
 test -f "$work/Syncshell/webui/manifest.json"
 test -f "$work/Syncshell/LICENSE"
 test -f "$work/Syncshell/packaging/bundled/LICENSE.golang"
-jq -e '.format == 1 and .dmsSDK == "1.6.2" and
+jq -e '.format == 1 and .dmsSDK == "2.0.0" and
   (.recipeSha256 | test("^[a-f0-9]{64}$")) and .webUi.version != null' \
   "$work/Syncshell/ASSEMBLY.json" >/dev/null
 (cd -- "$work/Syncshell" && sha256sum --quiet --check PACKAGE-SHA256SUMS)

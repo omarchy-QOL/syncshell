@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "../models/PanelModel.js" as Model
 import "UiConstants.js" as UiConstants
 
@@ -96,7 +96,7 @@ Item {
         }
     }
 
-    // Tonal field at Omarchy's control height; a filled DankButton made the
+    // Tonal field at Omarchy's control height; a filled DButton made the
     // selected label hard to read.
     FocusScope {
         id: trigger
@@ -112,11 +112,14 @@ Item {
         }
         StyledRect {
             anchors.fill: parent
-            radius: Theme.cornerRadius / 2
-            color: Theme.surfaceContainerHigh
-            border.width: trigger.activeFocus || root.opened ? 2 : 0
+            radius: Theme.cornerRadiusXS
+            color: Theme.chipSurface
+            border.width: root.opened ? Theme.outlineWidthFocused : 0
             border.color: Theme.primary
             opacity: root.enabled ? 1 : 0.5
+            FocusRing {
+                visible: trigger.activeFocus
+            }
             RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: Theme.spacingM
@@ -125,15 +128,15 @@ Item {
                     text: root.displayText
                     textFormat: Text.PlainText
                     font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.surfaceText
+                    color: Theme.onSurface
                     maximumLineCount: 1
                     elide: Text.ElideRight
                     Layout.fillWidth: true
                 }
-                DankIcon {
+                DIcon {
                     name: root.opened ? "expand_less" : "expand_more"
                     size: 16
-                    color: Theme.surfaceVariantText
+                    color: Theme.onSurfaceVariant
                 }
             }
             StateLayer {
@@ -159,8 +162,8 @@ Item {
             height: Math.min(menu.height, content.implicitHeight + Theme.spacingM * 2)
             x: Math.max(0, Math.min(menu.width - width, menu.originX))
             y: Math.max(0, Math.min(menu.height - height, menu.originY + root.height + height <= menu.height ? menu.originY + root.height : menu.originY - height))
-            color: Theme.surfaceContainer
-            radius: Theme.cornerRadius
+            color: Theme.floatingSurface
+            radius: Theme.cornerRadiusM
             MouseArea {
                 anchors.fill: parent
             }
@@ -175,7 +178,7 @@ Item {
                 anchors.fill: parent
                 anchors.margins: Theme.spacingM
                 spacing: Theme.spacingS
-                DankTextField {
+                DTextField {
                     id: search
                     Layout.fillWidth: true
                     placeholderText: "Search"
@@ -194,7 +197,7 @@ Item {
                 StyledText {
                     Layout.fillWidth: true
                     text: root.filteredOptions.length + " of " + root.totalCount + " results"
-                    color: Theme.surfaceVariantText
+                    color: Theme.onSurfaceVariant
                 }
                 Loader {
                     Layout.fillWidth: true
@@ -205,9 +208,9 @@ Item {
                     Layout.fillWidth: true
                     visible: root.filteredOptions.length === 0
                     text: "No matching entries"
-                    color: Theme.surfaceVariantText
+                    color: Theme.onSurfaceVariant
                 }
-                DankListView {
+                DListView {
                     id: list
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -228,13 +231,13 @@ Item {
                         required property int index
                         width: list.width
                         height: row.implicitHeight + Theme.spacingS * 2
-                        color: ListView.isCurrentItem ? Theme.surfaceVariant : "transparent"
-                        radius: Theme.cornerRadius
+                        color: ListView.isCurrentItem ? Theme.chipSurface : "transparent"
+                        radius: Theme.cornerRadiusS
                         RowLayout {
                             id: row
                             anchors.fill: parent
                             anchors.margins: Theme.spacingS
-                            DankIcon {
+                            DIcon {
                                 visible: root.multiple
                                 name: root.selectedValues.indexOf(modelData.value) >= 0 ? "check_box" : "check_box_outline_blank"
                                 size: 20
@@ -251,7 +254,7 @@ Item {
                                 StyledText {
                                     text: modelData.description || modelData.value
                                     textFormat: Text.PlainText
-                                    color: Theme.surfaceVariantText
+                                    color: Theme.onSurfaceVariant
                                     font.pixelSize: Theme.fontSizeSmall
                                     Layout.fillWidth: true
                                     maximumLineCount: 1

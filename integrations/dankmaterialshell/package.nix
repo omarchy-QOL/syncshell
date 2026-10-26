@@ -35,7 +35,7 @@ stdenvNoCC.mkDerivation {
     runHook postInstall
   '';
   meta = {
-    description = "Syncthing folder and device management for DankMaterialShell";
+    description = "Syncthing folder and device management for DMS (Dux Shell)";
     license = with lib.licenses; [ mit mpl20 ofl bsd3 ];
     platforms = [ "x86_64-linux" "aarch64-linux" ];
   };

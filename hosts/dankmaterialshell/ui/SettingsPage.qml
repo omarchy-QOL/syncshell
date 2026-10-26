@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import qs.Modules.Plugins as Plugins
 import "../controllers"
 
@@ -44,14 +44,14 @@ Plugins.PluginSettings {
             Layout.fillWidth: true
             enabled: root.settings.valid
             spacing: Theme.spacingM
-            DankDropdown {
+            DDropdown {
                 Layout.fillWidth: true
                 text: "Icon"
                 options: ["Themed", "Branded"]
                 currentValue: root.settings.values.iconStyle === "themed" ? "Themed" : "Branded"
                 onValueChanged: value => root.settings.save("iconStyle", value === "Themed" ? "themed" : "branded")
             }
-            DankDropdown {
+            DDropdown {
                 Layout.fillWidth: true
                 text: "Web UI"
                 options: ["Syncthing default", "Modern", "DMS theme"]
@@ -77,7 +77,7 @@ Plugins.PluginSettings {
             }
             RowLayout {
                 Layout.fillWidth: true
-                DankTextField {
+                DTextField {
                     Layout.fillWidth: true
                     labelText: "Probe interval (seconds)"
                     text: String(root.settings.values.probeIntervalSeconds)
@@ -87,7 +87,7 @@ Plugins.PluginSettings {
                     }
                     onEditingFinished: root.settings.save("probeIntervalSeconds", Number(text))
                 }
-                DankTextField {
+                DTextField {
                     Layout.fillWidth: true
                     labelText: "Refresh interval (seconds)"
                     text: String(root.settings.values.refreshIntervalSeconds)
@@ -102,21 +102,21 @@ Plugins.PluginSettings {
                 Layout.fillWidth: true
                 text: "Service control is optional. Authorize only the exact user service belonging to this Syncthing instance. The core verifies the match before allowing changes."
                 wrapMode: Text.WordWrap
-                color: Theme.surfaceVariantText
+                color: Theme.onSurfaceVariant
             }
-            DankTextField {
+            DTextField {
                 Layout.fillWidth: true
                 labelText: "Systemd user unit"
                 text: root.settings.values.lifecycleUnit
                 onEditingFinished: root.settings.save("lifecycleUnit", text)
             }
-            DankTextField {
+            DTextField {
                 Layout.fillWidth: true
                 labelText: "Service-bound config path (optional)"
                 text: root.settings.values.lifecycleConfig
                 onEditingFinished: root.settings.save("lifecycleConfig", text)
             }
-            DankToggle {
+            DToggle {
                 Layout.fillWidth: true
                 text: "Authorize user service control"
                 description: "Permits the matching service to follow the saved enabled/disabled state."
@@ -130,7 +130,7 @@ Plugins.PluginSettings {
             StyledText {
                 Layout.fillWidth: true
                 text: "Leave these fields empty for local discovery. Credentials stay in a private file read by the native core, never in plugin settings. Connection changes restart only the Syncshell worker."
-                color: Theme.surfaceVariantText
+                color: Theme.onSurfaceVariant
                 wrapMode: Text.WordWrap
             }
             Repeater {
@@ -156,7 +156,7 @@ Plugins.PluginSettings {
                         label: "Expected device ID"
                     }
                 ]
-                DankTextField {
+                DTextField {
                     required property var modelData
                     Layout.fillWidth: true
                     labelText: modelData.label
@@ -168,16 +168,16 @@ Plugins.PluginSettings {
                 Layout.fillWidth: true
                 text: "Before removing Syncshell, restore the default Web UI and remove this adapter's generated profiles. This keeps Syncthing's files, configuration and other adapters' profiles. Then remove Syncshell through DMS's plugin manager."
                 wrapMode: Text.WordWrap
-                color: Theme.surfaceVariantText
+                color: Theme.onSurfaceVariant
             }
-            DankButton {
+            DButton {
                 text: "Prepare plugin removal"
                 enabled: !!root.host && !!root.host.service && root.host.service.online && !root.host.theme.busy
                 onClicked: root.confirmCleanup = true
             }
             RowLayout {
                 visible: root.confirmCleanup
-                DankButton {
+                DButton {
                     text: "Cancel"
                     onClicked: root.confirmCleanup = false
                 }

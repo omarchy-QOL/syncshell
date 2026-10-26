@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import qs.Modals.FileBrowser
 import "../models/PanelModel.js" as Model
 import "UiConstants.js" as UiConstants
@@ -196,7 +196,7 @@ FocusScope {
         width: Math.min(root.mainWidth, root.width)
         height: root.panes.mainHeight
         spacing: UiConstants.SECTION_SPACING
-        DankFlickable {
+        DFlickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.preferredHeight: body.implicitHeight
@@ -222,9 +222,8 @@ FocusScope {
                 // the second rule, as in Omarchy's three-part panel.
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 1
-                    color: Theme.outline
-                    opacity: 0.4
+                    implicitHeight: Theme.outlineWidth
+                    color: Theme.outlineMedium
                 }
                 RowLayout {
                     Layout.fillWidth: true

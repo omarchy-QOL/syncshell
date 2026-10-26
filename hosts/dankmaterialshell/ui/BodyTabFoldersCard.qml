@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "../models/PanelModel.js" as Model
 import "UiConstants.js" as UiConstants
 
@@ -12,11 +12,10 @@ StyledRect {
     readonly property var folder: controller.folder
     readonly property var status: folder ? folder.status || {} : ({})
     implicitHeight: content.implicitHeight + Theme.spacingM * 2
-    // Outlined like Omarchy's card; the popout already uses the container tone.
-    radius: Theme.cornerRadius / 2
-    color: "transparent"
-    border.width: 1
-    border.color: Qt.alpha(Theme.outline, 0.5)
+    radius: Theme.cornerRadius
+    color: Theme.cardSurface
+    border.width: Theme.outlineWidth
+    border.color: Theme.outlineVariant
     ColumnLayout {
         id: content
         anchors.fill: parent
@@ -24,7 +23,7 @@ StyledRect {
         spacing: Theme.spacingS
         RowLayout {
             Layout.fillWidth: true
-            DankActionButton {
+            DActionButton {
                 iconName: "folder_open"
                 tooltipText: "Open directory"
                 enabled: !!root.folder
@@ -43,7 +42,7 @@ StyledRect {
             }
             StyledText {
                 text: root.folder ? root.controller.folderStatus(root.folder) : ""
-                color: !root.controller.fresh ? Theme.surfaceVariantText : Model.folderGroup(root.folder || {}, true) === "errors" ? Theme.error : Theme.primary
+                color: !root.controller.fresh ? Theme.onSurfaceVariant : Model.folderGroup(root.folder || {}, true) === "errors" ? Theme.error : Theme.primary
                 font.pixelSize: Theme.fontSizeSmall
             }
         }
@@ -51,7 +50,7 @@ StyledRect {
             Layout.fillWidth: true
             text: root.folder ? root.folder.path : "Add a folder to start syncing."
             textFormat: Text.PlainText
-            color: Theme.surfaceVariantText
+            color: Theme.onSurfaceVariant
             maximumLineCount: 1
             elide: Text.ElideMiddle
             SharedWidgetToolTip {
@@ -75,7 +74,7 @@ StyledRect {
                 Layout.fillWidth: true
                 text: Model.folderMeta(root.folder, root.controller.fresh, root.controller.service ? root.controller.service.localDeviceId : "", root.controller.rescanning(root.folder))
                 textFormat: Text.PlainText
-                color: Theme.surfaceVariantText
+                color: Theme.onSurfaceVariant
                 font.pixelSize: Theme.fontSizeSmall
             }
             SharedWidgetBusyButton {

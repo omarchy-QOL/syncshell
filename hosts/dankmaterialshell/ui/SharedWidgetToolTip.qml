@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -22,10 +22,11 @@ Item {
             wrapMode: Text.Wrap
             elide: Text.ElideNone
             maximumLineCount: 14
+            color: Theme.inverseOnSurface
         }
         background: StyledRect {
-            color: Theme.surfaceContainer
-            radius: Theme.cornerRadius
+            color: Theme.inverseSurface
+            radius: Theme.cornerRadiusXS
         }
     }
 }

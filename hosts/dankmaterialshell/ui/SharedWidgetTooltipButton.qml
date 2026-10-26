@@ -1,11 +1,12 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "UiConstants.js" as UiConstants
 
-// Compact DMS-styled text button at Omarchy's control size. Tonal by default;
-// `primary` marks the one emphasized action, `flat` drops the background.
+// Compact text button at Omarchy's control size. DButton fixes a 14 px label
+// and a 32 px minimum, so this keeps DButton's tokens on a smaller control.
+// Tonal by default; `primary` marks the emphasized action, `flat` drops the fill.
 FocusScope {
     id: root
     property string text: ""
@@ -19,7 +20,7 @@ FocusScope {
     property real fontSize: Theme.fontSizeSmall
     // Wrappers with their own busy rules handle keys themselves.
     property bool handlesKeys: true
-    readonly property color foreground: !enabled ? Theme.surfaceVariantText : primary || checked ? Theme.primaryText : flat ? Theme.surfaceText : Theme.surfaceText
+    readonly property color foreground: !enabled ? Theme.onSurface_38 : primary || checked ? Theme.onPrimary : Theme.onSurface
     signal clicked
 
     function activateKey(event) {
@@ -32,7 +33,6 @@ FocusScope {
     activeFocusOnTab: enabled
     implicitWidth: row.implicitWidth + Theme.spacingM * 2
     implicitHeight: controlHeight
-    opacity: enabled ? 1 : 0.5
     Keys.onPressed: event => {
         if (handlesKeys)
             activateKey(event);
@@ -42,16 +42,17 @@ FocusScope {
     StyledRect {
         id: surface
         anchors.fill: parent
-        radius: Theme.cornerRadius / 2
-        color: root.primary || root.checked ? Theme.primary : root.flat ? "transparent" : Theme.surfaceContainerHigh
-        border.width: root.activeFocus ? 2 : 0
-        border.color: Theme.primary
+        radius: Theme.buttonRadius(width, height, root.controlHeight, stateLayer.pressed, !root.flat)
+        color: !root.enabled && !root.flat ? Theme.onSurface_12 : root.primary || root.checked ? Theme.primary : root.flat ? "transparent" : Theme.chipSurface
+        FocusRing {
+            visible: root.activeFocus
+        }
         RowLayout {
             id: row
             anchors.verticalCenter: parent.verticalCenter
             x: root.leftAlign ? Theme.spacingM : (parent.width - width) / 2
             spacing: Theme.spacingXS
-            DankIcon {
+            DIcon {
                 visible: root.iconName !== ""
                 name: root.iconName
                 size: root.fontSize + 4
@@ -66,6 +67,7 @@ FocusScope {
             }
         }
         StateLayer {
+            id: stateLayer
             anchors.fill: parent
             disabled: !root.enabled
             stateColor: root.foreground

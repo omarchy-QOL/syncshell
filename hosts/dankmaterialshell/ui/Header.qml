@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "../models/PanelModel.js" as Model
 
 ColumnLayout {
@@ -36,7 +36,7 @@ ColumnLayout {
                     Layout.minimumWidth: 0
                     elide: Text.ElideRight
                     font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.surfaceVariantText
+                    color: Theme.onSurfaceVariant
                 }
                 SharedWidgetIdCopyButton {
                     value: root.service ? root.service.localDeviceId : ""
@@ -49,7 +49,7 @@ ColumnLayout {
             Layout.fillWidth: true
         }
         // Omarchy hides the toggle when this host may not control the service.
-        DankToggle {
+        DToggle {
             visible: !!root.service && root.service.canControlService
             hideText: true
             checked: !!root.service && root.service.lifecycle.active === true
@@ -83,6 +83,6 @@ ColumnLayout {
         wrapMode: Text.WordWrap
         elide: Text.ElideNone
         visible: text !== ""
-        color: root.service && root.service.lastError ? Theme.error : Theme.surfaceVariantText
+        color: root.service && root.service.lastError ? Theme.error : Theme.onSurfaceVariant
     }
 }

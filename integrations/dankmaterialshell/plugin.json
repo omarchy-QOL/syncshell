@@ -1,7 +1,7 @@
 {
   "id": "syncshell",
   "name": "Syncshell",
-  "description": "Monitor synchronization and manage folders, devices, sharing, and invitations from DankMaterialShell",
+  "description": "Monitor synchronization and manage folders, devices, sharing, and invitations from DMS (Dux Shell)",
   "version": "0.2.4",
   "author": "ilyaZar",
   "type": "composite",
@@ -12,7 +12,7 @@
     "widget": "./hosts/dankmaterialshell/DankPanel.qml"
   },
   "settings": "./hosts/dankmaterialshell/ui/SettingsPage.qml",
-  "requires_dms": ">=1.6.2",
+  "requires_dms": ">=2.0.0",
   "dependencies": ["syncthing"],
   "permissions": ["process", "network", "settings_read", "settings_write"]
 }

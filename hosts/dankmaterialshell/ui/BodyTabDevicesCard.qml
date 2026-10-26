@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "../models/PanelModel.js" as Model
 import "UiConstants.js" as UiConstants
 
@@ -10,11 +10,10 @@ StyledRect {
     required property var controller
     readonly property var device: controller.device
     implicitHeight: content.implicitHeight + Theme.spacingM * 2
-    // Outlined like Omarchy's card; the popout already uses the container tone.
-    radius: Theme.cornerRadius / 2
-    color: "transparent"
-    border.width: 1
-    border.color: Qt.alpha(Theme.outline, 0.5)
+    radius: Theme.cornerRadius
+    color: Theme.cardSurface
+    border.width: Theme.outlineWidth
+    border.color: Theme.outlineVariant
     ColumnLayout {
         id: content
         anchors.fill: parent
@@ -22,7 +21,7 @@ StyledRect {
         spacing: Theme.spacingS
         RowLayout {
             Layout.fillWidth: true
-            DankIcon {
+            DIcon {
                 name: "devices"
                 size: Theme.iconSizeSmall
             }
@@ -57,7 +56,7 @@ StyledRect {
             Layout.fillWidth: true
             text: root.device ? root.device.address || "No current connection" : "Add a remote device to share folders."
             textFormat: Text.PlainText
-            color: Theme.surfaceVariantText
+            color: Theme.onSurfaceVariant
             maximumLineCount: 1
             elide: Text.ElideMiddle
         }

@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.Widgets
 import "UiConstants.js" as UiConstants
 
 ColumnLayout {
@@ -34,9 +33,8 @@ ColumnLayout {
     }
     Rectangle {
         Layout.fillWidth: true
-        implicitHeight: 1
-        color: Theme.outline
-        opacity: 0.4
+        implicitHeight: Theme.outlineWidth
+        color: Theme.outlineMedium
     }
     SharedWidgetTooltipButton {
         text: "Web UI"

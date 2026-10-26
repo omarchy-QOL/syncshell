@@ -65,7 +65,7 @@ PluginComponent {
     Loader {
         id: tooltipLoader
         active: false
-        sourceComponent: DankTooltip {}
+        sourceComponent: DTooltip {}
     }
     horizontalBarPill: Component {
         SharedWidgetMonoIcon {
@@ -73,7 +73,7 @@ PluginComponent {
             size: root.iconSize
             variant: root.iconVariant
             themed: root.themedIcon
-            tint: Theme.surfaceText
+            tint: Theme.onSurface
             HoverHandler {
                 onHoveredChanged: root.showTooltip(pillIcon, hovered)
             }
@@ -85,7 +85,7 @@ PluginComponent {
             size: root.iconSize
             variant: root.iconVariant
             themed: root.themedIcon
-            tint: Theme.surfaceText
+            tint: Theme.onSurface
             HoverHandler {
                 onHoveredChanged: root.showTooltip(pillIcon, hovered)
             }

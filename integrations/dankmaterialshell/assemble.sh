@@ -11,7 +11,7 @@ target=${1:-}
 }
 mkdir -p -- "$target"
 [[ -z $(find "$target" -mindepth 1 -maxdepth 1 -print -quit) ]] || {
-  printf 'DankMaterialShell target must be empty\n' >&2
+  printf 'DMS target must be empty\n' >&2
   exit 1
 }
 
@@ -62,7 +62,7 @@ const provenance = {
   format: 1,
   repository: "https://github.com/omarchy-QOL/syncshell",
   version: JSON.parse(fs.readFileSync(path.join(output, "plugin.json"))).version,
-  dmsSDK: "1.6.2",
+  dmsSDK: "2.0.0",
   coreToolchain: "go" + fs.readFileSync(path.join(source, "core/go.mod"), "utf8").match(/^go (.+)$/m)[1],
   recipeSha256: recipe.digest("hex"),
   webUi: JSON.parse(fs.readFileSync(path.join(output, "webui/manifest.json")))

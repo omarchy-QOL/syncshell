@@ -1,14 +1,15 @@
 # DMS registry submission
 
 The upstream requirements are in
-[CONTRIBUTING.md](https://github.com/AvengeMedia/dms-plugin-registry/blob/master/CONTRIBUTING.md).
-The package targets the pinned DMS 1.6.2 manifest/SDK, not development APIs.
+[CONTRIBUTING.md](https://github.com/duxlabs-dev/dux-plugin-registry/blob/master/CONTRIBUTING.md).
+The package targets the pinned DMS 2.0.0 (Dux Shell) manifest/SDK and its
+`qs.DCommon.Widgets` controls, not development APIs.
 
 - Registry file: `plugins/ilyazar-syncshell.json`.
 - Package and registry ID/name must match: `syncshell` / `Syncshell`.
 - Repository: `https://github.com/omarchy-QOL/syncshell`.
 - Monorepo path: `dist/dankmaterialshell` on the default branch.
-- Capabilities: daemon, DankBar widget, monitoring; category: monitoring.
+- Capabilities: daemon, bar widget, monitoring; category: monitoring.
 - External dependency: Syncthing. Clipboard and file opening use DMS tools.
 - Package permissions: process, network, settings read/write.
 - Add a direct, reachable screenshot URL from the actual DMS panel, ideally

@@ -1,7 +1,10 @@
-# DankMaterialShell host
+# DMS (Dux Shell) host
 
-This is the in-development DMS 1.6.2 adapter. It shares the native Syncshell
-worker with the other adapters and uses DMS controls and plugin lifecycle.
+This is the in-development adapter for DMS 2.0.0, formerly DankMaterialShell
+and now Dux Shell. It shares the native Syncshell worker with the other
+adapters and uses DMS plugin lifecycle, `qs.DCommon.Widgets` controls and
+the 2.0 surface roles (`cardSurface`, `chipSurface`). Earlier DMS releases
+are not supported.
 It has not yet passed native desktop acceptance or been submitted to the
 registry. Do not interpret assembly or unit tests as visual acceptance.
 
@@ -21,7 +24,7 @@ changed by assembly.
 
 For a manual DMS test, copy the complete `dist/dankmaterialshell/` directory
 to a new `Syncshell` directory inside DMS's plugin directory, normally
-`~/.config/DankMaterialShell/plugins/`. Do not copy just the manifest or link
+`~/.config/dms/plugins/`. Do not copy just the manifest or link
 the repository root. Enable Syncshell in DMS plugin settings and add its
 widget to the desired bar. Check for another `syncshell` installation and
 back up its settings first; never overwrite it with this package.
@@ -76,7 +79,8 @@ plugin settings replace `SettingsMenu` (`SettingsPage.qml`), the DMS plugin
 manager owns removal (`SettingsSelfRemovalDialog`), and no host dialog needs
 `SharedDialogChoice`. The panel follows Omarchy's three parts: `Header`, a
 rule, the `Body*` area, and `FooterActions`, which starts with the second
-rule. Control sizes come from `ui/UiConstants.js`.
+rule. Control sizes come from `ui/UiConstants.js`; the compact buttons keep
+their own wrappers because `DButton` and `DIconButton` start at 32 and 40 px.
 
 ## Release gates
 

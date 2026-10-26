@@ -8,11 +8,11 @@ QtObject {
     readonly property string selection: settings ? settings.values.webUiTheme : "default"
     readonly property var palette: ({
             mode: Theme.isLightMode ? "light" : "dark",
-            background: rgb(Theme.surface),
-            surface: rgb(Theme.surfaceContainer),
-            surfaceVariant: rgb(Theme.surfaceVariant),
-            foreground: rgb(Theme.surfaceText),
-            muted: rgb(Theme.surfaceVariantText),
+            background: rgb(Theme.hostSurface),
+            surface: rgb(Theme.cardSurface),
+            surfaceVariant: rgb(Theme.chipSurface),
+            foreground: rgb(Theme.onSurface),
+            muted: rgb(Theme.onSurfaceVariant),
             accent: rgb(Theme.primary),
             success: rgb(Theme.success),
             warning: rgb(Theme.warning),

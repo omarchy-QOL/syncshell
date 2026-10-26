@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 import "../models/PanelModel.js" as Model
 
 ColumnLayout {
@@ -26,7 +26,7 @@ ColumnLayout {
     StyledText {
         text: "Existing shares"
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true
@@ -60,7 +60,7 @@ ColumnLayout {
         text: "Uncheck folders to remove their shares with this device. Files are kept; newly added shares are not changed."
         wrapMode: Text.WordWrap
         font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
+        color: Theme.onSurfaceVariant
     }
     SharedWidgetBusyButton {
         Layout.fillWidth: true

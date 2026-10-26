@@ -1,6 +1,6 @@
 import QtQuick
 import qs.Common
-import qs.Widgets
+import qs.DCommon.Widgets
 
 StyledText {
     id: root
@@ -10,7 +10,7 @@ StyledText {
     textFormat: Text.PlainText
     maximumLineCount: 1
     elide: Text.ElideMiddle
-    color: Theme.surfaceVariantText
+    color: Theme.onSurfaceVariant
     visible: text !== ""
     SharedWidgetToolTip {
         anchors.fill: parent

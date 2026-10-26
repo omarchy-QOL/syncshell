@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.Widgets
+import qs.DCommon.Widgets
 
 RowLayout {
     id: root

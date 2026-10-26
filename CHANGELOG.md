@@ -5,7 +5,9 @@ Notable changes to Syncshell and its shell adapters are documented here.
 ## Unreleased
 
 - replace the experimental DMS adapter with native folder, device, sharing
-  and invitation workflows, pending desktop acceptance on DMS 1.6.2
+  and invitation workflows, pending desktop acceptance on DMS 2.0.0
+- target DMS 2.0 (Dux Shell) only: `qs.DCommon.Widgets` controls and the 2.0
+  surface roles; DMS 1.6 is no longer supported
 - add adapter-owned Modern and DMS-themed Web UI profiles with explicit
   cleanup, and require explicit authority for Syncthing service control
 - assemble a reproducible DMS package with bundled Linux workers and a Nix
