@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import qs.Common
 import qs.DCommon.Widgets
 import "../models/PanelModel.js" as Model
+import "UiConstants.js" as UiConstants
 
 ColumnLayout {
     id: root
@@ -78,11 +79,54 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: root.service ? root.service.lastError || root.service.actionNotice || (!root.service.online ? root.service.summaryText : "") : "Starting Syncshell"
+        text: root.service ? root.service.lastError || (!root.service.online ? root.service.summaryText : "") : "Starting Syncshell"
         textFormat: Text.PlainText
         wrapMode: Text.WordWrap
         elide: Text.ElideNone
         visible: text !== ""
         color: root.service && root.service.lastError ? Theme.error : Theme.onSurfaceVariant
+    }
+    // Omarchy shows an action notice in green for a while, then fades it out
+    // instead of keeping it in the header.
+    property string shownNotice: ""
+    property bool noticeShown: false
+    Connections {
+        target: root.service
+        function onActionNoticeChanged() {
+            if (!root.service.actionNotice)
+                return;
+            root.shownNotice = root.service.actionNotice;
+            root.noticeShown = true;
+            noticeFade.stop();
+            noticeDisplay.restart();
+        }
+    }
+    Timer {
+        id: noticeDisplay
+        interval: UiConstants.NOTICE_VISIBLE_MS
+        onTriggered: {
+            root.noticeShown = false;
+            noticeFade.restart();
+        }
+    }
+    Timer {
+        id: noticeFade
+        interval: UiConstants.NOTICE_FADE_MS
+        onTriggered: if (!root.noticeShown)
+            root.shownNotice = ""
+    }
+    StyledText {
+        Layout.fillWidth: true
+        visible: root.shownNotice !== ""
+        text: root.shownNotice
+        textFormat: Text.PlainText
+        color: Theme.success
+        opacity: root.noticeShown ? 1 : 0
+        Behavior on opacity {
+            NumberAnimation {
+                duration: root.noticeShown ? 0 : UiConstants.NOTICE_FADE_MS
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 }
