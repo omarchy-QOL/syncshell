@@ -299,3 +299,35 @@ test("share descriptions preserve remote acceptance and pause explanations", () 
       { id: "peer", connected: true }, false)), "Remote acceptance unconfirmed");
   }
 });
+
+test("bar icon and tooltip follow Omarchy precedence without inventing success", () => {
+  const base = { phase: "ready", online: true, canControlService: false, lifecycle: {}, installation: { available: true },
+    folderProblemCount: 0, syncingFolderCount: 0, refreshing: false, busy: false, currentActivity: {}, summaryText: "Up to date" };
+  const s = over => Object.assign({}, base, over);
+  assert.equal(model.statusVariant(null), "notify");
+  assert.equal(model.statusVariant(s({ canControlService: true, lifecycle: { active: false }, online: false })), "pause");
+  assert.equal(model.statusVariant(s({ online: false, phase: "error" })), "notify");
+  assert.equal(model.statusVariant(s({ refreshing: true })), "sync");
+  assert.equal(model.statusVariant(s({})), "default");
+  assert.equal(model.barTooltip(s({})), "Syncthing: Up to date");
+  assert.equal(model.barTooltip(s({ refreshing: true })), "Syncthing: Up to date");
+  assert.equal(model.barTooltip(s({ syncingFolderCount: 1 })), "Syncthing: Sync in progress...");
+  assert.equal(model.barTooltip(s({ installation: { available: false } })), "Syncthing: Syncthing is not installed");
+});
+
+test("counts and confirmations match the Omarchy panel", () => {
+  const omarchy = vm.createContext({});
+  vm.runInContext(readFileSync(new URL("../hosts/omarchy/models/PanelModel.js", import.meta.url), "utf8")
+    .replace(/^\.(pragma|import) .*$/gm, ""), omarchy);
+  for (const n of [0, 999, 1500, 10000, 153000, 1250000])
+    assert.equal(model.formatCount(n), omarchy.formatCount(n));
+  const popup = readFileSync(new URL("../hosts/omarchy/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
+  const remove = model.confirmText("device.remove", { name: "optiplex" });
+  assert.equal(remove.title, "Remove optiplex from this device?");
+  for (const phrase of ["Folder sharing with it will be ", "removed locally. Local folders and files remain.", "The other device is unchanged."])
+    assert.ok(popup.includes(phrase) && (remove.title + " " + remove.message).replace(/\s+/g, " ").includes(phrase.trim()));
+  const forget = model.confirmText("folder.forget", { id: "abc", label: "Docs", markerName: ".stfolder" });
+  assert.equal(forget.title, "Forget Docs (abc)?");
+  assert.match(forget.message, /directory and data files will not be deleted/);
+  assert.match(forget.message, /\.stfolder marker/);
+});

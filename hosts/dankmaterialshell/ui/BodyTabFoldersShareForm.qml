@@ -10,14 +10,14 @@ ColumnLayout {
     spacing: Theme.spacingS
     BodyFormHeader {
         Layout.fillWidth: true
-        title: "Share folder"
+        title: "Share " + (root.controller.service ? root.controller.service.folderLabel(root.controller.draft.folderId) : "folder")
         enabled: !root.controller.submitting
         onCancelled: root.controller.closeForm()
     }
     StyledText {
-        Layout.fillWidth: true
-        text: root.controller.service ? root.controller.service.folderLabel(root.controller.draft.folderId) : ""
-        textFormat: Text.PlainText
+        text: "Share with devices"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true
@@ -32,11 +32,14 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: "Select the devices that should share this folder. Saving an empty selection makes it local only."
+        wrapMode: Text.WordWrap
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.surfaceVariantText
     }
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Save sharing"
+        primary: true
         busy: root.controller.submitting
         enabled: !!root.controller.service && root.controller.service.online
         onClicked: root.controller.submit()

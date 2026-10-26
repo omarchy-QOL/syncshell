@@ -247,3 +247,23 @@ function formatCount(value) {
     if (count >= 1000) return (count / 1000).toFixed(count >= 10000 ? 0 : 1) + "k";
     return String(Math.round(count));
 }
+// Omarchy's confirmation wording; the DMS dialog only supplies the chrome.
+function confirmText(action, target) {
+    var t = target || {};
+    var name = t.name || t.label || t.deviceId || t.id || "";
+    if (action === "folder.add-existing")
+        return { title: "Create directory?", message: "Create " + t.path + " and add it to Syncthing?" };
+    if (action === "folder.forget")
+        return { title: "Forget " + (t.label || t.id) + " (" + t.id + ")?",
+            message: "This removes only its Syncthing configuration. The directory and data files will not be deleted. "
+                + (t.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal .stfolder marker. " : "")
+                + "Rejoining the same remote folder requires this exact Folder ID." };
+    if (action === "device.remove")
+        return { title: "Remove " + name + " from this device?",
+            message: "Folder sharing with it will be removed locally. Local folders and files remain. The other device is unchanged." };
+    if (action === "device.dismiss-pending")
+        return { title: "Dismiss pending request from " + name + "?", message: "It can reappear if the device connects again." };
+    if (action.indexOf("lifecycle.") === 0)
+        return { title: "Change Syncthing service?", message: "This changes the authorized systemd user service for this Syncthing instance." };
+    return { title: "Dismiss invitation?", message: "Dismiss this folder invitation from " + name + "? It can reappear if the device offers it again." };
+}

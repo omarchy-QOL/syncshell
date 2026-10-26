@@ -11,6 +11,8 @@ RowLayout {
         textFormat: Text.PlainText
         font.weight: Font.Medium
         Layout.fillWidth: true
+        maximumLineCount: 1
+        elide: Text.ElideRight
     }
     SharedWidgetTooltipButton {
         text: "Cancel"

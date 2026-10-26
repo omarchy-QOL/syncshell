@@ -19,17 +19,14 @@ ColumnLayout {
     spacing: Theme.spacingS
     BodyFormHeader {
         Layout.fillWidth: true
-        title: "Shared folders"
+        title: "Shared with " + (root.controller.draft.name || root.controller.draft.deviceId || "device")
         enabled: !root.controller.submitting
         onCancelled: root.controller.closeForm()
     }
     StyledText {
-        Layout.fillWidth: true
-        text: root.controller.draft.name || root.controller.draft.deviceId || ""
-        textFormat: Text.PlainText
-    }
-    StyledText {
         text: "Existing shares"
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true
@@ -45,7 +42,8 @@ ColumnLayout {
         Layout.fillWidth: true
         text: "Unconfirmed shares (acceptance pending/device offline)"
         wrapMode: Text.WordWrap
-        color: Theme.surfaceVariantText
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.warning
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true
@@ -60,11 +58,14 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: "Uncheck folders to remove their shares with this device. Files are kept; newly added shares are not changed."
+        wrapMode: Text.WordWrap
+        font.pixelSize: Theme.fontSizeSmall
         color: Theme.surfaceVariantText
     }
     SharedWidgetBusyButton {
         Layout.fillWidth: true
-        text: "Save shares"
+        text: "Save sharing"
+        primary: true
         busy: root.controller.submitting
         enabled: root.controller.fresh && !root.controller.busy && Model.removedShares(root.controller.originalShareIds, root.controller.draft.ids || []).length > 0
         onClicked: root.controller.submit()
