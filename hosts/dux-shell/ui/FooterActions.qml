@@ -46,8 +46,11 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         spacing: Theme.spacingS
+        // Equal halves: natural widths shift with busy captions and starved
+        // the rescan label.
         SharedWidgetBusyButton {
             Layout.fillWidth: true
+            Layout.preferredWidth: 1
             text: "Rescan all folders"
             busyText: "Rescanning..."
             iconName: "refresh"
@@ -58,6 +61,7 @@ ColumnLayout {
         }
         SharedWidgetBusyButton {
             Layout.fillWidth: true
+            Layout.preferredWidth: 1
             text: "Refresh Sync.status"
             busyText: "Rechecking Syncthing"
             iconName: "monitor_heart"
