@@ -12,7 +12,7 @@ ColumnLayout {
     function options(confirmed) {
         return controller.originalShareIds.map(id => controller.service.folder(id)).filter(Boolean).filter(f => ["valid", "paused"].includes(Model.remoteShare(f, device || {}, controller.fresh)) === confirmed).map(f => ({
                     value: f.id,
-                    label: f.label || f.id,
+                    label: Model.folderName(f),
                     description: [f.path, f.id, Model.remoteShareDescription(Model.remoteShare(f, device || {}, controller.fresh))].filter(Boolean).join(" · ")
                 }));
     }

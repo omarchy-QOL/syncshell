@@ -1,5 +1,14 @@
 .pragma library
 
+// Omarchy names folders by their directory; the configured label follows in the meta line.
+function folderName(folder) {
+    var path = String(folder.path || "");
+    var trimmed = path.replace(/\/+$/, "");
+    if (path.charAt(0) === "/" && trimmed === "")
+        return "/";
+    return trimmed.split("/").pop() || String(folder.label || folder.id || "Unnamed folder");
+}
+
 function matchesSearch(label, query) {
     var text = String(label || "").toLowerCase();
     var needle = String(query || "").trim().toLowerCase();
@@ -14,7 +23,7 @@ function matchesSearch(label, query) {
 }
 
 function matchesOption(option, query) {
-    return [option.label, option.value, option.description].some(function (text) {
+    return [option.label, option.value, option.description, option.keywords].some(function (text) {
         return matchesSearch(text, query);
     });
 }
@@ -40,7 +49,8 @@ function folderOptions(folders, fresh, groups, sort, presentation) {
         var status = folder.status || {};
         return {
             value: folder.id,
-            label: String(folder.label || folder.id),
+            label: folderName(folder),
+            keywords: String(folder.label || ""),
             description: String(folder.path || ""),
             group: folderGroup(folder, fresh),
             status: presentation ? presentation(folder) : folderStatus(folder, fresh),
@@ -173,8 +183,7 @@ function stateHelp(state) {
 function folderMeta(folder, fresh, localDeviceId, rescanning) {
     if (!folder) return "";
     var s = folder.status || {};
-    var pathName = String(folder.path || "").replace(/\/+$/, "").split("/").pop();
-    var suffix = folder.label && folder.label !== pathName ? " · " + folder.label : "";
+    var suffix = folder.label && folder.label !== folderName(folder) ? " · " + folder.label : "";
     if (!fresh) return "Last reported: " + (s.globalFiles || 0) + " files · " + bytes(s.globalBytes) + suffix;
     if (s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error")
         return (s.error || (s.errors || [])[0]?.error || "Folder needs attention") + suffix;
@@ -260,7 +269,7 @@ function confirmWording(action, t) {
         return { title: "Create directory?", message: "Create " + t.path + " and add it to Syncthing?",
             confirm: "Create and add", destructive: false };
     if (action === "folder.forget")
-        return { title: "Forget " + (t.label || t.id) + " (" + t.id + ")?",
+        return { title: "Forget " + folderName(t) + " (" + t.id + ")?",
             message: "This removes only its Syncthing configuration. The directory and data files will not be deleted. "
                 + (t.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal .stfolder marker. " : "")
                 + "Rejoining the same remote folder requires this exact Folder ID." };

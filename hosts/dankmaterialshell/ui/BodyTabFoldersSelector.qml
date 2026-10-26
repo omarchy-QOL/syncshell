@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Common
+import "../models/PanelModel.js" as Model
 
 SharedWidgetDropdown {
     id: root
@@ -10,7 +11,7 @@ SharedWidgetDropdown {
     totalCount: controller.service ? controller.service.folders.length : 0
     options: controller.folderOptions
     value: controller.selectedFolderId
-    placeholder: controller.folder ? controller.folder.label || controller.folder.id : "No matching folders"
+    placeholder: controller.folder ? Model.folderName(controller.folder) : "No matching folders"
     onSelected: value => controller.selectedFolderId = value
     accessory: Component {
         Column {

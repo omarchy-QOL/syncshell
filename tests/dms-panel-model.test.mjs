@@ -28,6 +28,8 @@ test("fuzzy search preserves the Omarchy matcher and existing result order", () 
   assert.deepEqual(Array.from(model.folderOptions(folders, true, null, "name")
     .filter(row => model.matchesOption(row, "dcm")),
     row => row.value), ["a", "z"]);
+  assert.deepEqual(Array.from(model.folderOptions(folders, true, null, "name")
+    .filter(row => model.matchesOption(row, "dcs")), row => row.label), ["docs", "docs"]);
   assert.equal(model.matchesOption({ label: "Pictures", value: "photos", description: "/work/trip" }, "wk/t"), true);
 });
 
@@ -334,4 +336,16 @@ test("counts and confirmations match the Omarchy panel", () => {
   assert.deepEqual([remove.confirm, remove.destructive, forget.confirm, forget.destructive], ["Yes", true, "Yes", true]);
   const create = model.confirmText("folder.add-existing", { path: "/srv/a" });
   assert.deepEqual([create.confirm, create.destructive], ["Create and add", false]);
+});
+
+test("folders are named by directory and the configured label joins the meta line", () => {
+  const omarchy = vm.createContext({});
+  vm.runInContext(readFileSync(new URL("../hosts/omarchy/models/PanelModel.js", import.meta.url), "utf8")
+    .replace(/^\.(pragma|import) .*$/gm, ""), omarchy);
+  for (const path of ["/home/iz/Sync-Test", "/home/iz/Sync-Test/", "/"])
+    assert.equal(model.folderName({ path, id: "x" }), omarchy.pathLabel(path));
+  const folder = { id: "x", label: "Sync Test", path: "/home/iz/Sync-Test",
+    devices: [{ id: "remote" }], status: { state: "idle", globalFiles: 3, globalBytes: 138 } };
+  assert.equal(model.folderMeta(folder, true, "local", false), "3 files · 138 B · Sync Test");
+  assert.equal(model.folderMeta({ ...folder, label: "Sync-Test" }, true, "local", false), "3 files · 138 B");
 });

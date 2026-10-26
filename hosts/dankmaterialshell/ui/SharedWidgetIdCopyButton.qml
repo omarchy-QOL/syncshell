@@ -3,7 +3,8 @@ import Quickshell.Io
 import qs.Common
 import "UiConstants.js" as UiConstants
 
-// Compact "copy ID" chip as in Omarchy: icon plus a short caption, never the ID.
+// Compact "copy ID" chip as in Omarchy: icon plus a short caption, never the
+// ID. Without a caption it is the square icon button Omarchy puts beside names.
 SharedWidgetTooltipButton {
     id: root
     property string value: ""
@@ -12,12 +13,12 @@ SharedWidgetTooltipButton {
     property bool copied: false
     property string error: ""
     controlHeight: UiConstants.SMALL_CONTROL_HEIGHT
-    flat: true
+    flat: caption !== ""
     iconName: copied ? "check" : "content_copy"
-    text: copied ? "Copied" : caption
+    text: caption === "" ? "" : copied ? "Copied" : caption
     help: error || (copied ? "Copied" : helpText)
     enabled: value !== "" && !copy.running
-    implicitWidth: Math.max(captionMetrics.advanceWidth, copiedMetrics.advanceWidth) + Theme.fontSizeSmall + 4 + Theme.spacingXS + Theme.spacingM * 2
+    implicitWidth: caption === "" ? controlHeight : Math.max(captionMetrics.advanceWidth, copiedMetrics.advanceWidth) + Theme.fontSizeSmall + 4 + Theme.spacingXS + Theme.spacingM * 2
     TextMetrics {
         id: captionMetrics
         text: root.caption

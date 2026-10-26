@@ -50,6 +50,7 @@ FocusScope {
         RowLayout {
             id: row
             anchors.verticalCenter: parent.verticalCenter
+            width: Math.min(implicitWidth, parent.width - (root.text !== "" ? Theme.spacingM * 2 : 0))
             x: root.leftAlign ? Theme.spacingM : (parent.width - width) / 2
             spacing: Theme.spacingXS
             DIcon {
@@ -60,6 +61,9 @@ FocusScope {
             }
             StyledText {
                 visible: root.text !== ""
+                Layout.fillWidth: true
+                maximumLineCount: 1
+                elide: Text.ElideRight
                 text: root.text
                 textFormat: Text.PlainText
                 font.pixelSize: root.fontSize

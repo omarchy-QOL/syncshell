@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.DCommon.Widgets
+import "../models/PanelModel.js" as Model
 
 ColumnLayout {
     id: root
@@ -10,7 +11,7 @@ ColumnLayout {
     spacing: Theme.spacingS
     BodyFormHeader {
         Layout.fillWidth: true
-        title: "Share " + (root.controller.service ? root.controller.service.folderLabel(root.controller.draft.folderId) : "folder")
+        title: "Share " + (root.controller.service && root.controller.service.folder(root.controller.draft.folderId) ? Model.folderName(root.controller.service.folder(root.controller.draft.folderId)) : "folder")
         enabled: !root.controller.submitting
         onCancelled: root.controller.closeForm()
     }

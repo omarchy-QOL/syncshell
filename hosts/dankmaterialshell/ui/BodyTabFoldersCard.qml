@@ -21,41 +21,37 @@ StyledRect {
         anchors.fill: parent
         anchors.margins: Theme.spacingM
         spacing: Theme.spacingS
+        // Omarchy's card head: name button, ID copy button, state on the right.
         RowLayout {
             Layout.fillWidth: true
-            DActionButton {
-                iconName: "folder_open"
-                tooltipText: "Open directory"
-                enabled: !!root.folder
+            spacing: Theme.spacingXS
+            SharedWidgetTooltipButton {
+                id: nameButton
+                Layout.maximumWidth: content.width - copyButton.width - stateText.implicitWidth - Theme.spacingXS * 2 - Theme.spacingM
+                leftAlign: true
+                iconName: "folder"
+                fontSize: Theme.fontSizeMedium
+                text: root.folder ? Model.folderName(root.folder) : "No folder selected"
+                help: root.folder && root.folder.path ? "Open " + root.folder.path : "Folder unavailable"
+                enabled: !!root.folder && !!root.folder.path
                 onClicked: Quickshell.execDetached(["dms", "open", root.folder.path])
             }
-            StyledText {
-                text: root.folder ? root.folder.label || root.folder.id : "No folder selected"
-                textFormat: Text.PlainText
-                Layout.fillWidth: true
-                maximumLineCount: 1
-            }
             SharedWidgetIdCopyButton {
+                id: copyButton
+                controlHeight: nameButton.height
+                caption: ""
                 value: root.folder ? root.folder.id : ""
-                caption: "folder ID"
                 helpText: "Copy folder ID"
             }
+            Item {
+                Layout.fillWidth: true
+            }
             StyledText {
+                id: stateText
                 text: root.folder ? root.controller.folderStatus(root.folder) : ""
                 color: !root.controller.fresh ? Theme.onSurfaceVariant : Model.folderGroup(root.folder || {}, true) === "errors" ? Theme.error : Theme.primary
                 font.pixelSize: Theme.fontSizeSmall
-            }
-        }
-        StyledText {
-            Layout.fillWidth: true
-            text: root.folder ? root.folder.path : "Add a folder to start syncing."
-            textFormat: Text.PlainText
-            color: Theme.onSurfaceVariant
-            maximumLineCount: 1
-            elide: Text.ElideMiddle
-            SharedWidgetToolTip {
-                anchors.fill: parent
-                text: parent.text
+                font.weight: Font.Bold
             }
         }
         BodyTabFoldersCardActivity {
@@ -63,21 +59,56 @@ StyledRect {
             service: root.controller.service
             folderId: root.folder ? root.folder.id : ""
         }
-        // Spare tab height stays inside the card, above the meta row, as in
-        // Omarchy's card.
+        // Spare tab height stays inside the card, above the details, so both
+        // tabs keep one panel height.
         Item {
             Layout.fillHeight: true
         }
         RowLayout {
             Layout.fillWidth: true
-            StyledText {
+            spacing: Theme.spacingS
+            ColumnLayout {
                 Layout.fillWidth: true
-                text: Model.folderMeta(root.folder, root.controller.fresh, root.controller.service ? root.controller.service.localDeviceId : "", root.controller.rescanning(root.folder))
-                textFormat: Text.PlainText
-                color: Theme.onSurfaceVariant
-                font.pixelSize: Theme.fontSizeSmall
+                Layout.leftMargin: Theme.spacingS
+                spacing: 2
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacingXS
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Model.folderMeta(root.folder, root.controller.fresh, root.controller.service ? root.controller.service.localDeviceId : "", root.controller.rescanning(root.folder))
+                        textFormat: Text.PlainText
+                        color: Model.hasErrors(root.folder) ? Theme.error : Theme.onSurfaceVariant
+                        font.pixelSize: Theme.fontSizeSmall
+                        maximumLineCount: 1
+                        elide: Text.ElideRight
+                    }
+                    SharedWidgetTooltipButton {
+                        visible: Model.hasErrors(root.folder)
+                        flat: true
+                        controlHeight: Theme.fontSizeSmall + 4
+                        text: '(see "More" below)'
+                        help: "Show folder errors"
+                        onClicked: root.controller.moreOpen = true
+                    }
+                }
+                StyledText {
+                    Layout.fillWidth: true
+                    visible: !!root.folder && !!root.folder.path
+                    text: root.folder ? root.folder.path : ""
+                    textFormat: Text.PlainText
+                    color: Theme.onSurfaceVariant
+                    font.pixelSize: Theme.fontSizeSmall
+                    maximumLineCount: 1
+                    elide: Text.ElideLeft
+                    SharedWidgetToolTip {
+                        anchors.fill: parent
+                        text: parent.text
+                    }
+                }
             }
             SharedWidgetBusyButton {
+                Layout.alignment: Qt.AlignBottom
                 controlHeight: UiConstants.SMALL_CONTROL_HEIGHT
                 iconName: root.folder && root.folder.paused ? "delete" : "refresh"
                 text: root.folder && root.folder.paused ? "Forget" : "Rescan"
