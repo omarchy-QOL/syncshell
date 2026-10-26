@@ -38,27 +38,26 @@ FocusScope {
 
     implicitHeight: Math.min(availableHeight, mainPane.implicitHeight)
 
-    // Hyprland moves the keyboard past the popout's focus grab only while
-    // the grab is off, so the form claims it briefly; the grab then returns
-    // with the form whitelisted and keeps outside clicks dismissing.
+    // Like DMS's own surface modals, the form holds the keyboard while it is
+    // open: Hyprland moves focus past the popout's grab only while the popout
+    // releases it. The popout's background window still dismisses outside
+    // clicks. Re-claiming after another surface (the picker) took the keyboard
+    // makes Hyprland focus the form again.
     property bool claimingKeyboard: false
     function claimKeyboard() {
-        claimingKeyboard = sideWindow.visible && !confirming;
+        claimingKeyboard = false;
         releasePopoutKeyboard();
-        if (claimingKeyboard)
+        if (sideWindow.visible && !confirming)
             keyboardClaim.restart();
     }
     function releasePopoutKeyboard() {
         if (parentPopout)
-            parentPopout.customKeyboardFocus = claimingKeyboard ? WlrKeyboardFocus.None : null;
+            parentPopout.customKeyboardFocus = sideWindow.visible && !confirming ? WlrKeyboardFocus.None : null;
     }
     Timer {
         id: keyboardClaim
-        interval: 300
-        onTriggered: {
-            root.claimingKeyboard = false;
-            root.releasePopoutKeyboard();
-        }
+        interval: 50
+        onTriggered: root.claimingKeyboard = sideWindow.visible && !root.confirming
     }
 
     function closeInner() {
@@ -330,7 +329,7 @@ FocusScope {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.namespace: "dms:plugins:syncshell:form"
-        WlrLayershell.keyboardFocus: !visible || root.confirming ? WlrKeyboardFocus.None : root.claimingKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
+        WlrLayershell.keyboardFocus: visible && root.claimingKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         onVisibleChanged: {
             if (root.parentPopout)
                 root.parentPopout.transientSurfaceTracker.setActive(sideWindow, visible, visible ? sideWindow : null);
