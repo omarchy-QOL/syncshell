@@ -15,11 +15,47 @@ ShellRoot {
     property bool pendingFailurePassed: false
     property bool crashCapPassed: false
     property bool manualRecoveryPassed: false
+    property bool stoppedRecoveryPassed: false
+    property var lifetimeWorker: null
+    property int lifetimePhase: 0
+    property bool lifetimePassed: false
+
+    function lifetimeReady(worker) {
+        if (worker.generation !== 1) {
+            fail("worker replacement needed a retry after an overlapping process");
+            return;
+        }
+        if (lifetimePhase === 0) {
+            lifetimePhase = 1;
+            worker.destroy();
+            replacement.start();
+        } else {
+            lifetimePassed = true;
+            worker.terminate();
+        }
+    }
+    property Component lifetimeFactory: Component {
+        CoreProcess {
+            id: lifetime
+            startupArguments: ["--test-exclusive-lock=" + corePath + ".lifetime-lock"]
+            onProtocolReadyChanged: if (protocolReady)
+                root.lifetimeReady(lifetime)
+        }
+    }
+    Timer {
+        id: replacement
+        interval: 0
+        onTriggered: root.lifetimeWorker = root.lifetimeFactory.createObject(root)
+    }
+    Component.onCompleted: lifetimeWorker = lifetimeFactory.createObject(root)
 
     function fail(message) {
         console.error(message);
         core.terminate();
         crashProbe.terminate();
+        stoppedRecovery.terminate();
+        if (lifetimeWorker)
+            lifetimeWorker.terminate();
         Qt.exit(1);
     }
 
@@ -113,6 +149,37 @@ ShellRoot {
         }
     }
 
+    CoreProcess {
+        id: stoppedRecovery
+        desiredRunning: false
+        onExecutableReadyChanged: {
+            if (!executableReady)
+                return;
+            restartTimer.interval = 20;
+            restartTimer.restart();
+            terminate();
+            stoppedCheck.restart();
+        }
+    }
+    Timer {
+        id: stoppedCheck
+        interval: 60
+        onTriggered: {
+            if (stoppedRecovery.running || stoppedRecovery.desiredRunning || stoppedRecovery.generation !== 0) {
+                root.fail("terminated recovery started a worker");
+                return;
+            }
+            stoppedRecovery.restartTimer.triggered();
+            stoppedRecovery.terminate();
+            Qt.callLater(function () {
+                if (stoppedRecovery.desiredRunning || stoppedRecovery.generation !== 0)
+                    root.fail("queued recovery revived a terminated worker");
+                else
+                    root.stoppedRecoveryPassed = true;
+            });
+        }
+    }
+
     Timer {
         id: completionTimer
         interval: 100
@@ -131,7 +198,7 @@ ShellRoot {
                 crashProbe.startupArguments = [];
                 crashProbe.restart();
             }
-            if (core.running || !root.pendingFailurePassed || crashProbe.running || !root.manualRecoveryPassed) {
+            if (core.running || !root.pendingFailurePassed || crashProbe.running || !root.manualRecoveryPassed || !root.stoppedRecoveryPassed || !root.lifetimePassed || root.lifetimeWorker.running) {
                 restart();
                 return;
             }
