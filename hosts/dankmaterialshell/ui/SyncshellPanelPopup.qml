@@ -223,7 +223,7 @@ FocusScope {
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: Theme.outlineWidth
-                    color: Theme.outlineMedium
+                    color: Theme.outlineVariant
                 }
                 RowLayout {
                     Layout.fillWidth: true

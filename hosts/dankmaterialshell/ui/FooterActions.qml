@@ -34,7 +34,7 @@ ColumnLayout {
     Rectangle {
         Layout.fillWidth: true
         implicitHeight: Theme.outlineWidth
-        color: Theme.outlineMedium
+        color: Theme.outlineVariant
     }
     SharedWidgetTooltipButton {
         text: "Web UI"
