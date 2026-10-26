@@ -8,6 +8,7 @@ QtObject {
 
     property int probeIntervalSeconds: 15
     property int refreshIntervalSeconds: 60
+    property bool startCore: true
     property string bundleRoot: Paths.localFilePath(Qt.resolvedUrl(".."))
     property var lifecyclePolicy: ({})
     property string desiredServiceState: "disabled"
@@ -416,7 +417,7 @@ QtObject {
             ["--credential-file", credentialFile], ["--tls-certificate", tlsCertificate],
             ["--expected-device-id", expectedDeviceId]
         ];
-        for (var index = 0; index < targets.length; index++) {
+        for (let index = 0; index < targets.length; index++) {
             if (targets[index][1])
                 args.push(targets[index][0], targets[index][1]);
         }
@@ -451,6 +452,7 @@ QtObject {
     }
 
     property CoreProcess core: CoreProcess {
+        desiredRunning: root.startCore
         corePath: root.bundleRoot.replace(/\/$/, "") + "/bin/syncshell-core"
         startupArguments: root.startupArguments()
         onProtocolReadyChanged: if (protocolReady)

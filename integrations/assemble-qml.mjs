@@ -15,9 +15,10 @@ for (const file of files) {
   const text = readFileSync(path, "utf8");
   const mapped = text.replace(/^(\s*\.?import\s+)("[^"\n]+"|[\w.]+)/gm,
     (line, prefix, source) => {
-      if (!Object.hasOwn(imports, source))
+      const mapping = imports[dirname(file)] || imports;
+      if (!Object.hasOwn(mapping, source))
         throw Error(`unmapped import in ${file}: ${source}`);
-      const target = imports[source];
+      const target = mapping[source];
       if (target.startsWith('"')) {
         const imported = resolve(dirname(path), JSON.parse(target));
         if (relative(root, imported).startsWith(`..${sep}`) || !existsSync(imported))
