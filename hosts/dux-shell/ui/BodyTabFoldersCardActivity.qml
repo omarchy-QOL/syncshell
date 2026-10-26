@@ -1,7 +1,6 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
-import "../models/PanelModel.js" as Model
 
 StyledText {
     id: root
@@ -11,7 +10,8 @@ StyledText {
     textFormat: Text.PlainText
     wrapMode: Text.NoWrap
     elide: Text.ElideMiddle
-    color: Theme[Model.activityRole(service ? service.currentActivity.action : "")]
+    // Work in progress, which DMS shows in its accent.
+    color: Theme.primary
     visible: text !== ""
     SharedWidgetToolTip {
         anchors.fill: parent

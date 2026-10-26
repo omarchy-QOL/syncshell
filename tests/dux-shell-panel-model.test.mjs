@@ -337,16 +337,17 @@ test("folders are named by directory and the configured label joins the meta lin
   assert.equal(model.folderMeta({ ...folder, label: "Sync-Test" }, true, "local", false), "3 files · 138 B");
 });
 
-test("state colours follow Omarchy's green, yellow, red and muted rules", () => {
+test("state colours follow DMS's status roles on Omarchy's states", () => {
   const panel = readFileSync(new URL("../hosts/omarchy/OmarchyPanel.qml", import.meta.url), "utf8");
-  const omarchy = { warning: "warning", urgent: "error", success: "success", muted: "onSurfaceVariant" };
-  const body = panel.match(/function folderStateColor\(folder\) \{([^]*?)\n    \}/)[1];
-  for (const [, state, colour] of body.matchAll(/state === "([^"]+)"\)\s*return ([\w.]+);/g))
-    assert.equal(model.folderStateRole(state), omarchy[colour.split(".").pop()], state);
-  assert.equal(model.folderStateRole("SYNCED"), "success");
-  assert.equal(model.folderStateRole("LINKED"), "success");
+  // Omarchy's colour per state, then the DMS role used for that meaning.
+  const omarchy = Object.fromEntries([...panel.match(/function folderStateColor\(folder\) \{([^]*?)\n    \}/)[1]
+    .matchAll(/state === "([^"]+)"\)\s*return ([\w.]+);/g)].map(m => [m[1], m[2].split(".").pop()]));
+  assert.deepEqual(omarchy, { UNLINKED: "warning", SCANNING: "warning", "SCAN+SYNC": "warning",
+    SYNCING: "warning", UNKNOWN: "muted", ERROR: "urgent" });
+  const dms = { SYNCED: "success", LINKED: "success", UNLINKED: "warning", SCANNING: "primary",
+    "SCAN+SYNC": "primary", SYNCING: "primary", ERROR: "error", UNKNOWN: "onSurfaceVariant" };
+  for (const [state, role] of Object.entries(dms))
+    assert.equal(model.folderStateRole(state), role, state);
   assert.deepEqual(["CONNECTED", "PAUSED", "DISCONNECTED", "UNKNOWN"].map(model.deviceStateRole),
     ["success", "warning", "onSurfaceVariant", "onSurfaceVariant"]);
-  assert.deepEqual(["removing", "upload", "sync", ""].map(model.activityRole),
-    ["error", "success", "info", "info"]);
 });
