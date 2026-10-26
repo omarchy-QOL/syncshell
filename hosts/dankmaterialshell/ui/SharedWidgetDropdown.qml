@@ -73,8 +73,8 @@ Item {
         menu.anchor.edges = Edges.Top | Edges.Left;
         menu.anchor.gravity = Edges.Bottom | Edges.Right;
         menu.anchor.adjustment = PopupAdjustment.None;
-        menu.width = host.width;
-        menu.height = host.height;
+        menu.implicitWidth = host.width;
+        menu.implicitHeight = host.height;
         var point = root.QsWindow.itemPosition(trigger);
         menu.originX = point.x;
         menu.originY = point.y;
