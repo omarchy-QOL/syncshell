@@ -96,7 +96,6 @@ PluginComponent {
             controller: panelController
             host: root.host
             pluginId: root.pluginId
-            onWidthRequested: value => root.popoutWidth = value
         }
     }
 }

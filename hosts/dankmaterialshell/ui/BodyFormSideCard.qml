@@ -16,12 +16,15 @@ StyledRect {
             formLoader.item.forceActiveFocus();
         return true;
     }
-    implicitHeight: Math.min(maximumHeight, formLoader.implicitHeight + Theme.spacingM * 2)
-    radius: Theme.cornerRadius
-    color: Theme.cardSurface
+    // Drawn as its own surface beside the popout, so it takes the popout chrome.
+    implicitHeight: Math.min(maximumHeight, formLoader.implicitHeight + PopoutMetrics.contentPadding * 2)
+    radius: Theme.windowRadius
+    color: parentPopout ? parentPopout.surfaceColor : Theme.hostSurface
+    border.width: Theme.outlineWidth
+    border.color: Theme.outlineVariant
     DFlickable {
         anchors.fill: parent
-        anchors.margins: Theme.spacingM
+        anchors.margins: PopoutMetrics.contentPadding
         contentHeight: formLoader.implicitHeight
         clip: true
         Loader {

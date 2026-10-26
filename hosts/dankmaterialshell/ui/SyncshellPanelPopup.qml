@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
+import Quickshell
+import Quickshell.Wayland
 import qs.Common
 import qs.DCommon.Widgets
 import qs.Modals.FileBrowser
@@ -16,56 +18,28 @@ FocusScope {
     property string pluginId: "syncshell"
     property real mainWidth: UiConstants.CONTENT_WIDTH * Math.max(1, Theme.fontScale)
     property real sideWidth: 360 * Math.max(1, Theme.fontScale)
-    property string side: "right"
-    property real originalTriggerX: 0
-    property real originalTriggerY: 0
-    property real mainX: 0
-    property real mainTop: 0
     property real triggerRowY: 0
-    property bool anchored: false
     readonly property bool sideOpen: controller.form !== "" || controller.confirmation !== null
     readonly property real screenWidth: parentPopout && parentPopout.screen ? parentPopout.screen.width : 1920
     readonly property real screenHeight: parentPopout && parentPopout.screen ? parentPopout.screen.height : 1080
     readonly property int barPosition: parentPopout ? parentPopout.effectiveBarPosition : 0
     readonly property real usableTop: Theme.spacingL + (barPosition === 0 && parentPopout ? parentPopout.storedBarThickness + parentPopout.storedBarSpacing * 2 : 0)
     readonly property real availableHeight: Math.max(140, screenHeight - (barPosition <= 1 && parentPopout ? parentPopout.storedBarThickness + parentPopout.storedBarSpacing * 2 : 0) - Theme.spacingL * 2)
-    readonly property real sideExtra: sideOpen && side !== "stack" ? sideWidth + Theme.spacingM : 0
-    readonly property real wantedWidth: Math.min(screenWidth - Theme.spacingL * 2, mainWidth + sideExtra + Theme.spacingS * 2)
-    // DMS draws main and side form on one popout surface, so a form anchored
-    // at its trigger row left an empty band above it; align it to the top.
-    readonly property var panes: Model.paneLayout(mainPane.implicitHeight, sidePane.implicitHeight, availableHeight, 0, sideOpen, side === "stack", barPosition, mainTop, Theme.spacingM, footer.implicitHeight)
-    signal widthRequested(real value)
+    readonly property var sidePlacement: parentPopout ? Model.sideWindowPlacement(screenWidth, screenHeight, {
+            x: parentPopout.alignedX,
+            y: parentPopout.alignedY,
+            width: parentPopout.alignedWidth
+        }, sideWidth, sideWindow.implicitHeight, PopoutMetrics.contentPadding + triggerRowY, Theme.spacingM, Theme.spacingL, usableTop) : ({
+            side: "left",
+            x: 0,
+            y: 0
+        })
 
-    implicitHeight: panes.height
-
-    function captureAnchor() {
-        if (!parentPopout || !parentPopout.shouldBeVisible || anchored)
-            return;
-        mainX = parentPopout.alignedX + (sideOpen && side === "left" ? sideExtra : 0);
-        mainTop = parentPopout.alignedY - usableTop;
-        originalTriggerX = parentPopout.triggerX;
-        originalTriggerY = parentPopout.triggerY;
-        anchored = true;
-    }
-
-    function updatePlacement() {
-        captureAnchor();
-        if (sideOpen)
-            side = Model.sidePlacement(screenWidth, mainX, mainWidth + Theme.spacingS * 2, sideWidth, Theme.spacingM, Theme.spacingL);
-        if (parentPopout && anchored) {
-            if (barPosition === 0 || barPosition === 1)
-                parentPopout.triggerX = mainX - (side === "left" ? sideExtra : 0) + wantedWidth / 2 - parentPopout.triggerWidth / 2;
-            else if (sideOpen)
-                parentPopout.triggerY = usableTop + panes.top + (panes.height + Theme.spacingS * 2) / 2;
-            else
-                parentPopout.triggerY = originalTriggerY;
-        }
-        widthRequested(wantedWidth);
-    }
+    implicitHeight: Math.min(availableHeight, mainPane.implicitHeight)
 
     function closeInner() {
-        if (parentPopout && parentPopout.transientSurfaceTracker.active) {
-            parentPopout.transientSurfaceTracker.closeAll();
+        if (picker.shouldBeVisible) {
+            picker.close();
             return;
         }
         if (controller.confirmation)
@@ -124,32 +98,17 @@ FocusScope {
 
     Keys.onPressed: event => handleKey(event)
     onSideOpenChanged: {
-        if (sideOpen && parentPopout)
-            mainTop = parentPopout.alignedY - usableTop;
         if (sideOpen && controller.returnFocus && controller.returnFocus.mapToItem)
-            triggerRowY = controller.returnFocus.mapToItem(mainPane, 0, 0).y;
-        updatePlacement();
+            triggerRowY = controller.returnFocus.mapToItem(root, 0, 0).y;
     }
-    onScreenWidthChanged: updatePlacement()
-    onPanesChanged: updatePlacement()
-    onMainWidthChanged: updatePlacement()
-    onParentPopoutChanged: Qt.callLater(updatePlacement)
     Component.onCompleted: forceActiveFocus()
 
     Connections {
         target: root.parentPopout
         function onOpened() {
-            root.anchored = false;
-            root.captureAnchor();
-            root.updatePlacement();
             Qt.callLater(root.restoreFocus);
         }
         function onPopoutClosed() {
-            if (root.anchored) {
-                root.parentPopout.triggerX = root.originalTriggerX;
-                root.parentPopout.triggerY = root.originalTriggerY;
-            }
-            root.anchored = false;
             root.parentPopout.transientSurfaceTracker.closeAll();
         }
     }
@@ -193,10 +152,8 @@ FocusScope {
 
     ColumnLayout {
         id: mainPane
-        x: root.sideOpen && root.side === "left" ? root.sideWidth + Theme.spacingM : 0
-        y: root.panes.mainY
-        width: Math.min(root.mainWidth, root.width)
-        height: root.panes.mainHeight
+        width: root.width
+        height: root.height
         spacing: UiConstants.SECTION_SPACING
         DFlickable {
             Layout.fillWidth: true
@@ -289,15 +246,47 @@ FocusScope {
             }
         }
     }
-    BodyFormSideCard {
-        id: sidePane
-        controller: root.controller
-        parentPopout: root.parentPopout
-        visible: root.sideOpen
-        width: root.side === "stack" ? Math.min(root.mainWidth, root.width) : root.sideWidth
-        maximumHeight: root.availableHeight
-        height: root.panes.sideHeight
-        x: root.side === "right" ? mainPane.width + Theme.spacingM : 0
-        y: root.panes.sideY
+    // DMS paints one popout rectangle at the requested size, so the side form
+    // gets its own content-sized surface beside it, as Omarchy's does. The
+    // popout's focus grab admits it as a transient surface.
+    PanelWindow {
+        id: sideWindow
+        screen: root.parentPopout ? root.parentPopout.screen : null
+        visible: root.sideOpen && !!root.parentPopout && root.parentPopout.shouldBeVisible
+        color: "transparent"
+        implicitWidth: root.sideWidth
+        implicitHeight: Math.min(root.availableHeight, sidePane.implicitHeight)
+        anchors {
+            top: true
+            left: true
+        }
+        margins {
+            top: root.sidePlacement.y
+            left: root.sidePlacement.x
+        }
+        exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.namespace: "dms:plugins:syncshell:form"
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+        onVisibleChanged: {
+            if (root.parentPopout)
+                root.parentPopout.transientSurfaceTracker.setActive(sideWindow, visible, visible ? sideWindow : null);
+            if (visible)
+                Qt.callLater(root.restoreFocus);
+        }
+        Component.onDestruction: if (root.parentPopout)
+            root.parentPopout.transientSurfaceTracker.unregister(sideWindow)
+        FocusScope {
+            anchors.fill: parent
+            focus: true
+            Keys.onPressed: event => root.handleKey(event)
+            BodyFormSideCard {
+                id: sidePane
+                anchors.fill: parent
+                controller: root.controller
+                parentPopout: root.parentPopout
+                maximumHeight: root.availableHeight
+            }
+        }
     }
 }

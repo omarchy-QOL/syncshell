@@ -4,6 +4,7 @@
   "QtQuick.Layouts": "QtQuick.Layouts",
   "QtQuick.Window": "QtQuick.Window",
   "Quickshell": "Quickshell",
+  "Quickshell.Wayland": "Quickshell.Wayland",
   "Quickshell.Io": "Quickshell.Io",
   "qs.Common": "qs.Common",
   "qs.DCommon.Widgets": "qs.DCommon.Widgets",

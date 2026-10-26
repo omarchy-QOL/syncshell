@@ -143,23 +143,15 @@ function sidePlacement(screenWidth, mainX, mainWidth, sideWidth, gap, clearance)
     return right ? "right" : "stack";
 }
 
-function paneLayout(mainHeight, formHeight, available, triggerY, sideOpen,
-                    stacked, barPosition, mainTop, gap, footerHeight) {
-    var main = Math.min(available, mainHeight);
-    var form = sideOpen ? Math.min(available, formHeight) : 0;
-    if (sideOpen && stacked) {
-        form = Math.min(form, Math.max(0, available - footerHeight - gap), available * 0.6);
-        main = Math.min(main, Math.max(0, available - form - gap));
-        return { height: main + form + gap, mainY: 0, mainHeight: main,
-            sideY: main + gap, sideHeight: form, top: 0 };
-    }
-    var top = barPosition === 0 ? 0 : barPosition === 1 ? available - main
-        : Math.max(0, Math.min(available - main, mainTop));
-    var formTop = Math.max(0, Math.min(available - form, top + triggerY));
-    var first = sideOpen ? Math.min(top, formTop) : top;
-    var last = sideOpen ? Math.max(top + main, formTop + form) : top + main;
-    return { height: last - first, mainY: top - first, mainHeight: main,
-        sideY: formTop - first, sideHeight: form, top: first };
+// The side form is its own surface beside the popout, top-aligned with the
+// row that opened it as in Omarchy, and kept inside the usable screen area.
+function sideWindowPlacement(screenWidth, screenHeight, popout, formWidth, formHeight, rowY, gap, clearance, usableTop) {
+    var side = sidePlacement(screenWidth, popout.x, popout.width, formWidth, gap, clearance);
+    var x = side === "left" ? popout.x - gap - formWidth
+        : side === "right" ? popout.x + popout.width + gap
+        : Math.max(clearance, popout.x + (popout.width - formWidth) / 2);
+    var y = Math.max(usableTop, Math.min(screenHeight - clearance - formHeight, popout.y + rowY));
+    return { side: side, x: x, y: y };
 }
 
 function folderStatus(folder, fresh, recentlyLinkedId, activity, rescanning) {

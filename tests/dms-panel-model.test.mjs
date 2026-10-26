@@ -108,40 +108,19 @@ test("side forms flip at edges and stack only when neither side fits", () => {
   assert.equal(model.sidePlacement(700, 100, 440, 360, 12, 16), "stack");
 });
 
-test("tall side forms do not stretch the main panel or move its bottom anchor", () => {
-  const top = model.paneLayout(400, 600, 900, 100, true, false, 0, 0, 12, 100);
-  assert.equal(top.mainHeight, 400);
-  assert.equal(top.mainY, 0);
-  assert.equal(top.sideY, 100);
-  assert.equal(top.height, 700);
-  const bottom = model.paneLayout(400, 600, 900, 100, true, false, 1, 500, 12, 100);
-  assert.equal(bottom.mainHeight, 400);
-  assert.equal(bottom.top + bottom.mainY, 500);
-  assert.equal(bottom.mainY + bottom.mainHeight, bottom.height);
-  assert.equal(bottom.sideY + bottom.sideHeight, bottom.height);
-});
-
-test("vertical bar forms retain the main screen position within usable bounds", () => {
-  for (const bar of [2, 3]) {
-    const layout = model.paneLayout(400, 600, 900, 150, true, false, bar, 300, 12, 100);
-    assert.equal(layout.top + layout.mainY, 300);
-    assert.equal(layout.mainHeight, 400);
-    assert.ok(layout.top >= 0 && layout.top + layout.height <= 900);
-    assert.ok(layout.sideY >= 0 && layout.sideY + layout.sideHeight <= layout.height);
-  }
-});
-
-test("More grows naturally and stacked forms reserve the main footer", () => {
-  const closed = model.paneLayout(400, 600, 900, 100, false, false, 0, 0, 12, 100);
-  assert.equal(closed.height, 400);
-  const more = model.paneLayout(560, 600, 900, 100, false, false, 0, 0, 12, 100);
-  assert.equal(more.height, 560);
-  const overflow = model.paneLayout(1200, 600, 900, 100, false, false, 0, 0, 12, 100);
-  assert.equal(overflow.height, 900);
-  const stack = model.paneLayout(500, 800, 420, 100, true, true, 0, 0, 12, 180);
-  assert.equal(stack.height, 420);
-  assert.ok(stack.mainHeight >= 180);
-  assert.equal(stack.sideY, stack.mainHeight + 12);
+test("side form windows sit beside the popout at the trigger row", () => {
+  const popout = { x: 1100, y: 50, width: 400, height: 560 };
+  assert.deepEqual({ ...model.sideWindowPlacement(1536, 864, popout, 360, 380, 200, 12, 16, 50) },
+    { side: "left", x: 728, y: 250 });
+  assert.deepEqual({ ...model.sideWindowPlacement(1536, 864, { ...popout, x: 16 }, 360, 380, 200, 12, 16, 50) },
+    { side: "right", x: 428, y: 250 });
+  const low = model.sideWindowPlacement(1536, 864, popout, 360, 700, 500, 12, 16, 50);
+  assert.equal(low.y, 864 - 16 - 700);
+  const high = model.sideWindowPlacement(1536, 864, { ...popout, y: 0 }, 360, 300, 0, 12, 16, 50);
+  assert.equal(high.y, 50);
+  const narrow = model.sideWindowPlacement(700, 864, { ...popout, x: 150 }, 360, 300, 100, 12, 16, 50);
+  assert.equal(narrow.side, "stack");
+  assert.equal(narrow.x, 170);
 });
 
 const controllerSource = readFileSync(new URL(
