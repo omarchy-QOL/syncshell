@@ -49,22 +49,23 @@ ColumnLayout {
         SharedWidgetBusyButton {
             Layout.fillWidth: true
             text: "Rescan all folders"
-            busyText: "Rescanning"
+            busyText: "Rescanning..."
             iconName: "refresh"
             busy: !!root.controller.service && root.controller.service.busy && root.controller.service._actionName === "folder.rescan-all"
             enabled: root.controller.fresh && !root.controller.busy && root.controller.service.folders.some(f => !f.paused)
-            help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan every linked folder; paused folders are skipped"
+            help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan all folders for local changes."
             onClicked: root.controller.service.rescanAllFolders()
         }
         SharedWidgetBusyButton {
             Layout.fillWidth: true
-            text: "Refresh status"
-            busyText: "Refreshing"
+            text: "Refresh Sync.status"
+            busyText: "Rechecking Syncthing"
             iconName: "monitor_heart"
-            help: "Reload Syncthing status now"
-            busy: !!root.controller.service && root.controller.service.refreshing
+            help: "Request latest Syncthing state.\nActive folders with current errors\nrescanned and errors rechecked."
+            busy: !!root.controller.service && (root.controller.service.refreshing || root.controller.service.busy && root.controller.service._actionName === "folder.recheck-errors")
             enabled: !!root.controller.service && !root.controller.busy
-            onClicked: root.controller.service.refresh()
+            // Omarchy rechecks folder errors instead of a plain refresh when any exist.
+            onClicked: root.controller.service.folderProblemCount > 0 ? root.controller.service.recheckErrors() : root.controller.service.refresh()
         }
         SharedWidgetSquareActionButton {
             iconName: "settings"

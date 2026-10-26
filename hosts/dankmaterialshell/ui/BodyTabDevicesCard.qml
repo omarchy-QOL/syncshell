@@ -68,8 +68,10 @@ StyledRect {
             controlHeight: UiConstants.SMALL_CONTROL_HEIGHT
             iconName: root.device && root.device.paused ? "play_arrow" : "pause"
             text: root.device && root.device.paused ? "Resume" : "Pause"
-            busy: !!root.controller.service && root.controller.service.busy
-            enabled: !!root.device && root.controller.fresh
+            busyText: root.device && root.device.paused ? "Resuming" : "Pausing"
+            help: root.device && root.device.paused ? "Resume synchronization with this device" : "Pause synchronization with this device"
+            busy: !!root.device && !!root.controller.service && root.controller.service.busy && ["device.pause", "device.resume"].indexOf(root.controller.service._actionName) >= 0 && root.controller.service._actionTargetId === root.device.id
+            enabled: !!root.device && root.controller.fresh && !root.controller.busy
             onClicked: root.controller.service.setDevicePaused(root.device.id, !root.device.paused, root.device.name)
         }
     }

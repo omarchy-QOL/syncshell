@@ -82,7 +82,7 @@ StyledRect {
                 iconName: root.folder && root.folder.paused ? "delete" : "refresh"
                 text: root.folder && root.folder.paused ? "Forget" : "Rescan"
                 busyText: root.folder && root.folder.paused ? "Forgetting" : "Rescanning"
-                help: !root.controller.fresh ? "Refresh current status before changing this folder" : root.folder && root.folder.paused ? "Forget this folder without deleting its files" : "Rescan local changes"
+                help: !root.controller.fresh ? "Refresh current status before changing this folder" : root.folder && root.folder.paused ? "Remove only this unlinked Syncthing configuration" : "Rescan this folder for local changes"
                 busy: root.controller.rescanning(root.folder) || root.controller.pendingAction === "folder.forget"
                 enabled: !!root.folder && root.controller.fresh && !root.controller.busy
                 onClicked: {
