@@ -203,6 +203,11 @@ test("cancel and failure retain form drafts; suggestion cannot overwrite typed I
   panel.setDraft("folderId", "typed-id");
   panel.settled("folder.suggest-id", true, { folderId: "generated-id" }, null);
   assert.equal(panel.draft.folderId, "typed-id");
+  // DMS 2.0 fields echo programmatic text as an edit; an unchanged value is no edit.
+  const before = panel.draft;
+  panel.setDraft("folderId", "typed-id");
+  panel.setDraft("label", "");
+  assert.equal(panel.draft, before);
   panel.setDraft("path", "/keep");
   panel.submit();
   panel.settled("folder.add-existing", false, null, { code: "offline", message: "Offline" });

@@ -86,6 +86,9 @@ QtObject {
     }
 
     function setDraft(key, value) {
+        // DMS 2.0 text fields report programmatic changes as edits too.
+        if ((draft[key] === undefined ? "" : draft[key]) === value)
+            return;
         if (key === "folderId")
             idSuggestionPending = false;
         var next = Object.assign({}, draft);
