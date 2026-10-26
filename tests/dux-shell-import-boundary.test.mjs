@@ -8,7 +8,7 @@ import test from "node:test";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceMap = JSON.parse(readFileSync(join(root,
-  "integrations/dankmaterialshell/import-map.json"), "utf8"));
+  "integrations/dux-shell/import-map.json"), "utf8"));
 
 function fixture(t, map) {
   const directory = mkdtempSync(join(tmpdir(), "syncshell-import-"));

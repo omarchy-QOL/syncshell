@@ -83,7 +83,7 @@ wait_dms_plugin() {
 }
 
 configure_dms_widget() {
-  local settings="$HOME/.config/DankMaterialShell/settings.json"
+  local settings="$HOME/.config/dms/settings.json"
   local position result temporary
 
   if [[ ! -s $settings ]]; then
@@ -100,7 +100,7 @@ configure_dms_widget() {
     done
   fi
   [[ -s $settings ]]
-  temporary=$(mktemp "$HOME/.config/DankMaterialShell/.settings.XXXXXX")
+  temporary=$(mktemp "$HOME/.config/dms/.settings.XXXXXX")
   jq '
     .barConfigs = ((.barConfigs // []) | map(
       if .id == "default" then
@@ -113,13 +113,13 @@ configure_dms_widget() {
 
 install_dms() {
   local assembled="$work/Syncshell"
-  local target="$HOME/.config/DankMaterialShell/plugins/Syncshell"
+  local target="$HOME/.config/dms/plugins/Syncshell"
   local backup
 
   for command_name in dms jq; do
     require_command "$command_name"
   done
-  bash "$repo_root/integrations/dankmaterialshell/assemble.sh" "$assembled"
+  bash "$repo_root/integrations/dux-shell/assemble.sh" "$assembled"
   mkdir -p -- "$(dirname -- "$target")" "$state_root/backups"
   if [[ -e $target ]]; then
     backup="$state_root/backups/dms-$(date -u +%Y%m%dT%H%M%SZ)"

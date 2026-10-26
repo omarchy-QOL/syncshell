@@ -96,9 +96,8 @@ ColumnLayout {
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.onSurfaceVariant
     }
-    SharedWidgetDropdown {
+    SharedWidgetMultiSelect {
         Layout.fillWidth: true
-        multiple: true
         placeholder: "Local only"
         parentPopout: root.parentPopout
         options: root.controller.shareableDeviceOptions

@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const model = vm.createContext({});
 vm.runInContext(readFileSync(new URL(
-  "../hosts/dankmaterialshell/models/PanelModel.js", import.meta.url), "utf8")
+  "../hosts/dux-shell/models/PanelModel.js", import.meta.url), "utf8")
   .replace(/^\.pragma library\n/, ""), model);
 const folders = [
   { id: "z", label: "Documents", path: "/work/docs", status: { state: "idle" } },
@@ -124,7 +124,7 @@ test("side form windows sit beside the popout at the trigger row", () => {
 });
 
 const controllerSource = readFileSync(new URL(
-  "../hosts/dankmaterialshell/controllers/PanelController.qml", import.meta.url), "utf8");
+  "../hosts/dux-shell/controllers/PanelController.qml", import.meta.url), "utf8");
 
 function controller(service) {
   const context = vm.createContext({

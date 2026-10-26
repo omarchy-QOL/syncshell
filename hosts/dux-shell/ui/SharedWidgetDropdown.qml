@@ -6,7 +6,7 @@ import qs.DCommon.Widgets
 import "../models/PanelModel.js" as Model
 import "UiConstants.js" as UiConstants
 
-// Also covers Omarchy's SharedWidgetMultiSelect through `multiple`.
+// SharedWidgetMultiSelect wraps the `multiple` mode under Omarchy's name.
 Item {
     id: root
     property var options: []

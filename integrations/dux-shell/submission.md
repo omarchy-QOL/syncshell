@@ -8,7 +8,7 @@ The package targets the pinned DMS 2.0.0 (Dux Shell) manifest/SDK and its
 - Registry file: `plugins/ilyazar-syncshell.json`.
 - Package and registry ID/name must match: `syncshell` / `Syncshell`.
 - Repository: `https://github.com/omarchy-QOL/syncshell`.
-- Monorepo path: `dist/dankmaterialshell` on the default branch.
+- Monorepo path: `dist/dux-shell` on the default branch.
 - Capabilities: daemon, bar widget, monitoring; category: monitoring.
 - External dependency: Syncthing. Clipboard and file opening use DMS tools.
 - Package permissions: process, network, settings read/write.

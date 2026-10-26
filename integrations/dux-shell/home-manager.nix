@@ -1,8 +1,8 @@
 { config, lib, pkgs, ... }:
 let
-  cfg = config.programs.syncshell-dms;
+  cfg = config.programs.syncshell-dux-shell;
 in {
-  options.programs.syncshell-dms = {
+  options.programs.syncshell-dux-shell = {
     enable = lib.mkEnableOption "the Syncshell DMS plugin";
     package = lib.mkOption {
       type = lib.types.package;

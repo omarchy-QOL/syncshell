@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
-const source = readFileSync(new URL("../hosts/dankmaterialshell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
+const source = readFileSync(new URL("../hosts/dux-shell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
 const handler = source.match(/^    function handleKey\(event\) \{[^]*?^    \}/m)[0] + "\nhandleKey";
 const Qt = Object.fromEntries(["Escape", "Up", "Down", "Left", "Right", "R", "W", "P", "S", "Q"].map(k => ["Key_" + k, k]));
 test("p requests the service toggle on either tab, even with no selection", () => {

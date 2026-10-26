@@ -5,7 +5,7 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 work=$(mktemp -d)
 trap 'find "$work" -depth -delete' EXIT
 
-bash "$root/integrations/dankmaterialshell/assemble.sh" "$work/Syncshell"
+bash "$root/integrations/dux-shell/assemble.sh" "$work/Syncshell"
 jq -e --arg version "$(jq -er .version "$root/manifest.json")" \
   '.version == $version and .requires_dms == ">=2.0.0" and
    .type == "composite" and .id == "syncshell" and
@@ -29,13 +29,13 @@ jq -e '.format == 1 and .dmsSDK == "2.0.0" and
   (.recipeSha256 | test("^[a-f0-9]{64}$")) and .webUi.version != null' \
   "$work/Syncshell/ASSEMBLY.json" >/dev/null
 (cd -- "$work/Syncshell" && sha256sum --quiet --check PACKAGE-SHA256SUMS)
-bash "$root/integrations/dankmaterialshell/assemble.sh" "$work/repeated"
+bash "$root/integrations/dux-shell/assemble.sh" "$work/repeated"
 diff -qr "$work/Syncshell" "$work/repeated"
-diff -qr "$work/Syncshell" "$root/dist/dankmaterialshell"
-if bash "$root/integrations/dankmaterialshell/assemble.sh" "$work/Syncshell" 2>/dev/null; then
+diff -qr "$work/Syncshell" "$root/dist/dux-shell"
+if bash "$root/integrations/dux-shell/assemble.sh" "$work/Syncshell" 2>/dev/null; then
   printf 'assembler overwrote a nonempty package\n' >&2
   exit 1
 fi
-QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$root/tests/dms"
-node --test "$root/tests/adapter-contract.test.mjs" "$root"/tests/dms-*.test.mjs
+QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$root/tests/dux-shell"
+node --test "$root/tests/adapter-contract.test.mjs" "$root"/tests/dux-shell-*.test.mjs
 printf '[ok] DMS adapter bundle contract passed\n'

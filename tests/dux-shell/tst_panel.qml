@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../hosts/dankmaterialshell/controllers"
+import "../../hosts/dux-shell/controllers"
 
 TestCase {
     id: test

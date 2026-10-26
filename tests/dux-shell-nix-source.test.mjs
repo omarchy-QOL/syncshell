@@ -7,14 +7,14 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const integration = join(root, "integrations/dankmaterialshell");
+const integration = join(root, "integrations/dux-shell");
 
 test("the bounded Nix source selection assembles the same standalone payload", () => {
   const recipe = readFileSync(join(integration, "package.nix"), "utf8");
   const selection = recipe.match(/fileset = lib\.fileset\.unions \[([^]*?)\];/);
   assert.ok(selection, "review source coverage when changing the Nix fileset");
   const paths = selection[1].trim().split(/\s+/);
-  const work = mkdtempSync(join(tmpdir(), "syncshell-dms-nix-source-"));
+  const work = mkdtempSync(join(tmpdir(), "syncshell-dux-shell-nix-source-"));
   try {
     const source = join(work, "source");
     for (const entry of paths) {
@@ -29,8 +29,8 @@ test("the bounded Nix source selection assembles the same standalone payload", (
     for (const excluded of [".git", "TODO", "tests", "dist", "assets/01-folder-sync.mp4"])
       assert.equal(existsSync(join(source, excluded)), false);
     const output = join(work, "package");
-    execFileSync("bash", [join(source, "integrations/dankmaterialshell/assemble.sh"), output]);
-    execFileSync("diff", ["-qr", output, join(root, "dist/dankmaterialshell")]);
+    execFileSync("bash", [join(source, "integrations/dux-shell/assemble.sh"), output]);
+    execFileSync("diff", ["-qr", output, join(root, "dist/dux-shell")]);
   } finally {
     rmSync(work, { recursive: true, force: true });
   }

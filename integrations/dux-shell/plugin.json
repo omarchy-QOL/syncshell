@@ -8,10 +8,10 @@
   "capabilities": ["daemon", "dankbar-widget", "monitoring"],
   "icon": "sync",
   "components": {
-    "daemon": "./hosts/dankmaterialshell/DankService.qml",
-    "widget": "./hosts/dankmaterialshell/DankPanel.qml"
+    "daemon": "./hosts/dux-shell/DuxShellService.qml",
+    "widget": "./hosts/dux-shell/DuxShellPanel.qml"
   },
-  "settings": "./hosts/dankmaterialshell/ui/SettingsPage.qml",
+  "settings": "./hosts/dux-shell/ui/SettingsMenu.qml",
   "requires_dms": ">=2.0.0",
   "dependencies": ["syncthing"],
   "permissions": ["process", "network", "settings_read", "settings_write"]

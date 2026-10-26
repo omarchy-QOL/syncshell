@@ -32,7 +32,7 @@ node "$repo_root/integrations/assemble-qml.mjs" "$target" \
 install -d -- "$target/bin/x86_64" "$target/bin/aarch64" \
   "$target/assets/mono" "$target/packaging/bundled"
 install -m 0644 -- "$integration_root/plugin.json" "$target/plugin.json"
-install -m 0644 -- "$repo_root/hosts/dankmaterialshell/README.md" "$target/README.md"
+install -m 0644 -- "$repo_root/hosts/dux-shell/README.md" "$target/README.md"
 install -m 0644 -- "$repo_root/LICENSE" "$repo_root/CHANGELOG.md" "$target/"
 install -m 0644 -- "$repo_root/packaging/bundled/LICENSE.golang" \
   "$repo_root/packaging/bundled/SHA256SUMS" "$target/packaging/bundled/"
@@ -54,8 +54,8 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const [source, output] = process.argv.slice(2);
 const recipe = crypto.createHash("sha256");
-for (const file of ["integrations/dankmaterialshell/assemble.sh",
-  "integrations/dankmaterialshell/qml-files.txt", "integrations/dankmaterialshell/import-map.json",
+for (const file of ["integrations/dux-shell/assemble.sh",
+  "integrations/dux-shell/qml-files.txt", "integrations/dux-shell/import-map.json",
   "integrations/assemble-qml.mjs"])
   recipe.update(file + "\n").update(fs.readFileSync(path.join(source, file)));
 const provenance = {

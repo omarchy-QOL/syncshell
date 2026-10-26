@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const host = join(root, "hosts/dankmaterialshell");
+const host = join(root, "hosts/dux-shell");
 
 function qmlFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -33,9 +33,9 @@ test("DMS host uses the 2.0 control names", () => {
 test("DMS controls come from qs.DCommon.Widgets", () => {
   for (const { name, text } of sources) {
     if (/^import qs\.Widgets$/m.test(text))
-      assert.equal(name, "DankPanel.qml", `${name} imports shell widgets`);
+      assert.equal(name, "DuxShellPanel.qml", `${name} imports shell widgets`);
   }
-  const panel = sources.find(source => source.name === "DankPanel.qml").text;
+  const panel = sources.find(source => source.name === "DuxShellPanel.qml").text;
   assert.match(panel, /DTooltip \{/);
 });
 
@@ -46,6 +46,6 @@ test("DMS UI uses surface roles instead of the raw palette", () => {
 
 test("DMS manifest requires the 2.0 SDK", () => {
   const manifest = JSON.parse(readFileSync(join(root,
-    "integrations/dankmaterialshell/plugin.json"), "utf8"));
+    "integrations/dux-shell/plugin.json"), "utf8"));
   assert.equal(manifest.requires_dms, ">=2.0.0");
 });

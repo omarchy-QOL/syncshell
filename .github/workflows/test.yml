@@ -51,8 +51,8 @@ jobs:
             qml6-module-qtqml-workerscript
       - name: DMS adapter contracts and reproducible package
         run: |
-          bash integrations/dankmaterialshell/assemble.sh "$GITHUB_WORKSPACE/dist/dankmaterialshell"
-          bash tests/dankmaterialshell-adapter.test.sh
+          bash integrations/dux-shell/assemble.sh "$GITHUB_WORKSPACE/dist/dux-shell"
+          bash tests/dux-shell-adapter.test.sh
       - name: Device sharing form contracts
         run: node --test tests/device-sharing.test.mjs
       - name: Integration fixture contracts

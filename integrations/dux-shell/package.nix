@@ -1,12 +1,12 @@
 { lib, stdenvNoCC, nodejs, bash, coreutils, findutils }:
 stdenvNoCC.mkDerivation {
-  pname = "syncshell-dms";
+  pname = "syncshell-dux-shell";
   version = (builtins.fromJSON (builtins.readFile ./plugin.json)).version;
   src = lib.fileset.toSource {
     root = ../..;
     fileset = lib.fileset.unions [
       ../../shared
-      ../../hosts/dankmaterialshell
+      ../../hosts/dux-shell
       ../../integrations/assemble-qml.mjs
       ./assemble.sh
       ./plugin.json
@@ -31,7 +31,7 @@ stdenvNoCC.mkDerivation {
   dontFixup = true;
   installPhase = ''
     runHook preInstall
-    bash integrations/dankmaterialshell/assemble.sh "$out"
+    bash integrations/dux-shell/assemble.sh "$out"
     runHook postInstall
   '';
   meta = {

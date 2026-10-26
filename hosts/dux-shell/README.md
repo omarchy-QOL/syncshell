@@ -13,7 +13,7 @@ registry. Do not interpret assembly or unit tests as visual acceptance.
 From the source repository, assemble into an empty absolute directory:
 
 ```sh
-bash integrations/dankmaterialshell/assemble.sh /absolute/path/to/Syncshell
+bash integrations/dux-shell/assemble.sh /absolute/path/to/Syncshell
 ```
 
 Assembly requires Bash, Node.js and the usual GNU file utilities. The installed
@@ -22,25 +22,25 @@ It includes the Linux x86_64/aarch64 workers, assets and licenses; Syncthing
 must be installed separately. No bar placement or service configuration is
 changed by assembly.
 
-For a manual DMS test, copy the complete `dist/dankmaterialshell/` directory
+For a manual DMS test, copy the complete `dist/dux-shell/` directory
 to a new `Syncshell` directory inside DMS's plugin directory, normally
 `~/.config/dms/plugins/`. Do not copy just the manifest or link
 the repository root. Enable Syncshell in DMS plugin settings and add its
 widget to the desired bar. Check for another `syncshell` installation and
 back up its settings first; never overwrite it with this package.
 
-Nix users can import `integrations/dankmaterialshell/home-manager.nix`
-alongside DMS's Home Manager module and set `programs.syncshell-dms.enable`.
-The recipe assembles the same payload and registers it through DMS's plugin
-option. It does not enable DMS itself, place a bar widget, manage Syncthing's
-service or overwrite plugin settings. The recipe has not been built or tested
-on NixOS; no NixOS support claim is made yet.
+Nix users can import `integrations/dux-shell/home-manager.nix` alongside DMS's
+Home Manager module and set `programs.syncshell-dux-shell.enable`. The recipe
+assembles the same payload and registers it through DMS's plugin option. It does
+not enable DMS itself, place a bar widget, manage Syncthing's service or
+overwrite plugin settings. The recipe has not been built or tested on NixOS; no
+NixOS support claim is made yet.
 
 The DMS plugin manager owns enable/disable and removal. One daemon owns the
 worker regardless of bar or monitor count. Both mouse buttons open the panel.
 Shortcuts outside text fields are `r` (rescan), `w` (Web UI), `p` (start/stop
-the authorized service), `s` (settings) and `q` (close). Escape closes the innermost
-menu, confirmation or form first.
+the authorized service), `s` (settings) and `q` (close). Escape closes the
+innermost menu, confirmation or form first.
 
 Settings live in DMS plugin settings under the `syncshell` object, with an
 explicit schema and owner. An incompatible schema or another plugin's data
@@ -55,13 +55,13 @@ manageable through the Syncthing API, without granting service authority.
 
 ## Customization map
 
-Paths below are relative to `hosts/dankmaterialshell/`. Equivalent QML host
+Paths below are relative to `hosts/dux-shell/`. Equivalent QML host
 responsibilities use the same filenames; native APIs are not interchangeable.
 
 | Area                       | Files                                                                |
 | -------------------------- | -------------------------------------------------------------------- |
-| Bar and popout composition | `DankPanel.qml`, `ui/SyncshellPanelPopup.qml`                        |
-| Worker and settings        | `DankService.qml`, `controllers/SettingsController.qml`              |
+| Bar and popout composition | `DuxShellPanel.qml`, `ui/SyncshellPanelPopup.qml`                    |
+| Worker and settings        | `DuxShellService.qml`, `controllers/SettingsController.qml`          |
 | Selection and drafts       | `controllers/PanelController.qml`, `models/PanelModel.js`            |
 | Header and More            | `ui/Header.qml`, `ui/BodyMore.qml`                                   |
 | Footer                     | `ui/FooterActions.qml`, `ui/FooterShortcutHint.qml`                  |
@@ -69,18 +69,19 @@ responsibilities use the same filenames; native APIs are not interchangeable.
 | Folder creation            | `ui/BodyTabFoldersAddForm.qml`                                       |
 | Device creation/acceptance | `ui/BodyTabDevicesAddForm.qml`, `ui/BodyTabDevicesAcceptForm.qml`    |
 | Sharing forms              | `ui/BodyTabFoldersShareForm.qml`, `ui/BodyTabDevicesFoldersForm.qml` |
-| Selection and filters      | `ui/SharedWidgetDropdown.qml`, `ui/BodyTabFoldersViewOptions.qml`    |
+| Selection and filters      | `ui/SharedWidgetDropdown.qml`, `ui/SharedWidgetMultiSelect.qml`      |
+| View options               | `ui/BodyTabFoldersViewOptions.qml`                                   |
 | Side forms/confirmations   | `ui/BodyFormSideCard.qml`, `ui/SharedDialogConfirm.qml`              |
-| Settings presentation      | `ui/SettingsPage.qml`, gear in `ui/FooterActions.qml`                |
+| Settings presentation      | `ui/SettingsMenu.qml`, gear in `ui/FooterActions.qml`                |
 
-Single- and multi-select share `SharedWidgetDropdown.qml`; the `multiple` mode
-retains checked IDs while filtering. Omarchy files without a DMS twin: DMS
-plugin settings replace `SettingsMenu` (`SettingsPage.qml`), the DMS plugin
-manager owns removal (`SettingsSelfRemovalDialog`), and no host dialog needs
-`SharedDialogChoice`. The panel follows Omarchy's three parts: `Header`, a
-rule, the `Body*` area, and `FooterActions`, which starts with the second
-rule. Control sizes come from `ui/UiConstants.js`; the compact buttons keep
-their own wrappers because `DButton` and `DIconButton` start at 32 and 40 px.
+`SharedWidgetMultiSelect.qml` is `SharedWidgetDropdown.qml` in its `multiple`
+mode, which retains checked IDs while filtering. `SettingsMenu.qml` is the page
+DMS shows in its own Settings window. Omarchy files without a DMS twin: the DMS
+plugin manager owns removal (`SettingsSelfRemovalDialog`), and no host dialog
+needs `SharedDialogChoice`. The panel follows Omarchy's three parts: `Header`, a
+rule, the `Body*` area, and `FooterActions`, which starts with the second rule.
+Control sizes come from `ui/UiConstants.js`; the compact buttons keep their own
+wrappers because `DButton` and `DIconButton` start at 32 and 40 px.
 
 DMS paints one popout rectangle at the requested size, so side forms open on
 their own content-sized layer surface, attached to the popout at the row
@@ -93,7 +94,7 @@ outside clicks. Confirmations dim the panel and centre over it instead.
 ## Release gates
 
 The registry will reference this repository's generated
-`dist/dankmaterialshell/` directory on its default branch. Publishing requires
+`dist/dux-shell/` directory on its default branch. Publishing requires
 an approved release, reproducible package, clean DMS screenshot and actual
 install/update/removal testing. Initial platform claims are limited to the
 platforms tested by the maintainer; a bundled architecture is not proof of
@@ -107,7 +108,7 @@ Repeat the non-desktop checks from the source checkout with:
 
 ```sh
 go -C core test -race ./...
-bash tests/dankmaterialshell-adapter.test.sh
+bash tests/dux-shell-adapter.test.sh
 ```
 
 These cover core outcomes against mock APIs, selection/drafts, authorization,

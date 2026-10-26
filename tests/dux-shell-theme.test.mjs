@@ -4,7 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 
 const source = readFileSync(new URL(
-  "../hosts/dankmaterialshell/controllers/ThemePaletteController.qml",
+  "../hosts/dux-shell/controllers/ThemePaletteController.qml",
   import.meta.url), "utf8");
 
 function theme() {

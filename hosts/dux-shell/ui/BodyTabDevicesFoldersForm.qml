@@ -28,9 +28,8 @@ ColumnLayout {
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.onSurfaceVariant
     }
-    SharedWidgetDropdown {
+    SharedWidgetMultiSelect {
         Layout.fillWidth: true
-        multiple: true
         placeholder: "No folders shared"
         parentPopout: root.parentPopout
         options: root.options(true)
@@ -45,9 +44,8 @@ ColumnLayout {
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.warning
     }
-    SharedWidgetDropdown {
+    SharedWidgetMultiSelect {
         Layout.fillWidth: true
-        multiple: true
         placeholder: "No folders shared"
         parentPopout: root.parentPopout
         options: root.options(false)

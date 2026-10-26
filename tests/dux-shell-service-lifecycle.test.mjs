@@ -3,9 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 
-const daemon = readFileSync(new URL("../hosts/dankmaterialshell/DankService.qml",
+const daemon = readFileSync(new URL("../hosts/dux-shell/DuxShellService.qml",
   import.meta.url), "utf8");
-const widget = readFileSync(new URL("../hosts/dankmaterialshell/DankPanel.qml",
+const widget = readFileSync(new URL("../hosts/dux-shell/DuxShellPanel.qml",
   import.meta.url), "utf8");
 function method(source, name) {
   const match = source.match(new RegExp(`^([ \\t]*)function ${name}\\([^]*?^\\1}`, "m"));
@@ -69,7 +69,7 @@ test("foreign same-ID global service is not overwritten", () => {
 
 test("outside close retains controller drafts and dismisses transient surfaces", () => {
   const popup = readFileSync(new URL(
-    "../hosts/dankmaterialshell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
+    "../hosts/dux-shell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
   const closed = method(popup, "onPopoutClosed");
   assert.doesNotMatch(closed, /closeForm/);
   assert.match(closed, /transientSurfaceTracker.closeAll/);
@@ -77,7 +77,7 @@ test("outside close retains controller drafts and dismisses transient surfaces",
 
 test("closing inactive selectors cannot steal focus from the active one", () => {
   const dropdown = readFileSync(new URL(
-    "../hosts/dankmaterialshell/ui/SharedWidgetDropdown.qml", import.meta.url), "utf8");
+    "../hosts/dux-shell/ui/SharedWidgetDropdown.qml", import.meta.url), "utf8");
   let focused = 0;
   const selector = instance(dropdown, "close", {
     opened: false, trigger: { forceActiveFocus() { focused++; } },
@@ -92,7 +92,7 @@ test("closing inactive selectors cannot steal focus from the active one", () => 
 
 test("returning to a retained confirmation restores Cancel selection", () => {
   const popup = readFileSync(new URL(
-    "../hosts/dankmaterialshell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
+    "../hosts/dux-shell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
   let cancelled = 0;
   let formFocused = 0;
   let panelFocused = 0;
@@ -121,7 +121,7 @@ test("connection edits retry even when startup never reached a handshake", () =>
 for (const name of ["SharedWidgetBusyButton", "SharedWidgetSquareActionButton"]) {
   test(`${name} rejects held activation keys even after a fast action settles`, () => {
     const source = readFileSync(new URL(
-      `../hosts/dankmaterialshell/ui/${name}.qml`, import.meta.url), "utf8");
+      `../hosts/dux-shell/ui/${name}.qml`, import.meta.url), "utf8");
     let clicks = 0;
     const button = instance(source, "activateKey", {
       Qt: { Key_Return: 13, Key_Enter: 10, Key_Space: 32 },
