@@ -12,6 +12,8 @@ StyledRect {
             return false;
         if (controller.confirmation)
             formLoader.item.selectCancel();
+        else if (formLoader.item.focusFirst)
+            formLoader.item.focusFirst();
         else
             formLoader.item.forceActiveFocus();
         return true;

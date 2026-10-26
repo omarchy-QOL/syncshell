@@ -8,6 +8,9 @@ ColumnLayout {
     id: root
     required property var controller
     property var parentPopout: null
+    function focusFirst() {
+        pathField.forceActiveFocus();
+    }
     spacing: Theme.spacingS
     BodyFormHeader {
         Layout.fillWidth: true
@@ -23,6 +26,7 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         DTextField {
+            id: pathField
             Layout.fillWidth: true
             implicitHeight: UiConstants.CONTROL_HEIGHT + 4
             topPadding: 2

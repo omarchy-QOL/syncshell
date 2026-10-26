@@ -8,6 +8,9 @@ ColumnLayout {
     id: root
     required property var controller
     property var parentPopout: null
+    function focusFirst() {
+        deviceIdField.forceActiveFocus();
+    }
     spacing: Theme.spacingS
     BodyFormHeader {
         Layout.fillWidth: true
@@ -44,6 +47,7 @@ ColumnLayout {
         color: Theme.onSurfaceVariant
     }
     DTextField {
+        id: deviceIdField
         Layout.fillWidth: true
         implicitHeight: UiConstants.CONTROL_HEIGHT + 4
         topPadding: 2

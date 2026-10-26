@@ -7,6 +7,9 @@ import "UiConstants.js" as UiConstants
 ColumnLayout {
     id: root
     required property var controller
+    function focusFirst() {
+        nameField.forceActiveFocus();
+    }
     spacing: Theme.spacingS
     BodyFormHeader {
         Layout.fillWidth: true
@@ -20,6 +23,7 @@ ColumnLayout {
         color: Theme.onSurfaceVariant
     }
     DTextField {
+        id: nameField
         Layout.fillWidth: true
         implicitHeight: UiConstants.CONTROL_HEIGHT + 4
         topPadding: 2
