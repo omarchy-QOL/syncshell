@@ -38,9 +38,27 @@ FocusScope {
 
     implicitHeight: Math.min(availableHeight, mainPane.implicitHeight)
 
+    // Hyprland moves the keyboard past the popout's focus grab only while
+    // the grab is off, so the form claims it briefly; the grab then returns
+    // with the form whitelisted and keeps outside clicks dismissing.
+    property bool claimingKeyboard: false
+    function claimKeyboard() {
+        claimingKeyboard = sideWindow.visible && !confirming;
+        releasePopoutKeyboard();
+        if (claimingKeyboard)
+            keyboardClaim.restart();
+    }
     function releasePopoutKeyboard() {
         if (parentPopout)
-            parentPopout.customKeyboardFocus = sideWindow.visible && !confirming ? WlrKeyboardFocus.None : null;
+            parentPopout.customKeyboardFocus = claimingKeyboard ? WlrKeyboardFocus.None : null;
+    }
+    Timer {
+        id: keyboardClaim
+        interval: 300
+        onTriggered: {
+            root.claimingKeyboard = false;
+            root.releasePopoutKeyboard();
+        }
     }
 
     function closeInner() {
@@ -110,7 +128,7 @@ FocusScope {
             triggerRowY = controller.returnFocus.mapToItem(root, 0, 0).y;
     }
     onConfirmingChanged: {
-        releasePopoutKeyboard();
+        claimKeyboard();
         Qt.callLater(restoreFocus);
     }
     Component.onCompleted: forceActiveFocus()
@@ -149,8 +167,8 @@ FocusScope {
         onDialogClosed: {
             if (root.parentPopout)
                 root.parentPopout.transientSurfaceTracker.unregister(picker);
-            // The picker hands the popout its keyboard back; the form keeps it.
-            Qt.callLater(root.releasePopoutKeyboard);
+            // The picker hands the popout its keyboard back; the form reclaims it.
+            Qt.callLater(root.claimKeyboard);
             Qt.callLater(root.restoreFocus);
         }
         Component.onDestruction: if (root.parentPopout)
@@ -312,13 +330,11 @@ FocusScope {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.namespace: "dms:plugins:syncshell:form"
-        // Like DMS's own surface modals, the form takes the keyboard while it is
-        // open; Hyprland would not move focus past the popout's grab.
-        WlrLayershell.keyboardFocus: visible && !root.confirming ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: !visible || root.confirming ? WlrKeyboardFocus.None : root.claimingKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
         onVisibleChanged: {
             if (root.parentPopout)
                 root.parentPopout.transientSurfaceTracker.setActive(sideWindow, visible, visible ? sideWindow : null);
-            root.releasePopoutKeyboard();
+            root.claimKeyboard();
             if (visible)
                 Qt.callLater(root.restoreFocus);
         }
