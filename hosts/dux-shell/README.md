@@ -83,6 +83,9 @@ rule, the `Body*` area, and `FooterActions`, which starts with the second rule.
 Control sizes come from `ui/UiConstants.js`; the compact buttons keep their own
 wrappers because `DButton` and `DIconButton` start at 32 and 40 px.
 
+Status colors follow `docs/status-colors.md`: Omarchy's meanings with DMS's
+`success`, `warning`, `error`, `info` and `onSurfaceVariant` roles.
+
 DMS paints one popout rectangle at the requested size, so side forms open on
 their own content-sized layer surface, attached to the popout at the row
 that opened them, as in Omarchy. The popout registers it as a transient
