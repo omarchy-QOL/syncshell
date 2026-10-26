@@ -81,23 +81,25 @@ function deviceStatus(device, fresh) {
         : device.paused ? "PAUSED" : device.connected ? "CONNECTED" : "DISCONNECTED";
 }
 
-// DMS's own status colours: success when healthy, primary while work is in
-// progress, warning when something needs attention (paused), error on
-// failure, muted when unknown or away. Omarchy marks progress yellow instead.
+// Omarchy's state colours as DMS Theme roles: green when settled, yellow
+// while moving or paused, red on errors, muted when unknown or away.
 function folderStateRole(state) {
     if (state === "SYNCED" || state === "LINKED")
         return "success";
     if (state === "ERROR")
         return "error";
-    if (["SCANNING", "SCAN+SYNC", "SYNCING"].indexOf(state) >= 0)
-        return "primary";
-    if (state === "UNLINKED")
+    if (["UNLINKED", "SCANNING", "SCAN+SYNC", "SYNCING"].indexOf(state) >= 0)
         return "warning";
     return "onSurfaceVariant";
 }
 
 function deviceStateRole(state) {
     return state === "CONNECTED" ? "success" : state === "PAUSED" ? "warning" : "onSurfaceVariant";
+}
+
+// Omarchy's activity colours: cyan syncing (DMS info), red removing, green upload.
+function activityRole(action) {
+    return action === "removing" ? "error" : action === "upload" ? "success" : "info";
 }
 
 function deviceOptions(devices, fresh) {
