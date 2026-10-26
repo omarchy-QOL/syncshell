@@ -37,6 +37,11 @@ FocusScope {
 
     implicitHeight: Math.min(availableHeight, mainPane.implicitHeight)
 
+    function releasePopoutKeyboard() {
+        if (parentPopout)
+            parentPopout.customKeyboardFocus = sideWindow.visible ? WlrKeyboardFocus.None : null;
+    }
+
     function closeInner() {
         if (picker.shouldBeVisible) {
             picker.close();
@@ -137,6 +142,8 @@ FocusScope {
         onDialogClosed: {
             if (root.parentPopout)
                 root.parentPopout.transientSurfaceTracker.unregister(picker);
+            // The picker hands the popout its keyboard back; the form keeps it.
+            Qt.callLater(root.releasePopoutKeyboard);
             Qt.callLater(root.restoreFocus);
         }
         Component.onDestruction: if (root.parentPopout)
@@ -267,32 +274,15 @@ FocusScope {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.namespace: "dms:plugins:syncshell:form"
-        // A brief exclusive claim moves the keyboard into the form once the
-        // popout's focus grab admits this window; on-demand afterwards lets a
-        // click hand it back to the main panel.
-        property bool claimFocus: false
-        WlrLayershell.keyboardFocus: claimFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
+        // Like DMS's own surface modals, the form takes the keyboard while it is
+        // open; Hyprland would not move focus past the popout's grab.
+        WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         onVisibleChanged: {
             if (root.parentPopout)
                 root.parentPopout.transientSurfaceTracker.setActive(sideWindow, visible, visible ? sideWindow : null);
-            claimFocus = false;
-            if (visible) {
-                focusClaim.restart();
+            root.releasePopoutKeyboard();
+            if (visible)
                 Qt.callLater(root.restoreFocus);
-            }
-        }
-        Timer {
-            id: focusClaim
-            interval: 120
-            onTriggered: {
-                sideWindow.claimFocus = sideWindow.visible;
-                focusRelease.restart();
-            }
-        }
-        Timer {
-            id: focusRelease
-            interval: 400
-            onTriggered: sideWindow.claimFocus = false
         }
         Component.onDestruction: if (root.parentPopout)
             root.parentPopout.transientSurfaceTracker.unregister(sideWindow)
