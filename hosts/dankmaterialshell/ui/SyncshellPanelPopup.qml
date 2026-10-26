@@ -308,6 +308,71 @@ FocusScope {
             }
         }
     }
+    // With the popout's focus grab released for the form, Hyprland dismisses
+    // nothing on outside clicks; this catcher does, like the popout's own
+    // background window, leaving the bar, popout and form clickable.
+    PanelWindow {
+        id: dismissCatcher
+        screen: sideWindow.screen
+        visible: sideWindow.visible
+        color: "transparent"
+        anchors {
+            top: true
+            bottom: true
+            left: true
+            right: true
+        }
+        exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.namespace: "dms:plugins:syncshell:dismiss"
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+        mask: Region {
+            item: catcherArea
+            Region {
+                item: barHole
+                intersection: Intersection.Subtract
+            }
+            Region {
+                item: popoutHole
+                intersection: Intersection.Subtract
+            }
+            Region {
+                item: formHole
+                intersection: Intersection.Subtract
+            }
+        }
+        Item {
+            id: catcherArea
+            anchors.fill: parent
+        }
+        Item {
+            id: barHole
+            readonly property real thickness: root.parentPopout ? root.parentPopout.storedBarThickness + root.parentPopout.storedBarSpacing * 2 : 0
+            x: root.barPosition === 3 ? parent.width - thickness : 0
+            y: root.barPosition === 1 ? parent.height - thickness : 0
+            width: root.barPosition >= 2 ? thickness : parent.width
+            height: root.barPosition >= 2 ? parent.height : thickness
+        }
+        Item {
+            id: popoutHole
+            x: root.parentPopout ? root.parentPopout.alignedX : 0
+            y: root.parentPopout ? root.parentPopout.alignedY : 0
+            width: root.parentPopout ? root.parentPopout.alignedWidth : 0
+            height: root.parentPopout ? root.parentPopout.alignedHeight : 0
+        }
+        Item {
+            id: formHole
+            x: root.sidePlacement.x
+            y: root.sidePlacement.y
+            width: sideWindow.implicitWidth
+            height: sideWindow.implicitHeight
+        }
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+            onClicked: root.closePopout()
+        }
+    }
     // DMS paints one popout rectangle at the requested size, so the side form
     // gets its own content-sized surface beside it, as Omarchy's does. The
     // popout's focus grab admits it as a transient surface.
