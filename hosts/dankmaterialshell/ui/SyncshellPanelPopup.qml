@@ -19,7 +19,8 @@ FocusScope {
     property real mainWidth: UiConstants.CONTENT_WIDTH * Math.max(1, Theme.fontScale)
     property real sideWidth: 360 * Math.max(1, Theme.fontScale)
     property real triggerRowY: 0
-    readonly property bool sideOpen: controller.form !== "" || controller.confirmation !== null
+    readonly property bool sideOpen: controller.form !== ""
+    readonly property bool confirming: controller.confirmation !== null
     readonly property real screenWidth: parentPopout && parentPopout.screen ? parentPopout.screen.width : 1920
     readonly property real screenHeight: parentPopout && parentPopout.screen ? parentPopout.screen.height : 1080
     readonly property int barPosition: parentPopout ? parentPopout.effectiveBarPosition : 0
@@ -29,7 +30,7 @@ FocusScope {
             x: parentPopout.alignedX,
             y: parentPopout.alignedY,
             width: parentPopout.alignedWidth
-        }, sideWidth, sideWindow.implicitHeight, PopoutMetrics.contentPadding + triggerRowY, Theme.spacingM, Theme.spacingL, usableTop) : ({
+        }, sideWidth, sideWindow.implicitHeight, PopoutMetrics.contentPadding + triggerRowY, 0, Theme.spacingL, usableTop) : ({
             side: "left",
             x: 0,
             y: 0
@@ -39,7 +40,7 @@ FocusScope {
 
     function releasePopoutKeyboard() {
         if (parentPopout)
-            parentPopout.customKeyboardFocus = sideWindow.visible ? WlrKeyboardFocus.None : null;
+            parentPopout.customKeyboardFocus = sideWindow.visible && !confirming ? WlrKeyboardFocus.None : null;
     }
 
     function closeInner() {
@@ -58,7 +59,9 @@ FocusScope {
     function restoreFocus() {
         if (!parentPopout || !parentPopout.shouldBeVisible)
             return;
-        if (!sideOpen || !sidePane.focusContent())
+        if (confirming && confirmLoader.item)
+            confirmLoader.item.selectCancel();
+        else if (!sideOpen || !sidePane.focusContent())
             forceActiveFocus();
     }
 
@@ -105,6 +108,10 @@ FocusScope {
     onSideOpenChanged: {
         if (sideOpen && controller.returnFocus && controller.returnFocus.mapToItem)
             triggerRowY = controller.returnFocus.mapToItem(root, 0, 0).y;
+    }
+    onConfirmingChanged: {
+        releasePopoutKeyboard();
+        Qt.callLater(restoreFocus);
     }
     Component.onCompleted: forceActiveFocus()
 
@@ -253,6 +260,37 @@ FocusScope {
             }
         }
     }
+    // Omarchy confirms over the dimmed panel rather than in a side form.
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: -PopoutMetrics.contentPadding
+        visible: root.confirming
+        radius: Theme.windowRadius
+        color: Qt.rgba(0, 0, 0, Theme.scrimAlpha)
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.AllButtons
+        }
+        StyledRect {
+            anchors.centerIn: parent
+            width: root.width - Theme.spacingL * 2
+            height: confirmLoader.implicitHeight + Theme.spacingL * 2
+            radius: Theme.cornerRadiusL
+            color: Theme.floatingSurfaceHigh
+            Loader {
+                id: confirmLoader
+                active: root.confirming
+                x: Theme.spacingL
+                y: Theme.spacingL
+                width: parent.width - Theme.spacingL * 2
+                onLoaded: Qt.callLater(root.restoreFocus)
+                sourceComponent: SharedDialogConfirm {
+                    controller: root.controller
+                }
+            }
+        }
+    }
     // DMS paints one popout rectangle at the requested size, so the side form
     // gets its own content-sized surface beside it, as Omarchy's does. The
     // popout's focus grab admits it as a transient surface.
@@ -276,7 +314,7 @@ FocusScope {
         WlrLayershell.namespace: "dms:plugins:syncshell:form"
         // Like DMS's own surface modals, the form takes the keyboard while it is
         // open; Hyprland would not move focus past the popout's grab.
-        WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: visible && !root.confirming ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         onVisibleChanged: {
             if (root.parentPopout)
                 root.parentPopout.transientSurfaceTracker.setActive(sideWindow, visible, visible ? sideWindow : null);
@@ -296,6 +334,7 @@ FocusScope {
                 controller: root.controller
                 parentPopout: root.parentPopout
                 maximumHeight: root.availableHeight
+                joinedEdge: root.sidePlacement.side === "left" ? "right" : root.sidePlacement.side === "right" ? "left" : ""
             }
         }
     }

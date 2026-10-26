@@ -10,20 +10,22 @@ StyledRect {
     function focusContent() {
         if (!formLoader.item)
             return false;
-        if (controller.confirmation)
-            formLoader.item.selectCancel();
-        else if (formLoader.item.focusFirst)
+        if (formLoader.item.focusFirst)
             formLoader.item.focusFirst();
         else
             formLoader.item.forceActiveFocus();
         return true;
     }
+    // The edge that touches the popout, so the form reads as opening out of it.
+    property string joinedEdge: ""
     // Drawn as its own surface beside the popout, so it takes the popout chrome.
     implicitHeight: Math.min(maximumHeight, formLoader.implicitHeight + PopoutMetrics.contentPadding * 2)
     radius: Theme.windowRadius
+    topRightRadius: joinedEdge === "right" ? 0 : radius
+    bottomRightRadius: joinedEdge === "right" ? 0 : radius
+    topLeftRadius: joinedEdge === "left" ? 0 : radius
+    bottomLeftRadius: joinedEdge === "left" ? 0 : radius
     color: parentPopout ? parentPopout.surfaceColor : Theme.hostSurface
-    border.width: Theme.outlineWidth
-    border.color: Theme.outlineVariant
     DFlickable {
         anchors.fill: parent
         anchors.margins: PopoutMetrics.contentPadding
@@ -33,13 +35,7 @@ StyledRect {
             id: formLoader
             width: parent.width
             onLoaded: Qt.callLater(root.focusContent)
-            sourceComponent: root.controller.confirmation ? confirmation : root.controller.form === "add-folder" ? folder : root.controller.form === "add-device" ? device : root.controller.form === "accept-device" ? accept : root.controller.form === "share-folder" ? sharing : root.controller.form === "device-folders" ? deviceFolders : null
-        }
-    }
-    Component {
-        id: confirmation
-        SharedDialogConfirm {
-            controller: root.controller
+            sourceComponent: root.controller.form === "add-folder" ? folder : root.controller.form === "add-device" ? device : root.controller.form === "accept-device" ? accept : root.controller.form === "share-folder" ? sharing : root.controller.form === "device-folders" ? deviceFolders : null
         }
     }
     Component {

@@ -91,22 +91,26 @@ test("closing inactive selectors cannot steal focus from the active one", () => 
 });
 
 test("returning to a retained confirmation restores Cancel selection", () => {
-  const side = readFileSync(new URL(
-    "../hosts/dankmaterialshell/ui/BodyFormSideCard.qml", import.meta.url), "utf8");
+  const popup = readFileSync(new URL(
+    "../hosts/dankmaterialshell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
   let cancelled = 0;
-  let focused = 0;
-  const pane = instance(side, "focusContent", {
-    controller: { confirmation: {} },
-    formLoader: { item: {
-      selectCancel() { cancelled++; }, forceActiveFocus() { focused++; },
-    } },
+  let formFocused = 0;
+  let panelFocused = 0;
+  const root = instance(popup, "restoreFocus", {
+    parentPopout: { shouldBeVisible: true },
+    confirming: true, sideOpen: true,
+    confirmLoader: { item: { selectCancel() { cancelled++; } } },
+    sidePane: { focusContent() { formFocused++; return true; } },
+    forceActiveFocus() { panelFocused++; },
   });
-  assert.equal(pane.focusContent(), true);
-  assert.equal(cancelled, 1);
-  assert.equal(focused, 0);
-  pane.controller.confirmation = null;
-  assert.equal(pane.focusContent(), true);
-  assert.equal(focused, 1);
+  root.restoreFocus();
+  assert.deepEqual([cancelled, formFocused, panelFocused], [1, 0, 0]);
+  root.confirming = false;
+  root.restoreFocus();
+  assert.deepEqual([cancelled, formFocused, panelFocused], [1, 1, 0]);
+  root.sideOpen = false;
+  root.restoreFocus();
+  assert.deepEqual([cancelled, formFocused, panelFocused], [1, 1, 1]);
 });
 
 test("connection edits retry even when startup never reached a handshake", () => {
