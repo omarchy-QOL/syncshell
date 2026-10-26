@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import qs.Common
 import qs.DCommon.Widgets
 import "UiConstants.js" as UiConstants
@@ -31,7 +30,8 @@ FocusScope {
             clicked();
     }
     activeFocusOnTab: enabled
-    implicitWidth: row.implicitWidth + Theme.spacingM * 2
+    readonly property real iconRoom: iconName !== "" ? fontSize + 4 + (text !== "" ? Theme.spacingXS : 0) : 0
+    implicitWidth: iconRoom + (text !== "" ? label.implicitWidth : 0) + Theme.spacingM * 2
     implicitHeight: controlHeight
     Keys.onPressed: event => {
         if (handlesKeys)
@@ -47,21 +47,26 @@ FocusScope {
         FocusRing {
             visible: root.activeFocus
         }
-        RowLayout {
+        Row {
             id: row
             anchors.verticalCenter: parent.verticalCenter
-            width: Math.min(implicitWidth, parent.width - (root.text !== "" ? Theme.spacingM * 2 : 0))
             x: root.leftAlign ? Theme.spacingM : (parent.width - width) / 2
-            spacing: Theme.spacingXS
+            spacing: root.iconName !== "" && root.text !== "" ? Theme.spacingXS : 0
             DIcon {
+                id: icon
+                anchors.verticalCenter: parent.verticalCenter
                 visible: root.iconName !== ""
                 name: root.iconName
                 size: root.fontSize + 4
                 color: root.foreground
             }
+            // Width from the text and the room left, not from a layout's
+            // cached hint, so swapped busy captions never stay cut.
             StyledText {
+                id: label
+                anchors.verticalCenter: parent.verticalCenter
                 visible: root.text !== ""
-                Layout.fillWidth: true
+                width: Math.min(implicitWidth, Math.max(0, surface.width - Theme.spacingM * 2 - root.iconRoom))
                 maximumLineCount: 1
                 elide: Text.ElideRight
                 text: root.text
