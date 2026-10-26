@@ -10,3 +10,6 @@
 /.omarchy-plugin-dev/
 /assets/old-published/
 /assets/README.md
+
+# Assembled local native plugin.
+/dist/caelestia/
