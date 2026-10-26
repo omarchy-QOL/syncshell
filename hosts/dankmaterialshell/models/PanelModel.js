@@ -252,14 +252,14 @@ function formatCount(value) {
 function confirmText(action, target) {
     var text = confirmWording(action, target || {});
     return { title: text.title, message: text.message, confirm: text.confirm || "Yes",
-        destructive: text.destructive !== false };
+        cancel: text.cancel || "No", destructive: text.destructive !== false };
 }
 
 function confirmWording(action, t) {
     var name = t.name || t.label || t.deviceId || t.id || "";
     if (action === "folder.add-existing")
         return { title: "Create directory?", message: "Create " + t.path + " and add it to Syncthing?",
-            confirm: "Create and add", destructive: false };
+            confirm: "Create and add", cancel: "Cancel", destructive: false };
     if (action === "folder.forget")
         return { title: "Forget " + folderName(t) + " (" + t.id + ")?",
             message: "This removes only its Syncthing configuration. The directory and data files will not be deleted. "

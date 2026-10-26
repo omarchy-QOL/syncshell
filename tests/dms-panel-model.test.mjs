@@ -317,9 +317,12 @@ test("counts and confirmations match the Omarchy panel", () => {
   assert.match(forget.message, /directory and data files will not be deleted/);
   assert.match(forget.message, /\.stfolder marker/);
   assert.match(popup, /confirmText: root\.controller\.folderConfirmAction === "create" \? "Create and add" : "Yes"/);
+  assert.match(popup, /cancelText: root\.controller\.folderConfirmAction === "create" \? "Cancel" : "No"/);
+  assert.match(popup, /confirmText: "Yes"\n\s+cancelText: "No"/);
   assert.deepEqual([remove.confirm, remove.destructive, forget.confirm, forget.destructive], ["Yes", true, "Yes", true]);
   const create = model.confirmText("folder.add-existing", { path: "/srv/a" });
-  assert.deepEqual([create.confirm, create.destructive], ["Create and add", false]);
+  assert.deepEqual([create.confirm, create.cancel, create.destructive], ["Create and add", "Cancel", false]);
+  assert.equal(remove.cancel, "No");
 });
 
 test("folders are named by directory and the configured label joins the meta line", () => {
