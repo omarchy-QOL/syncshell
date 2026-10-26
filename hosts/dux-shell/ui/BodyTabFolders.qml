@@ -8,9 +8,13 @@ ColumnLayout {
     required property var controller
     property var parentPopout: null
     spacing: Theme.spacingS
+    function focusSelector() {
+        selector.focusTrigger();
+    }
     RowLayout {
         Layout.fillWidth: true
         BodyTabFoldersSelector {
+            id: selector
             Layout.fillWidth: true
             controller: root.controller
             parentPopout: root.parentPopout

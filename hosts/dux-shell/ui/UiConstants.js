@@ -6,3 +6,5 @@ var SMALL_CONTROL_HEIGHT = 22;
 var CONTENT_WIDTH = 384;
 var SECTION_SPACING = 12;
 var COPY_FEEDBACK_MS = 1800;
+// Room for DMS focus rings (offset 3 + width up to 3) inside clipped views.
+var FOCUS_RING_ROOM = 6;

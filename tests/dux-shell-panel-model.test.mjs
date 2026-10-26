@@ -85,7 +85,7 @@ test("device cards and selectors share status rules including stale and missing 
   for (const [device, expected] of [
     [{ id: "a", paused: true, connected: true }, "PAUSED"],
     [{ id: "a", connected: true }, "CONNECTED"],
-    [{ id: "a", connected: false }, "OFFLINE"],
+    [{ id: "a", connected: false }, "DISCONNECTED"],
   ]) {
     assert.equal(model.deviceStatus(device, true), expected);
     assert.equal(model.deviceOptions([device], true)[0].status, expected);
@@ -335,4 +335,18 @@ test("folders are named by directory and the configured label joins the meta lin
     devices: [{ id: "remote" }], status: { state: "idle", globalFiles: 3, globalBytes: 138 } };
   assert.equal(model.folderMeta(folder, true, "local", false), "3 files · 138 B · Sync Test");
   assert.equal(model.folderMeta({ ...folder, label: "Sync-Test" }, true, "local", false), "3 files · 138 B");
+});
+
+test("state colours follow Omarchy's green, yellow, red and muted rules", () => {
+  const panel = readFileSync(new URL("../hosts/omarchy/OmarchyPanel.qml", import.meta.url), "utf8");
+  const omarchy = { warning: "warning", urgent: "error", success: "success", muted: "onSurfaceVariant" };
+  const body = panel.match(/function folderStateColor\(folder\) \{([^]*?)\n    \}/)[1];
+  for (const [, state, colour] of body.matchAll(/state === "([^"]+)"\)\s*return ([\w.]+);/g))
+    assert.equal(model.folderStateRole(state), omarchy[colour.split(".").pop()], state);
+  assert.equal(model.folderStateRole("SYNCED"), "success");
+  assert.equal(model.folderStateRole("LINKED"), "success");
+  assert.deepEqual(["CONNECTED", "PAUSED", "DISCONNECTED", "UNKNOWN"].map(model.deviceStateRole),
+    ["success", "warning", "onSurfaceVariant", "onSurfaceVariant"]);
+  assert.deepEqual(["removing", "upload", "sync", ""].map(model.activityRole),
+    ["error", "success", "info", "info"]);
 });

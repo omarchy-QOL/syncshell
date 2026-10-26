@@ -54,7 +54,7 @@ StyledRect {
                 text: Model.deviceStatus(root.device, root.controller.fresh)
                 font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.Bold
-                color: Theme.primary
+                color: Theme[Model.deviceStateRole(text)]
             }
         }
         ColumnLayout {

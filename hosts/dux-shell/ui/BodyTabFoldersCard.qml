@@ -49,7 +49,7 @@ StyledRect {
             StyledText {
                 id: stateText
                 text: root.folder ? root.controller.folderStatus(root.folder) : ""
-                color: !root.controller.fresh ? Theme.onSurfaceVariant : Model.folderGroup(root.folder || {}, true) === "errors" ? Theme.error : Theme.primary
+                color: Theme[Model.folderStateRole(text)]
                 font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.Bold
             }

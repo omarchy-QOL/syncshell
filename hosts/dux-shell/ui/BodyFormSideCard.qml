@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "UiConstants.js" as UiConstants
 
 StyledRect {
     id: root
@@ -30,12 +31,14 @@ StyledRect {
     color: parentPopout ? parentPopout.surfaceColor : Theme.hostSurface
     DFlickable {
         anchors.fill: parent
-        anchors.margins: PopoutMetrics.contentPadding
-        contentHeight: formLoader.implicitHeight
+        anchors.margins: PopoutMetrics.contentPadding - UiConstants.FOCUS_RING_ROOM
+        contentHeight: formLoader.implicitHeight + UiConstants.FOCUS_RING_ROOM * 2
         clip: true
         Loader {
             id: formLoader
-            width: parent.width
+            x: UiConstants.FOCUS_RING_ROOM
+            y: UiConstants.FOCUS_RING_ROOM
+            width: parent.width - UiConstants.FOCUS_RING_ROOM * 2
             onLoaded: Qt.callLater(root.focusContent)
             sourceComponent: root.controller.form === "add-folder" ? folder : root.controller.form === "add-device" ? device : root.controller.form === "accept-device" ? accept : root.controller.form === "share-folder" ? sharing : root.controller.form === "device-folders" ? deviceFolders : null
         }

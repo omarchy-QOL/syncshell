@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "../models/PanelModel.js" as Model
 
 StyledText {
     id: root
@@ -10,7 +11,7 @@ StyledText {
     textFormat: Text.PlainText
     maximumLineCount: 1
     elide: Text.ElideMiddle
-    color: Theme.onSurfaceVariant
+    color: Theme[Model.activityRole(service ? service.currentActivity.action : "")]
     visible: text !== ""
     SharedWidgetToolTip {
         anchors.fill: parent

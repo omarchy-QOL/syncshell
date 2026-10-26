@@ -54,6 +54,7 @@ function folderOptions(folders, fresh, groups, sort, presentation) {
             description: String(folder.path || ""),
             group: folderGroup(folder, fresh),
             status: presentation ? presentation(folder) : folderStatus(folder, fresh),
+            statusRole: folderStateRole(presentation ? presentation(folder) : folderStatus(folder, fresh)),
             help: stateHelp(presentation ? presentation(folder) : folderStatus(folder, fresh)) + "\n" + String(status.error || (status.errors || []).map(function (error) {
                 return error.path + ": " + error.error;
             }).join("\n"))
@@ -77,7 +78,28 @@ function deviceStatus(device, fresh) {
     if (!device)
         return "";
     return !fresh ? "UNKNOWN"
-        : device.paused ? "PAUSED" : device.connected ? "CONNECTED" : "OFFLINE";
+        : device.paused ? "PAUSED" : device.connected ? "CONNECTED" : "DISCONNECTED";
+}
+
+// Omarchy's state colours as DMS Theme roles: green when settled, yellow
+// while moving or paused, red on errors, muted when unknown or away.
+function folderStateRole(state) {
+    if (state === "SYNCED" || state === "LINKED")
+        return "success";
+    if (state === "ERROR")
+        return "error";
+    if (["UNLINKED", "SCANNING", "SCAN+SYNC", "SYNCING"].indexOf(state) >= 0)
+        return "warning";
+    return "onSurfaceVariant";
+}
+
+function deviceStateRole(state) {
+    return state === "CONNECTED" ? "success" : state === "PAUSED" ? "warning" : "onSurfaceVariant";
+}
+
+// Omarchy's activity colours: cyan syncing (DMS info), red removing, green upload.
+function activityRole(action) {
+    return action === "removing" ? "error" : action === "upload" ? "success" : "info";
 }
 
 function deviceOptions(devices, fresh) {
@@ -86,7 +108,8 @@ function deviceOptions(devices, fresh) {
             value: device.id,
             label: String(device.name || device.id),
             description: String(device.address || device.id),
-            status: deviceStatus(device, fresh)
+            status: deviceStatus(device, fresh),
+            statusRole: deviceStateRole(deviceStatus(device, fresh))
         };
     });
 }

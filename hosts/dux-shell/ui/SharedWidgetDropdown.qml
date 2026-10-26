@@ -59,6 +59,10 @@ Item {
         }
     }
 
+    function focusTrigger() {
+        trigger.forceActiveFocus(Qt.TabFocusReason);
+    }
+
     function open() {
         if (opened) {
             close();
@@ -266,6 +270,7 @@ Item {
                             }
                             StyledText {
                                 text: modelData.status || ""
+                                color: Theme[modelData.statusRole || "onSurfaceVariant"]
                                 font.pixelSize: Theme.fontSizeSmall
                                 textFormat: Text.PlainText
                             }

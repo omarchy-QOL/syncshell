@@ -8,9 +8,13 @@ ColumnLayout {
     required property var controller
     property var parentPopout: null
     spacing: Theme.spacingS
+    function focusSelector() {
+        selector.focusTrigger();
+    }
     RowLayout {
         Layout.fillWidth: true
         SharedWidgetDropdown {
+            id: selector
             Layout.fillWidth: true
             searchOwner: root.controller
             searchKey: "deviceSearch"

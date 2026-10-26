@@ -95,13 +95,14 @@ test("returning to a retained confirmation restores Cancel selection", () => {
     "../hosts/dux-shell/ui/SyncshellPanelPopup.qml", import.meta.url), "utf8");
   let cancelled = 0;
   let formFocused = 0;
+  // Without a form or confirmation, focus starts at the tab's selector.
   let panelFocused = 0;
   const root = instance(popup, "restoreFocus", {
     parentPopout: { shouldBeVisible: true },
     confirming: true, sideOpen: true,
     confirmLoader: { item: { selectCancel() { cancelled++; } } },
     sidePane: { focusContent() { formFocused++; return true; } },
-    forceActiveFocus() { panelFocused++; },
+    focusSelector() { panelFocused++; },
   });
   root.restoreFocus();
   assert.deepEqual([cancelled, formFocused, panelFocused], [1, 0, 0]);

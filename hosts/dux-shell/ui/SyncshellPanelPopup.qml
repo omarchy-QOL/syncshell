@@ -79,6 +79,15 @@ FocusScope {
         if (confirming && confirmLoader.item)
             confirmLoader.item.selectCancel();
         else if (!sideOpen || !sidePane.focusContent())
+            focusSelector();
+    }
+
+    // Omarchy starts keyboard navigation at the current tab's selector.
+    function focusSelector() {
+        var tab = controller.tab === "folders" ? foldersTab : devicesTab;
+        if (tab.visible)
+            tab.focusSelector();
+        else
             forceActiveFocus();
     }
 
@@ -186,15 +195,24 @@ FocusScope {
         width: root.width
         height: root.height
         spacing: UiConstants.SECTION_SPACING
+        // The clipped body reaches past the content edges by the focus ring
+        // room and insets its content by the same amount, so rings show whole
+        // while everything stays aligned with the footer.
         DFlickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredHeight: body.implicitHeight
-            contentHeight: body.implicitHeight
+            Layout.leftMargin: -UiConstants.FOCUS_RING_ROOM
+            Layout.rightMargin: -UiConstants.FOCUS_RING_ROOM
+            Layout.topMargin: -UiConstants.FOCUS_RING_ROOM
+            Layout.bottomMargin: -UiConstants.FOCUS_RING_ROOM
+            Layout.preferredHeight: body.implicitHeight + UiConstants.FOCUS_RING_ROOM * 2
+            contentHeight: body.implicitHeight + UiConstants.FOCUS_RING_ROOM * 2
             clip: true
             ColumnLayout {
                 id: body
-                width: parent.width
+                x: UiConstants.FOCUS_RING_ROOM
+                y: UiConstants.FOCUS_RING_ROOM
+                width: parent.width - UiConstants.FOCUS_RING_ROOM * 2
                 spacing: UiConstants.SECTION_SPACING
                 Header {
                     Layout.fillWidth: true
@@ -238,11 +256,13 @@ FocusScope {
                     Layout.fillWidth: true
                     currentIndex: root.controller.tab === "folders" ? 0 : 1
                     BodyTabFolders {
+                        id: foldersTab
                         Layout.fillWidth: true
                         controller: root.controller
                         parentPopout: root.parentPopout
                     }
                     BodyTabDevices {
+                        id: devicesTab
                         Layout.fillWidth: true
                         controller: root.controller
                         parentPopout: root.parentPopout
