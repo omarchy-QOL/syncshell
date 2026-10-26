@@ -73,9 +73,12 @@ Item {
         menu.anchor.edges = Edges.Top | Edges.Left;
         menu.anchor.gravity = Edges.Bottom | Edges.Right;
         menu.anchor.adjustment = PopupAdjustment.None;
-        menu.implicitWidth = host.width;
-        menu.implicitHeight = host.height;
         var point = root.QsWindow.itemPosition(trigger);
+        // A short host, such as a content-sized side form, would force the
+        // list over the form; the popup may extend past it to open below.
+        var listHeight = Math.min(content.implicitHeight + Theme.spacingM * 2, 420);
+        menu.implicitWidth = Math.max(host.width, point.x + Math.max(root.width, 310));
+        menu.implicitHeight = Math.max(host.height, point.y + root.height + listHeight + Theme.spacingS);
         menu.originX = point.x;
         menu.originY = point.y;
         menu.anchor.updateAnchor();
