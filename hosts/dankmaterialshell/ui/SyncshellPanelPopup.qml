@@ -267,17 +267,26 @@ FocusScope {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.namespace: "dms:plugins:syncshell:form"
-        // Exclusive focus on open moves the keyboard into the form; on-demand
-        // afterwards lets a click give it back to the main panel.
+        // A brief exclusive claim moves the keyboard into the form once the
+        // popout's focus grab admits this window; on-demand afterwards lets a
+        // click hand it back to the main panel.
         property bool claimFocus: false
         WlrLayershell.keyboardFocus: claimFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
         onVisibleChanged: {
             if (root.parentPopout)
                 root.parentPopout.transientSurfaceTracker.setActive(sideWindow, visible, visible ? sideWindow : null);
-            claimFocus = visible;
+            claimFocus = false;
             if (visible) {
-                focusRelease.restart();
+                focusClaim.restart();
                 Qt.callLater(root.restoreFocus);
+            }
+        }
+        Timer {
+            id: focusClaim
+            interval: 120
+            onTriggered: {
+                sideWindow.claimFocus = sideWindow.visible;
+                focusRelease.restart();
             }
         }
         Timer {
