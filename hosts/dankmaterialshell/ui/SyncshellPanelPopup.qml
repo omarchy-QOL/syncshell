@@ -38,16 +38,16 @@ FocusScope {
 
     implicitHeight: Math.min(availableHeight, mainPane.implicitHeight)
 
-    // Like DMS's own surface modals, the form holds the keyboard while it is
-    // open: Hyprland moves focus past the popout's grab only while the popout
-    // releases it. The popout's background window still dismisses outside
-    // clicks. Re-claiming after another surface (the picker) took the keyboard
-    // makes Hyprland focus the form again.
+    // Hyprland moves the keyboard past the popout's focus grab only while the
+    // popout releases it, so it does while a form is open, like DMS's own
+    // surface modals. The form claims the keyboard with a brief exclusive
+    // request (exclusive layers also take all pointer input), then stays
+    // on-demand so the panel and the dismiss catcher keep their clicks.
     property bool claimingKeyboard: false
     function claimKeyboard() {
-        claimingKeyboard = false;
         releasePopoutKeyboard();
-        if (sideWindow.visible && !confirming)
+        claimingKeyboard = sideWindow.visible && !confirming;
+        if (claimingKeyboard)
             keyboardClaim.restart();
     }
     function releasePopoutKeyboard() {
@@ -56,8 +56,8 @@ FocusScope {
     }
     Timer {
         id: keyboardClaim
-        interval: 50
-        onTriggered: root.claimingKeyboard = sideWindow.visible && !root.confirming
+        interval: 300
+        onTriggered: root.claimingKeyboard = false
     }
 
     function closeInner() {
@@ -394,7 +394,7 @@ FocusScope {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.namespace: "dms:plugins:syncshell:form"
-        WlrLayershell.keyboardFocus: visible && root.claimingKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: !visible || root.confirming ? WlrKeyboardFocus.None : root.claimingKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
         onVisibleChanged: {
             if (root.parentPopout)
                 root.parentPopout.transientSurfaceTracker.setActive(sideWindow, visible, visible ? sideWindow : null);
