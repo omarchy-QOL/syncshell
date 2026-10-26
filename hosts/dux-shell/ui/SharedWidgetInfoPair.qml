@@ -20,6 +20,6 @@ RowLayout {
         Layout.fillWidth: true
         horizontalAlignment: Text.AlignRight
         elide: Text.ElideMiddle
-        maximumLineCount: 1
+        wrapMode: Text.NoWrap
     }
 }

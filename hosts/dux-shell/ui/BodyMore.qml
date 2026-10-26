@@ -73,7 +73,7 @@ ColumnLayout {
                         textFormat: Text.PlainText
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.onSurfaceVariant
-                        maximumLineCount: 1
+                        wrapMode: Text.NoWrap
                         elide: Text.ElideLeft
                     }
                 }
@@ -114,7 +114,7 @@ ColumnLayout {
                 text: root.installation.executablePath || "—"
                 textFormat: Text.PlainText
                 font.pixelSize: Theme.fontSizeSmall
-                maximumLineCount: 1
+                wrapMode: Text.NoWrap
                 elide: Text.ElideMiddle
                 SharedWidgetToolTip {
                     anchors.fill: parent

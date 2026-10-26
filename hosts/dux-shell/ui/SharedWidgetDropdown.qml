@@ -136,7 +136,7 @@ Item {
                     textFormat: Text.PlainText
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.onSurface
-                    maximumLineCount: 1
+                    wrapMode: Text.NoWrap
                     elide: Text.ElideRight
                     Layout.fillWidth: true
                 }
@@ -256,7 +256,7 @@ Item {
                                     text: modelData.label
                                     textFormat: Text.PlainText
                                     Layout.fillWidth: true
-                                    maximumLineCount: 1
+                                    wrapMode: Text.NoWrap
                                 }
                                 StyledText {
                                     text: modelData.description || modelData.value
@@ -264,7 +264,7 @@ Item {
                                     color: Theme.onSurfaceVariant
                                     font.pixelSize: Theme.fontSizeSmall
                                     Layout.fillWidth: true
-                                    maximumLineCount: 1
+                                    wrapMode: Text.NoWrap
                                     elide: Text.ElideMiddle
                                 }
                             }

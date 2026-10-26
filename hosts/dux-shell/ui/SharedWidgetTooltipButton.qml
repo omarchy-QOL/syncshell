@@ -67,7 +67,8 @@ FocusScope {
                 anchors.verticalCenter: parent.verticalCenter
                 visible: root.text !== ""
                 width: Math.min(implicitWidth, Math.max(0, surface.width - Theme.spacingM * 2 - root.iconRoom))
-                maximumLineCount: 1
+                // StyledText wraps by default; a label must elide on one line.
+                wrapMode: Text.NoWrap
                 elide: Text.ElideRight
                 text: root.text
                 textFormat: Text.PlainText

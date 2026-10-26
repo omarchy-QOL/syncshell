@@ -11,7 +11,7 @@ RowLayout {
         textFormat: Text.PlainText
         font.weight: Font.Medium
         Layout.fillWidth: true
-        maximumLineCount: 1
+        wrapMode: Text.NoWrap
         elide: Text.ElideRight
     }
     SharedWidgetTooltipButton {

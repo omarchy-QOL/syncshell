@@ -31,7 +31,7 @@ ColumnLayout {
                 StyledText {
                     text: root.service ? root.service.deviceName(root.service.localDeviceId) : "Starting"
                     textFormat: Text.PlainText
-                    maximumLineCount: 1
+                    wrapMode: Text.NoWrap
                     Layout.preferredWidth: implicitWidth
                     Layout.minimumWidth: 0
                     elide: Text.ElideRight

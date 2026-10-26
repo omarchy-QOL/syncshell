@@ -9,7 +9,7 @@ StyledText {
     property string folderId: ""
     text: service && service.online && service.connection.fresh && folderId && service.currentActivity.folderId === folderId ? service.activityText : ""
     textFormat: Text.PlainText
-    maximumLineCount: 1
+    wrapMode: Text.NoWrap
     elide: Text.ElideMiddle
     color: Theme[Model.activityRole(service ? service.currentActivity.action : "")]
     visible: text !== ""

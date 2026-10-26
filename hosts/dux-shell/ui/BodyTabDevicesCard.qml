@@ -83,7 +83,7 @@ StyledRect {
                         textFormat: Text.PlainText
                         color: Theme.onSurfaceVariant
                         font.pixelSize: Theme.fontSizeSmall
-                        maximumLineCount: 1
+                        wrapMode: Text.NoWrap
                         elide: Text.ElideMiddle
                     }
                     DIcon {

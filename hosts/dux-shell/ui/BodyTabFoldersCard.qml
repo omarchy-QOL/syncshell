@@ -80,7 +80,7 @@ StyledRect {
                         textFormat: Text.PlainText
                         color: Model.hasErrors(root.folder) ? Theme.error : Theme.onSurfaceVariant
                         font.pixelSize: Theme.fontSizeSmall
-                        maximumLineCount: 1
+                        wrapMode: Text.NoWrap
                         elide: Text.ElideRight
                     }
                     SharedWidgetTooltipButton {
@@ -99,7 +99,7 @@ StyledRect {
                     textFormat: Text.PlainText
                     color: Theme.onSurfaceVariant
                     font.pixelSize: Theme.fontSizeSmall
-                    maximumLineCount: 1
+                    wrapMode: Text.NoWrap
                     elide: Text.ElideLeft
                     SharedWidgetToolTip {
                         anchors.fill: parent
