@@ -82,6 +82,14 @@ rule, the `Body*` area, and `FooterActions`, which starts with the second
 rule. Control sizes come from `ui/UiConstants.js`; the compact buttons keep
 their own wrappers because `DButton` and `DIconButton` start at 32 and 40 px.
 
+DMS paints one popout rectangle at the requested size, so side forms open on
+their own content-sized layer surface, attached to the popout at the row
+that opened them, as in Omarchy. The popout registers it as a transient
+surface and releases its keyboard while a form is open; the form takes the
+keyboard with a brief exclusive request, because an exclusive layer receives
+all pointer input on Hyprland. A masked full-screen catcher then dismisses
+outside clicks. Confirmations dim the panel and centre over it instead.
+
 ## Release gates
 
 The registry will reference this repository's generated
