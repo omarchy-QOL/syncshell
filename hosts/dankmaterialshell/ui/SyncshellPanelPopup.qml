@@ -335,6 +335,7 @@ FocusScope {
                 parentPopout: root.parentPopout
                 maximumHeight: root.availableHeight
                 joinedEdge: root.sidePlacement.side === "left" ? "right" : root.sidePlacement.side === "right" ? "left" : ""
+                joinedBottom: !!root.parentPopout && root.sidePlacement.y + sideWindow.implicitHeight <= root.parentPopout.alignedY + root.parentPopout.alignedHeight - Theme.windowRadius
             }
         }
     }

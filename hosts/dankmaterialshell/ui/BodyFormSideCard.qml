@@ -18,13 +18,15 @@ StyledRect {
     }
     // The edge that touches the popout, so the form reads as opening out of it.
     property string joinedEdge: ""
+    // A form reaching past the popout's bottom keeps that corner rounded.
+    property bool joinedBottom: true
     // Drawn as its own surface beside the popout, so it takes the popout chrome.
     implicitHeight: Math.min(maximumHeight, formLoader.implicitHeight + PopoutMetrics.contentPadding * 2)
     radius: Theme.windowRadius
     topRightRadius: joinedEdge === "right" ? 0 : radius
-    bottomRightRadius: joinedEdge === "right" ? 0 : radius
+    bottomRightRadius: joinedEdge === "right" && joinedBottom ? 0 : radius
     topLeftRadius: joinedEdge === "left" ? 0 : radius
-    bottomLeftRadius: joinedEdge === "left" ? 0 : radius
+    bottomLeftRadius: joinedEdge === "left" && joinedBottom ? 0 : radius
     color: parentPopout ? parentPopout.surfaceColor : Theme.hostSurface
     DFlickable {
         anchors.fill: parent
