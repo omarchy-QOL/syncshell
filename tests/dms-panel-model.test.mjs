@@ -330,4 +330,8 @@ test("counts and confirmations match the Omarchy panel", () => {
   assert.equal(forget.title, "Forget Docs (abc)?");
   assert.match(forget.message, /directory and data files will not be deleted/);
   assert.match(forget.message, /\.stfolder marker/);
+  assert.match(popup, /confirmText: root\.controller\.folderConfirmAction === "create" \? "Create and add" : "Yes"/);
+  assert.deepEqual([remove.confirm, remove.destructive, forget.confirm, forget.destructive], ["Yes", true, "Yes", true]);
+  const create = model.confirmText("folder.add-existing", { path: "/srv/a" });
+  assert.deepEqual([create.confirm, create.destructive], ["Create and add", false]);
 });

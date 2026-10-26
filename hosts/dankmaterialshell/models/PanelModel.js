@@ -249,10 +249,16 @@ function formatCount(value) {
 }
 // Omarchy's confirmation wording; the DMS dialog only supplies the chrome.
 function confirmText(action, target) {
-    var t = target || {};
+    var text = confirmWording(action, target || {});
+    return { title: text.title, message: text.message, confirm: text.confirm || "Yes",
+        destructive: text.destructive !== false };
+}
+
+function confirmWording(action, t) {
     var name = t.name || t.label || t.deviceId || t.id || "";
     if (action === "folder.add-existing")
-        return { title: "Create directory?", message: "Create " + t.path + " and add it to Syncthing?" };
+        return { title: "Create directory?", message: "Create " + t.path + " and add it to Syncthing?",
+            confirm: "Create and add", destructive: false };
     if (action === "folder.forget")
         return { title: "Forget " + (t.label || t.id) + " (" + t.id + ")?",
             message: "This removes only its Syncthing configuration. The directory and data files will not be deleted. "
@@ -264,6 +270,7 @@ function confirmText(action, target) {
     if (action === "device.dismiss-pending")
         return { title: "Dismiss pending request from " + name + "?", message: "It can reappear if the device connects again." };
     if (action.indexOf("lifecycle.") === 0)
-        return { title: "Change Syncthing service?", message: "This changes the authorized systemd user service for this Syncthing instance." };
+        return { title: "Change Syncthing service?", message: "This changes the authorized systemd user service for this Syncthing instance.",
+            confirm: "Yes", destructive: false };
     return { title: "Dismiss invitation?", message: "Dismiss this folder invitation from " + name + "? It can reappear if the device offers it again." };
 }

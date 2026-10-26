@@ -1,5 +1,6 @@
 import QtQuick
-import qs.Modals.Common as Native
+import qs.Common
+import qs.DCommon.Widgets
 import "../models/PanelModel.js" as Model
 
 FocusScope {
@@ -25,12 +26,14 @@ FocusScope {
         }
         content.handleKey(event);
     }
-    Native.ConfirmDialogContent {
+    DConfirmDialogContent {
         id: content
         width: parent.width
         enabled: !root.controller || !root.controller.busy
         confirmTitle: root.text.title
         confirmMessage: root.text.message
+        confirmButtonText: root.text.confirm
+        confirmButtonColor: root.text.destructive ? Theme.error : Theme.primary
         onCancelled: root.controller.cancelConfirmation()
         onButtonActivated: button => {
             if (root.controller.busy)

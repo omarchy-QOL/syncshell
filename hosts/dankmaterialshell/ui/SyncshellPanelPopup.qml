@@ -165,26 +165,28 @@ FocusScope {
             picker.open();
         }
     }
-    FileBrowserModal {
+    // The surface modal sits on the overlay layer, above this popout; a plain
+    // FileBrowserModal is a tiled window that the popout would cover.
+    FileBrowserSurfaceModal {
         id: picker
         folderMode: true
         browserTitle: "Syncshell folder"
-        onVisibleChanged: {
+        parentPopout: root.parentPopout
+        onOpened: if (root.parentPopout)
+            root.parentPopout.transientSurfaceTracker.setActive(picker, true, picker.contentWindow)
+        onFileSelected: path => root.controller.setDraft("path", path)
+        onDialogClosed: {
             if (root.parentPopout)
-                root.parentPopout.transientSurfaceTracker.setActive(picker, visible, visible ? picker : null);
+                root.parentPopout.transientSurfaceTracker.unregister(picker);
+            Qt.callLater(root.restoreFocus);
         }
-        onFileSelected: path => {
-            root.controller.setDraft("path", path);
-            close();
-        }
-        onDialogClosed: Qt.callLater(root.restoreFocus)
         Component.onDestruction: if (root.parentPopout)
             root.parentPopout.transientSurfaceTracker.unregister(picker)
     }
     Connections {
         target: root.parentPopout ? root.parentPopout.transientSurfaceTracker : null
         function onCloseRequested() {
-            if (picker.visible)
+            if (picker.shouldBeVisible)
                 picker.close();
         }
     }
