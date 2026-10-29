@@ -280,7 +280,7 @@ QtObject {
     function setFolderPaused(folderId, paused) {
         return runAction(paused ? "folder.pause" : "folder.resume", {
             folderId: folderId
-        }, paused ? "Paused " + folderLabel(folderId) : "Resumed " + folderLabel(folderId), folderId);
+        }, paused ? "Synchronization for " + folderLabel(folderId) + " paused. The folder ID, device associations, and data remain." : "Linked " + folderLabel(folderId) + ". Syncthing resumed the folder with its existing sharing configuration.", folderId);
     }
 
     function rescanFolder(folderId) {
@@ -296,7 +296,7 @@ QtObject {
     function forgetFolder(folderId) {
         return runAction("folder.forget", {
             folderId: folderId
-        }, "Forgot " + folderLabel(folderId) + "; directory contents were kept", folderId);
+        }, "Removed from Syncthing configuration and the plugin view. The directory and its data files were not deleted. Re-add Folder ID " + folderId + " to rejoin the same remote folder.", folderId);
     }
 
     function requestFolderIdSuggestion() {
@@ -306,6 +306,8 @@ QtObject {
 
     function addFolder(values) {
         var input = values || ({});
+        var folderId = String(input.folderId || input.id || "");
+        var deviceIds = (input.deviceIds || input.selectedDeviceIds || []).slice();
         return runAction("folder.add-existing", {
             folderId: String(input.folderId || input.id || ""),
             path: Paths.resolveFolderPath(input.path, homePath),
@@ -313,14 +315,24 @@ QtObject {
             label: String(input.label || ""),
             deviceIds: (input.deviceIds || input.selectedDeviceIds || []).slice(),
             pendingDeviceId: String(input.pendingDeviceId || "")
-        }, "Added existing directory", String(input.folderId || input.id || ""));
+        }, deviceIds.length > 0 ? "Remote devices may have to accept the folder." : "Added " + (String(input.label || "") || folderId) + " locally. It is linked but not shared with another device.", folderId);
     }
 
+    // Omarchy's wording: first share waits for acceptance, later ones update.
     function setFolderSharing(folderId, deviceIds) {
+        var shared = deviceIds || [];
+        var current = folder(folderId);
+        var previous = (current && current.devices || []).filter(member => member.id && member.id !== localDeviceId);
+        var names = shared.map(id => deviceName(id)).join(", ");
+        var notice = "Folder sharing removed. The local folder remains configured.";
+        if (shared.length > 0 && previous.length === 0)
+            notice = folderLabel(folderId) + " shared with " + names + "; waiting for " + names + " to accept.";
+        else if (shared.length > 0)
+            notice = "Sharing with " + names + " updated.";
         return runAction("folder.set-sharing", {
             folderId: String(folderId || ""),
-            deviceIds: deviceIds || []
-        }, "Folder sharing updated", String(folderId || ""));
+            deviceIds: shared
+        }, notice, String(folderId || ""));
     }
 
     function addDevice(deviceId, name) {
@@ -328,28 +340,28 @@ QtObject {
         return runAction("device.add", {
             deviceId: String(deviceId || ""),
             deviceName: String(name || "")
-        }, label + " added; add this device there to complete the connection", String(deviceId || ""));
+        }, label + " added. Add this device on " + label + " to complete connection.", String(deviceId || ""));
     }
 
     function dismissPendingDevice(deviceId, name) {
         var label = String(name || "").trim() || String(deviceId || "").slice(0, 7);
         return runAction("device.dismiss-pending", {
             deviceId: String(deviceId || "")
-        }, "Dismissed pending request from " + label, String(deviceId || ""));
+        }, "Dismissed pending request from " + label + ".", String(deviceId || ""));
     }
 
     function setDevicePaused(deviceId, paused, name) {
         var label = String(name || "").trim() || "Device " + String(deviceId || "").slice(0, 7);
         return runAction(paused ? "device.pause" : "device.resume", {
             deviceId: String(deviceId || "")
-        }, paused ? "Paused synchronization with " + label : "Resumed synchronization with " + label, String(deviceId || ""));
+        }, paused ? "Paused synchronization with " + label + "." : "Resumed synchronization with " + label + ".", String(deviceId || ""));
     }
 
     function removeDevice(deviceId, name) {
         var label = String(name || "").trim() || "Device " + String(deviceId || "").slice(0, 7);
         return runAction("device.remove", {
             deviceId: String(deviceId || "")
-        }, label + " removed from this device", String(deviceId || ""));
+        }, label + " removed from this device.", String(deviceId || ""));
     }
 
     function removeDeviceFolderShares(deviceId, folderIds, name) {
@@ -357,7 +369,7 @@ QtObject {
         return runAction("device.remove-folder-shares", {
             deviceId: String(deviceId || ""),
             folderIds: folderIds || []
-        }, "Selected folder shares removed from " + label, String(deviceId || ""));
+        }, "Selected folder shares removed from " + label + ".", String(deviceId || ""));
     }
 
     function openWebUi() {
@@ -369,10 +381,11 @@ QtObject {
     }
 
     function dismissPendingFolder(folderId, deviceId) {
+        var offer = pendingFolderOffers().find(item => item.folderId === String(folderId || "") && item.deviceId === String(deviceId || ""));
         return runAction("folder.dismiss-pending", {
             folderId: String(folderId || ""),
             pendingDeviceId: String(deviceId || "")
-        }, "Folder invitation dismissed", String(folderId || ""));
+        }, "Rejected folder request for " + (offer ? offer.label : String(folderId || "")) + ".", String(folderId || ""));
     }
 
     function recheckErrors() {
