@@ -27,22 +27,25 @@ ColumnLayout {
         }
         SharedWidgetSquareActionButton {
             iconName: "add"
-            help: "Add folder"
+            help: "Add folder (locally)"
             enabled: root.controller.fresh && !root.controller.busy
             onClicked: root.controller.begin("add-folder", {}, this)
         }
         SharedWidgetSquareActionButton {
             iconName: "share"
-            help: "Choose this folder's devices"
+            help: "Share folder\n(other device)"
             enabled: !!root.controller.folder && root.controller.fresh && !root.controller.busy
             onClicked: root.controller.begin("share-folder", root.controller.folder, this)
         }
         SharedWidgetSquareActionButton {
-            iconName: root.controller.folder && root.controller.folder.paused ? "link" : "link_off"
-            help: root.controller.folder && root.controller.folder.paused ? "Resume folder synchronization" : "Pause folder synchronization; keep its files and shares"
-            busy: !!root.controller.service && root.controller.service.busy
-            enabled: !!root.controller.folder && root.controller.fresh
-            onClicked: root.controller.toggleFolder()
+            readonly property bool paused: !!root.controller.folder && root.controller.folder.paused
+            iconName: paused ? "link" : "close"
+            help: root.controller.folder ? (paused ? "Link folder" : "Unlink folder (locally)") : "Select a folder"
+            success: paused
+            danger: !paused
+            busy: !!root.controller.service && root.controller.service.busy && ["folder.pause", "folder.resume"].indexOf(root.controller.service._actionName) >= 0
+            enabled: !!root.controller.folder && root.controller.fresh && !root.controller.busy
+            onClicked: root.controller.toggleFolder(this)
         }
     }
     BodyTabFoldersCard {

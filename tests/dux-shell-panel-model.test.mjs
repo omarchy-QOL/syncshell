@@ -325,12 +325,18 @@ test("counts and confirmations match the Omarchy panel", () => {
   const reject = model.confirmText("folder.dismiss-pending", { folderId: "abc", label: "Docs", deviceId: "PEER", deviceName: "peer" });
   assert.equal(reject.title, "Reject folder request for Docs (by peer)?");
   assert.equal(reject.message, "This removes the pending announcement without adding the folder.");
+  assert.equal(model.confirmText("folder.pause", { id: "abc", path: "/srv/Docs" }).title, "Unlink Docs (abc)?");
+  assert.equal(model.confirmText("folder.pause", { id: "abc", path: "/srv/Docs" }).message,
+    "Syncthing will pause synchronization. Its configuration and local files remain.");
+  const link = model.confirmText("folder.resume", { id: "abc", path: "/srv/Docs" });
+  assert.deepEqual([link.title, link.message, link.confirm, link.cancel],
+    ["Link Docs (abc)?", "Syncthing will resume synchronization for this folder.", "Yes", "No"]);
   const create = model.confirmText("folder.add-existing", { path: "/srv/a" });
   assert.deepEqual([create.confirm, create.cancel, create.destructive], ["Create and add", "Cancel", false]);
   assert.equal(remove.cancel, "No");
 });
 
-test("folders are named by directory and the configured label joins the meta line", () => {
+test("folders are named by directory and the configured label joins only transient meta", () => {
   const omarchy = vm.createContext({});
   vm.runInContext(readFileSync(new URL("../hosts/omarchy/models/PanelModel.js", import.meta.url), "utf8")
     .replace(/^\.(pragma|import) .*$/gm, ""), omarchy);
@@ -338,8 +344,13 @@ test("folders are named by directory and the configured label joins the meta lin
     assert.equal(model.folderName({ path, id: "x" }), omarchy.pathLabel(path));
   const folder = { id: "x", label: "Sync Test", path: "/home/iz/Sync-Test",
     devices: [{ id: "remote" }], status: { state: "idle", globalFiles: 3, globalBytes: 138 } };
-  assert.equal(model.folderMeta(folder, true, "local", false), "3 files · 138 B · Sync Test");
-  assert.equal(model.folderMeta({ ...folder, label: "Sync-Test" }, true, "local", false), "3 files · 138 B");
+  assert.equal(model.folderMeta(folder, true, "local", false), "3 files · 138 B");
+  assert.equal(model.folderMeta(folder, true, "local", true), "Scanning local changes · Sync Test");
+  const big = { id: "x", label: "Sync Test", path: "/p", devices: [{ id: "remote" }],
+    status: { state: "idle", globalFiles: 153400, globalBytes: 138 } };
+  assert.equal(omarchy.folderMeta({ label: "p", configuredLabel: "Sync Test", sharedDeviceCount: 1,
+    globalFiles: 153400, globalBytes: 138 }, false), model.folderMeta(big, true, "local", false));
+  assert.equal(model.folderMeta(big, true, "local", false), "153k files · 138 B");
 });
 
 test("state colours follow Omarchy's green, yellow, red and muted rules", () => {

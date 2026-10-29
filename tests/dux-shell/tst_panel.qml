@@ -61,7 +61,12 @@ TestCase {
             return devices;
         }
         function folder(id) {
-            return null;
+            return folders.find(f => f.id === id) || null;
+        }
+        function setFolderPaused(id, paused) {
+            return runAction(paused ? "folder.pause" : "folder.resume", {
+                folderId: id
+            });
         }
         function device(id) {
             return devices.find(d => d.id === id) || null;
@@ -106,6 +111,7 @@ TestCase {
             fresh: true
         };
         backend.offers = [];
+        backend.folders = [];
         backend.devices = [];
         backend.pendingDevices = [];
         backend.sharedFolders = ["a", "b"];
@@ -210,6 +216,29 @@ TestCase {
         verify(controller.submit());
         compare(backend.sent.action, "device.add");
         compare(backend.sent.args.deviceId, "peer");
+    }
+    function test_folder_link_changes_need_confirmation() {
+        for (var paused of [false, true]) {
+            backend.folders = [
+                {
+                    id: "a",
+                    path: "/srv/a",
+                    paused: paused,
+                    status: {}
+                }
+            ];
+            controller.reconcile();
+            verify(controller.toggleFolder(null));
+            compare(backend.sent, null);
+            compare(controller.confirmation.action, paused ? "folder.resume" : "folder.pause");
+            verify(controller.confirm());
+            compare(backend.sent.action, paused ? "folder.resume" : "folder.pause");
+            backend.busy = false;
+            backend.actionFinished(backend.sent.action, true, {}, null);
+            compare(controller.confirmation, null);
+            compare(controller.recentlyLinkedFolderId, paused ? "a" : "");
+            backend.sent = null;
+        }
     }
     function test_unchanged_shares_cannot_be_submitted() {
         backend.devices = [

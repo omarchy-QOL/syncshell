@@ -200,20 +200,21 @@ function stateHelp(state) {
         SYNCING: "Applying changes", "SCAN+SYNC": "Rescanning and syncing",
         LINKED: "Newly linked", SYNCED: "Up to date" }[state] || "Status unavailable");
 }
+// Like Omarchy, the configured label joins only transient states.
 function folderMeta(folder, fresh, localDeviceId, rescanning) {
     if (!folder) return "";
     var s = folder.status || {};
     var suffix = folder.label && folder.label !== folderName(folder) ? " · " + folder.label : "";
-    if (!fresh) return "Last reported: " + (s.globalFiles || 0) + " files · " + bytes(s.globalBytes) + suffix;
+    if (!fresh) return "Last reported: " + formatCount(s.globalFiles) + " files · " + bytes(s.globalBytes) + suffix;
     if (s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error")
         return (s.error || (s.errors || [])[0]?.error || "Folder needs attention") + suffix;
     if (folder.paused) return "Syncing paused" + suffix;
     if (rescanning || String(s.state).indexOf("scan") === 0) return "Scanning local changes" + suffix;
     if (s.needTotalItems > 0 || s.state === "syncing")
-        return (s.needTotalItems || 0) + " item" + (s.needTotalItems === 1 ? "" : "s") + " remaining"
+        return formatCount(s.needTotalItems) + " item" + (s.needTotalItems === 1 ? "" : "s") + " remaining"
             + (s.needBytes > 0 ? " · " + bytes(s.needBytes) : "") + suffix;
     var localOnly = !(folder.devices || []).some(d => d.id && d.id !== localDeviceId);
-    return (s.globalFiles || 0) + " files · " + (localOnly ? "local only" : bytes(s.globalBytes)) + suffix;
+    return formatCount(s.globalFiles) + " files · " + (localOnly ? "local only" : bytes(s.globalBytes));
 }
 function folderActivity(folder, fresh, activity) {
     return folder && fresh && activity && activity.folderId === folder.id && activity.detail
@@ -293,6 +294,12 @@ function confirmWording(action, t) {
             message: "This removes only its Syncthing configuration. The directory and data files will not be deleted. "
                 + (t.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal .stfolder marker. " : "")
                 + "Rejoining the same remote folder requires this exact Folder ID." };
+    if (action === "folder.pause")
+        return { title: "Unlink " + folderName(t) + " (" + t.id + ")?",
+            message: "Syncthing will pause synchronization. Its configuration and local files remain." };
+    if (action === "folder.resume")
+        return { title: "Link " + folderName(t) + " (" + t.id + ")?",
+            message: "Syncthing will resume synchronization for this folder." };
     if (action === "device.remove")
         return { title: "Remove " + name + " from this device?",
             message: "Folder sharing with it will be removed locally. Local folders and files remain. The other device is unchanged." };

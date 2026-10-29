@@ -67,14 +67,11 @@ QtObject {
     }
 
     property string linkingFolderId: ""
-    function toggleFolder() {
-        if (!folder || !fresh || busy || confirmation || form)
+    // Omarchy confirms both directions before pausing or resuming.
+    function toggleFolder(trigger) {
+        if (!folder || !fresh)
             return false;
-        linkingFolderId = folder.paused ? folder.id : "";
-        var accepted = service.setFolderPaused(folder.id, !folder.paused);
-        if (!accepted)
-            linkingFolderId = "";
-        return accepted;
+        return requestConfirmation(folder.paused ? "folder.resume" : "folder.pause", folder, trigger);
     }
     function resetFilters() {
         groups = ["ready", "active", "errors", "paused", "unknown"];
@@ -288,7 +285,7 @@ QtObject {
             return reject("The invitation changed or disappeared; your draft has been kept");
         if (action === "device.dismiss-pending" && !service.pendingDevices.some(device => device.id === target.id) || action === "folder.dismiss-pending" && !service.pendingFolderOffers().some(offer => offer.folderId === target.folderId && offer.deviceId === target.deviceId))
             return reject("The invitation disappeared; nothing was changed");
-        if (action === "folder.forget" && !service.folder(target.id) || action === "device.remove" && !service.device(target.id))
+        if (["folder.forget", "folder.pause", "folder.resume"].indexOf(action) >= 0 && !service.folder(target.id) || action === "device.remove" && !service.device(target.id))
             return reject("This target no longer exists; nothing was changed");
         submitting = true;
         pendingAction = action;
@@ -300,7 +297,12 @@ QtObject {
             accepted = service.dismissPendingDevice(target.id, target.name);
         else if (action === "folder.dismiss-pending")
             accepted = service.dismissPendingFolder(target.folderId, target.deviceId);
-        else if (action === "folder.add-existing")
+        else if (action === "folder.pause" || action === "folder.resume") {
+            linkingFolderId = action === "folder.resume" ? target.id : "";
+            accepted = service.setFolderPaused(target.id, action === "folder.pause");
+            if (!accepted)
+                linkingFolderId = "";
+        } else if (action === "folder.add-existing")
             accepted = service.addFolder(Object.assign({}, target, {
                 createDirectory: true
             }));
