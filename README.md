@@ -148,7 +148,7 @@ If UFW is enabled, run `sudo ufw allow syncthing` to allow [device discovery and
 synchronization][firewall].
 
 The plugin supports Omarchy on Linux x86_64 and aarch64, including Apple Silicon
-M1/M2 Macs running Omarchy (stable). Alpha adapters for DankMaterialShell,
+M1/M2 Macs running Omarchy (stable). Alpha adapters for Dux Shell (DMS),
 Illogical Impulse, Caelestia, and Waybar are under development; they are not
 officially released and WIP, but can be tested via manual installation on those
 systems: see the `hosts/...` in the source. Daemon mode remains future work.
@@ -306,7 +306,7 @@ shared folders.
 | Shell             | Status  | Release plan           |
 | ----------------- | ------- | ---------------------- |
 | Omarchy           | Stable  | stable since 0.1.0     |
-| DankMaterialShell | Alpha   | beta planned for 0.2.3 |
+| Dux Shell (DMS)   | Alpha   | beta planned for 0.2.3 |
 | Illogical Impulse | Alpha   | beta planned for 0.2.4 |
 | Caelestia         | Alpha   | beta planned for 0.2.5 |
 | Waybar            | Alpha   | beta planned for 0.2.6 |
