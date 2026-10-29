@@ -114,6 +114,7 @@ ColumnLayout {
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Add folder"
+        busyText: "Adding..."
         primary: true
         busy: root.controller.submitting
         enabled: !!root.controller.service && root.controller.service.online && !!root.controller.draft.path && !!root.controller.draft.folderId

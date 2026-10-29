@@ -54,7 +54,7 @@ ColumnLayout {
         bottomPadding: 2
         font.pixelSize: Theme.fontSizeSmall
         text: root.controller.draft.deviceId || ""
-        placeholderText: "XXXXXXX-XXXXXXX-..."
+        placeholderText: "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-..."
         enabled: !root.controller.busy
         onTextEdited: root.controller.setDraft("deviceId", text)
     }
@@ -76,13 +76,14 @@ ColumnLayout {
         bottomPadding: 2
         font.pixelSize: Theme.fontSizeSmall
         text: root.controller.draft.name || ""
-        placeholderText: "Optional"
+        placeholderText: "Optional; adopted from the remote when empty"
         enabled: !root.controller.busy
         onTextEdited: root.controller.setDraft("name", text)
     }
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         text: "Add remote device"
+        busyText: "Adding..."
         primary: true
         busy: root.controller.submitting
         enabled: !!root.controller.service && root.controller.service.online && !!root.controller.draft.deviceId

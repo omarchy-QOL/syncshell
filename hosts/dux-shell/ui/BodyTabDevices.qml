@@ -29,20 +29,20 @@ ColumnLayout {
         }
         SharedWidgetSquareActionButton {
             iconName: "add"
-            help: "Add remote device"
+            help: "Add device"
             enabled: root.controller.fresh && !root.controller.busy
             onClicked: root.controller.begin("add-device", {}, this)
         }
         SharedWidgetSquareActionButton {
             iconName: "folder_shared"
-            help: "Review this device's folder shares"
+            help: "View folder shared\nwith selected device"
             enabled: !!root.controller.device && root.controller.fresh && !root.controller.busy
             onClicked: root.controller.begin("device-folders", root.controller.device, this)
         }
         SharedWidgetSquareActionButton {
             iconName: "close"
             danger: true
-            help: "Remove device and its shares; keep files"
+            help: "Remove selected device"
             enabled: !!root.controller.device && root.controller.fresh && !root.controller.busy
             onClicked: root.controller.requestConfirmation("device.remove", root.controller.device, this)
         }

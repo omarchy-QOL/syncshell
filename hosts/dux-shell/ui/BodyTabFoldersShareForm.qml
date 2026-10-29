@@ -16,11 +16,21 @@ ColumnLayout {
         onCancelled: root.controller.closeForm()
     }
     StyledText {
+        visible: root.controller.shareableDeviceOptions.length === 0
+        Layout.fillWidth: true
+        text: "No remote devices available. Add a remote device below."
+        wrapMode: Text.WordWrap
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.warning
+    }
+    StyledText {
+        visible: root.controller.shareableDeviceOptions.length > 0
         text: "Share with devices"
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.onSurfaceVariant
     }
     SharedWidgetMultiSelect {
+        visible: root.controller.shareableDeviceOptions.length > 0
         Layout.fillWidth: true
         placeholder: "Local only"
         parentPopout: root.parentPopout
@@ -29,16 +39,11 @@ ColumnLayout {
         enabled: !root.controller.busy
         onToggled: value => root.controller.toggleDraft(value)
     }
-    StyledText {
-        Layout.fillWidth: true
-        text: "Select the devices that should share this folder. Saving an empty selection makes it local only."
-        wrapMode: Text.WordWrap
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.onSurfaceVariant
-    }
     SharedWidgetBusyButton {
+        visible: root.controller.shareableDeviceOptions.length > 0
         Layout.fillWidth: true
         text: "Save sharing"
+        busyText: "Saving..."
         primary: true
         busy: root.controller.submitting
         enabled: !!root.controller.service && root.controller.service.online
