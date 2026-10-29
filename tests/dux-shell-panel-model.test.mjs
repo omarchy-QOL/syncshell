@@ -30,7 +30,9 @@ test("fuzzy search preserves the Omarchy matcher and existing result order", () 
     row => row.value), ["a", "z"]);
   assert.deepEqual(Array.from(model.folderOptions(folders, true, null, "name")
     .filter(row => model.matchesOption(row, "dcs")), row => row.label), ["docs", "docs"]);
-  assert.equal(model.matchesOption({ label: "Pictures", value: "photos", description: "/work/trip" }, "wk/t"), true);
+  assert.equal(model.matchesOption({ label: "Pictures", value: "photos", description: "/work/trip" }, "work/t"), true);
+  assert.equal(model.matchesOption({ label: "Pictures", value: "photos", description: "/work/trip" }, "wk/t"), false);
+  assert.equal(model.matchesOption({ label: "st-peer", value: "LF5CEEF-4JNYE4Z-ZOJ2J-LGT7ZAB" }, "zzz"), false);
 });
 
 test("duplicate labels retain distinct IDs and deterministic sorting", () => {

@@ -22,9 +22,14 @@ function matchesSearch(label, query) {
     return true;
 }
 
+// Fuzzy on names like Omarchy; IDs, paths and addresses need a substring, as
+// a fuzzy hit is almost certain in a 56-character device ID.
 function matchesOption(option, query) {
-    return [option.label, option.value, option.description, option.keywords].some(function (text) {
+    var needle = String(query || "").trim().toLowerCase();
+    return [option.label, option.keywords].some(function (text) {
         return matchesSearch(text, query);
+    }) || [option.value, option.description].some(function (text) {
+        return String(text || "").toLowerCase().indexOf(needle) >= 0;
     });
 }
 
