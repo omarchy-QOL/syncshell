@@ -13,7 +13,19 @@ FocusScope {
     property bool success: false
     property real size: UiConstants.CONTROL_HEIGHT
     property bool handlesKeys: true
+    property string tooltipSide: "bottom"
     signal clicked
+
+    // DMS clamps tooltips to the popout surface, whose shadow margin runs past
+    // the screen edge, so right-edge tooltips open to the left instead.
+    function placeTooltip() {
+        const surface = Window.window ? Window.window.contentItem : null;
+        if (!surface)
+            return;
+        const centre = mapToItem(surface, width / 2, 0).x;
+        const half = helpMetrics.advanceWidth / 2 + Theme.spacingM;
+        tooltipSide = centre + half + Theme.spacingXL * 2 > surface.width ? "left" : "bottom";
+    }
 
     activeFocusOnTab: enabled
     implicitWidth: size
@@ -28,6 +40,12 @@ FocusScope {
         event.accepted = true;
         if (!event.isAutoRepeat && enabled)
             clicked();
+    }
+    TextMetrics {
+        id: helpMetrics
+        font.pixelSize: Theme.fontSizeSmall
+        font.family: Theme.fontFamily
+        text: root.help
     }
     StyledRect {
         anchors.fill: parent
@@ -47,6 +65,9 @@ FocusScope {
             anchors.fill: parent
             disabled: !root.enabled
             tooltipText: root.help || null
+            tooltipSide: root.tooltipSide
+            onContainsMouseChanged: if (containsMouse)
+                root.placeTooltip()
             onClicked: root.clicked()
         }
     }

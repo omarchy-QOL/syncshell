@@ -13,46 +13,53 @@ ColumnLayout {
     spacing: Theme.spacingS
     BodyFormHeader {
         Layout.fillWidth: true
-        title: "Accept remote device"
+        title: "Accept remote device request"
         enabled: !root.controller.submitting
         onCancelled: root.controller.closeForm()
     }
-    StyledText {
-        text: "Remote device name"
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.onSurfaceVariant
-    }
-    DTextField {
-        id: nameField
+    // Omarchy's rows: label on the left, value on the right.
+    RowLayout {
         Layout.fillWidth: true
-        implicitHeight: UiConstants.CONTROL_HEIGHT + 4
-        topPadding: 2
-        bottomPadding: 2
-        font.pixelSize: Theme.fontSizeSmall
-        text: root.controller.draft.name || ""
-        enabled: !root.controller.busy
-        onTextEdited: root.controller.setDraft("name", text)
+        spacing: Theme.spacingS
+        StyledText {
+            text: "Name"
+            color: Theme.onSurfaceVariant
+        }
+        DTextField {
+            id: nameField
+            Layout.fillWidth: true
+            implicitHeight: UiConstants.CONTROL_HEIGHT + 4
+            topPadding: 2
+            bottomPadding: 2
+            font.pixelSize: Theme.fontSizeSmall
+            text: root.controller.draft.name || ""
+            placeholderText: "Optional name"
+            enabled: !root.controller.busy
+            onTextEdited: root.controller.setDraft("name", text)
+        }
     }
     SharedWidgetInfoPair {
         Layout.fillWidth: true
-        label: "Address"
-        value: root.controller.draft.address || "Unknown"
+        label: "Observed address"
+        value: root.controller.draft.address || ""
     }
-    StyledText {
+    RowLayout {
         Layout.fillWidth: true
-        text: root.controller.draft.deviceId || ""
-        textFormat: Text.PlainText
-        wrapMode: Text.WrapAnywhere
-        elide: Text.ElideNone
-    }
-    SharedWidgetIdCopyButton {
-        value: root.controller.draft.deviceId || ""
-        caption: "device ID"
-        helpText: "Copy device ID"
+        spacing: Theme.spacingS
+        SharedWidgetInfoPair {
+            Layout.fillWidth: true
+            label: "Device ID"
+            value: root.controller.draft.deviceId || ""
+        }
+        SharedWidgetIdCopyButton {
+            caption: ""
+            value: root.controller.draft.deviceId || ""
+            helpText: "Copy device ID"
+        }
     }
     SharedWidgetBusyButton {
         Layout.fillWidth: true
-        text: "Accept device"
+        text: "Accept remote device connection"
         primary: true
         busy: root.controller.submitting
         enabled: !!root.controller.service && root.controller.service.online
