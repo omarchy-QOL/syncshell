@@ -177,24 +177,13 @@ install_ii() {
 }
 
 install_caelestia() {
-  local checkout="$work/caelestia"
-  readonly caelestia_commit=1d0e5a588c61f1d905eba5fe8446ec222d37f50c
-
-  for command_name in cmake git ninja patch; do
-    require_command "$command_name"
-  done
-  clone_pinned https://github.com/caelestia-dots/shell.git \
-    "$caelestia_commit" "$checkout"
-  bash "$repo_root/integrations/caelestia/apply.sh" "$checkout"
-  cmake -S "$checkout" -B "$checkout/build" -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/ -DVERSION=2.3.0 \
-    -DGIT_REVISION="$caelestia_commit" \
-    -DINSTALL_QSCONFDIR="$HOME/.config/quickshell/caelestia"
-  cmake --build "$checkout/build"
-  sudo cmake --install "$checkout/build"
-  sudo chown -R "$(id -u):$(id -g)" \
-    "$HOME/.config/quickshell/caelestia"
-  restart_vm_shell
+  local target="${XDG_DATA_HOME:-$HOME/.local/share}/caelestia/plugins/syncshell"
+  [[ ! -e $target && ! -L $target ]] || {
+    printf 'plugin target already exists: %s\n' "$target" >&2
+    return 1
+  }
+  bash "$repo_root/integrations/caelestia/assemble.sh" "$target"
+  printf 'Enable syncshell/syncshell in Caelestia plugins and add the syncshell bar entry\n'
 }
 
 install_waybar() {

@@ -1,0 +1,52 @@
+{
+  "hosts/caelestia": {
+    "QtQuick": "QtQuick",
+    "Quickshell": "Quickshell",
+    "Caelestia.Plugins": "Caelestia.Plugins",
+    "Caelestia.Config": "Caelestia.Config",
+    "qs.components": "qs.components",
+    "qs.services": "qs.services",
+    "\".\"": "syncshell.syncshell.hosts.caelestia",
+    "Quickshell.Wayland": "Quickshell.Wayland",
+    "Quickshell.Hyprland": "Quickshell.Hyprland",
+    "\"ui\"": "syncshell.syncshell.hosts.caelestia.ui",
+    "\"../../shared\"": "syncshell.syncshell.shared",
+    "\"controllers\"": "syncshell.syncshell.hosts.caelestia.controllers",
+    "\"models/Ownership.js\"": "\"models/Ownership.js\"",
+    "\"models/PanelModel.js\"": "\"models/PanelModel.js\""
+  },
+  "hosts/caelestia/controllers": {
+    "QtQuick": "QtQuick",
+    "\"../models/PanelModel.js\"": "\"../models/PanelModel.js\"",
+    "\"../models/Ownership.js\"": "\"../models/Ownership.js\"",
+    "qs.services": "qs.services",
+    "\"../../../shared/Paths.js\"": "\"../../../shared/Paths.js\""
+  },
+  "hosts/caelestia/models": {},
+  "hosts/caelestia/ui": {
+    "QtQuick": "QtQuick",
+    "QtQuick.Layouts": "QtQuick.Layouts",
+    "qs.components": "qs.components",
+    "qs.components.controls": "qs.components.controls",
+    "\".\"": "syncshell.syncshell.hosts.caelestia.ui",
+    "\"../models/PanelModel.js\"": "\"../models/PanelModel.js\"",
+    "QtQuick.Controls": "QtQuick.Controls",
+    "Caelestia.Config": "Caelestia.Config",
+    "qs.services": "qs.services",
+    "Quickshell": "Quickshell",
+    "Qt.labs.folderlistmodel": "Qt.labs.folderlistmodel",
+    "qs.components.containers": "qs.components.containers",
+    "\"../../../shared/Paths.js\"": "\"../../../shared/Paths.js\"",
+    "QtQuick.Effects": "QtQuick.Effects"
+  },
+  "shared": {
+    "QtQuick": "QtQuick",
+    "Quickshell": "Quickshell",
+    "\".\"": "syncshell.syncshell.shared",
+    "\"Paths.js\"": "\"Paths.js\"",
+    "Quickshell.Io": "Quickshell.Io"
+  },
+  "integrations/caelestia": {
+    "Caelestia.Plugins": "Caelestia.Plugins"
+  }
+}
