@@ -27,8 +27,10 @@ ColumnLayout {
     spacing: UiConstants.SECTION_SPACING
     Connections {
         target: PopoutService
+        // DMS shows its pending tab right after publishing a lazily loaded
+        // modal, which would replace the plugin page set here.
         function onSettingsModalChanged() {
-            root.finishSettings();
+            Qt.callLater(root.finishSettings);
         }
     }
     Rectangle {
