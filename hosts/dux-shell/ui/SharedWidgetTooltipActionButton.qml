@@ -9,6 +9,8 @@ FocusScope {
     property string iconName: ""
     property string help: ""
     property bool danger: false
+    // Accept actions, green like Omarchy's.
+    property bool success: false
     property real size: UiConstants.CONTROL_HEIGHT
     property bool handlesKeys: true
     signal clicked
@@ -38,7 +40,7 @@ FocusScope {
             anchors.centerIn: parent
             name: root.iconName
             size: Math.round(root.size * 0.6)
-            color: !root.enabled ? Theme.onSurface_38 : root.danger ? Theme.error : Theme.onSurfaceVariant
+            color: !root.enabled ? Theme.onSurface_38 : root.danger ? Theme.error : root.success ? Theme.success : Theme.onSurfaceVariant
         }
         StateLayer {
             id: stateLayer

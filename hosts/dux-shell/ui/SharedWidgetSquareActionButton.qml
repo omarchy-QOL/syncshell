@@ -9,6 +9,7 @@ FocusScope {
     property string help: ""
     property bool busy: false
     property bool danger: false
+    property bool success: false
     property real size: UiConstants.CONTROL_HEIGHT
     signal clicked
 
@@ -30,6 +31,7 @@ FocusScope {
         iconName: root.busy ? "" : root.iconName
         help: root.help
         danger: root.danger
+        success: root.success
         handlesKeys: false
         enabled: root.enabled && !root.busy
         onClicked: root.clicked()

@@ -8,6 +8,12 @@ ColumnLayout {
     required property var controller
     property var parentPopout: null
     spacing: Theme.spacingS
+    readonly property var offers: controller.service ? controller.service.pendingFolderOffers() : []
+    property string selectedOfferKey: ""
+    readonly property var selectedOffer: offers.find(offer => offerKey(offer) === selectedOfferKey) || offers[0] || null
+    function offerKey(offer) {
+        return offer.folderId + "\n" + offer.deviceId;
+    }
     function focusSelector() {
         selector.focusTrigger();
     }
@@ -44,40 +50,57 @@ ColumnLayout {
         Layout.fillHeight: true
         controller: root.controller
     }
-    Repeater {
-        model: root.controller.service ? root.controller.service.pendingFolderOffers() : []
-        ColumnLayout {
-            required property var modelData
+    // Omarchy's pending requests: one selector with accept and reject.
+    ColumnLayout {
+        Layout.fillWidth: true
+        visible: root.offers.length > 0
+        spacing: Theme.spacingXS
+        StyledText {
+            text: "Pending folder requests"
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.onSurfaceVariant
+        }
+        RowLayout {
             Layout.fillWidth: true
-            StyledText {
+            SharedWidgetDropdown {
                 Layout.fillWidth: true
-                text: "Folder invitation: " + modelData.label + " from " + root.controller.service.deviceName(modelData.deviceId)
-                textFormat: Text.PlainText
+                options: root.offers.map(offer => ({
+                            value: root.offerKey(offer),
+                            label: offer.label,
+                            description: "from " + root.controller.service.deviceName(offer.deviceId) + " · " + offer.folderId
+                        }))
+                value: root.selectedOffer ? root.offerKey(root.selectedOffer) : ""
+                placeholder: "No pending requests"
+                parentPopout: root.parentPopout
+                onSelected: value => root.selectedOfferKey = value
             }
-            StyledText {
-                Layout.fillWidth: true
-                visible: modelData.encrypted
-                text: "Encrypted or untrusted shares require setup in Web UI."
-                wrapMode: Text.Wrap
-            }
-            RowLayout {
-                SharedWidgetTooltipButton {
-                    primary: true
-                    text: modelData.encrypted ? "Open Web UI" : "Accept"
-                    enabled: root.controller.fresh && !root.controller.busy
-                    onClicked: {
-                        if (modelData.encrypted)
-                            root.controller.service.openWebUi();
-                        else
-                            root.controller.begin("add-folder", modelData, this);
-                    }
-                }
-                SharedWidgetTooltipButton {
-                    text: "Dismiss"
-                    enabled: root.controller.fresh && !root.controller.busy
-                    onClicked: root.controller.requestConfirmation("folder.dismiss-pending", modelData, this)
+            SharedWidgetSquareActionButton {
+                iconName: "check"
+                success: true
+                help: root.selectedOffer && root.selectedOffer.encrypted ? "Open Web UI to set up this encrypted share" : "Accept folder request"
+                enabled: !!root.selectedOffer && root.controller.fresh && !root.controller.busy
+                onClicked: {
+                    if (root.selectedOffer.encrypted)
+                        root.controller.service.openWebUi();
+                    else
+                        root.controller.begin("add-folder", root.selectedOffer, this);
                 }
             }
+            SharedWidgetSquareActionButton {
+                iconName: "close"
+                danger: true
+                help: "Reject folder request"
+                enabled: !!root.selectedOffer && root.controller.fresh && !root.controller.busy
+                onClicked: root.controller.requestConfirmation("folder.dismiss-pending", root.selectedOffer, this)
+            }
+        }
+        StyledText {
+            Layout.fillWidth: true
+            visible: !!root.selectedOffer && root.selectedOffer.encrypted
+            text: "Encrypted or untrusted shares require setup in Web UI."
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.warning
+            wrapMode: Text.Wrap
         }
     }
 }

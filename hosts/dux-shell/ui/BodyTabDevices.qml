@@ -8,6 +8,9 @@ ColumnLayout {
     required property var controller
     property var parentPopout: null
     spacing: Theme.spacingS
+    readonly property var pendingRows: controller.service ? controller.service.pendingDevices : []
+    property string selectedPendingId: ""
+    readonly property var selectedPending: pendingRows.find(device => device.id === selectedPendingId) || pendingRows[0] || null
     function focusSelector() {
         selector.focusTrigger();
     }
@@ -49,28 +52,43 @@ ColumnLayout {
         Layout.fillHeight: true
         controller: root.controller
     }
-    Repeater {
-        model: root.controller.service ? root.controller.service.pendingDevices : []
-        ColumnLayout {
-            required property var modelData
+    // Omarchy's pending requests: one selector with accept and dismiss.
+    ColumnLayout {
+        Layout.fillWidth: true
+        visible: root.pendingRows.length > 0
+        spacing: Theme.spacingXS
+        StyledText {
+            text: "Pending device requests"
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.onSurfaceVariant
+        }
+        RowLayout {
             Layout.fillWidth: true
-            StyledText {
+            SharedWidgetDropdown {
                 Layout.fillWidth: true
-                text: "Device invitation: " + (modelData.name || modelData.id)
-                textFormat: Text.PlainText
+                options: root.pendingRows.map(device => ({
+                            value: device.id,
+                            label: device.name || device.id,
+                            description: [device.address, device.id].filter(Boolean).join(" · ")
+                        }))
+                value: root.selectedPending ? root.selectedPending.id : ""
+                placeholder: "No pending requests"
+                parentPopout: root.parentPopout
+                onSelected: value => root.selectedPendingId = value
             }
-            RowLayout {
-                SharedWidgetTooltipButton {
-                    primary: true
-                    text: "Accept"
-                    enabled: root.controller.fresh && !root.controller.busy
-                    onClicked: root.controller.begin("accept-device", modelData, this)
-                }
-                SharedWidgetTooltipButton {
-                    text: "Dismiss"
-                    enabled: root.controller.fresh && !root.controller.busy
-                    onClicked: root.controller.requestConfirmation("device.dismiss-pending", modelData, this)
-                }
+            SharedWidgetSquareActionButton {
+                iconName: "check"
+                success: true
+                help: "Accept remote device connection"
+                enabled: !!root.selectedPending && root.controller.fresh && !root.controller.busy
+                onClicked: root.controller.begin("accept-device", root.selectedPending, this)
+            }
+            SharedWidgetSquareActionButton {
+                iconName: "close"
+                danger: true
+                help: "Dismiss incoming device request"
+                enabled: !!root.selectedPending && root.controller.fresh && !root.controller.busy
+                onClicked: root.controller.requestConfirmation("device.dismiss-pending", root.selectedPending, this)
             }
         }
     }
