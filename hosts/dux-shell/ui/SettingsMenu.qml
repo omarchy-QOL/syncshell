@@ -71,10 +71,11 @@ Plugins.PluginSettings {
                 textFormat: Text.PlainText
                 color: Theme.warning
             }
-            SharedWidgetBusyButton {
-                text: "Apply Web UI selection"
-                busy: !!root.host && root.host.theme.busy
-                enabled: !!root.host && !!root.host.service && root.host.service.online
+            // Settings live in the DMS window, so its own buttons fit better
+            // than the panel's compact ones.
+            DButton {
+                text: !!root.host && root.host.theme.busy ? "Applying..." : "Apply Web UI selection"
+                enabled: !!root.host && !!root.host.service && root.host.service.online && !root.host.theme.busy
                 onClicked: root.host.theme.schedule()
             }
             RowLayout {
@@ -183,9 +184,9 @@ Plugins.PluginSettings {
                     text: "Cancel"
                     onClicked: root.confirmCleanup = false
                 }
-                SharedWidgetBusyButton {
-                    text: "Restore default and clean profiles"
-                    busy: !!root.host && root.host.theme.busy
+                DButton {
+                    text: !!root.host && root.host.theme.busy ? "Cleaning..." : "Restore default and clean profiles"
+                    enabled: !!root.host && !root.host.theme.busy
                     onClicked: {
                         if (root.host && root.host.theme.cleanup())
                             root.confirmCleanup = false;
