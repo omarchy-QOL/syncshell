@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.services
+import "../models/PanelModel.js" as Model
 
 QtObject {
     readonly property var palette: ({
@@ -12,10 +13,10 @@ QtObject {
             foreground: String(Colours.palette.m3onSurface),
             muted: String(Colours.palette.m3onSurfaceVariant),
             accent: String(Colours.palette.m3primary),
-            success: String(Colours.palette.m3tertiary),
-            warning: String(Colours.palette.m3secondary),
+            success: String(Colours.palette.m3success),
+            warning: Model.WARNING,
             danger: String(Colours.palette.m3error),
             border: String(Colours.palette.m3outline),
-            info: String(Colours.palette.m3primary)
+            info: Model.INFO
         })
 }

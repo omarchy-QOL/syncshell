@@ -36,7 +36,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: root.folder ? root.controller.folderStatus(root.folder) : ""
-        color: text === "ERROR" ? Colours.palette.m3error : text === "UNKNOWN" || text === "UNLINKED" ? Colours.palette.m3onSurfaceVariant : Colours.palette.m3primary
+        color: Model.statusColour(Colours.palette, Model.folderStateRole(text))
     }
     StyledText {
         Layout.fillWidth: true
@@ -97,6 +97,6 @@ ColumnLayout {
         visible: !!root.folder
         elide: Text.ElideMiddle
         maximumLineCount: 1
-        color: Colours.palette.m3primary
+        color: Model.statusColour(Colours.palette, Model.activityRole(root.controller.service ? root.controller.service.currentActivity.action : ""))
     }
 }

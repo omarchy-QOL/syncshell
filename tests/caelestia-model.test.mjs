@@ -31,7 +31,7 @@ test("duplicate labels, mixed filters, path search and priority sorting preserve
 });
 test("stale state never reports current folder or device status", () => {
   assert.ok(folders.every(f => model.folderState(f, false) === "unknown"));
-  assert.equal(model.deviceStatus({ connected: true }, false), "Status unknown");
+  assert.equal(model.deviceStatus({ connected: true }, false), "UNKNOWN");
   assert.equal(model.selectedId([], "gone"), "");
 });
 test("searching a multiselect does not remove hidden selections", () => {
@@ -185,4 +185,13 @@ test("counts are formatted and pluralized like Omarchy", () => {
   assert.equal(model.plural(1, "shared folder"), "1 shared folder");
   assert.equal(model.plural(2, "shared folder"), "2 shared folders");
   assert.equal(model.statusIconUrl("/opt/p q", "sync", true), "file:///opt/p%20q/assets/mono/status-sync.svg");
+});
+test("status colours keep Omarchy's meanings with Caelestia's palette", () => {
+  const palette = { m3success: "S", m3error: "E", m3onSurfaceVariant: "M" };
+  const colour = state => model.statusColour(palette, model.folderStateRole(state));
+  assert.deepEqual(["SYNCED", "LINKED", "SYNCING", "SCANNING", "SCAN+SYNC", "UNLINKED", "ERROR", "UNKNOWN"].map(colour),
+    ["S", "S", model.WARNING, model.WARNING, model.WARNING, model.WARNING, "E", "M"]);
+  assert.deepEqual(["CONNECTED", "PAUSED", "DISCONNECTED", "UNKNOWN"].map(s => model.statusColour(palette, model.deviceStateRole(s))),
+    ["S", model.WARNING, "M", "M"]);
+  assert.deepEqual(["removing", "upload", "sync"].map(a => model.statusColour(palette, model.activityRole(a))), ["E", "S", model.INFO]);
 });

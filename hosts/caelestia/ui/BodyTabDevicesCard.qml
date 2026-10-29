@@ -28,6 +28,7 @@ ColumnLayout {
     StyledText {
         Layout.fillWidth: true
         text: Model.deviceStatus(root.device, root.controller.fresh)
+        color: Model.statusColour(Colours.palette, Model.deviceStateRole(text))
     }
     StyledText {
         Layout.fillWidth: true

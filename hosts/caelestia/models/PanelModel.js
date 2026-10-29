@@ -115,7 +115,36 @@ function matchesOption(option, query) {
 }
 function deviceStatus(device, fresh) {
     if (!device) return "";
-    return !fresh ? "Status unknown" : device.paused ? "Paused" : device.connected ? "Connected" : "Disconnected";
+    return !fresh ? "UNKNOWN" : device.paused ? "PAUSED" : device.connected ? "CONNECTED" : "DISCONNECTED";
+}
+
+// Omarchy's state meanings (docs/status-colors.md): success when settled,
+// warning while moving or paused, error on failure, muted when unknown.
+function folderStateRole(state) {
+    if (state === "SYNCED" || state === "LINKED")
+        return "success";
+    if (state === "ERROR")
+        return "error";
+    if (["UNLINKED", "SCANNING", "SCAN+SYNC", "SYNCING"].indexOf(state) >= 0)
+        return "warning";
+    return "muted";
+}
+
+function deviceStateRole(state) {
+    return state === "CONNECTED" ? "success" : state === "PAUSED" ? "warning" : "muted";
+}
+
+// Omarchy's activity colours: info while syncing, error removing, success upload.
+function activityRole(action) {
+    return action === "removing" ? "error" : action === "upload" ? "success" : "info";
+}
+
+// Caelestia has no warning or info role, so those keep fixed amber and blue.
+var WARNING = "#ff9800";
+var INFO = "#2196f3";
+function statusColour(palette, role) {
+    return role === "success" ? palette.m3success : role === "error" ? palette.m3error
+        : role === "warning" ? WARNING : role === "info" ? INFO : palette.m3onSurfaceVariant;
 }
 
 function folderStatus(folder, fresh, recentlyLinkedId, activity, rescanning) {

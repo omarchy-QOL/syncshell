@@ -70,15 +70,18 @@ the wallpaper theme; custom and stock themes can override them.
 
 ### Caelestia
 
-Caelestia's palette has `m3success` and `m3error` but no warning or info
-role, and its terminal colors follow the wallpaper rather than ANSI hues.
+`hosts/caelestia/models/PanelModel.js` (`folderStateRole`, `deviceStateRole`,
+`activityRole`, `statusColour`) maps the roles below. Caelestia's palette has
+`m3success` and `m3error` but no warning or info role, and its terminal colors
+follow the wallpaper rather than ANSI hues, so warning and info use fixed
+colors that read the same on every wallpaper.
 
 | Role    | Token                                |
 | ------- | ------------------------------------ |
 | success | `Colours.palette.m3success`          |
-| warning | open                                 |
+| warning | `#ff9800` (fixed)                    |
 | error   | `Colours.palette.m3error`            |
-| info    | open                                 |
+| info    | `#2196f3` (fixed)                    |
 | muted   | `Colours.palette.m3onSurfaceVariant` |
 
 ### Illogical Impulse

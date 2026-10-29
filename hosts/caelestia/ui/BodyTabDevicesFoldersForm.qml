@@ -51,7 +51,7 @@ ColumnLayout {
         StyledText {
             Layout.fillWidth: true
             text: "(acceptance pending/device offline)"
-            color: Colours.palette.m3secondary
+            color: Model.statusColour(Colours.palette, "warning")
             elide: Text.ElideRight
             visible: root.options(false).length > 0
         }
