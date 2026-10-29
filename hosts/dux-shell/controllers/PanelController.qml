@@ -335,12 +335,15 @@ QtObject {
         submitting = false;
         pendingAction = "";
         if (!ok) {
-            error = String(failure && failure.message || "Action failed; your draft has been kept");
             if (action === "folder.add-existing" && failure && failure.code === "path_missing" && !confirmation) {
+                // Omarchy asks to create the directory instead of reporting an error.
+                service.actionError = "";
                 requestConfirmation("folder.add-existing", Object.assign({}, submittedDraft, {
                     deviceIds: (submittedDraft.ids || []).slice()
                 }), returnFocus);
+                return;
             }
+            error = String(failure && failure.message || "Action failed; your draft has been kept");
             return;
         }
         confirmation = null;

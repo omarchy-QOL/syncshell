@@ -56,7 +56,7 @@ ColumnLayout {
         bottomPadding: 2
         font.pixelSize: Theme.fontSizeSmall
         text: root.controller.draft.label || ""
-        placeholderText: "Derived from directory when empty"
+        placeholderText: "Derived from the directory name when empty"
         enabled: !root.controller.busy
         onTextEdited: root.controller.setDraft("label", text)
     }
@@ -86,7 +86,7 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: "Reuse the exact ID to join an existing folder. A new ID creates a different folder identity."
+        text: "Reuse the exact ID to rejoin an existing remote folder. A new ID creates a different folder identity."
         color: Theme.onSurfaceVariant
         font.pixelSize: Theme.fontSizeSmall
         wrapMode: Text.WordWrap
