@@ -296,5 +296,6 @@ function confirmWording(action, t) {
     if (action.indexOf("lifecycle.") === 0)
         return { title: "Change Syncthing service?", message: "This changes the authorized systemd user service for this Syncthing instance.",
             confirm: "Yes", destructive: false };
-    return { title: "Dismiss invitation?", message: "Dismiss this folder invitation from " + name + "? It can reappear if the device offers it again." };
+    return { title: "Reject folder request for " + (t.label || t.folderId) + (t.deviceName ? " (by " + t.deviceName + ")" : "") + "?",
+        message: "This removes the pending announcement without adding the folder." };
 }

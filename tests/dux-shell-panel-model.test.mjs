@@ -320,6 +320,9 @@ test("counts and confirmations match the Omarchy panel", () => {
   assert.match(popup, /cancelText: root\.controller\.folderConfirmAction === "create" \? "Cancel" : "No"/);
   assert.match(popup, /confirmText: "Yes"\n\s+cancelText: "No"/);
   assert.deepEqual([remove.confirm, remove.destructive, forget.confirm, forget.destructive], ["Yes", true, "Yes", true]);
+  const reject = model.confirmText("folder.dismiss-pending", { folderId: "abc", label: "Docs", deviceId: "PEER", deviceName: "peer" });
+  assert.equal(reject.title, "Reject folder request for Docs (by peer)?");
+  assert.equal(reject.message, "This removes the pending announcement without adding the folder.");
   const create = model.confirmText("folder.add-existing", { path: "/srv/a" });
   assert.deepEqual([create.confirm, create.cancel, create.destructive], ["Create and add", "Cancel", false]);
   assert.equal(remove.cancel, "No");

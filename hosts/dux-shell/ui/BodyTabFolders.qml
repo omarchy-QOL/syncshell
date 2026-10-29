@@ -67,7 +67,7 @@ ColumnLayout {
                 options: root.offers.map(offer => ({
                             value: root.offerKey(offer),
                             label: offer.label,
-                            description: "from " + root.controller.service.deviceName(offer.deviceId) + " · " + offer.folderId
+                            description: "from " + root.controller.service.deviceName(offer.deviceId) + (offer.label === offer.folderId ? "" : " · " + offer.folderId)
                         }))
                 value: root.selectedOffer ? root.offerKey(root.selectedOffer) : ""
                 placeholder: "No pending requests"
@@ -91,7 +91,9 @@ ColumnLayout {
                 danger: true
                 help: "Reject folder request"
                 enabled: !!root.selectedOffer && root.controller.fresh && !root.controller.busy
-                onClicked: root.controller.requestConfirmation("folder.dismiss-pending", root.selectedOffer, this)
+                onClicked: root.controller.requestConfirmation("folder.dismiss-pending", Object.assign({
+                        deviceName: root.controller.service.deviceName(root.selectedOffer.deviceId)
+                    }, root.selectedOffer), this)
             }
         }
         StyledText {
