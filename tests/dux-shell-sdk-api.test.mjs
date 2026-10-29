@@ -49,3 +49,9 @@ test("DMS manifest requires the 2.0 SDK", () => {
     "integrations/dux-shell/plugin.json"), "utf8"));
   assert.equal(manifest.requires_dms, ">=2.0.0");
 });
+
+test("settings set their required plugin ID", () => {
+  const manifest = JSON.parse(readFileSync(join(root, "integrations/dux-shell/plugin.json"), "utf8"));
+  const settings = sources.find(source => source.name === "ui/SettingsMenu.qml").text;
+  assert.match(settings, new RegExp(`^\\s*pluginId: "${manifest.id}"$`, "m"));
+});

@@ -9,6 +9,8 @@ import "../controllers"
 // Omarchy's in-panel SettingsMenu; hence the different file name.
 Plugins.PluginSettings {
     id: root
+    // DMS 2.0 loads settings by URL without setting this required property.
+    pluginId: "syncshell"
     property var savedSettings: SettingsData.getPluginSettingsForPlugin(pluginId)
     property var host: pluginService ? pluginService.getGlobalVar(pluginId, "host", null) : null
     property bool confirmCleanup: false
