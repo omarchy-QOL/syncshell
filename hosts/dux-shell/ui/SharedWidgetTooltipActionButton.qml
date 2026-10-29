@@ -66,6 +66,7 @@ FocusScope {
             disabled: !root.enabled
             tooltipText: root.help || null
             tooltipSide: root.tooltipSide
+            tooltipMultiline: root.help.indexOf("\n") >= 0
             onContainsMouseChanged: if (containsMouse)
                 root.placeTooltip()
             onClicked: root.clicked()

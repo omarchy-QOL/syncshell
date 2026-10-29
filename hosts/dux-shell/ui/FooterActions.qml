@@ -36,12 +36,24 @@ ColumnLayout {
         implicitHeight: Theme.outlineWidth
         color: Theme.outlineVariant
     }
-    SharedWidgetTooltipButton {
-        text: "Web UI"
-        iconName: "open_in_new"
-        help: "Open the Syncthing Web UI"
-        enabled: !!root.controller.service && root.controller.service.online && !root.controller.busy
-        onClicked: root.controller.service.openWebUi()
+    Row {
+        spacing: Theme.spacingS
+        SharedWidgetTooltipButton {
+            text: "Web UI"
+            iconName: "open_in_new"
+            help: "Open the Syncthing Web UI"
+            enabled: !!root.controller.service && root.controller.service.online && !root.controller.busy
+            onClicked: root.controller.service.openWebUi()
+        }
+        Repeater {
+            model: ["TUI", "GUI"]
+            SharedWidgetTooltipButton {
+                required property string modelData
+                text: modelData
+                help: "To be added soon."
+                canActivate: false
+            }
+        }
     }
     RowLayout {
         Layout.fillWidth: true

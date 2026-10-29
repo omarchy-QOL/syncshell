@@ -17,19 +17,21 @@ FocusScope {
     property bool leftAlign: false
     property real controlHeight: UiConstants.CONTROL_HEIGHT
     property real fontSize: Theme.fontSizeSmall
+    // Omarchy's placeholders look disabled but keep their tooltip.
+    property bool canActivate: true
     // Wrappers with their own busy rules handle keys themselves.
     property bool handlesKeys: true
-    readonly property color foreground: !enabled ? Theme.onSurface_38 : primary || checked ? Theme.onPrimary : Theme.onSurface
+    readonly property color foreground: !enabled || !canActivate ? Theme.onSurface_38 : primary || checked ? Theme.onPrimary : Theme.onSurface
     signal clicked
 
     function activateKey(event) {
         if ([Qt.Key_Space, Qt.Key_Return, Qt.Key_Enter].indexOf(event.key) < 0)
             return;
         event.accepted = true;
-        if (!event.isAutoRepeat && enabled)
+        if (!event.isAutoRepeat && enabled && canActivate)
             clicked();
     }
-    activeFocusOnTab: enabled
+    activeFocusOnTab: enabled && canActivate
     readonly property real iconRoom: iconName !== "" ? fontSize + 4 + (text !== "" ? Theme.spacingXS : 0) : 0
     implicitWidth: iconRoom + (text !== "" ? label.implicitWidth : 0) + Theme.spacingM * 2
     implicitHeight: controlHeight
@@ -43,7 +45,7 @@ FocusScope {
         id: surface
         anchors.fill: parent
         radius: Theme.buttonRadius(width, height, root.controlHeight, stateLayer.pressed, !root.flat)
-        color: !root.enabled && !root.flat ? Theme.onSurface_12 : root.primary || root.checked ? Theme.primary : root.flat ? "transparent" : Theme.chipSurface
+        color: (!root.enabled || !root.canActivate) && !root.flat ? Theme.onSurface_12 : root.primary || root.checked ? Theme.primary : root.flat ? "transparent" : Theme.chipSurface
         FocusRing {
             visible: root.activeFocus
         }
@@ -80,9 +82,13 @@ FocusScope {
             id: stateLayer
             anchors.fill: parent
             disabled: !root.enabled
-            stateColor: root.foreground
+            stateColor: root.canActivate ? root.foreground : "transparent"
+            cursorShape: root.canActivate ? Qt.PointingHandCursor : Qt.ArrowCursor
             tooltipText: root.help || null
-            onClicked: root.clicked()
+            // Single-line tooltips drop everything after a line break.
+            tooltipMultiline: root.help.indexOf("\n") >= 0
+            onClicked: if (root.canActivate)
+                root.clicked()
         }
     }
 }
