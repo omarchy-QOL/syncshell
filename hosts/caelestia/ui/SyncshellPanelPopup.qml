@@ -235,8 +235,10 @@ FocusScope {
                     // the taller page and the cards absorb the difference.
                     StackLayout {
                         Layout.fillWidth: true
+                        Layout.preferredHeight: Math.max(folderPage.implicitHeight, devicePage.implicitHeight)
                         currentIndex: root.controller.view.tab === "folders" ? 0 : 1
                         ColumnLayout {
+                            id: folderPage
                             spacing: root.gap
                             StyledText {
                                 Layout.fillWidth: true
@@ -257,6 +259,7 @@ FocusScope {
                             }
                         }
                         ColumnLayout {
+                            id: devicePage
                             spacing: root.gap
                             BodyTabDevicesCard {
                                 Layout.fillWidth: true
