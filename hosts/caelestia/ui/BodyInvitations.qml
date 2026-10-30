@@ -9,13 +9,13 @@ import "."
 import "../models/PanelModel.js" as Model
 
 // Omarchy shows pending requests under each tab's card. Caelestia's tabs
-// share one toolbar and body, so there is no BodyTabFolders or BodyTabDevices
-// file; this one switches with the tab.
+// share one toolbar, so there is no BodyTabFolders or BodyTabDevices file;
+// each tab page holds one of these instead.
 ColumnLayout {
     id: root
     required property var controller
     signal formRequested(string kind, var target, Item trigger)
-    readonly property bool folders: controller.view.tab === "folders"
+    property bool folders: true
     readonly property var rows: folders ? controller.service.pendingFolderOffers().map(offer => ({
                 value: offer.folderId + "\n" + offer.deviceId,
                 label: offer.label || offer.folderId,

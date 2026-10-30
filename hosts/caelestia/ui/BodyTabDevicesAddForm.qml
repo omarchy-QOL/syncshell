@@ -47,10 +47,10 @@ ColumnLayout {
     Caption {
         text: "Device ID"
     }
-    StyledTextField {
+    SharedWidgetTextField {
         Layout.fillWidth: true
         objectName: "syncshellInitialFocus"
-        placeholderText: "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-..."
+        hint: "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-..."
         text: root.controller.view.draft.deviceId || ""
         readOnly: root.controller.busy
         onTextEdited: root.controller.draft({
@@ -68,9 +68,9 @@ ColumnLayout {
     Caption {
         text: "Remote device name"
     }
-    StyledTextField {
+    SharedWidgetTextField {
         Layout.fillWidth: true
-        placeholderText: "Optional; adopted from the remote when empty"
+        hint: "Optional; adopted from the remote when empty"
         text: root.controller.view.draft.deviceName || ""
         readOnly: root.controller.busy
         onTextEdited: root.controller.draft({

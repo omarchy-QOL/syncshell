@@ -231,26 +231,45 @@ FocusScope {
                             }
                         }
                     }
-                    StyledText {
+                    // One height for both tabs, as in Omarchy: the stack takes
+                    // the taller page and the cards absorb the difference.
+                    StackLayout {
                         Layout.fillWidth: true
-                        visible: root.controller.view.tab === "folders" && !!root.controller.folder && !mainSelector.filtered.some(o => o.value === root.controller.view.folderId)
-                        text: "Selected folder is hidden by the filter"
-                        wrapMode: Text.Wrap
-                    }
-                    BodyTabFoldersCard {
-                        Layout.fillWidth: true
-                        controller: root.controller
-                        visible: root.controller.view.tab === "folders"
-                    }
-                    BodyTabDevicesCard {
-                        Layout.fillWidth: true
-                        controller: root.controller
-                        visible: root.controller.view.tab === "devices"
-                    }
-                    BodyInvitations {
-                        Layout.fillWidth: true
-                        controller: root.controller
-                        onFormRequested: (kind, target, trigger) => root.form(kind, target, trigger)
+                        currentIndex: root.controller.view.tab === "folders" ? 0 : 1
+                        ColumnLayout {
+                            spacing: root.gap
+                            StyledText {
+                                Layout.fillWidth: true
+                                visible: !!root.controller.folder && !mainSelector.filtered.some(o => o.value === root.controller.view.folderId)
+                                text: "Selected folder is hidden by the filter"
+                                wrapMode: Text.Wrap
+                            }
+                            BodyTabFoldersCard {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                controller: root.controller
+                            }
+                            BodyInvitations {
+                                Layout.fillWidth: true
+                                controller: root.controller
+                                folders: true
+                                onFormRequested: (kind, target, trigger) => root.form(kind, target, trigger)
+                            }
+                        }
+                        ColumnLayout {
+                            spacing: root.gap
+                            BodyTabDevicesCard {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                controller: root.controller
+                            }
+                            BodyInvitations {
+                                Layout.fillWidth: true
+                                controller: root.controller
+                                folders: false
+                                onFormRequested: (kind, target, trigger) => root.form(kind, target, trigger)
+                            }
+                        }
                     }
                     // A disclosure, as in Omarchy: chevron plus More/Less.
                     IconTextButton {

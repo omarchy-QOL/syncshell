@@ -78,6 +78,10 @@ StyledRect {
                 font.weight: Font.Bold
             }
         }
+        // Spare height from the taller tab stays inside the card.
+        Item {
+            Layout.fillHeight: true
+        }
         RowLayout {
             Layout.fillWidth: true
             spacing: Tokens.spacing.small

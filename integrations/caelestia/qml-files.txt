@@ -30,6 +30,7 @@ hosts/caelestia/ui/SharedWidgetIdCopyButton.qml
 hosts/caelestia/ui/SharedWidgetInfoPair.qml
 hosts/caelestia/ui/SharedWidgetMonoIcon.qml
 hosts/caelestia/ui/SharedWidgetSquareActionButton.qml
+hosts/caelestia/ui/SharedWidgetTextField.qml
 hosts/caelestia/ui/SharedWidgetToolTip.qml
 hosts/caelestia/ui/SyncshellPanelPopup.qml
 shared/AdapterService.qml

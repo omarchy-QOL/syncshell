@@ -27,10 +27,10 @@ ColumnLayout {
         Caption {
             text: "Name"
         }
-        StyledTextField {
+        SharedWidgetTextField {
             Layout.fillWidth: true
             objectName: "syncshellInitialFocus"
-            placeholderText: "Optional name"
+            hint: "Optional name"
             text: root.controller.view.draft.deviceName || ""
             readOnly: root.controller.busy
             onTextEdited: root.controller.draft({

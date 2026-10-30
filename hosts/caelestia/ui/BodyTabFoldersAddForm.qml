@@ -31,10 +31,10 @@ ColumnLayout {
     }
     RowLayout {
         Layout.fillWidth: true
-        StyledTextField {
+        SharedWidgetTextField {
             objectName: "syncshellInitialFocus"
             Layout.fillWidth: true
-            placeholderText: "/path/to/my/folder"
+            hint: "/path/to/my/folder"
             text: root.controller.view.draft.path || ""
             readOnly: root.locked
             onTextEdited: root.controller.draft({
@@ -51,9 +51,9 @@ ColumnLayout {
     Caption {
         text: "Label"
     }
-    StyledTextField {
+    SharedWidgetTextField {
         Layout.fillWidth: true
-        placeholderText: "Derived from the directory name when empty"
+        hint: "Derived from the directory name when empty"
         text: root.controller.view.draft.label || ""
         readOnly: root.locked
         onTextEdited: root.controller.draft({
@@ -65,9 +65,9 @@ ColumnLayout {
     }
     RowLayout {
         Layout.fillWidth: true
-        StyledTextField {
+        SharedWidgetTextField {
             Layout.fillWidth: true
-            placeholderText: root.controller.idSuggestionPending ? "Generating..." : "Required folder identity"
+            hint: root.controller.idSuggestionPending ? "Generating..." : "Required folder identity"
             text: root.controller.view.draft.folderId || ""
             readOnly: root.locked || !!root.controller.view.draft.pendingDeviceId
             onTextEdited: root.controller.draft({

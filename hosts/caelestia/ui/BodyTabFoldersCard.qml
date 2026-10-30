@@ -74,6 +74,10 @@ StyledRect {
             font: Tokens.font.label.medium
             color: Model.statusColour(Colours.palette, Model.activityRole(root.controller.service ? root.controller.service.currentActivity.action : ""))
         }
+        // Spare height from the taller tab stays inside the card.
+        Item {
+            Layout.fillHeight: true
+        }
         RowLayout {
             Layout.fillWidth: true
             spacing: Tokens.spacing.small
