@@ -236,18 +236,19 @@ FocusScope {
                     // overlaid rather than stacked, as a hidden page measures
                     // its children as empty.
                     Item {
+                        id: tabPages
                         readonly property bool folders: root.controller.view.tab === "folders"
                         Layout.fillWidth: true
                         implicitHeight: Math.max(folderPage.implicitHeight, devicePage.implicitHeight)
                         ColumnLayout {
                             id: folderPage
                             anchors.fill: parent
-                            opacity: parent.folders ? 1 : 0
-                            enabled: parent.folders
+                            opacity: tabPages.folders ? 1 : 0
+                            enabled: tabPages.folders
                             spacing: root.gap
                             StyledText {
                                 Layout.fillWidth: true
-                                visible: !!root.controller.folder && !mainSelector.filtered.some(o => o.value === root.controller.view.folderId)
+                                visible: tabPages.folders && !!root.controller.folder && !mainSelector.filtered.some(o => o.value === root.controller.view.folderId)
                                 text: "Selected folder is hidden by the filter"
                                 wrapMode: Text.Wrap
                             }
@@ -266,8 +267,8 @@ FocusScope {
                         ColumnLayout {
                             id: devicePage
                             anchors.fill: parent
-                            opacity: parent.folders ? 0 : 1
-                            enabled: !parent.folders
+                            opacity: tabPages.folders ? 0 : 1
+                            enabled: !tabPages.folders
                             spacing: root.gap
                             BodyTabDevicesCard {
                                 Layout.fillWidth: true
