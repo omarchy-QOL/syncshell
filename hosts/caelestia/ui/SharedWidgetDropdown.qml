@@ -125,10 +125,10 @@ Item {
             id: contentColumn
             RowLayout {
                 Layout.fillWidth: true
-                StyledTextField {
+                SharedWidgetTextField {
                     id: search
                     Layout.fillWidth: true
-                    placeholderText: "Search"
+                    hint: "Search"
                     text: root.query
                     onTextEdited: {
                         if (root.searchOwner)
@@ -172,20 +172,72 @@ Item {
                 QQC.ScrollBar.vertical: StyledScrollBar {
                     flickable: list
                 }
-                delegate: SharedWidgetBusyButton {
+                // DMS-like rows: name, dim detail line, state on the right.
+                delegate: StyledRect {
+                    id: row
                     required property var modelData
                     required property int index
+                    readonly property bool picked: root.multiple && root.selectedIds.includes(modelData.value)
+                    readonly property string role: Model.folderStateRole(modelData.status || "") !== "muted" ? Model.folderStateRole(modelData.status || "") : Model.deviceStateRole(modelData.status || "")
                     width: ListView.view.width
-                    caption: (root.multiple && root.selectedIds.includes(modelData.value) ? "[x] " : "") + modelData.label + (modelData.status ? " · " + modelData.status : "") + (modelData.detail ? "\n" + modelData.detail : "")
-                    help: modelData.help || modelData.detail || ""
-                    label.wrapMode: Text.Wrap
-                    label.width: width - horizontalPadding * 2
-                    isToggle: true
-                    type: TextButton.Tonal
-                    checked: ListView.isCurrentItem
-                    onClicked: {
-                        list.currentIndex = index;
-                        root.select(modelData.value);
+                    implicitHeight: rowContent.implicitHeight + root.Tokens.padding.small * 2
+                    radius: root.Tokens.rounding.small
+                    color: ListView.isCurrentItem ? Colours.palette.m3secondaryContainer : "transparent"
+                    Accessible.role: Accessible.ListItem
+                    Accessible.name: modelData.label
+                    StateLayer {
+                        color: Colours.palette.m3onSurface
+                        onClicked: {
+                            list.currentIndex = row.index;
+                            root.select(row.modelData.value);
+                        }
+                    }
+                    SharedWidgetToolTip {
+                        visible: rowHover.hovered && !!(row.modelData.help || row.modelData.detail)
+                        text: row.modelData.help || row.modelData.detail || ""
+                    }
+                    HoverHandler {
+                        id: rowHover
+                    }
+                    RowLayout {
+                        id: rowContent
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: root.Tokens.padding.medium
+                        anchors.rightMargin: root.Tokens.padding.medium
+                        spacing: root.Tokens.spacing.small
+                        MaterialIcon {
+                            visible: root.multiple
+                            text: row.picked ? "check_box" : "check_box_outline_blank"
+                            color: row.picked ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                            fontStyle: root.Tokens.font.icon.medium
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: row.modelData.label
+                                textFormat: Text.PlainText
+                                elide: Text.ElideRight
+                            }
+                            StyledText {
+                                Layout.fillWidth: true
+                                visible: !!row.modelData.detail
+                                text: row.modelData.detail || ""
+                                textFormat: Text.PlainText
+                                elide: Text.ElideMiddle
+                                font: root.Tokens.font.label.medium
+                                color: Colours.palette.m3onSurfaceVariant
+                            }
+                        }
+                        StyledText {
+                            visible: !!row.modelData.status
+                            text: row.modelData.status || ""
+                            font: root.Tokens.font.label.medium
+                            color: Model.statusColour(Colours.palette, row.role)
+                        }
                     }
                 }
                 Keys.onPressed: event => {
