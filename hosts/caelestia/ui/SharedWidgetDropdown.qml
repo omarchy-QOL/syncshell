@@ -39,14 +39,52 @@ Item {
     signal chosen(string value)
     signal toggled(string value)
 
-    SharedWidgetBusyButton {
+    // A field-like trigger: caption left, chevron right, as in Omarchy.
+    StyledRect {
         id: trigger
         anchors.fill: parent
-        caption: root.multiple ? (root.selectedIds.length ? root.selectedIds.length + " selected" : root.placeholder) : (root.options.find(o => o.value === root.value)?.label || root.placeholder)
-        disabled: root.disabled
-        label.elide: Text.ElideRight
-        label.width: width - horizontalPadding * 2
-        onClicked: menu.open()
+        implicitWidth: triggerLabel.implicitWidth + chevron.implicitWidth + Tokens.padding.medium * 3
+        implicitHeight: Math.max(triggerLabel.implicitHeight, chevron.implicitHeight) + Tokens.padding.small * 2
+        radius: Tokens.rounding.small
+        color: root.disabled ? Colours.tPalette.m3surfaceContainer : Colours.palette.m3surfaceContainerHigh
+        border.width: activeFocus ? 2 : 1
+        border.color: activeFocus || menu.visible ? Colours.palette.m3primary : Colours.palette.m3outlineVariant
+        activeFocusOnTab: !root.disabled
+        Accessible.role: Accessible.ComboBox
+        Accessible.name: triggerLabel.text
+        Keys.onPressed: event => {
+            if ([Qt.Key_Return, Qt.Key_Enter, Qt.Key_Space, Qt.Key_Down].includes(event.key)) {
+                event.accepted = true;
+                if (!event.isAutoRepeat && !root.disabled)
+                    menu.open();
+            }
+        }
+        StateLayer {
+            color: Colours.palette.m3onSurface
+            disabled: root.disabled
+            onClicked: menu.open()
+        }
+        StyledText {
+            id: triggerLabel
+            anchors.left: parent.left
+            anchors.right: chevron.left
+            anchors.leftMargin: Tokens.padding.medium
+            anchors.rightMargin: Tokens.padding.small
+            anchors.verticalCenter: parent.verticalCenter
+            text: root.multiple ? (root.selectedIds.length ? root.selectedIds.length + " selected" : root.placeholder) : (root.options.find(o => o.value === root.value)?.label || root.placeholder)
+            textFormat: Text.PlainText
+            elide: Text.ElideRight
+            color: root.disabled ? Colours.palette.m3outline : Colours.palette.m3onSurface
+        }
+        MaterialIcon {
+            id: chevron
+            anchors.right: parent.right
+            anchors.rightMargin: Tokens.padding.medium
+            anchors.verticalCenter: parent.verticalCenter
+            text: menu.visible ? "expand_less" : "expand_more"
+            color: Colours.palette.m3onSurfaceVariant
+            fontStyle: Tokens.font.icon.medium
+        }
     }
     QQC.Popup {
         id: menu

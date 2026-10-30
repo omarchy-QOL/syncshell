@@ -116,6 +116,7 @@ ColumnLayout {
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         caption: "Add folder"
+        primary: true
         busyCaption: "Adding..."
         busy: root.controller.busy
         onClicked: root.controller.submitForm()

@@ -115,6 +115,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.hasShares
         caption: "Save sharing"
+        primary: true
         busyCaption: "Saving..."
         busy: root.controller.busy
         onClicked: root.controller.submitForm()

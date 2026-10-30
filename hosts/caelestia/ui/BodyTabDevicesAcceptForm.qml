@@ -59,6 +59,7 @@ ColumnLayout {
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         caption: "Accept remote device connection"
+        primary: true
         busyCaption: "Accepting..."
         busy: root.controller.busy
         onClicked: root.controller.submitForm()

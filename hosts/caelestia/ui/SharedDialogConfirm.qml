@@ -86,6 +86,7 @@ QQC.Popup {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 caption: root.controller.view.confirmation?.confirm || "Yes"
+                primary: true
                 busy: root.controller.busy
                 inactiveColour: destructive ? Colours.palette.m3error : Colours.palette.m3primary
                 inactiveOnColour: destructive ? Colours.palette.m3onError : Colours.palette.m3onPrimary

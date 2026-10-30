@@ -80,6 +80,7 @@ ColumnLayout {
     SharedWidgetBusyButton {
         Layout.fillWidth: true
         caption: "Add remote device"
+        primary: true
         busyCaption: "Adding..."
         busy: root.controller.busy
         onClicked: root.controller.submitForm()

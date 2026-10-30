@@ -12,6 +12,7 @@ ColumnLayout {
     RowLayout {
         SharedWidgetBusyButton {
             caption: "Web UI"
+            icon: "open_in_new"
             help: "Open the Syncthing Web UI"
             disabled: !root.controller.service.online || root.controller.busy
             onClicked: root.controller.service.openWebUi()
@@ -35,6 +36,7 @@ ColumnLayout {
         SharedWidgetBusyButton {
             Layout.fillWidth: true
             caption: "Rescan all folders"
+            icon: "refresh"
             busyCaption: "Rescanning..."
             busy: root.controller.service.busy && root.controller.service._actionName === "folder.rescan-all"
             help: !root.controller.fresh ? "Refresh current status before rescanning" : "Rescan all folders for local changes."
@@ -44,6 +46,7 @@ ColumnLayout {
         SharedWidgetBusyButton {
             Layout.fillWidth: true
             caption: "Refresh Sync.status"
+            icon: "monitor_heart"
             busyCaption: "Rechecking Syncthing"
             help: "Request latest Syncthing state.\nActive folders with current errors\nrescanned and errors rechecked."
             busy: root.controller.service.refreshing || root.controller.service.busy && root.controller.service._actionName === "folder.recheck-errors"

@@ -6,17 +6,31 @@ import qs.components.controls
 import qs.services
 import "."
 
-TextButton {
+// Tonal by default like the other shell controls; `primary` fills the main
+// action. An optional icon leads the caption, as in Omarchy.
+IconTextButton {
     id: root
     label.textFormat: Text.PlainText
+    property bool primary: false
+    type: primary ? TextButton.Filled : TextButton.Tonal
+    iconLabel.visible: icon !== "" && !busy
     property bool busy: false
     property string caption: ""
+    // Caps the caption width; longer captions end with an ellipsis.
+    property real maxCaptionWidth: -1
     property string busyCaption: "Working..."
     property string help: ""
     property string feedback: ""
     property string copyValue: ""
-    text: feedback || (busy ? busyCaption : caption)
-    implicitWidth: Math.max(idleMetrics.width, busyMetrics.width, feedbackMetrics.width) + horizontalPadding * 2
+    text: feedback || (busy ? busyCaption : maxCaptionWidth > 0 ? elideMetrics.elidedText : caption)
+    implicitWidth: Math.max(maxCaptionWidth > 0 ? Math.min(idleMetrics.width, maxCaptionWidth) : idleMetrics.width, busyMetrics.width, feedbackMetrics.width) + (icon !== "" ? iconLabel.implicitWidth + spacing : 0) + horizontalPadding * 2
+    TextMetrics {
+        id: elideMetrics
+        font: root.font
+        text: root.caption
+        elide: Text.ElideRight
+        elideWidth: root.maxCaptionWidth
+    }
     TextMetrics {
         id: idleMetrics
         font: root.font
