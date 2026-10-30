@@ -36,6 +36,9 @@ Item {
     property string localQuery: ""
     readonly property string query: searchOwner ? searchOwner.view.search : localQuery
     readonly property var filtered: options.filter(o => Model.matchesOption(o, query))
+    function focusTrigger() {
+        trigger.forceActiveFocus();
+    }
     signal chosen(string value)
     signal toggled(string value)
 

@@ -91,4 +91,48 @@ ColumnLayout {
         label: "Tracked"
         value: Model.formatCount(root.totals.files) + " files · " + Model.bytes(root.totals.bytes)
     }
+    // Omarchy shows an action notice in green for 10 s, then fades it out.
+    property string shownNotice: ""
+    property bool noticeShown: false
+    Connections {
+        target: root.service
+        function onActionNoticeChanged() {
+            if (!root.service.actionNotice)
+                return;
+            root.shownNotice = root.service.actionNotice;
+            root.noticeShown = true;
+            noticeFade.stop();
+            noticeDisplay.restart();
+        }
+    }
+    Timer {
+        id: noticeDisplay
+        interval: 10000
+        onTriggered: {
+            root.noticeShown = false;
+            noticeFade.restart();
+        }
+    }
+    Timer {
+        id: noticeFade
+        interval: 350
+        onTriggered: if (!root.noticeShown)
+            root.shownNotice = ""
+    }
+    StyledText {
+        Layout.fillWidth: true
+        visible: root.shownNotice !== ""
+        text: root.shownNotice
+        textFormat: Text.PlainText
+        wrapMode: Text.Wrap
+        font: Tokens.font.label.medium
+        color: Colours.palette.m3success
+        opacity: root.noticeShown ? 1 : 0
+        Behavior on opacity {
+            NumberAnimation {
+                duration: root.noticeShown ? 0 : 350
+                easing.type: Easing.OutCubic
+            }
+        }
+    }
 }

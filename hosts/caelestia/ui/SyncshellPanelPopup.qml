@@ -67,10 +67,12 @@ FocusScope {
             if (name === "form" && root.hasForm) {
                 if (!focusEditor(sideContent))
                     focusFirst(sideContent);
-            } else if (name === "formTrigger" && root.formTrigger?.enabled)
+            } else if (name === "formTrigger" && root.formTrigger?.enabled && root.formTrigger.visible)
                 root.formTrigger.forceActiveFocus();
             else
-                folderTab.forceActiveFocus();
+                // As in Omarchy, the current tab's selector takes focus; an
+                // accepted request's button has gone by now.
+                mainSelector.focusTrigger();
         });
     }
     Keys.onPressed: event => {
@@ -322,8 +324,10 @@ FocusScope {
                 Layout.fillWidth: true
                 StyledText {
                     Layout.fillWidth: true
-                    text: root.controller.error || root.owner.preferences.error || root.controller.service.lastError || root.controller.service.actionNotice
+                    // Notices show in the header, as in Omarchy; errors stay here.
+                    text: root.controller.error || root.owner.preferences.error || root.controller.service.lastError
                     textFormat: Text.PlainText
+                    color: Colours.palette.m3error
                     visible: !!text
                     wrapMode: Text.Wrap
                 }
