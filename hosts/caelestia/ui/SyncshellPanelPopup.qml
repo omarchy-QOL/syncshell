@@ -231,14 +231,19 @@ FocusScope {
                             }
                         }
                     }
-                    // One height for both tabs, as in Omarchy: the stack takes
-                    // the taller page and the cards absorb the difference.
-                    StackLayout {
+                    // One height for both tabs, as in Omarchy: the taller page
+                    // sets it and the cards absorb the difference. The pages are
+                    // overlaid rather than stacked, as a hidden page measures
+                    // its children as empty.
+                    Item {
+                        readonly property bool folders: root.controller.view.tab === "folders"
                         Layout.fillWidth: true
-                        Layout.preferredHeight: Math.max(folderPage.implicitHeight, devicePage.implicitHeight)
-                        currentIndex: root.controller.view.tab === "folders" ? 0 : 1
+                        implicitHeight: Math.max(folderPage.implicitHeight, devicePage.implicitHeight)
                         ColumnLayout {
                             id: folderPage
+                            anchors.fill: parent
+                            opacity: parent.folders ? 1 : 0
+                            enabled: parent.folders
                             spacing: root.gap
                             StyledText {
                                 Layout.fillWidth: true
@@ -260,6 +265,9 @@ FocusScope {
                         }
                         ColumnLayout {
                             id: devicePage
+                            anchors.fill: parent
+                            opacity: parent.folders ? 0 : 1
+                            enabled: !parent.folders
                             spacing: root.gap
                             BodyTabDevicesCard {
                                 Layout.fillWidth: true
