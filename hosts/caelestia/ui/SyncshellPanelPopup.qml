@@ -294,9 +294,14 @@ FocusScope {
                         border.color: Colours.palette.m3primary
                         Accessible.role: Accessible.Button
                         Accessible.name: root.controller.view.more ? "Hide details" : "Show details"
-                        onClicked: root.controller.update({
-                            more: !root.controller.view.more
-                        })
+                        onClicked: {
+                            root.controller.update({
+                                more: !root.controller.view.more
+                            });
+                            // A capped panel scrolls; bring the opened details into view.
+                            if (root.controller.view.more)
+                                Qt.callLater(() => bodyScroll.contentY = Math.max(0, bodyScroll.contentHeight - bodyScroll.height));
+                        }
                         Keys.onPressed: event => {
                             if ([Qt.Key_Return, Qt.Key_Enter, Qt.Key_Space].includes(event.key)) {
                                 event.accepted = true;
