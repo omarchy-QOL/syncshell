@@ -107,7 +107,7 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        text: (root.controller.draft.ids || []).length ? "Only the selected devices will share this folder." : "Local only: not shared with other devices."
+        text: (root.controller.draft.ids || []).length ? "Selected devices receive a share offer and may need to accept it." : "Local only: not shared with other devices."
         color: Theme.onSurfaceVariant
         font.pixelSize: Theme.fontSizeSmall
     }
