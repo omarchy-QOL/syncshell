@@ -38,14 +38,21 @@ QQC.Popup {
     }
     background: StyledRect {
         color: Colours.palette.m3surfaceContainerHigh
-        radius: root.tokens.Tokens.rounding.medium
+        radius: root.tokens.Tokens.rounding.large
+    }
+    // Dim the panel behind, as Omarchy's and DMS's confirmations do.
+    QQC.Overlay.modal: StyledRect {
+        color: Qt.rgba(0, 0, 0, 0.45)
+        radius: root.tokens.Tokens.rounding.large
     }
     contentItem: ColumnLayout {
         id: contentColumn
+        spacing: root.tokens.Tokens.spacing.medium
         StyledText {
             Layout.fillWidth: true
             text: root.controller.view.confirmation?.title || ""
             textFormat: Text.PlainText
+            font: root.tokens.Tokens.font.title.small
             wrapMode: Text.Wrap
         }
         StyledFlickable {
@@ -67,6 +74,7 @@ QQC.Popup {
                     Layout.fillWidth: true
                     text: root.controller.view.confirmation?.detail || ""
                     textFormat: Text.PlainText
+                    color: Colours.palette.m3onSurfaceVariant
                     wrapMode: Text.Wrap
                 }
                 StyledText {
