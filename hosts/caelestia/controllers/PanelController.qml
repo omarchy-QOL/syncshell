@@ -372,6 +372,8 @@ QtObject {
                 else
                     root.restoreFocus("main");
             } else if (action === "folder.add-existing" && failure && failure.code === "path_missing") {
+                // Omarchy asks to create the directory instead of reporting an error.
+                root.service.actionError = "";
                 frozen.createDirectory = true;
                 root.update({
                     confirmation: null
