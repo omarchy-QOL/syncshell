@@ -57,14 +57,41 @@ Item {
     Connections {
         target: root.popouts
         function onHasCurrentChanged() {
-            if (root.popouts.hasCurrent || !root.pinned)
+            if (root.popouts.hasCurrent) {
+                root.reshowPending = false;
+                return;
+            }
+            if (!root.pinned)
                 return;
             // The host wrapper binds focus to hasCurrent, so re-showing takes
             // keyboard focus from the overview; hand it back to the same item.
-            const focused = root.popouts.currentName === Model.overviewPopout ? root.Window.window?.activeFocusItem : null;
-            root.show();
-            if (focused)
-                focused.forceActiveFocus();
+            if (root.popouts.currentName === Model.overviewPopout) {
+                const focused = root.Window.window?.activeFocusItem;
+                root.show();
+                if (focused)
+                    focused.forceActiveFocus();
+                return;
+            }
+            // Gliding over from a hover popout bends the host's background,
+            // and its blob does not redraw when it snaps back to rest, which
+            // left the background 2 px off. Wait for the close to finish and
+            // open fresh instead.
+            root.reshowPending = true;
+            root.reshowWhenClosed();
+        }
+    }
+    property bool reshowPending: false
+    readonly property var popoutsWrapper: host?.panels?.popoutsWrapper ?? null
+    function reshowWhenClosed() {
+        if (reshowPending && pinned && popoutsWrapper && popoutsWrapper.offsetScale >= 1) {
+            reshowPending = false;
+            show();
+        }
+    }
+    Connections {
+        target: root.popoutsWrapper
+        function onOffsetScaleChanged() {
+            root.reshowWhenClosed();
         }
     }
     readonly property bool svgIcon: root.settings.icon === "themed" || root.settings.icon === "branded"
