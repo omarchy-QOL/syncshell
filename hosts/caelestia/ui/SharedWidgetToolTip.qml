@@ -15,24 +15,30 @@ QQC.ToolTip {
     margins: tokens.Tokens.padding.small
     padding: tokens.Tokens.padding.medium
     width: Math.min(tokens.Tokens.font.body.small.pointSize * 36, label.implicitWidth + padding * 2)
-    // The inactive tab page is transparent but still hovered; its tips stay hidden.
+    // The inactive tab page is transparent but still hovered, and a modal
+    // confirmation does not stop hover beneath it; tips stay hidden then.
     property bool onHiddenPage: false
+    property var panel: null
+    readonly property bool suppressed: onHiddenPage || !!panel && panel.modalOpen === true
     function transparent(item) {
-        for (let node = item; node; node = node.parent)
+        for (let node = item; node; node = node.parent) {
+            if (node.objectName === "syncshellPanel")
+                panel = node;
             if (node.opacity === 0)
                 return true;
+        }
         return false;
     }
     onAboutToShow: onHiddenPage = transparent(parent)
     contentItem: StyledText {
         id: label
-        visible: !root.onHiddenPage
+        visible: !root.suppressed
         text: root.text
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
     }
     background: StyledRect {
-        visible: !root.onHiddenPage
+        visible: !root.suppressed
         color: Colours.palette.m3surfaceContainerHigh
         radius: root.tokens.Tokens.rounding.medium
     }

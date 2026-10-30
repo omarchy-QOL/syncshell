@@ -24,6 +24,8 @@ FocusScope {
     property real formWidth: Tokens.font.body.small.pointSize * 36
     readonly property real gap: Tokens.spacing.large
     readonly property bool hasForm: !!controller.view.form
+    // Tooltips stay hidden while a confirmation covers the panel.
+    readonly property bool modalOpen: !!controller.view.confirmation
     readonly property real mainNaturalHeight: header.implicitHeight + bodyContent.implicitHeight + footer.implicitHeight + gap * 2
     readonly property var geometry: Model.geometry(mainWidth, mainNaturalHeight, hasForm ? formWidth : 0, sideContent.implicitHeight + gap * 2, controller.view.formAnchor, availableWidth, availableHeight, anchorCenter, gap)
     signal dismissed
