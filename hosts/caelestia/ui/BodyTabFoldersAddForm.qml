@@ -2,88 +2,121 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Caelestia.Config
 import qs.components
 import qs.components.controls
+import qs.services
 import "."
 import "../models/PanelModel.js" as Model
 
+// Omarchy's add-folder fields: captions above, browse and new ID inline.
 ColumnLayout {
     id: root
     required property var controller
+    readonly property bool locked: root.controller.busy || !!root.controller.view.confirmation
+    readonly property var deviceIds: root.controller.view.draft.deviceIds || []
     signal browseRequested
+    component Caption: StyledText {
+        font: Tokens.font.label.medium
+        color: Colours.palette.m3onSurfaceVariant
+    }
     BodyFormHeader {
         Layout.fillWidth: true
-        title: root.controller.view.draft.pendingDeviceId ? "Accept folder" : "Add folder"
+        title: "Add folder"
         busy: root.controller.busy
         onCancelled: root.controller.cancelForm()
     }
-    StyledTextField {
-        objectName: "syncshellInitialFocus"
-        Layout.fillWidth: true
-        placeholderText: "Directory"
-        text: root.controller.view.draft.path || ""
-        readOnly: root.controller.busy || !!root.controller.view.confirmation
-        onTextEdited: root.controller.draft({
-            path: text
-        })
+    Caption {
+        text: "Local directory"
     }
-    SharedWidgetBusyButton {
-        caption: "Browse directories"
-        disabled: root.controller.busy
-        onClicked: root.browseRequested()
+    RowLayout {
+        Layout.fillWidth: true
+        StyledTextField {
+            objectName: "syncshellInitialFocus"
+            Layout.fillWidth: true
+            placeholderText: "/path/to/my/folder"
+            text: root.controller.view.draft.path || ""
+            readOnly: root.locked
+            onTextEdited: root.controller.draft({
+                path: text
+            })
+        }
+        SharedWidgetSquareActionButton {
+            icon: "folder_open"
+            help: "Choose an existing local directory"
+            disabled: root.controller.busy
+            onClicked: root.browseRequested()
+        }
+    }
+    Caption {
+        text: "Label"
     }
     StyledTextField {
         Layout.fillWidth: true
-        placeholderText: "Label"
+        placeholderText: "Derived from the directory name when empty"
         text: root.controller.view.draft.label || ""
-        readOnly: root.controller.busy || !!root.controller.view.confirmation
+        readOnly: root.locked
         onTextEdited: root.controller.draft({
             label: text
         })
     }
-    StyledTextField {
-        Layout.fillWidth: true
-        placeholderText: "Folder ID"
-        text: root.controller.view.draft.folderId || ""
-        readOnly: root.controller.busy || !!root.controller.view.draft.pendingDeviceId || !!root.controller.view.confirmation
-        onTextEdited: root.controller.draft({
-            folderId: text
-        })
+    Caption {
+        text: "Folder ID"
     }
-    SharedWidgetBusyButton {
-        caption: "Generate ID"
-        disabled: root.controller.busy || !!root.controller.view.confirmation || !!root.controller.view.draft.pendingDeviceId
-        onClicked: root.controller.suggestFolderId()
+    RowLayout {
+        Layout.fillWidth: true
+        StyledTextField {
+            Layout.fillWidth: true
+            placeholderText: root.controller.idSuggestionPending ? "Generating..." : "Required folder identity"
+            text: root.controller.view.draft.folderId || ""
+            readOnly: root.locked || !!root.controller.view.draft.pendingDeviceId
+            onTextEdited: root.controller.draft({
+                folderId: text
+            })
+        }
+        SharedWidgetSquareActionButton {
+            icon: "refresh"
+            help: "Generate a new Syncthing folder ID"
+            disabled: root.locked || !!root.controller.view.draft.pendingDeviceId
+            onClicked: root.controller.suggestFolderId()
+        }
     }
     StyledText {
         Layout.fillWidth: true
-        text: "Reuse the exact ID to join an existing folder. A new ID creates a different folder identity."
+        text: "Reuse the exact ID to rejoin an existing remote folder. A new ID creates a different folder identity."
+        font: Tokens.font.label.medium
+        color: Colours.palette.m3onSurfaceVariant
         wrapMode: Text.Wrap
     }
-    StyledText {
-        text: "Share with selected devices"
+    Caption {
+        text: "Share with devices"
     }
     SharedWidgetDropdown {
         Layout.fillWidth: true
         multiple: true
-        disabled: root.controller.busy || !!root.controller.view.confirmation
+        placeholder: "Local only"
+        disabled: root.locked
         options: root.controller.service.shareableDevices().map(d => ({
                     value: d.id,
                     label: d.name || d.id,
                     detail: d.id
                 }))
-        selectedIds: root.controller.view.draft.deviceIds || []
+        selectedIds: root.deviceIds
         onToggled: id => root.controller.draft({
                 deviceIds: Model.toggle(selectedIds, id)
             })
     }
     StyledText {
         Layout.fillWidth: true
-        text: (!(root.controller.view.draft.deviceIds || []).length ? "Local only: not shared with other devices. " : "Only the selected devices will share this folder. ") + "Existing files are kept. Missing directories require confirmation."
+        text: root.deviceIds.length ? "Selected devices receive a share offer and may need to accept it." : "Local only: not shared with other devices."
+        font: Tokens.font.label.medium
+        color: Colours.palette.m3onSurfaceVariant
         wrapMode: Text.Wrap
     }
     SharedWidgetBusyButton {
+        Layout.fillWidth: true
         caption: "Add folder"
+        busyCaption: "Adding..."
         busy: root.controller.busy
         onClicked: root.controller.submitForm()
     }

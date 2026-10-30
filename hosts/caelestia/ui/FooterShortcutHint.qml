@@ -3,6 +3,6 @@ import Caelestia.Config
 import qs.components
 
 StyledText {
-    text: "r rescan · w web · p pause · s settings · q close"
+    text: "[r]escan  [w]ebUI  [p]ause/continue  [s]ettings"
     font: Tokens.font.label.small
 }

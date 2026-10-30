@@ -201,25 +201,34 @@ FocusScope {
                         SharedWidgetSquareActionButton {
                             id: add
                             icon: "add"
-                            help: "Add " + (root.controller.view.tab === "folders" ? "folder" : "device")
+                            help: root.controller.view.tab === "folders" ? "Add folder (locally)" : "Add device"
                             disabled: !root.controller.fresh || root.controller.busy
                             onClicked: root.form(root.controller.view.tab === "folders" ? "add-folder" : "add-device", null, add)
                         }
                         SharedWidgetSquareActionButton {
                             id: share
                             icon: root.controller.view.tab === "folders" ? "share" : "folder_shared"
-                            help: root.controller.view.tab === "folders" ? "Share folder" : "Review device folders"
+                            help: root.controller.view.tab === "folders" ? "Share folder\n(other device)" : "View folder shared\nwith selected device"
                             disabled: !root.controller.fresh || root.controller.busy || !(root.controller.view.tab === "folders" ? root.controller.folder : root.controller.device)
                             onClicked: root.form(root.controller.view.tab === "folders" ? "share-folder" : "device-folders", root.controller.view.tab === "folders" ? root.controller.folder : root.controller.device, share)
                         }
                         SharedWidgetSquareActionButton {
-                            visible: root.controller.view.tab === "folders"
-                            icon: root.controller.folder?.paused ? "link" : "link_off"
-                            help: root.controller.folder?.paused ? "Link folder" : "Unlink folder"
-                            disabled: !root.controller.folder || !root.controller.fresh || root.controller.busy
-                            onClicked: root.controller.send(root.controller.folder.paused ? "folder.resume" : "folder.pause", {
-                                folderId: root.controller.folder.id
-                            })
+                            readonly property bool folders: root.controller.view.tab === "folders"
+                            readonly property bool paused: folders && !!root.controller.folder?.paused
+                            icon: paused ? "link" : "close"
+                            success: paused
+                            danger: !paused
+                            help: folders ? (!root.controller.folder ? "Select a folder" : paused ? "Link folder" : "Unlink folder (locally)") : "Remove selected device"
+                            disabled: !(folders ? root.controller.folder : root.controller.device) || !root.controller.fresh || root.controller.busy
+                            onClicked: {
+                                if (folders)
+                                    root.controller.requestFolderLinkChange();
+                                else
+                                    root.controller.confirm("device.remove", {
+                                        deviceId: root.controller.device.id,
+                                        deviceName: root.controller.device.name || ""
+                                    }, "Remove " + Model.label(root.controller.device) + " from this device?", "Folder sharing with it will be removed locally. Local folders and files remain. The other device is unchanged.");
+                            }
                         }
                     }
                     StyledText {

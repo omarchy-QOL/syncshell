@@ -165,21 +165,22 @@ function stateHelp(state) {
         SYNCING: "Applying changes", "SCAN+SYNC": "Rescanning and syncing",
         LINKED: "Newly linked", SYNCED: "Up to date" }[state] || "Status unavailable");
 }
+// Like Omarchy, the configured label joins only transient states.
 function folderMeta(folder, fresh, localDeviceId, rescanning) {
     if (!folder) return "";
     var s = folder.status || {};
     var pathName = String(folder.path || "").replace(/\/+$/, "").split("/").pop();
     var suffix = folder.label && folder.label !== pathName ? " · " + folder.label : "";
-    if (!fresh) return "Last reported: " + (s.globalFiles || 0) + " files · " + bytes(s.globalBytes) + suffix;
+    if (!fresh) return "Last reported: " + formatCount(s.globalFiles) + " files · " + bytes(s.globalBytes) + suffix;
     if (s.error || s.pullErrors > 0 || (s.errors || []).length || s.state === "error")
         return (s.error || (s.errors || [])[0]?.error || "Folder needs attention") + suffix;
     if (folder.paused) return "Syncing paused" + suffix;
     if (rescanning || String(s.state).indexOf("scan") === 0) return "Scanning local changes" + suffix;
     if (s.needTotalItems > 0 || s.state === "syncing")
-        return (s.needTotalItems || 0) + " item" + (s.needTotalItems === 1 ? "" : "s") + " remaining"
+        return formatCount(s.needTotalItems) + " item" + (s.needTotalItems === 1 ? "" : "s") + " remaining"
             + (s.needBytes > 0 ? " · " + bytes(s.needBytes) : "") + suffix;
     var localOnly = !(folder.devices || []).some(d => d.id && d.id !== localDeviceId);
-    return (s.globalFiles || 0) + " files · " + (localOnly ? "local only" : bytes(s.globalBytes)) + suffix;
+    return formatCount(s.globalFiles) + " files · " + (localOnly ? "local only" : bytes(s.globalBytes));
 }
 function folderActivity(folder, fresh, activity) {
     return folder && fresh && activity && activity.folderId === folder.id && activity.detail

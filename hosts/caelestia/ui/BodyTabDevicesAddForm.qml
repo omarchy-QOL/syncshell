@@ -2,77 +2,85 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Caelestia.Config
 import qs.components
 import qs.components.controls
+import qs.services
 import "."
+import "../models/PanelModel.js" as Model
 
+// Omarchy's add form; accepting a pending request has its own form.
 ColumnLayout {
     id: root
     required property var controller
+    readonly property var nearby: root.controller.service.nearbyDevices.map(d => ({
+                value: d.id,
+                label: d.name || d.id,
+                detail: [d.id, (d.addresses || []).join(", ")].filter(Boolean).join(" · ")
+            }))
+    component Caption: StyledText {
+        font: Tokens.font.label.medium
+        color: Colours.palette.m3onSurfaceVariant
+    }
     BodyFormHeader {
         Layout.fillWidth: true
-        title: root.controller.view.form === "accept-device" ? "Accept device" : "Add device"
+        title: "Add remote device"
         busy: root.controller.busy
         onCancelled: root.controller.cancelForm()
     }
+    Caption {
+        text: "Device source"
+    }
     SharedWidgetDropdown {
         Layout.fillWidth: true
-        visible: root.controller.view.form !== "accept-device"
-        placeholder: "Nearby devices"
-        options: root.controller.service.nearbyDevices.map(d => ({
-                    value: d.id,
-                    label: d.name || d.id,
-                    detail: [d.id, (d.addresses || []).join(", ")].filter(Boolean).join(" · ")
-                }))
+        placeholder: "Custom device ID"
+        options: [{
+                value: "",
+                label: "Custom device ID",
+                detail: "Enter the ID below"
+            }].concat(root.nearby)
+        value: root.nearby.some(o => o.value === root.controller.view.draft.deviceId) ? root.controller.view.draft.deviceId : ""
         onChosen: id => root.controller.draft({
                 deviceId: id
             })
     }
+    Caption {
+        text: "Device ID"
+    }
     StyledTextField {
         Layout.fillWidth: true
-        objectName: root.controller.view.form === "accept-device" ? "syncshellInitialFocus" : ""
-        placeholderText: "Device name"
+        objectName: "syncshellInitialFocus"
+        placeholderText: "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-..."
+        text: root.controller.view.draft.deviceId || ""
+        readOnly: root.controller.busy
+        onTextEdited: root.controller.draft({
+            deviceId: text
+        })
+    }
+    StyledText {
+        Layout.fillWidth: true
+        visible: !root.nearby.length
+        text: "No nearby device found. Use the device ID."
+        font: Tokens.font.label.medium
+        color: Model.statusColour(Colours.palette, "warning")
+        wrapMode: Text.Wrap
+    }
+    Caption {
+        text: "Remote device name"
+    }
+    StyledTextField {
+        Layout.fillWidth: true
+        placeholderText: "Optional; adopted from the remote when empty"
         text: root.controller.view.draft.deviceName || ""
         readOnly: root.controller.busy
         onTextEdited: root.controller.draft({
             deviceName: text
         })
     }
-    StyledText {
-        Layout.fillWidth: true
-        visible: root.controller.view.form === "accept-device"
-        text: "Observed address: " + (root.controller.view.draft.address || "unknown")
-        textFormat: Text.PlainText
-        wrapMode: Text.Wrap
-    }
-    StyledTextField {
-        Layout.fillWidth: true
-        objectName: root.controller.view.form === "accept-device" ? "" : "syncshellInitialFocus"
-        placeholderText: "Device ID"
-        text: root.controller.view.draft.deviceId || ""
-        readOnly: root.controller.busy || root.controller.view.form === "accept-device"
-        onTextEdited: root.controller.draft({
-            deviceId: text
-        })
-    }
     SharedWidgetBusyButton {
-        caption: "Copy ID"
-        copyValue: root.controller.view.draft.deviceId || ""
-        disabled: !copyValue
-    }
-    StyledText {
         Layout.fillWidth: true
-        visible: root.controller.view.form !== "accept-device" && !root.controller.service.nearbyDevices.length
-        text: "No nearby devices found. Paste a Device ID to add one manually."
-        wrapMode: Text.Wrap
-    }
-    StyledText {
-        Layout.fillWidth: true
-        text: "Add this device on the other device too, then select folders to share."
-        wrapMode: Text.Wrap
-    }
-    SharedWidgetBusyButton {
-        caption: "Add device"
+        caption: "Add remote device"
+        busyCaption: "Adding..."
         busy: root.controller.busy
         onClicked: root.controller.submitForm()
     }

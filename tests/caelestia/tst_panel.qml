@@ -81,6 +81,58 @@ TestCase {
             busy = true;
             return true;
         }
+        function setFolderPaused(id, paused) {
+            return runAction(paused ? "folder.pause" : "folder.resume", {
+                folderId: id
+            });
+        }
+        function forgetFolder(id) {
+            return runAction("folder.forget", {
+                folderId: id
+            });
+        }
+        function addFolder(args) {
+            return runAction("folder.add-existing", args);
+        }
+        function setFolderSharing(id, ids) {
+            return runAction("folder.set-sharing", {
+                folderId: id,
+                deviceIds: ids
+            });
+        }
+        function dismissPendingFolder(id, deviceId) {
+            return runAction("folder.dismiss-pending", {
+                folderId: id,
+                pendingDeviceId: deviceId
+            });
+        }
+        function addDevice(id, name) {
+            return runAction("device.add", {
+                deviceId: id,
+                deviceName: name
+            });
+        }
+        function dismissPendingDevice(id) {
+            return runAction("device.dismiss-pending", {
+                deviceId: id
+            });
+        }
+        function setDevicePaused(id, paused) {
+            return runAction(paused ? "device.pause" : "device.resume", {
+                deviceId: id
+            });
+        }
+        function removeDevice(id) {
+            return runAction("device.remove", {
+                deviceId: id
+            });
+        }
+        function removeDeviceFolderShares(id, ids) {
+            return runAction("device.remove-folder-shares", {
+                deviceId: id,
+                folderIds: ids
+            });
+        }
         function runAction(action, args) {
             sent = {
                 action: action,
@@ -227,6 +279,36 @@ TestCase {
         controller.submitForm();
         compare(backend.sent.action, "device.add");
         compare(backend.sent.args.deviceId, "peer");
+    }
+    function test_folder_link_changes_need_omarchy_confirmation() {
+        for (var paused of [false, true]) {
+            backend.folders = [
+                {
+                    id: "a",
+                    label: "Docs",
+                    paused: paused
+                }
+            ];
+            controller.reconcile();
+            controller.requestFolderLinkChange();
+            compare(backend.sent, null);
+            compare(controller.view.confirmation.action, paused ? "folder.resume" : "folder.pause");
+            compare(controller.view.confirmation.title, (paused ? "Link" : "Unlink") + " Docs (a)?");
+            compare([controller.view.confirmation.confirm, controller.view.confirmation.cancel], ["Yes", "No"]);
+            controller.acceptConfirmation();
+            compare(backend.sent.action, paused ? "folder.resume" : "folder.pause");
+            backend.busy = false;
+            backend.actionFinished(backend.sent.action, true, {}, null);
+            compare(controller.view.confirmation, null);
+            backend.sent = null;
+        }
+    }
+    function test_sharing_saves_without_a_review_step() {
+        controller.openForm("share-folder", backend.folders[0], 0);
+        controller.submitForm();
+        compare(controller.view.confirmation, null);
+        compare(backend.sent.action, "folder.set-sharing");
+        compare(backend.sent.args.deviceIds, ["one"]);
     }
     function test_closed_form_cannot_submit() {
         controller.submitForm();

@@ -175,15 +175,20 @@ QtObject {
         error = "";
         restoreFocus("formTrigger");
     }
-    function confirm(action, args, title, detail) {
+    // Omarchy asks Yes/No with a destructive Yes unless labels say otherwise.
+    function confirm(action, args, title, detail, labels) {
         if (busy || view.confirmation)
             return;
+        var choice = labels || {};
         update({
             confirmation: {
                 action: action,
                 args: Model.clone(args),
                 title: title,
-                detail: detail
+                detail: detail,
+                confirm: choice.confirm || "Yes",
+                cancel: choice.cancel || "No",
+                destructive: choice.destructive !== false
             }
         });
         restoreFocus("cancel");
@@ -228,11 +233,54 @@ QtObject {
         submitted = Model.clone(args);
         submittedAction = action;
         error = "";
-        if (service.runAction(action, submitted, "Operation completed", args.folderId || args.deviceId || ""))
+        if (dispatch(action, submitted))
             return true;
         submittedAction = "";
         submitted = null;
         return false;
+    }
+    // The shared service methods carry Omarchy's notice for each action.
+    function dispatch(action, args) {
+        var device = args.deviceId ? service.device(args.deviceId) : null;
+        var name = args.deviceName || (device ? device.name : "");
+        switch (action) {
+        case "folder.pause":
+        case "folder.resume":
+            return service.setFolderPaused(args.folderId, action === "folder.pause");
+        case "folder.forget":
+            return service.forgetFolder(args.folderId);
+        case "folder.add-existing":
+            return service.addFolder(args);
+        case "folder.set-sharing":
+            return service.setFolderSharing(args.folderId, args.deviceIds);
+        case "folder.dismiss-pending":
+            return service.dismissPendingFolder(args.folderId, args.pendingDeviceId);
+        case "device.add":
+            return service.addDevice(args.deviceId, args.deviceName);
+        case "device.dismiss-pending":
+            return service.dismissPendingDevice(args.deviceId, name);
+        case "device.pause":
+        case "device.resume":
+            return service.setDevicePaused(args.deviceId, action === "device.pause", name);
+        case "device.remove":
+            return service.removeDevice(args.deviceId, name);
+        case "device.remove-folder-shares":
+            return service.removeDeviceFolderShares(args.deviceId, args.folderIds, name);
+        }
+        return service.runAction(action, args, "Operation completed", args.folderId || args.deviceId || "");
+    }
+    function requestFolderLinkChange() {
+        if (!folder)
+            return;
+        var label = Model.label(folder) + " (" + folder.id + ")";
+        if (folder.paused)
+            confirm("folder.resume", {
+                folderId: folder.id
+            }, "Link " + label + "?", "Syncthing will resume synchronization for this folder.");
+        else
+            confirm("folder.pause", {
+                folderId: folder.id
+            }, "Unlink " + label + "?", "Syncthing will pause synchronization. Its configuration and local files remain.");
     }
     function acceptConfirmation() {
         var c = view.confirmation;
@@ -256,20 +304,21 @@ QtObject {
                 pendingDeviceId: d.pendingDeviceId
             });
         } else if (view.form === "share-folder") {
-            confirm("folder.set-sharing", {
+            // Omarchy saves sharing directly; the notice reports the result.
+            send("folder.set-sharing", {
                 folderId: d.folderId,
                 deviceIds: d.deviceIds
-            }, "Update folder sharing?", "Review the selected devices. Directory contents are kept.");
+            });
         } else if (view.form === "device-folders") {
             let removed = d.originalFolderIds.filter(id => !d.folderIds.includes(id));
             if (!removed.length) {
                 error = "Uncheck a folder to remove its share";
                 return;
             }
-            confirm("device.remove-folder-shares", {
+            send("device.remove-folder-shares", {
                 deviceId: d.deviceId,
                 folderIds: removed
-            }, "Remove selected shares?", removed.map(id => service.folderLabel(id)).join("\n") + "\nFiles are kept on both devices.");
+            });
         } else {
             if (!d.deviceId.trim()) {
                 error = "Device ID is required";
@@ -327,7 +376,11 @@ QtObject {
                 root.update({
                     confirmation: null
                 });
-                root.confirm(action, frozen, "Create this directory?", frozen.path);
+                root.confirm(action, frozen, "Create directory?", "Create " + frozen.path + " and add it to Syncthing?", {
+                    confirm: "Create and add",
+                    cancel: "Cancel",
+                    destructive: false
+                });
             } else {
                 root.error = failure && failure.message || "Operation failed";
                 root.restoreFocus(root.view.confirmation ? "cancel" : "form");

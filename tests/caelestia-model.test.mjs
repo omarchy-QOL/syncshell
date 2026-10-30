@@ -103,6 +103,11 @@ test("folder presentation preserves state precedence, local-only and remaining b
   assert.match(model.folderMeta(folder({ state: "syncing", needTotalItems: 2, needBytes: 2048 }), true, "local", false), /2 items remaining.*2.*KiB.*Archive/);
   assert.match(model.folderMeta(folder({ state: "idle", globalFiles: 3 }, { devices: [{ id: "local" }] }), true, "local", false), /3 files.*local only/);
   assert.match(model.folderMeta(folder({ state: "idle" }), false, "local", false), /^Last reported:/);
+  // Omarchy: the configured label joins only transient states; counts are compact.
+  const steady = { id: "x", label: "Sync Test", path: "/home/a/Sync-Test", devices: [{ id: "remote" }],
+    status: { state: "idle", globalFiles: 153400, globalBytes: 138 } };
+  assert.equal(model.folderMeta(steady, true, "local", false), "153k files · 138 B");
+  assert.equal(model.folderMeta(steady, true, "local", true), "Scanning local changes · Sync Test");
 });
 test("activity is current and belongs to the displayed folder", () => {
   const activity = { folderId: "one", action: "Uploading", detail: "photo.jpg" };

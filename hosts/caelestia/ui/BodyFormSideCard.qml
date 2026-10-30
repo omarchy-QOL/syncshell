@@ -12,7 +12,7 @@ ColumnLayout {
     Loader {
         active: !!root.controller.view.form
         Layout.fillWidth: true
-        sourceComponent: root.controller.view.picking ? picker : root.controller.view.form === "settings" ? settings : root.controller.view.form === "add-folder" ? folder : root.controller.view.form === "share-folder" ? sharing : root.controller.view.form === "device-folders" ? deviceFolders : device
+        sourceComponent: root.controller.view.picking ? picker : root.controller.view.form === "settings" ? settings : root.controller.view.form === "add-folder" ? folder : root.controller.view.form === "share-folder" ? sharing : root.controller.view.form === "device-folders" ? deviceFolders : root.controller.view.form === "accept-device" ? acceptDevice : device
     }
     StyledText {
         Layout.fillWidth: true
@@ -39,6 +39,12 @@ ColumnLayout {
     Component {
         id: deviceFolders
         BodyTabDevicesFoldersForm {
+            controller: root.controller
+        }
+    }
+    Component {
+        id: acceptDevice
+        BodyTabDevicesAcceptForm {
             controller: root.controller
         }
     }

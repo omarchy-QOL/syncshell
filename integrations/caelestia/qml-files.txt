@@ -10,6 +10,7 @@ hosts/caelestia/ui/BodyFormHeader.qml
 hosts/caelestia/ui/BodyFormSideCard.qml
 hosts/caelestia/ui/BodyInvitations.qml
 hosts/caelestia/ui/BodyMore.qml
+hosts/caelestia/ui/BodyTabDevicesAcceptForm.qml
 hosts/caelestia/ui/BodyTabDevicesAddForm.qml
 hosts/caelestia/ui/BodyTabDevicesCard.qml
 hosts/caelestia/ui/BodyTabDevicesFoldersForm.qml

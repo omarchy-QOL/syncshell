@@ -8,6 +8,11 @@ import "."
 IconButton {
     id: root
     property string help: ""
+    // Omarchy tints removal red and linking or accepting green.
+    property bool danger: false
+    property bool success: false
+    inactiveColour: danger ? Colours.palette.m3errorContainer : success ? Colours.palette.m3successContainer : Colours.palette.m3primary
+    inactiveOnColour: danger ? Colours.palette.m3onErrorContainer : success ? Colours.palette.m3onSuccessContainer : Colours.palette.m3onPrimary
     enabled: !disabled
     activeFocusOnTab: enabled
     border.width: activeFocus ? 2 : 0

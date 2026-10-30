@@ -79,17 +79,25 @@ QQC.Popup {
                 }
             }
         }
+        // Omarchy's order: confirm first, focus on the cancel choice.
         RowLayout {
             SharedWidgetBusyButton {
-                id: cancel
-                caption: "Cancel"
-                disabled: root.controller.busy
-                onClicked: root.controller.cancelConfirmation()
+                readonly property bool destructive: root.controller.view.confirmation?.destructive !== false
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                caption: root.controller.view.confirmation?.confirm || "Yes"
+                busy: root.controller.busy
+                inactiveColour: destructive ? Colours.palette.m3error : Colours.palette.m3primary
+                inactiveOnColour: destructive ? Colours.palette.m3onError : Colours.palette.m3onPrimary
+                onClicked: root.controller.acceptConfirmation()
             }
             SharedWidgetBusyButton {
-                caption: "Confirm"
-                busy: root.controller.busy
-                onClicked: root.controller.acceptConfirmation()
+                id: cancel
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                caption: root.controller.view.confirmation?.cancel || "No"
+                disabled: root.controller.busy
+                onClicked: root.controller.cancelConfirmation()
             }
         }
         Keys.onEscapePressed: root.controller.cancelConfirmation()

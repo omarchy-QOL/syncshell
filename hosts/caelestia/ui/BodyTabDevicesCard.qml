@@ -53,15 +53,9 @@ ColumnLayout {
             caption: root.device?.paused ? "Resume" : "Pause"
             disabled: !root.device || !root.controller.fresh || root.controller.busy
             onClicked: root.controller.send(root.device.paused ? "device.resume" : "device.pause", {
-                deviceId: root.device.id
+                deviceId: root.device.id,
+                deviceName: root.device.name || ""
             })
-        }
-        SharedWidgetBusyButton {
-            caption: "Remove"
-            disabled: !root.device || !root.controller.fresh || root.controller.busy
-            onClicked: root.controller.confirm("device.remove", {
-                deviceId: root.device.id
-            }, "Remove " + Model.label(root.device) + " from this device?", "Folder sharing with it will be removed locally. Local folders and files remain. The other device is unchanged.")
         }
     }
 }
