@@ -57,7 +57,10 @@ function Form.render(controller, form)
         focus = true, enabled = not form.sourceId or form.sourceId == "",
         revision = form.sourceRevision, placeholder = "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-..." }))
     if form.nearbyEmpty then
-        table.insert(children, SharedWidgetControls.hint("No nearby device found. Use the device ID.", Palette.roles.warning))
+        table.insert(children, ui.row({ gap = 4, align = "center" }, {
+            ui.glyph({ name = "alert-triangle", size = Ui.caption, color = Palette.roles.warning }),
+            SharedWidgetControls.hint("No nearby device found. Use the device ID.", Palette.roles.warning),
+        }))
     end
     table.insert(children, SharedWidgetControls.field(controller, form, "name", "Remote Device Name", {
         revision = form.sourceRevision,
