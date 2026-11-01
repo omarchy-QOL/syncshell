@@ -20,9 +20,12 @@ function Header.render(controller, compact)
             ui.label({ text = "Syncthing", fontSize = Ui.title, fontWeight = "bold", maxLines = 1 }),
             ui.row({ gap = 6, align = "center" }, {
                 ui.label({ text = string.upper(hostname), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }),
-                ui.button({ key = "Copy ID", text = "device ID", glyph = "copy", fontSize = Ui.caption - 1, glyphSize = Ui.caption - 1, height = 16,
-                    variant = "outline", tooltip = "Copy device ID", enabled = identity.deviceId ~= nil,
-                    onClick = function() controller:copy(identity.deviceId or "", "ID copied") end }),
+                -- A native button drops its glyph below the text at this size.
+                ui.row({ key = "Copy ID", gap = 3, align = "center", height = 16, paddingH = 4, radius = 2, border = "outline", borderWidth = 1,
+                    tooltip = "Copy device ID", onClick = identity.deviceId and function() controller:copy(identity.deviceId, "ID copied") end or nil }, {
+                    ui.glyph({ name = "copy", size = Ui.caption, color = "on_surface_variant" }),
+                    ui.label({ text = "device ID", color = "on_surface_variant", fontSize = Ui.caption - 1, maxLines = 1 }),
+                }),
             }),
         }),
     }
@@ -48,7 +51,11 @@ function Header.render(controller, compact)
         table.insert(children, SharedWidgetControls.notice(controller, controller.status.backgroundError
             .. "\nCheck plugin settings and the selected Web UI profile.", "error", "background action details"))
     end
-    if connection.error then
+    -- Omarchy stays quiet when the instance is off because the user stopped it.
+    local managedStop = lifecycle.canControl == true and lifecycle.active ~= true
+    if managedStop then
+        -- No connection problem to report.
+    elseif connection.error then
         table.insert(children, SharedWidgetControls.notice(controller, connection.error.message .. "\nCheck connection and credential settings, then Refresh.", "error", "connection details"))
     elseif not connection.fresh then
         table.insert(children, SharedWidgetControls.notice(controller, "Current status unavailable; last reported values shown", "error", "status details"))

@@ -1,3 +1,4 @@
+local Palette = require("../controllers/ThemePaletteController.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Model = require("../models/PanelModel.luau")
 local Dropdown = require("./SharedWidgetDropdown.luau")
@@ -39,7 +40,7 @@ function Source.render(controller, form)
         table.insert(children, SharedWidgetControls.selectTrigger("folder-offer", chosen and chosen.label or form.folderId, nil, false))
     end
     if encrypted > 0 then
-        table.insert(children, SharedWidgetControls.hint(tostring(encrypted) .. " encrypted folder offer" .. (encrypted == 1 and " requires" or "s require") .. " the Syncthing Web UI.", "secondary"))
+        table.insert(children, SharedWidgetControls.hint(tostring(encrypted) .. " encrypted folder offer" .. (encrypted == 1 and " requires" or "s require") .. " the Syncthing Web UI.", Palette.roles.warning))
         table.insert(children, SharedWidgetControls.button("Open encrypted offers in Web UI", function() controller:send("webui.open", {}) end,
             not controller:busy() and (controller.snapshot.connection or {}).online))
     end

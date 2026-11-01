@@ -19,6 +19,8 @@ local pingAt, pingBusy, startedAt = 0, false, 0
 local configureNeeded = false
 local alive = true
 local lastPalette, themeCheckAt, currentTheme = nil, 0, nil
+local webUiCheck = true
+local ownedThemes = { modern = "syncshell-noctalia-modern", themed = "syncshell-noctalia-themed" }
 local cleanupReady = false
 
 local function publish()
@@ -231,6 +233,25 @@ function update()
             config = { refreshIntervalSeconds = settings.refreshSeconds,
                 probeIntervalSeconds = settings.probeSeconds, desiredServiceState = settings.serviceState } } })
     end
+    -- As in Omarchy, the saved preference selects the Web UI. Only a change of
+    -- preference or a start does so: a default choice leaves other themes alone.
+    if status.ready and not pending and webUiCheck and currentTheme then
+        webUiCheck = false
+        local id, action, args = "webui-" .. tostring(now), nil, nil
+        if settings.webUi == "default" then
+            if currentTheme == ownedThemes.modern or currentTheme == ownedThemes.themed then
+                action, args = "webui.set-theme", { theme = "default" }
+            end
+        elseif ownedThemes[settings.webUi] and currentTheme ~= ownedThemes[settings.webUi] then
+            local colors = settings.webUi == "themed" and Palette.read(noctalia) or nil
+            if settings.webUi == "modern" or colors then
+                action, args = "webui.apply-profile", { profile = settings.webUi, palette = colors }
+            end
+        end
+        if action then
+            dispatch({ id = id, view = "service", request = { v = 2, type = "action", id = id, action = action, args = args } })
+        end
+    end
     if status.ready and not pending and now >= themeCheckAt then
         themeCheckAt = now + 5000
         if currentTheme == "syncshell-noctalia-themed" then
@@ -245,9 +266,20 @@ function update()
     end
 end
 
+local function workerConfig(values)
+    return table.concat(Settings.arguments(values, noctalia.pluginDir()), "\n")
+end
+
 function onConfigChanged()
+    local previous = settings
     settings = Settings.read(noctalia)
+    webUiCheck = true
+    if settings.refreshSeconds ~= previous.refreshSeconds or settings.probeSeconds ~= previous.probeSeconds
+        or settings.serviceState ~= previous.serviceState then configureNeeded = true end
+    -- Icon and Web UI choices do not need a new worker.
+    if workerConfig(settings) == workerConfig(previous) then return end
     cleanupReady = false
+    currentTheme = nil
     retire("Reconnecting with updated settings")
 end
 

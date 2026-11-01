@@ -473,8 +473,7 @@ scenario("P08 installation help works when the daemon is missing", function()
     h:click("More"); h:click("Installation help")
     local command = h.commands[#h.commands]
     assert(command.args[1] == "xdg-open" and command.args[2] == "https://syncthing.net/downloads/")
-    command.callback({ exitCode = 1 })
-    assert(string.find(h:text(), "Could not open", 1, true))
+    assert(command.callback == nil, "a waited opener dies with the host's capture timeout")
 end)
 
 scenario("P05 confirmation defaults, repeat guard, frozen and vanished targets", function()
@@ -623,6 +622,28 @@ scenario("plain keys drive the cursor, search and confirmation as in Omarchy", f
     h:click("Unlink"); h:advance(301)
     h.entry.onKey("j", true); h.entry.onKey("space", true)
     assert(h.host.state.get("intent").request.action == "folder.pause", "space did not accept the chosen answer")
+end)
+
+scenario("a deliberate stop stays quiet and the switch acts directly", function()
+    local s = Harness.fixture()
+    s.lifecycle = { active = false, canControl = true, canStart = true, unit = "syncthing.service" }
+    s.connection.online, s.connection.fresh, s.connection.error = false, false, { message = "could not connect to Syncthing" }
+    local h = start(s)
+    assert(not string.find(h:text(), "could not connect", 1, true), "a stopped service reported a connection problem")
+    assert(h:find("service-toggle").props.checked == false)
+    h:find("service-toggle").props.onChange("true")
+    assert(h.host.state.get("intent").request.action == "lifecycle.start")
+end)
+
+scenario("settings arguments authorize the default unit and the file names every preference", function()
+    local Settings = require("../../hosts/noctalia/controllers/SettingsController.luau")
+    local args = table.concat(Settings.arguments({ lifecycleAuthorized = true, lifecycleUnit = "syncthing.service", lifecycleConfig = "" }, "/p"), " ")
+    assert(string.find(args, "--lifecycle-unit syncthing.service", 1, true) and not string.find(args, "--lifecycle-config", 1, true))
+    local h = start(Harness.fixture())
+    assert(Settings.filePath(h.host) == "fixture/noctalia/syncshell.toml")
+    local template = Settings.template(h.host)
+    assert(string.find(template, 'plugin_settings."syncshell/syncshell"', 1, true) and string.find(template, "brandedIcon = ", 1, true)
+        and string.find(template, 'webUi = "', 1, true))
 end)
 
 scenario("P06 nested device creation preserves the parent draft", function()

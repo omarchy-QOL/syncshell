@@ -13,6 +13,7 @@ end
 noctalia.state.watch("summary", function(value) snapshot = value; render() end)
 noctalia.state.watch("status", function(value) status = value or {}; render() end)
 
+function onConfigChanged() render() end
 function onClick() noctalia.togglePanel("syncshell/syncshell:panel") end
 function onRightClick() noctalia.togglePanel("syncshell/syncshell:panel") end
 

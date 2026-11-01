@@ -1,3 +1,4 @@
+local Palette = require("../controllers/ThemePaletteController.luau")
 local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Validation = require("../models/FormModel.luau")
@@ -65,7 +66,7 @@ function Form.render(controller, form)
         focus = true, enabled = not form.sourceId or form.sourceId == "",
         revision = form.sourceRevision, placeholder = "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-..." }))
     if form.nearbyEmpty then
-        table.insert(children, SharedWidgetControls.hint("No nearby device found. Use the device ID.", "secondary"))
+        table.insert(children, SharedWidgetControls.hint("No nearby device found. Use the device ID.", Palette.roles.warning))
     end
     table.insert(children, SharedWidgetControls.field(controller, form, "name", "Remote Device Name", {
         revision = form.sourceRevision,

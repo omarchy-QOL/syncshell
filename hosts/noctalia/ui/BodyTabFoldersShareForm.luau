@@ -1,3 +1,4 @@
+local Palette = require("../controllers/ThemePaletteController.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local BodyFormHeader = require("./BodyFormHeader.luau")
 local Model = require("../models/PanelModel.luau")
@@ -16,7 +17,7 @@ function Form.render(controller, form)
     if not folder then table.insert(children, SharedWidgetControls.hint("Folder is no longer configured", "error"))
     elseif problem then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
     if #devices == 0 then
-        table.insert(children, SharedWidgetControls.hint("No remote devices available. Add a remote device below.", "secondary"))
+        table.insert(children, SharedWidgetControls.hint("No remote devices available. Add a remote device below.", Palette.roles.warning))
         table.insert(children, SharedWidgetControls.button("Add remote device", function() controller:openForm("addDevice") end, not controller:busy()))
     end
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.set-sharing", "SAVE SHARING", "SAVING..."), function() controller:submitForm() end,

@@ -102,7 +102,8 @@ fresh; these are text updates, not a claim of identical Omarchy animation.
 ## Geometry and keyboard
 
 The panel is a fixed 400 by 540, clamped by the host, with Omarchy's font and
-control sizes (`ui/UiConstants.luau`). Forms replace the body and footer. Selection and detail views use the same panel with
+control sizes (`ui/UiConstants.luau`). Forms replace the body and footer.
+Selection and detail views use the same panel with
 an explicit return. Footers remain outside their scrollable content. Escape
 retains native dismissal; closing the panel retains drafts in memory.
 Unsubmitted drafts are never written to disk.
@@ -128,7 +129,8 @@ Busy/result guards prevent duplicate in-flight actions. Direct action
 buttons receive a new native key on dispatch so a held native activation
 cannot retain focus on the replacement action.
 
-The owned action cursor highlights the chosen control. It is distinct from native keyboard focus. The
+The owned action cursor highlights the chosen control. It is distinct from
+native keyboard focus. The
 pinned API has no arbitrary button-focus or ensure-visible binding. It also
 does not implement automatic focused-control scrolling for plugin panels.
 Input focus is available only on creation. Selection windows therefore move
@@ -139,8 +141,12 @@ not accepted parity exceptions. Native focus and scroll behavior need testing.
 
 ## Settings and management
 
-Use Noctalia plugin settings for connection paths, endpoint/TLS, refresh and
-probe intervals, icon style, login preference and explicit service authority.
+Settings, then **Open settings file**, opens `syncshell.toml` in Noctalia's
+config folder with the system's text editor, creating it on first use. Saved
+changes apply right away. **Open Noctalia settings** holds the same preferences
+plus connection paths and endpoint/TLS; values changed there take precedence
+over the file. Start and stop control of `syncthing.service` is on by default,
+as in Omarchy, and needs a matching local instance.
 API keys remain in Go; settings contain a credential-file path, never a key.
 Refresh intervals range from 60 to 3600 seconds. Probe intervals range from
 1 to 3600 seconds.
@@ -152,9 +158,10 @@ unsupported and unsettled unit states are explained. Enabling this plugin
 never enables or starts Syncthing. External instances remain observable;
 start/stop controls require the core's matching-target authorization.
 
-Web UI choices are Syncthing default, bundled Modern and Noctalia colors.
-Settings shows the configured preference and actual profile, with explicit
-Apply actions. Palette refresh updates only an already-selected Noctalia
+Web UI choices are Syncthing default, bundled Modern and Noctalia colors. The
+saved choice is applied on change and at start, and the settings page shows the
+preferred and actual Web UI. A default choice leaves another adapter's theme
+alone. Palette refresh updates only an already-selected Noctalia
 profile; it cannot take over another adapter's selection. Profiles are named
 `syncshell-noctalia-modern` and `syncshell-noctalia-themed`. Templates remain
 in the imported Web UI bundle.

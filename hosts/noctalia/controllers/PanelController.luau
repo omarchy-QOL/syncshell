@@ -1,3 +1,4 @@
+local Settings = require("./SettingsController.luau")
 local Form = require("../models/FormModel.luau")
 local Actions = require("../models/ActionModel.luau")
 local Model = require("../models/PanelModel.luau")
@@ -87,6 +88,7 @@ function Controller:setResults(results)
             self:notice(result.ok and pending.notice or (result.error or "Action failed"),
                 result.ok and "success" or (result.code == "uncertain" and "uncertain" or "error"),
                 pending.action == "device.add" and 15000 or 10000)
+            if result.ok then self.view.lastFailure = nil end
             if result.ok and pending.action == "folder.resume" then
                 self.view.recentlyLinked, self.view.linkedUntil = pending.args.folderId, self.host.nowMs() + 5000
             end
@@ -268,10 +270,22 @@ function Controller:openExternal(target)
     if not self.host.commandExists("xdg-open") then
         self:notice("Install xdg-utils to open this destination", "error"); self:save(); return
     end
-    local launched = self.host.runAsync({ "xdg-open", target }, function(reply)
-        if reply.exitCode ~= 0 or reply.timedOut then self:notice("Could not open " .. target, "error"); self:save() end
-    end)
+    -- Detached: xdg-open stays alive as long as a starting browser does.
+    local launched = self.host.runAsync({ "xdg-open", target })
     if not launched then self:notice("Could not launch the desktop opener", "error"); self:save() end
+end
+
+function Controller:openSettingsFile()
+    local path = Settings.filePath(self.host)
+    if self.host.fileExists(path) then return self:openExternal(path) end
+    local launched = self.host.runAsync({ "mkdir", "-p", (string.gsub(path, "/[^/]*$", "")) }, function(reply)
+        if reply.exitCode == 0 and self.host.writeFile(path, Settings.template(self.host)) then
+            self:openExternal(path)
+        else
+            self:notice("Could not create " .. path, "error"); self:save()
+        end
+    end)
+    if not launched then self:notice("Could not create " .. path, "error"); self:save() end
 end
 
 function Controller:openDocumentation(topic)

@@ -1,3 +1,4 @@
+local Palette = require("../controllers/ThemePaletteController.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local BodyFormHeader = require("./BodyFormHeader.luau")
 local Model = require("../models/PanelModel.luau")
@@ -13,14 +14,14 @@ function Form.render(controller, form)
     }
     if not device then table.insert(children, SharedWidgetControls.hint("Device is no longer configured", "error")) end
     if #groups.confirmed + #groups.unconfirmed == 0 then
-        table.insert(children, SharedWidgetControls.hint("No folders are currently shared with this device.", "secondary"))
+        table.insert(children, SharedWidgetControls.hint("No folders are currently shared with this device.", Palette.roles.warning))
     end
     table.insert(children, MultiSelect.render(controller, form, groups.confirmed, "Confirmed remote sharing, including remote-paused folders.",
         { key = "confirmed", label = "Existing shares", group = true, empty = "No confirmed shares", placeholder = "Find a folder..." }))
     table.insert(children, MultiSelect.render(controller, form, groups.unconfirmed, "A configured share is not proof of remote acceptance.",
         { key = "unconfirmed", label = "Unconfirmed shares", note = "(acceptance pending/device offline)", group = true,
             empty = "No unconfirmed shares", placeholder = "Find a folder..." }))
-    table.insert(children, SharedWidgetControls.hint("Use the share folder button to restore a folder.", "secondary"))
+    table.insert(children, SharedWidgetControls.hint("Use the share folder button to restore a folder.", Palette.roles.warning))
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("device.remove-folder-shares", "SAVE SHARING", "SAVING..."), function() controller:submitForm() end,
         Validation.problem(controller.snapshot, form) == nil and not controller:busy()
             and controller.status.ready, "outline", "save-device-folders"))

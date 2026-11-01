@@ -13,9 +13,9 @@ function SettingsMenu.render(controller)
     local form = controller.view.form
     return ui.column({ key = "settings-menu", gap = 4 }, {
         SharedWidgetControls.caption("SETTINGS"),
-        row("settings-open", "Open settings file", "Edit icon and Web UI preferences", function() controller.host.openSettings() end),
-        -- Omarchy applies these from its settings file; here they need the live service.
-        row("settings-webui", "Web UI and service", "Apply the Web UI choice and review login state", function()
+        row("settings-open", "Open settings file", "Edit icon and Web UI preferences", function() controller:cancel(); controller:openSettingsFile() end),
+        row("settings-window", "Open Noctalia settings", "All preferences, including the connection", function() controller:cancel(); controller.host.openSettings() end),
+        row("settings-webui", "Web UI and service", "Review the Web UI and login state", function()
             form.page = "webui"; controller:save()
         end),
         row("settings-removal", "Cleanly remove Syncthing plugin", "Restore the default Web UI and remove owned profiles", function()

@@ -96,28 +96,24 @@ role, and its terminal colors follow the wallpaper rather than ANSI hues.
 
 ### Noctalia
 
-The pinned v5 API exposes no dedicated success, warning or information roles.
-`hosts/noctalia/controllers/ThemePaletteController.luau` owns the mapping used
-by the native cards/header and the Web UI palette:
+The pinned v5 API exposes no dedicated success, warning or information roles,
+and its accents differ per theme.
+`hosts/noctalia/controllers/ThemePaletteController.luau` gives each meaning the
+accent nearest Omarchy's hue, for the native panel and the Web UI palette:
 
-| Role    | Native token          |
-| ------- | --------------------- |
-| success | `tertiary`            |
-| warning | `secondary`           |
-| error   | `error`               |
-| info    | `primary`             |
-| muted   | `on_surface_variant`  |
+| Role    | Native token                                  |
+| ------- | --------------------------------------------- |
+| warning | accent nearest yellow                         |
+| success | remaining accent nearest green                |
+| info    | last accent                                   |
+| error   | `error`                                       |
+| muted   | `on_surface_variant`                          |
 
-Folder and device state meanings follow Omarchy through `PanelModel.luau`.
-For example, scanning and paused states use warning, while connected devices
-use success only when not paused and the snapshot is fresh. State text remains
-visible alongside color.
-
-This mapping preserves semantic separation but does not guarantee Omarchy's
-success-green, warning-yellow or information-cyan hues. Native theme roles
-may use other hues. Treat that as an unresolved visual difference, pending
-native light/dark comparison and a supported semantic-palette solution.
-Do not report it as verified color parity.
+Accents are `primary`, `secondary` and `tertiary`. Without three saturated
+accents the mapping stays tertiary, secondary, primary for success, warning,
+info. Folder and device state meanings follow Omarchy through `PanelModel.luau`.
+State text remains visible alongside color. A theme without a yellow accent
+still shows its nearest accent, so exact hues are not guaranteed.
 
 ### Waybar, TUI and Web UI
 

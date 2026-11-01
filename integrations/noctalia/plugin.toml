@@ -49,7 +49,7 @@ default = false
 key = "lifecycleAuthorized"
 type = "bool"
 label_key = "settings.lifecycleAuthorized.label"
-default = false
+default = true
 
 [[setting]]
 key = "lifecycleUnit"

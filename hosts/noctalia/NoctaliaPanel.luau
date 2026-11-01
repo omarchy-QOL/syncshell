@@ -40,6 +40,7 @@ end
 local function render()
     if not opened or not controller then return end
     local v = controller.view
+    Palette.refresh(noctalia)
     controller.navigation, controller.actionNavigation, controller.selectionView, controller.dropdownList = nil, nil, nil, nil
     panel.setWantsSecondTicks(controller:needsTicks())
     if v.details then
@@ -127,6 +128,7 @@ local snapshots = SnapshotStore.reader(noctalia, function(value)
 end, function(active) panel.setNeedsFrameTick(active and opened) end)
 noctalia.state.watch("snapshot", function(value) snapshots.select(value) end)
 
+function onConfigChanged() render() end
 function onFrameTick() snapshots.step() end
 function update() controller:tick() end
 

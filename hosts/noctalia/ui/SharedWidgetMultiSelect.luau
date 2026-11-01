@@ -1,3 +1,4 @@
+local Palette = require("../controllers/ThemePaletteController.luau")
 local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Checkbox = require("./SharedWidgetCheckbox.luau")
@@ -15,7 +16,7 @@ function MultiSelect.render(controller, form, rows, help, options)
     if summary == "" then summary = options.empty or (options.key == "sharing" and "Local only") or (#rows == 0 and "No available items" or "None selected") end
     local function close() form.disclosures[key] = false; controller:save() end
     local captionRow = { SharedWidgetControls.caption(options.label) }
-    if options.note then table.insert(captionRow, SharedWidgetControls.caption(options.note, "secondary")) end
+    if options.note then table.insert(captionRow, SharedWidgetControls.caption(options.note, Palette.roles.warning)) end
     local children = {
         ui.row({ gap = 4, align = "center" }, captionRow),
         SharedWidgetControls.selectTrigger("shares-" .. key, summary, function()

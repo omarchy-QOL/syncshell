@@ -1,12 +1,46 @@
 local Palette = {}
 
--- The pinned host has no dedicated success, warning or information tokens.
+-- The host has no success, warning or information roles, and its accents differ
+-- per theme. Each meaning takes the accent nearest Omarchy's hue for it.
 Palette.roles = {
     success = "tertiary", warning = "secondary", error = "error",
     info = "primary", muted = "on_surface_variant",
 }
 
+local function hue(color)
+    if type(color) ~= "string" or not string.match(color, "^#%x%x%x%x%x%x$") then return nil end
+    local r = tonumber(string.sub(color, 2, 3), 16) / 255
+    local g = tonumber(string.sub(color, 4, 5), 16) / 255
+    local b = tonumber(string.sub(color, 6, 7), 16) / 255
+    local high, low = math.max(r, g, b), math.min(r, g, b)
+    if high - low < 0.08 then return nil end
+    local value
+    if high == r then value = (g - b) / (high - low)
+    elseif high == g then value = 2 + (b - r) / (high - low)
+    else value = 4 + (r - g) / (high - low) end
+    return (value * 60) % 360
+end
+
+function Palette.refresh(host)
+    local hues = {}
+    for _, role in { "primary", "secondary", "tertiary" } do
+        hues[role] = hue(host.getColor(role))
+        if not hues[role] then return end
+    end
+    for _, meaning in { { "warning", 50 }, { "success", 130 }, { "info", 190 } } do
+        local best, distance = nil, math.huge
+        for role, value in hues do
+            local gap = math.abs(value - meaning[2])
+            gap = math.min(gap, 360 - gap)
+            if gap < distance then best, distance = role, gap end
+        end
+        Palette.roles[meaning[1]] = best
+        hues[best] = nil
+    end
+end
+
 function Palette.read(host)
+    Palette.refresh(host)
     local colors = {}
     for key, role in { background = "surface", surface = "surface", surfaceVariant = "surface_variant",
         foreground = "on_surface", muted = Palette.roles.muted, accent = "primary",

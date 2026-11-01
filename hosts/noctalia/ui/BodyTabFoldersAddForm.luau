@@ -1,3 +1,4 @@
+local Palette = require("../controllers/ThemePaletteController.luau")
 local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local BodyFormHeader = require("./BodyFormHeader.luau")
@@ -34,7 +35,7 @@ function Form.render(controller, form)
         SharedWidgetControls.hint("Reuse the exact ID to rejoin an existing remote folder. A new ID creates a different folder identity."),
         MultiSelect.render(controller, form, devices, "Share with selected devices. No selection keeps the folder local only."),
         SharedWidgetControls.hint(selected == 0 and "Local only: not shared with other devices."
-            or "Selected devices receive a share offer and may need to accept it.", selected == 0 and "secondary" or nil),
+            or "Selected devices receive a share offer and may need to accept it.", selected == 0 and Palette.roles.warning or nil),
     }
     if #devices == 0 then
         table.insert(children, SharedWidgetControls.button("Add remote device", function() controller:openForm("addDevice") end, not controller:busy()))

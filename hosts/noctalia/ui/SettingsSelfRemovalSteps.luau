@@ -1,3 +1,4 @@
+local Palette = require("../controllers/ThemePaletteController.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local BodyFormHeader = require("./BodyFormHeader.luau")
 local Removal = {}
@@ -13,7 +14,7 @@ function Removal.render(controller)
         end, not controller:busy() and controller.status.ready, "destructive", "cleanup-profiles"),
         SharedWidgetControls.label(controller.view.profilesRemoved and "Profile cleanup completed. You can now remove the plugin."
             or "Complete cleanup before deleting or disabling this plugin; if it fails, correct the reported problem and retry.",
-            controller.view.profilesRemoved and "tertiary" or "on_surface_variant"),
+            controller.view.profilesRemoved and Palette.roles.success or "on_surface_variant"),
         SharedWidgetControls.label("2. Open Noctalia Settings, return to Plugins, and disable syncshell/syncshell. For a Git-source installation, use its Remove button. For a local copy or path source, remove only the package copy or link shown below after disabling it."),
         SharedWidgetControls.label(controller.host.pluginDir()),
         SharedWidgetControls.button("Copy package path", function() controller:copy(controller.host.pluginDir()) end),
