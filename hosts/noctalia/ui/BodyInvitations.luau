@@ -37,7 +37,7 @@ function BodyInvitations.render(controller)
                 ui.row({ gap = 6 }, {
                     SharedWidgetControls.button("Accept", function() controller:openForm("acceptDevice", device) end, enabled),
                     SharedWidgetControls.button("Dismiss", function()
-                        controller:confirm("Dismiss the invitation from " .. (device.name or device.id) .. "? It may reappear if the device reconnects.",
+                        controller:confirm("Dismiss pending request from " .. (device.name or device.id) .. "?\n\nIt can reappear if the device connects again.",
                             "device.dismiss-pending", { deviceId = device.id })
                     end, enabled),
                 }),
@@ -53,7 +53,7 @@ function BodyInvitations.render(controller)
                         else controller:openForm("acceptFolder", { id = id, deviceId = deviceId, label = offer.label }) end
                     end, enabled),
                     SharedWidgetControls.button("Dismiss", function()
-                        controller:confirm("Reject the folder invitation for " .. id .. " from " .. deviceId .. "?",
+                        controller:confirm("Reject folder request for " .. offer.label .. "?\n\nThis removes the pending announcement without adding the folder.",
                             "folder.dismiss-pending", { folderId = id, pendingDeviceId = deviceId })
                     end, enabled),
                 }),

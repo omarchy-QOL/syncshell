@@ -1,6 +1,8 @@
 local SnapshotStore = require("./hosts/noctalia/transport/SnapshotStore.luau")
 local Controller = require("./hosts/noctalia/controllers/PanelController.luau")
 local Navigation = require("./hosts/noctalia/models/PanelNavigation.luau")
+local Model = require("./hosts/noctalia/models/PanelModel.luau")
+local Palette = require("./hosts/noctalia/controllers/ThemePaletteController.luau")
 local SharedWidgetControls = require("./hosts/noctalia/ui/SharedWidgetControls.luau")
 local Header = require("./hosts/noctalia/ui/Header.luau")
 local BodyTabFolders = require("./hosts/noctalia/ui/BodyTabFolders.luau")
@@ -30,7 +32,7 @@ end
 local function render()
     if not opened or not controller then return end
     local v = controller.view
-    controller.navigation, controller.actionNavigation, controller.selectionView = nil, nil, nil
+    controller.navigation, controller.actionNavigation, controller.selectionView, controller.dropdownList = nil, nil, nil, nil
     panel.setWantsSecondTicks(controller:needsTicks())
     if v.details then
         panel.render(ui.column({ key = "details", flexGrow = 1, padding = 12, gap = 8 }, {
@@ -43,25 +45,28 @@ local function render()
         }))
         return
     end
-    if v.confirm then
-        panel.render(Confirmation.render(controller))
-        return
-    end
     local body = {}
     if v.form then
         table.insert(body, formTree(v.form))
     else
-        table.insert(body, ui.row({ gap = 8 }, {
-            SharedWidgetControls.button("Folders", function() v.section = "folders"; controller:save() end, true, v.section == "folders" and "primary" or "ghost"),
-            SharedWidgetControls.button("Devices", function() v.section = "devices"; controller:save() end, true, v.section == "devices" and "primary" or "ghost"),
+        local function tab(key, text, section)
+            return ui.button({ key = key, text = text, controlSize = "sm", fontSize = 11, height = 26,
+                variant = v.section == section and "secondary" or "outline",
+                onClick = function() v.section = section; controller:save() end })
+        end
+        table.insert(body, ui.row({ gap = 6 }, {
+            tab("Folders", "FOLDERS (" .. tostring(#(controller.snapshot.folders or {})) .. ")", "folders"),
+            tab("Devices", "DEVICES (" .. tostring(#Model.remoteDevices(controller.snapshot)) .. ")", "devices"),
         }))
         if v.section == "folders" then
             table.insert(body, BodyTabFolders.render(controller))
         else
             table.insert(body, BodyTabDevices.render(controller))
         end
-        table.insert(body, BodyInvitations.render(controller))
-        table.insert(body, BodyMore.render(controller))
+        if not controller.dropdownList then
+            table.insert(body, BodyInvitations.render(controller))
+            table.insert(body, BodyMore.render(controller))
+        end
     end
     if controller.selectionView then
         local selection = controller.selectionView
@@ -76,15 +81,30 @@ local function render()
     local enabled = controller.status.ready and not controller:busy()
     local message = controller.status.error or v.message
     local bodyKey = v.form and ("form-" .. tostring(v.form.token)) or ("overview-" .. v.section)
+    local noticeColor = (controller.status.error or v.noticeKind == "error" or v.noticeKind == "uncertain") and "error"
+        or (v.noticeKind == "success" and Palette.roles.success or "on_surface_variant")
+    local top = { Header.render(controller) }
+    if message ~= "" then table.insert(top, SharedWidgetControls.notice(controller, message, noticeColor, "action details")) end
+    table.insert(top, ui.separator({}))
+    local bottom = { ui.separator({}), FooterActions.render(controller, enabled), FooterShortcutHint.render() }
+    local top_, bottom_ = ui.column({ key = "panel-top", gap = 8 }, top), ui.column({ key = "panel-bottom", gap = 8 }, bottom)
+    if v.confirm then
+        top_.props.opacity, bottom_.props.opacity = 0.35, 0.35
+        Confirmation.dim(top_); Confirmation.dim(bottom_)
+        panel.render(ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
+            top_,
+            ui.column({ key = "panel-dialog", flexGrow = 1, justify = "center" }, { Confirmation.render(controller) }),
+            bottom_,
+        }))
+        return
+    end
     local tree = ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
-        Header.render(controller),
-        SharedWidgetControls.notice(controller, message ~= "" and message or "", (controller.status.error or v.noticeKind == "error" or v.noticeKind == "uncertain") and "error"
-            or (v.noticeKind == "success" and "tertiary" or "on_surface_variant"), "action details"),
+        top_,
         ui.scroll({ key = bodyKey, flexGrow = 1, gap = 10 }, body),
-        FooterActions.render(controller, enabled),
-        FooterShortcutHint.render(),
+        bottom_,
     })
-    table.insert(tree.children, Navigation.decorate(controller, tree))
+    local selection = Navigation.decorate(controller, tree)
+    if v.actionCursor then table.insert(bottom_.children, selection) end
     panel.render(tree)
 end
 

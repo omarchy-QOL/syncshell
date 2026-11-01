@@ -104,6 +104,21 @@ function Model.bytes(value)
     return string.format(index == 1 and "%.0f %s" or "%.1f %s", value, units[index])
 end
 
+function Model.count(value)
+    value = value or 0
+    if value >= 1000000 then return string.format("%.1fM", value / 1000000) end
+    if value >= 1000 then return tostring(math.floor(value / 1000)) .. "k" end
+    return tostring(value)
+end
+
+-- Native labels end-elide; Omarchy keeps a path's tail visible.
+function Model.shortPath(path, limit)
+    path = tostring(path or "")
+    limit = limit or 52
+    if #path <= limit then return path end
+    return "…" .. string.sub(path, -limit)
+end
+
 function Model.validDeviceId(value)
     local count = 0
     for part in string.gmatch(value, "[^-]+") do
@@ -206,6 +221,33 @@ function Model.folderState(snapshot, folder, view)
     if view.recentlyLinked == folder.id then return "LINKED", "Newly linked" end
     if status.state == "idle" then return "SYNCED", "Up to date" end
     return "UNKNOWN", "Folder status unavailable"
+end
+
+function Model.folderMeta(snapshot, folder, scanning)
+    local status = folder.status or {}
+    if Model.hasProblems({ folders = { folder } }) then
+        local first = (status.errors or {})[1]
+        return (status.error ~= "" and status.error) or (first and first.error) or "Folder needs attention"
+    end
+    if folder.paused then return "Syncing paused" end
+    if scanning then return "Scanning local changes" end
+    if status.state == "syncing" or (status.needTotalItems or 0) > 0 then
+        local items = status.needTotalItems or 0
+        local remaining = Model.count(items) .. " item" .. (items == 1 and "" or "s") .. " remaining"
+        return (status.needBytes or 0) > 0 and (remaining .. " · " .. Model.bytes(status.needBytes)) or remaining
+    end
+    local shared = 0
+    for _, member in folder.devices or {} do
+        if member.id ~= (snapshot.identity or {}).deviceId then shared += 1 end
+    end
+    if shared == 0 then return Model.count(status.globalFiles) .. " files · local only" end
+    return Model.count(status.globalFiles) .. " files · " .. Model.bytes(status.globalBytes)
+end
+
+function Model.folderGroupRole(group)
+    if group == "errors" then return "error" end
+    if group == "active" or group == "paused" then return "warning" end
+    return group == "ready" and "success" or "muted"
 end
 
 function Model.folderStateRole(state)

@@ -19,8 +19,9 @@ function Navigation.decorate(controller, tree)
         if node.props.key then context = caption(node) or context end
         -- Retained native buttons do not reset an omitted selected prop.
         if node.type == "button" then node.props.selected = false end
-        if node.type == "button" and node.props.enabled ~= false and type(node.props.onClick) == "function" then
-            local label = node.props.text ~= "" and node.props.text or node.props.tooltip
+        local clickableRow = node.type == "row" and type(node.props.onClick) == "function"
+        if clickableRow or (node.type == "button" and node.props.enabled ~= false and type(node.props.onClick) == "function") then
+            local label = clickableRow and (caption(node) or node.props.key) or (node.props.text ~= "" and node.props.text or node.props.tooltip)
             local id = path .. ":" .. label
             table.insert(actions, { id = id, node = node, label = label,
                 context = context, activate = node.props.onClick })
@@ -38,7 +39,9 @@ function Navigation.decorate(controller, tree)
     visit(tree, "panel", context)
     local selected
     for index, action in actions do
-        if action.id == view.actionCursor then selected = index; action.node.props.selected = true end
+        if action.id == view.actionCursor then selected = index; 
+            if action.node.type == "button" then action.node.props.selected = true else action.node.props.fill = "surface_variant" end
+        end
     end
     controller.actionNavigation = function(chord)
         if chord == "Alt+Return" then

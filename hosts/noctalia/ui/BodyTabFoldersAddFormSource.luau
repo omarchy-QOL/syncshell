@@ -21,7 +21,8 @@ function Source.render(controller, form)
     table.sort(rows, function(a, b) if a.id == "" or b.id == "" then return a.id == "" and b.id ~= "" end; return a.id < b.id end)
     local selected = form.pendingDeviceId and controller.host.json.encode({ form.folderId, form.pendingDeviceId }) or ""
     local children = {}
-    if form.kind == "addFolder" then
+    -- Omarchy offers the source only when an invitation exists.
+    if form.kind == "addFolder" and #rows > 1 then
         table.insert(children, Dropdown.render(controller, form, "folder-source", "Folder source", rows, selected, function(key)
             local offer = offers[key]
             form.selected = {}
@@ -32,13 +33,14 @@ function Source.render(controller, form)
         end))
     end
     if form.pendingDeviceId then
-        table.insert(children, SharedWidgetControls.label("Accepting " .. form.folderId .. " from " .. form.pendingDeviceId))
+        table.insert(children, SharedWidgetControls.hint("Accepting " .. form.folderId .. " from " .. form.pendingDeviceId))
     end
     if encrypted > 0 then
-        table.insert(children, SharedWidgetControls.label(tostring(encrypted) .. " encrypted folder offers require the Web UI", "on_surface_variant"))
+        table.insert(children, SharedWidgetControls.hint(tostring(encrypted) .. " encrypted folder offer" .. (encrypted == 1 and " requires" or "s require") .. " the Syncthing Web UI.", "secondary"))
         table.insert(children, SharedWidgetControls.button("Open encrypted offers in Web UI", function() controller:send("webui.open", {}) end,
             not controller:busy() and (controller.snapshot.connection or {}).online))
     end
+    if #children == 0 then return ui.column({ visible = false }) end
     return ui.column({ gap = 6 }, children)
 end
 

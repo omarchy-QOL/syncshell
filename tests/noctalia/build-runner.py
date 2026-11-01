@@ -19,8 +19,9 @@ reconciler = (source / "src/ui/ui_tree_reconciler.cpp").read_text()
 props = {name: re.findall(r'"([^"\n]+)"', body) for name, body in re.findall(
     r'static const std::unordered_set<std::string> k(\w+)\s*=\s*\{(.*?)\};', reconciler, re.S)}
 mapping = {"column": "Flex", "row": "Flex", "scroll": "Scroll", "button": "Button", "label": "Label",
-           "image": "Image", "glyph": "Glyph", "input": "Input", "toggle": "Toggle", "select": "Select"}
-schema = {key: props[value] + ["key"] for key, value in mapping.items()}
+           "image": "Image", "glyph": "Glyph", "input": "Input", "toggle": "Toggle", "select": "Select",
+           "box": "Box", "separator": "Separator", "spacer": "Common"}
+schema = {key: props[value] + props["Common"] + ["key"] for key, value in mapping.items()}
 (build / "host-props.inc").write_text('const char* hostProps = R"schema(' + json.dumps(schema) + ')schema";\n')
 runner = pathlib.Path(__file__).with_name("runner.cpp").resolve()
 luau = source / "third_party/luau"

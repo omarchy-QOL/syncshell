@@ -26,7 +26,7 @@ end
 
 function SharedWidgetControls.notice(controller, text, color, title)
     text = tostring(text or "")
-    local children = { ui.label({ text = text, color = color or "on_surface", maxLines = 3 }) }
+    local children = { ui.label({ text = text, color = color or "on_surface", fontSize = 12, maxLines = 3 }) }
     if #text > 180 or select(2, string.gsub(text, "\n", "")) > 2 then
         table.insert(children, SharedWidgetControls.button("Full " .. title, function()
             controller.view.details = { title = title, text = text }; controller:save()
@@ -40,22 +40,47 @@ function SharedWidgetControls.button(text, callback, enabled, variant, key, tool
         variant = variant or "default", controlSize = "sm", key = key, tooltip = tooltip })
 end
 
-function SharedWidgetControls.field(controller, form, key, label, options)
-    options = options or {}
-    return ui.column({ gap = 4 }, {
-        SharedWidgetControls.label(label, "on_surface_variant"),
-        ui.input({ key = "form-" .. tostring(form.token) .. "-" .. key .. "-" .. tostring(options.revision or 0),
-            value = form[key] or "", placeholder = options.placeholder or "", focus = options.focus == true,
-            enabled = options.enabled ~= false and not controller:busy(),
-            onChange = function(value) form[key] = value; controller:save() end,
-            onSubmit = options.onSubmit }),
+function SharedWidgetControls.caption(text, color)
+    return ui.label({ text = text, color = color or "on_surface_variant", fontSize = 11, fontWeight = "bold", maxLines = 1 })
+end
+
+function SharedWidgetControls.hint(text, color)
+    return ui.label({ text = text, color = color or "on_surface_variant", fontSize = 11, maxLines = 0 })
+end
+
+-- A native button has one glyph on its left; Omarchy's selector chevron sits right.
+function SharedWidgetControls.selectTrigger(key, text, callback, enabled, muted)
+    return ui.row({ key = key, gap = 8, align = "center", height = 32, paddingH = 10, radius = 6, border = "outline",
+        borderWidth = 1, flexGrow = 1, minWidth = 0, onClick = enabled ~= false and callback or nil, opacity = enabled ~= false and 1 or 0.5 }, {
+        ui.label({ text = text, color = muted and "on_surface_variant" or "on_surface", maxLines = 1, flexGrow = 1 }),
+        ui.glyph({ name = "chevron-down", size = 14, color = "on_surface_variant" }),
     })
 end
 
-function SharedWidgetControls.formHeader(controller, title)
-    return ui.row({ gap = 8, align = "center" }, {
-        SharedWidgetControls.button(controller.view.form and controller.view.form.returnForm and "Back" or "Cancel", function() controller:cancel() end, not controller:busy(), "ghost"),
-        SharedWidgetControls.label(title),
+function SharedWidgetControls.chip(key, glyph, text, callback, enabled, help)
+    return ui.row({ key = key, gap = 6, align = "center", height = 26, paddingH = 8, radius = 4, border = "outline", borderWidth = 1,
+        minWidth = 0, tooltip = help, onClick = enabled ~= false and callback or nil }, {
+        ui.glyph({ name = glyph, size = 14, color = "on_surface" }),
+        ui.label({ text = text, fontWeight = "bold", maxLines = 1 }),
+    })
+end
+
+function SharedWidgetControls.badge(key, text, color)
+    return ui.row({ key = key, align = "center", height = 20, paddingH = 6, radius = 3, border = color, borderWidth = 1 }, {
+        ui.label({ text = text, color = color, fontSize = 10, fontWeight = "bold", maxLines = 1 }),
+    })
+end
+
+function SharedWidgetControls.field(controller, form, key, label, options)
+    options = options or {}
+    local input = ui.input({ key = "form-" .. tostring(form.token) .. "-" .. key .. "-" .. tostring(options.revision or 0),
+        value = form[key] or "", placeholder = options.placeholder or "", focus = options.focus == true, controlSize = "sm",
+        enabled = options.enabled ~= false and not controller:busy(), flexGrow = options.trailing and 1 or nil,
+        onChange = function(value) form[key] = value; controller:save() end,
+        onSubmit = options.onSubmit })
+    return ui.column({ gap = 4 }, {
+        SharedWidgetControls.caption(label),
+        options.trailing and ui.row({ gap = 6, align = "center" }, { input, options.trailing }) or input,
     })
 end
 

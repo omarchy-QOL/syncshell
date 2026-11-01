@@ -1,4 +1,5 @@
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
+local BodyFormHeader = require("./BodyFormHeader.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
 local Service = require("./SettingsPageServiceControls.luau")
 local Removal = require("./SettingsSelfRemovalSteps.luau")
@@ -9,7 +10,7 @@ local Settings = {}
 function Settings.render(controller)
     local enabled = not controller:busy() and controller.status.ready
     local children = {
-        SharedWidgetControls.formHeader(controller, "Settings and Web UI"),
+        BodyFormHeader.render(controller, "SETTINGS"),
         SharedWidgetControls.button("Open Noctalia plugin settings", function() controller.host.openSettings() end),
         SharedWidgetControls.label("Connection, refresh intervals, icon style and service authorization live in Noctalia's settings."),
         SharedWidgetControls.label("Preferred Web UI: " .. tostring(controller.host.getConfig("webUi"))

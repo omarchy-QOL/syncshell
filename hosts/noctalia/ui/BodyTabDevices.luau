@@ -10,6 +10,7 @@ function Devices.render(controller)
     local connection = controller.snapshot.connection or {}
     for _, device in devices do
         table.insert(rows, { id = device.id, label = device.name ~= "" and device.name or device.id,
+            role = Model.deviceStateRole(device, connection.online and connection.fresh),
             description = ((not connection.online or not connection.fresh) and "Current status unavailable"
                 or (device.paused and "Paused" or (device.connected and "Connected" or "Offline"))) .. " | " .. device.id })
     end
@@ -17,9 +18,8 @@ function Devices.render(controller)
     local enabled = connection.online and connection.fresh and not controller:busy()
     local toolbar = {}
     if #devices > 0 then
-        table.insert(toolbar, ui.column({ flexGrow = 1, minWidth = 0 }, {
-            Dropdown.render(controller, view, "device", "Device", rows, view.deviceId, function(id) view.deviceId = id end),
-        }))
+        table.insert(toolbar, Dropdown.render(controller, view, "device", "Device", rows, view.deviceId,
+            function(id) view.deviceId = id end, { detached = true, placeholder = "To search press '/'" }))
     else
         table.insert(toolbar, ui.label({ text = connection.online and "No remote devices configured."
             or "Device status is unavailable.", color = "on_surface_variant", flexGrow = 1 }))
@@ -30,15 +30,16 @@ function Devices.render(controller)
     if #devices > 0 then
         table.insert(toolbar, ActionButton.render("Shared folders", "folders", function()
             controller:openForm("deviceFolders", device)
-        end, enabled and device ~= nil, nil, "View folders shared with selected device"))
+        end, enabled and device ~= nil, nil, "View folder shared\nwith selected device"))
         table.insert(toolbar, ActionButton.render("Remove", "x", function()
-            controller:confirm("Remove " .. device.name .. " (" .. device.id
-                .. ")? Its local folder shares are removed; files and the remote device remain unchanged.",
+            controller:confirm("Remove " .. (device.name ~= "" and device.name or device.id) .. " from this device?\n\n"
+                .. "Folder sharing with it will be removed locally. Local folders and files remain.\nThe other device is unchanged.",
                 "device.remove", { deviceId = device.id })
         end, enabled and device ~= nil, "destructive", "Remove selected device"))
     end
     local children = { ui.row({ key = "device-toolbar", gap = 6, align = "center" }, toolbar) }
-    if device then table.insert(children, BodyTabDevicesCard.render(controller, device)) end
+    if controller.dropdownList then table.insert(children, controller.dropdownList)
+    elseif device then table.insert(children, BodyTabDevicesCard.render(controller, device)) end
     return ui.column({ key = "devices", gap = 8 }, children)
 end
 

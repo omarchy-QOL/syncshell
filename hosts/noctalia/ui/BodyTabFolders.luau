@@ -22,19 +22,19 @@ function BodyTabFolders.render(controller)
     if #folders > 0 then
         table.insert(toolbar, ActionButton.render("Sharing", "share", function()
             controller:openForm("sharing", folder)
-        end, enabled and folder ~= nil, nil, "Share folder with other devices"))
+        end, enabled and folder ~= nil, nil, "Share folder\n(other device)"))
         table.insert(toolbar, ActionButton.render(folder and folder.paused and "Link" or "Unlink",
             folder and folder.paused and "link" or "x", function()
-                controller:confirm((folder.paused and "Resume synchronization for " or "Pause synchronization for ")
-                    .. Model.folderLabel(folder) .. "? Local files remain.",
+                controller:confirm(folder.paused
+                    and ("Link " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\nSyncthing will resume synchronization for this folder.")
+                    or ("Unlink " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\nSyncthing will pause synchronization. Its configuration and local files remain."),
                     folder.paused and "folder.resume" or "folder.pause", { folderId = folder.id })
             end, enabled and folder ~= nil, folder and not folder.paused and "destructive" or nil,
             folder and (folder.paused and "Link folder" or "Unlink folder (locally)") or "Select a folder"))
     end
     local children = { ui.row({ key = "folder-toolbar", gap = 6, align = "center" }, toolbar) }
-    if #folders > 0 then
-        table.insert(children, Card.render(controller, folder))
-    end
+    if controller.dropdownList then table.insert(children, controller.dropdownList)
+    elseif #folders > 0 then table.insert(children, Card.render(controller, folder)) end
     return ui.column({ key = "folders", gap = 8 }, children)
 end
 

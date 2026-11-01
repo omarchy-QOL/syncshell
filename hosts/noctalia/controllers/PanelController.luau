@@ -83,7 +83,7 @@ function Controller:setResults(results)
     for _, result in results or {} do
         if result.id == pending.id and result.view == self.view.view and result.generation == pending.generation then
             self.view.pending = nil
-            self:notice(result.ok and Actions.label(pending.action or pending.requestType, 3) or (result.error or "Action failed"),
+            self:notice(result.ok and pending.notice or (result.error or "Action failed"),
                 result.ok and "success" or (result.code == "uncertain" and "uncertain" or "error"))
             if result.ok and pending.action == "folder.resume" then
                 self.view.recentlyLinked, self.view.linkedUntil = pending.args.folderId, self.host.nowMs() + 5000
@@ -160,6 +160,7 @@ function Controller:send(action, args, closeForm, requestType)
     local frozen = Model.copy(args or {})
     self.view.pending = { id = id, generation = self.status.generation,
         action = action, requestType = requestType or "action", args = frozen, closeForm = closeForm,
+        notice = action and Actions.notice(action, frozen, self.snapshot) or "",
         formToken = self.view.form and self.view.form.token }
     self:notice(Actions.label(action or requestType, 2), "progress")
     self:save()

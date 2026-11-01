@@ -1,25 +1,29 @@
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
+local ActionButton = require("./SharedWidgetSquareActionButton.luau")
 local FooterActions = {}
+
+local function action(key, text, glyph, callback, enabled, help)
+    return ui.button({ key = key, text = text, glyph = glyph, controlSize = "sm", fontSize = 12, glyphSize = 14,
+        variant = "outline", enabled = enabled ~= false, tooltip = help, onClick = callback, flexGrow = glyph and 1 or nil })
+end
 
 function FooterActions.render(controller, enabled)
     return ui.column({ key = "footer-actions", gap = 8 }, {
         ui.row({ gap = 6 }, {
-            SharedWidgetControls.button(controller:actionLabel("webui.open", "Web UI"), function() controller:send("webui.open", {}) end,
-                enabled and (controller.snapshot.connection or {}).online, nil,
-                controller:actionKey("webui"), "Open the selected Syncthing instance in your browser"),
-            SharedWidgetControls.button("TUI", nil, false, nil, nil, "To be added soon."),
-            SharedWidgetControls.button("GUI", nil, false, nil, nil, "To be added soon."),
+            action(controller:actionKey("webui"), controller:actionLabel("webui.open", "Web UI"), nil, function() controller:send("webui.open", {}) end,
+                enabled and (controller.snapshot.connection or {}).online, "Open the selected Syncthing instance in your browser"),
+            action("TUI", "TUI", nil, nil, false, "To be added soon."),
+            action("GUI", "GUI", nil, nil, false, "To be added soon."),
         }),
         ui.row({ gap = 6 }, {
-            SharedWidgetControls.button(controller:actionLabel("folder.rescan-all", "Rescan all"), function() controller:rescanAll() end,
-                controller:canRescan(), nil, controller:actionKey("rescan-all"),
+            action(controller:actionKey("rescan-all"), controller:actionLabel("folder.rescan-all", "Rescan all folders"), "refresh",
+                function() controller:rescanAll() end, controller:canRescan(),
                 "Rescan linked folders for local changes; requires a current connection and a folder not already scanning"),
-            SharedWidgetControls.button(controller:actionLabel("folder.recheck-errors",
-                controller:actionLabel("refresh", "Refresh")), function() controller:refresh() end,
-                enabled, nil, controller:actionKey("refresh"),
+            action(controller:actionKey("refresh"), controller:actionLabel("folder.recheck-errors", controller:actionLabel("refresh", "Refresh Sync.status")),
+                "activity-heartbeat", function() controller:refresh() end, enabled,
                 "Refresh Syncthing state, rescan folders with errors, or retry connection discovery"),
-            SharedWidgetControls.button("Settings", function() controller:openForm("settings") end,
-                not controller:busy(), nil, nil, "Syncshell settings"),
+            ActionButton.render("Settings", "settings", function() controller:openForm("settings") end,
+                not controller:busy(), nil, "Settings"),
         }),
     })
 end

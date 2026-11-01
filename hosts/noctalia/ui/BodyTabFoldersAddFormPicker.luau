@@ -1,3 +1,4 @@
+local BodyFormHeader = require("./BodyFormHeader.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Form = require("../models/FormModel.luau")
 local Picker = {}
@@ -61,7 +62,7 @@ function Picker.render(controller, form)
         else return false end
         return true
     end
-    local children = { SharedWidgetControls.formHeader(controller, "Choose directory"),
+    local children = { BodyFormHeader.render(controller, "Choose directory"),
         SharedWidgetControls.label("Location", "on_surface_variant"),
         ui.input({ key = "picker-location-" .. p.path .. "-" .. p.after, value = p.location, focus = true,
             enabled = not p.loading, onChange = function(value) p.location = value; controller:save() end, onSubmit = go }),

@@ -88,12 +88,14 @@ end
 function Harness:click(value)
     local node
     for _, candidate in self:nodes() do
-        if candidate.type == "button" and (candidate.props.key == value or candidate.props.text == value) then
+        if (candidate.type == "button" or (candidate.type == "row" and candidate.props.onClick))
+            and (candidate.props.key == value or candidate.props.text == value) then
             assert(node == nil, "ambiguous button: " .. value)
             node = candidate
         end
     end
     assert(node, "missing button: " .. value)
+    if node.type == "row" then assert(type(node.props.onClick) == "function", "disabled row: " .. value) end
     assert(node.props.enabled ~= false, "disabled control: " .. value)
     assert(type(node.props.onClick) == "function", "control is not clickable: " .. value)
     local ok, err = pcall(function() withBudget(node.props.onClick, 25) end)

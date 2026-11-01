@@ -1,8 +1,8 @@
-local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local FooterShortcutHint = {}
 
 function FooterShortcutHint.render()
-    return SharedWidgetControls.label("[r]escan [w]eb UI [p]ause/start [s]ettings [q]close | Tab: focus", "on_surface_variant")
+    return ui.label({ text = "[r]escan  [w]ebUI  [p]ause/continue  [s]ettings", color = "on_surface_variant",
+        fontSize = 11, textAlign = "center", maxLines = 1 })
 end
 
 return FooterShortcutHint

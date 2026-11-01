@@ -11,14 +11,17 @@ function MultiSelect.render(controller, form, rows, help, options)
         if form.selected[row.id] then selected += 1; table.insert(names, row.name or row.label or row.id) end
     end
     local summary = selected <= 3 and table.concat(names, ", ") or (tostring(selected) .. " selected")
-    if summary == "" then summary = #rows == 0 and "No available items" or "None selected" end
+    if summary == "" then summary = options.empty or (options.key == "sharing" and "Local only") or (#rows == 0 and "No available items" or "None selected") end
     local function close() form.disclosures[key] = false; controller:save() end
+    local captionRow = { SharedWidgetControls.caption(options.label) }
+    if options.note then table.insert(captionRow, SharedWidgetControls.caption(options.note, "secondary")) end
     local children = {
-        SharedWidgetControls.button(options.label .. " | " .. summary, function()
+        ui.row({ gap = 4, align = "center" }, captionRow),
+        SharedWidgetControls.selectTrigger("shares-" .. key, summary, function()
             form.disclosures = { [key] = not form.disclosures[key] }
             if form.selectors then for _, item in form.selectors do item.open = false end end
             controller:save()
-        end, not controller:busy(), "outline", "shares-" .. key),
+        end, not controller:busy(), selected == 0),
     }
     if not form.disclosures[key] then return ui.column({ gap = 4 }, children) end
     local query, available, matches, cursor = form.queries[key] or "", {}, {}, 1
@@ -49,29 +52,38 @@ function MultiSelect.render(controller, form, rows, help, options)
         end
         controller:save(); return true
     end
-    table.insert(children, SharedWidgetControls.label(help, "on_surface_variant"))
+    table.insert(children, SharedWidgetControls.hint(help))
     table.insert(children, ui.input({ key = "share-search-" .. tostring(form.token) .. "-" .. key,
-        value = query, focus = true, placeholder = "Search names, paths, IDs or status",
+        value = query, focus = true, controlSize = "sm", placeholder = options.placeholder or "Find a device...",
         onChange = function(text) form.queries[key], form.shareCursors[key] = text, nil; controller:save() end,
         onSubmit = toggle }))
-    local list, first = {}, cursor
+    local first = math.max(1, math.floor((cursor - 1) / pageSize) * pageSize + 1)
+    local list = {}
     for index = first, math.min(first + pageSize - 1, #matches) do
-        local row, text = matches[index].row, matches[index].text
-        table.insert(list, ui.row({ key = row.id, gap = 8, align = "center", padding = 4,
-            fill = index == cursor and "surface_variant" or "surface" }, {
+        local row = matches[index].row
+        local description = row.description or (row.untrusted and "Encrypted sharing: use Web UI") or nil
+        local text = { ui.label({ text = row.name or row.label or row.id, fontSize = 12, maxLines = 1 }) }
+        if description then table.insert(text, SharedWidgetControls.hint(description)) end
+        table.insert(list, ui.row({ key = row.id, gap = 8, align = "center", paddingH = 4, paddingV = 2, radius = 4,
+            fill = index == cursor and "surface_variant" or nil, tooltip = row.path and (row.path .. " | " .. row.id) or row.id }, {
             ui.toggle({ key = "share-" .. row.id, checked = form.selected[row.id] == true,
                 enabled = not controller:busy() and not row.untrusted,
                 onChange = function(value) form.selected[row.id] = Model.bool(value); controller:save() end }),
-            ui.column({ flexGrow = 1, minWidth = 0 }, { SharedWidgetControls.label(text) }),
+            ui.column({ flexGrow = 1, minWidth = 0 }, text),
         }))
     end
-    if #matches == 0 then table.insert(list, SharedWidgetControls.label(#rows == 0 and "No available items" or "No matching items")) end
-    table.insert(children, ui.scroll({ key = "share-results-" .. key .. "-" .. tostring(form.shareCursors[key]), height = 260, gap = 6 }, list))
-    table.insert(children, ui.row({ gap = 6 }, {
-        SharedWidgetControls.button("Previous", function() form.shareCursors[key] = matches[math.max(1, first - pageSize)].row.id; controller:save() end, first > 1),
-        SharedWidgetControls.button("Next", function() form.shareCursors[key] = matches[first + pageSize].row.id; controller:save() end, first + pageSize <= #matches),
-        SharedWidgetControls.button("Back", close, true, "ghost", "back-shares-" .. key),
-    }))
+    if #matches == 0 then table.insert(list, SharedWidgetControls.hint(#rows == 0 and "No available items" or "No matching items")) end
+    table.insert(children, ui.column({ key = "share-results-" .. key, gap = 2 }, list))
+    if #matches > pageSize then
+        table.insert(children, ui.row({ gap = 6, align = "center" }, {
+            ui.button({ key = "Previous", glyph = "chevron-left", text = "", variant = "ghost", controlSize = "sm", enabled = first > 1, tooltip = "Previous page",
+                onClick = function() form.shareCursors[key] = matches[math.max(1, first - pageSize)].row.id; controller:save() end }),
+            ui.label({ text = tostring(first) .. "-" .. tostring(math.min(first + pageSize - 1, #matches)) .. " of " .. tostring(#matches),
+                color = "on_surface_variant", fontSize = 11, textAlign = "center", flexGrow = 1 }),
+            ui.button({ key = "Next", glyph = "chevron-right", text = "", variant = "ghost", controlSize = "sm", enabled = first + pageSize <= #matches, tooltip = "Next page",
+                onClick = function() form.shareCursors[key] = matches[first + pageSize].row.id; controller:save() end }),
+        }))
+    end
     if not options.group then
         for id, checked in form.selected do
             if checked and not available[id] then
@@ -87,11 +99,7 @@ function MultiSelect.render(controller, form, rows, help, options)
     if encrypted then table.insert(children, SharedWidgetControls.button("Manage encrypted sharing in Web UI", function()
         controller:send("webui.open", {})
     end, not controller:busy() and (controller.snapshot.connection or {}).online)) end
-    table.insert(children, SharedWidgetControls.label(tostring(selected) .. " selected in this group, including hidden rows", "on_surface_variant"))
-    table.insert(children, SharedWidgetControls.label("Alt+Up/Down: select | Enter in search: toggle | Alt+Left: back", "on_surface_variant"))
-    local tree = SharedWidgetControls.column({ gap = 6 }, children)
-    controller.selectionView = { title = options.label, tree = tree, close = close }
-    return tree
+    return SharedWidgetControls.column({ gap = 4 }, children)
 end
 
 return MultiSelect
