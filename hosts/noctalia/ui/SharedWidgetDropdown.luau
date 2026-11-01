@@ -20,7 +20,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
             for other, item in owner.selectors do if other ~= key then item.open = false end end
         end
         controller:save()
-    end, not controller:busy(), false, options.help)
+    end, not controller:busy(), false, options.help, chosen and chosen.trailing)
     if not state.open then return trigger end
     local query = options.query or state.query
     local matches = {}
@@ -66,7 +66,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     local list = {}
     for index = first, math.min(first + pageSize - 1, #matches) do
         local row = matches[index]
-        local cells = { ui.button({ key = "option-" .. key .. "-" .. row.id, text = row.label, contentAlign = "start", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
+        local cells = { ui.button({ key = "option-" .. key .. "-" .. row.id, text = row.trailing and (row.label .. " " .. row.trailing) or row.label, contentAlign = "start", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
             variant = (index == cursor or row.id == selected) and "default" or "ghost", enabled = row.enabled ~= false and not controller:busy(),
             onClick = function() state.open = false; choose(row.id); controller:save() end }) }
         if row.role then table.insert(cells, ui.box({ width = 8, height = 8, radius = 4, fill = Palette.roles[row.role], tooltip = row.description })) end

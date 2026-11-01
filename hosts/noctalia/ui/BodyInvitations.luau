@@ -34,9 +34,10 @@ local function folderRows(snapshot)
             table.sort(devices)
             for _, deviceId in devices do
                 local offer, device = offeredBy[deviceId], Model.find(snapshot.devices, deviceId)
-                local label = (offer.label ~= nil and offer.label ~= "" and offer.label or id) .. " (by "
-                    .. (device and Model.deviceLabel(device) or "Unknown device") .. ")"
-                table.insert(rows, { id = id .. "\n" .. deviceId, folderId = id, deviceId = deviceId, offer = offer, label = label })
+                local label = offer.label ~= nil and offer.label ~= "" and offer.label or id
+                local trailing = "(by " .. (device and Model.deviceLabel(device) or "Unknown device") .. ")"
+                table.insert(rows, { id = id .. "\n" .. deviceId, folderId = id, deviceId = deviceId, offer = offer, label = label, trailing = trailing,
+                    confirmName = label .. " " .. trailing })
             end
         end
     end
@@ -69,7 +70,7 @@ function BodyInvitations.render(controller)
                     controller:confirm("Dismiss pending request from " .. selected.confirmName .. "?\n\nIt can reappear if the device connects again.",
                         "device.dismiss-pending", { deviceId = selected.id })
                 else
-                    controller:confirm("Reject folder request for " .. selected.label .. "?\n\nThis removes the pending announcement without adding the folder.",
+                    controller:confirm("Reject folder request for " .. selected.confirmName .. "?\n\nThis removes the pending announcement without adding the folder.",
                         "folder.dismiss-pending", { folderId = selected.folderId, pendingDeviceId = selected.deviceId })
                 end
             end, not busy and (devices or connection.online == true), nil, devices and "Dismiss incoming device request" or "Reject folder request", nil, "error"),

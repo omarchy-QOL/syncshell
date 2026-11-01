@@ -141,11 +141,6 @@ function Model.remoteDevices(snapshot)
     for _, device in snapshot.devices or {} do
         if device.id ~= (snapshot.identity or {}).deviceId then table.insert(rows, device) end
     end
-    table.sort(rows, function(a, b)
-        local an, bn = string.lower(a.name or ""), string.lower(b.name or "")
-        if an ~= bn then return an < bn end
-        return a.id < b.id
-    end)
     return rows
 end
 
@@ -293,13 +288,17 @@ function Model.folderState(snapshot, folder, view, rescan)
     return syncing and "SYNCING" or "SYNCED"
 end
 
+local function folderSuffix(folder)
+    return (folder.label or "") ~= "" and folder.label ~= Model.folderLabel(folder) and (" · " .. folder.label) or ""
+end
+
 function Model.folderMeta(snapshot, folder, scanning)
     local status = folder.status or {}
     if Model.folderProblem(folder) then
         local first = (status.errors or {})[1]
         return (status.error ~= "" and status.error) or (first and first.error) or "Folder needs attention"
     end
-    local suffix = (folder.label or "") ~= "" and folder.label ~= Model.folderLabel(folder) and (" · " .. folder.label) or ""
+    local suffix = folderSuffix(folder)
     if folder.paused then return "Syncing paused" .. suffix end
     if scanning then return "Scanning local changes" .. suffix end
     if Model.folderSyncing(folder) then

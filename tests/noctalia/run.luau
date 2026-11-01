@@ -196,7 +196,8 @@ for _, spec in forms do
     c.view.pending = nil
     c:openForm(spec[1], spec[2])
     c.view.pending = nil
-    assert(c.view.form.kind == spec[1], "form failed to open: " .. spec[1])
+    -- An accepted offer opens the add form with the offer chosen, as in Omarchy.
+    assert(c.view.form.kind == (spec[1] == "acceptFolder" and "addFolder" or spec[1]), "form failed to open: " .. spec[1])
     c:save()
     local components = {
         addFolder = "BodyTabFoldersAddForm", acceptFolder = "BodyTabFoldersAddForm", sharing = "BodyTabFoldersShareForm",

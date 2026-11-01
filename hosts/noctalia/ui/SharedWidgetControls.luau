@@ -50,19 +50,20 @@ function SharedWidgetControls.hint(text, color)
 end
 
 -- A native button has one glyph on its left; Omarchy's selector chevron sits right.
-function SharedWidgetControls.selectTrigger(key, text, callback, enabled, muted, help)
+function SharedWidgetControls.selectTrigger(key, text, callback, enabled, muted, help, trailing)
+    local cells = { ui.label({ text = text, color = muted and "on_surface_variant" or "on_surface", fontSize = Ui.body, maxLines = 1, flexGrow = 1 }) }
+    if trailing then table.insert(cells, ui.label({ text = trailing, color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 })) end
+    table.insert(cells, ui.glyph({ name = "chevron-down", size = 14, color = "on_surface_variant" }))
     return ui.row({ key = key, gap = 8, align = "center", height = Ui.control, paddingH = 10, radius = 4, border = "outline",
-        borderWidth = 1, flexGrow = 1, minWidth = 0, tooltip = help, onClick = enabled ~= false and callback or nil, opacity = enabled ~= false and 1 or 0.5 }, {
-        ui.label({ text = text, color = muted and "on_surface_variant" or "on_surface", fontSize = Ui.body, maxLines = 1, flexGrow = 1 }),
-        ui.glyph({ name = "chevron-down", size = 14, color = "on_surface_variant" }),
-    })
+        borderWidth = 1, flexGrow = 1, minWidth = 0, tooltip = help, onClick = enabled ~= false and callback or nil, opacity = enabled ~= false and 1 or 0.5 }, cells)
 end
 
 function SharedWidgetControls.chip(key, glyph, text, callback, enabled, help)
     return ui.row({ key = key, gap = 6, align = "center", height = Ui.cardControl, paddingH = 6, radius = 3, border = "outline", borderWidth = 1,
         minWidth = 0, tooltip = help, onClick = enabled ~= false and callback or nil }, {
         ui.glyph({ name = glyph, size = Ui.body, color = "on_surface" }),
-        ui.label({ text = text, fontSize = Ui.body, maxLines = 1 }),
+        -- Leaves room for the copy button and state badge beside a long name.
+        ui.label({ text = text, fontSize = Ui.body, maxLines = 1, maxWidth = 190 }),
     })
 end
 

@@ -19,7 +19,7 @@ function Source.render(controller, form)
                 local key = controller.host.json.encode({ id, deviceId })
                 local device = Model.find(controller.snapshot.devices, deviceId)
                 offers[key] = { id = id, deviceId = deviceId, label = offer.label or id }
-                table.insert(rows, { id = key, label = (offer.label ~= "" and offer.label or id) .. " (by " .. (device and Model.deviceLabel(device) or "Unknown device") .. ")",
+                table.insert(rows, { id = key, label = offer.label ~= "" and offer.label or id, trailing = "(by " .. (device and Model.deviceLabel(device) or "Unknown device") .. ")",
                     description = id .. " | Offered by " .. (device and device.name or deviceId) .. " | " .. deviceId })
             end
         end

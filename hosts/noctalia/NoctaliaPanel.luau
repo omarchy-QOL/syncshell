@@ -136,7 +136,7 @@ local function render()
     end
     local tree = ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
         top_,
-        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8, padding = 0, scrollToBottomRev = v.scrollRevision or 0 }, body),
+        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8, padding = 0, scrollToBottomRev = v.scrollRevision }, body),
         bottom_,
     })
     Navigation.decorate(controller, tree)

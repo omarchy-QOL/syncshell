@@ -31,18 +31,17 @@ function Card.render(controller, folder)
             variant = "outline", enabled = enabled, tooltip = "Rescan this folder for local changes",
             onClick = function() controller:send("folder.rescan", { folderId = folder.id }) end })
     end
-    local details = { ui.label({ text = Model.folderMeta(controller.snapshot, folder, scanning), fontSize = Ui.caption, maxLines = 2,
-        color = problem and "error" or "on_surface_variant" }) }
+    local metaRow = { ui.label({ text = Model.folderMeta(controller.snapshot, folder, scanning), fontSize = Ui.caption, maxLines = 1,
+        maxWidth = problem and 130 or nil, color = problem and "error" or "on_surface_variant" }) }
     if problem then
-        table.insert(details, ui.row({ key = "see-more", onClick = function()
+        table.insert(metaRow, ui.row({ key = "see-more", onClick = function()
             local v = controller.view
             v.folderId, v.more = folder.id, not v.more
             if v.more then v.scrollRevision = (v.scrollRevision or 0) + 1 end
             controller:save()
-        end }, {
-            SharedWidgetControls.hint('(see "More" below)', "error"),
-        }))
+        end }, { SharedWidgetControls.hint('(see "More" below)', "error") }))
     end
+    local details = { ui.row({ gap = 4, align = "center" }, metaRow) }
     table.insert(details, ui.label({ text = Model.shortPath(folder.path), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }))
     local children = {
         ui.row({ gap = 4, align = "center" }, {

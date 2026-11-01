@@ -165,7 +165,7 @@ scenario("invitation tabs retain separate pages and never mix offer types", func
     h:click("Devices")
     assert(h:find("PENDING DEVICE REQUESTS") and not h:find("PENDING FOLDER REQUESTS"))
     h:click("select-invitation-devices"); h:click("Next"); h:click("option-invitation-devices-pending-7")
-    h:click("Folders"); assert(h:find("Offer 7 (by Laptop)"))
+    h:click("Folders"); assert(h:find("Offer 7") and h:find("(by Laptop)"))
     h:click("Devices"); assert(h:find("Incoming 7 (pending) wants to connect"))
 end)
 

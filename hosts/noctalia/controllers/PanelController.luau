@@ -72,9 +72,12 @@ function Controller:setSnapshot(value)
     self.snapshot, self.received = value.state, value.received
     local v = self.view
     if v.form then Form.reconcile(self.snapshot, v.form) end
-    if not v.folderId and #(self.snapshot.folders or {}) > 0 then v.folderId = self.snapshot.folders[1].id end
+    -- As in Omarchy, a selection that no longer exists falls back to the first row.
+    if not Model.find(self.snapshot.folders, v.folderId) then
+        v.folderId = ((self.snapshot.folders or {})[1] or {}).id
+    end
     local devices = Model.remoteDevices(self.snapshot)
-    if not v.deviceId and #devices > 0 then v.deviceId = devices[1].id end
+    if not Model.find(devices, v.deviceId) then v.deviceId = devices[1] and devices[1].id end
 end
 
 function Controller:setResults(results)

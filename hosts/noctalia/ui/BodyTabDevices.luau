@@ -2,6 +2,9 @@ local Model = require("../models/PanelModel.luau")
 local BodyTabDevicesCard = require("./BodyTabDevicesCard.luau")
 local Dropdown = require("./SharedWidgetDropdown.luau")
 local ActionButton = require("./SharedWidgetSquareActionButton.luau")
+local SharedWidgetControls = require("./SharedWidgetControls.luau")
+local Ui = require("./UiConstants.luau")
+local Palette = require("../controllers/ThemePaletteController.luau")
 local Devices = {}
 
 function Devices.render(controller)
@@ -38,7 +41,18 @@ function Devices.render(controller)
     end
     local children = { ui.row({ key = "device-toolbar", gap = 6, align = "center" }, toolbar) }
     if controller.dropdownList then table.insert(children, controller.dropdownList)
-    elseif device then table.insert(children, BodyTabDevicesCard.render(controller, device)) end
+    elseif device then
+        table.insert(children, BodyTabDevicesCard.render(controller, device))
+        local shared = false
+        for _, folder in controller.snapshot.folders or {} do shared = shared or Model.shares(folder, device.id) end
+        if not shared then
+            table.insert(children, ui.row({ gap = 4, align = "center" }, {
+                SharedWidgetControls.hint("No folders are shared. Use the", Palette.roles.warning),
+                ui.glyph({ name = "share", size = Ui.caption, color = Palette.roles.warning }),
+                SharedWidgetControls.hint("button to share a folder.", Palette.roles.warning),
+            }))
+        end
+    end
     return ui.column({ key = "devices", gap = 8 }, children)
 end
 
