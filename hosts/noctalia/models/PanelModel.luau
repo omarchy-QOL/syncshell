@@ -25,16 +25,63 @@ function Model.bool(value)
     return value == true or value == "true"
 end
 
-function Model.folderGroup(folder, online)
+function Model.folderProblem(folder)
     local status = folder.status or {}
-    if folder.paused then return "paused" end
-    if not online then return "unknown" end
-    if status.state == "error" or (status.error and status.error ~= "")
-        or (status.pullErrors or 0) > 0 or #(status.errors or {}) > 0 then return "errors" end
-    if status.state == "syncing" or string.sub(status.state or "", 1, 4) == "scan"
-        or (status.needTotalItems or 0) > 0 then return "active" end
-    if status.state == "idle" then return "ready" end
-    return "unknown"
+    return status.state == "error" or (status.error ~= nil and status.error ~= "")
+        or (status.pullErrors or 0) > 0 or #(status.errors or {}) > 0
+end
+
+function Model.folderSyncing(folder)
+    local status = folder.status or {}
+    return (status.needTotalItems or 0) > 0 or status.state == "syncing"
+end
+
+function Model.folderScanning(folder)
+    return string.sub((folder.status or {}).state or "", 1, 4) == "scan"
+end
+
+-- Omarchy's rule: scanning is shown for scans this panel asked for.
+function Model.folderRescanning(snapshot, folder, rescan)
+    if not folder or folder.paused or not rescan then return false end
+    if rescan.action == "folder.rescan" then return rescan.folderId == folder.id end
+    if rescan.action ~= "folder.rescan-all" then return false end
+    if Model.folderScanning(folder) then return true end
+    for _, other in snapshot.folders or {} do
+        if Model.folderScanning(other) then return false end
+    end
+    return true
+end
+
+function Model.folderStateGroup(state)
+    if state == "SYNCING" or state == "SCANNING" or state == "SCAN+SYNC" then return "active" end
+    if state == "ERROR" then return "errors" end
+    if state == "UNLINKED" then return "paused" end
+    return state == "UNKNOWN" and "unknown" or "ready"
+end
+
+local stateHelp = {
+    LINKED = "LINKED · Newly linked", SYNCING = "SYNCING · Applying changes",
+    SCANNING = "SCANNING · Rescanning local files", ["SCAN+SYNC"] = "SCAN+SYNC · Rescanning and syncing",
+    UNLINKED = "UNLINKED · Syncing paused", UNKNOWN = "UNKNOWN · Status unavailable",
+    ERROR = "ERROR · Needs attention", SYNCED = "SYNCED · Up to date",
+}
+
+function Model.folderStateHelp(state)
+    return stateHelp[state] or stateHelp.SYNCED
+end
+
+-- Subsequence match on the label, as Omarchy's selector searches.
+function Model.matchesSearch(label, query)
+    local text, needle, position = string.lower(label), string.lower(query), 1
+    for index = 1, #needle do
+        local char = string.sub(needle, index, index)
+        if char ~= " " or index < #needle then
+            local found = string.find(text, char, position, true)
+            if not found then return false end
+            position = found + 1
+        end
+    end
+    return true
 end
 
 -- Plain scans instead of patterns: the host's budget hook reads the CPU clock
@@ -53,15 +100,25 @@ function Model.folderLabel(folder)
     return name or (folder.label ~= "" and folder.label) or folder.id
 end
 
-function Model.folderRows(snapshot, view)
-    local rows = {}
-    local query = string.lower(view.search or "")
+function Model.pathParent(path)
+    local parent = string.match(string.gsub(path or "", "/+$", ""), "([^/]*)/[^/]*$")
+    return parent and parent ~= "" and parent or "/"
+end
+
+function Model.folderRows(snapshot, view, rescan)
+    local rows, counts = {}, {}
     for _, folder in snapshot.folders or {} do
-        local group = Model.folderGroup(folder, snapshot.connection and snapshot.connection.online and snapshot.connection.fresh)
         local name = Model.folderLabel(folder)
-        local text = string.lower(name .. " " .. (folder.label or "") .. " " .. folder.id .. " " .. folder.path)
-        if view.filters[group] ~= false and string.find(text, query, 1, true) then
-            table.insert(rows, { id = folder.id, label = name, path = folder.path, group = group })
+        counts[name] = (counts[name] or 0) + 1
+    end
+    local query = view.search or ""
+    for _, folder in snapshot.folders or {} do
+        local state = Model.folderState(snapshot, folder, view, rescan)
+        local group = Model.folderStateGroup(state)
+        local name = Model.folderLabel(folder)
+        if counts[name] > 1 then name ..= " (" .. Model.pathParent(folder.path) .. ")" end
+        if view.filters[group] ~= false and Model.matchesSearch(name, query) then
+            table.insert(rows, { id = folder.id, label = name, path = folder.path, group = group, state = state })
         end
     end
     -- Lowercase each label once; the sort compares O(n log n) times within
@@ -101,14 +158,38 @@ function Model.bytes(value)
     value = math.max(0, value or 0)
     local units, index = { "B", "KiB", "MiB", "GiB", "TiB" }, 1
     while value >= 1024 and index < #units do value /= 1024; index += 1 end
-    return string.format(index == 1 and "%.0f %s" or "%.1f %s", value, units[index])
+    if index == 1 then return string.format("%.0f %s", value, units[index]) end
+    return string.format(value >= 10 and "%.0f %s" or "%.1f %s", value, units[index])
 end
 
 function Model.count(value)
-    value = value or 0
-    if value >= 1000000 then return string.format("%.1fM", value / 1000000) end
-    if value >= 1000 then return tostring(math.floor(value / 1000)) .. "k" end
-    return tostring(value)
+    value = math.max(0, value or 0)
+    if value >= 1000000 then return string.format("%.1fm", value / 1000000) end
+    if value >= 1000 then return string.format(value >= 10000 and "%.0fk" or "%.1fk", value / 1000) end
+    return string.format("%.0f", value)
+end
+
+function Model.pathLabel(path)
+    local value = string.gsub(path or "", "/+$", "")
+    if string.sub(path or "", 1, 1) == "/" and value == "" then return "/" end
+    local last = string.match(value, "([^/]+)$")
+    return last or "Folder"
+end
+
+function Model.shortDeviceId(id)
+    return string.match(id or "", "^[^-]*") or ""
+end
+
+function Model.deviceLabel(device)
+    return device.name ~= nil and device.name ~= "" and device.name or ("Device " .. Model.shortDeviceId(device.id))
+end
+
+-- Omarchy resolves "~", "~/x" and relative paths against the home directory.
+function Model.resolvePath(path, home)
+    if path == "~" then return home end
+    if string.sub(path, 1, 2) == "~/" then return home .. string.sub(path, 2) end
+    if string.sub(path, 1, 1) == "/" or not home or home == "" then return path end
+    return home .. "/" .. path
 end
 
 -- Native labels end-elide; Omarchy keeps a path's tail visible.
@@ -131,13 +212,11 @@ end
 function Model.shareMeaning(snapshot, deviceId, remoteState)
     local device = Model.find(snapshot.devices, deviceId)
     local connection = snapshot.connection or {}
-    if not connection.online or not connection.fresh then return false, "Remote acceptance unconfirmed: current status unavailable" end
-    if not device then return false, "Remote acceptance unconfirmed: device unavailable" end
-    if device.paused then return false, "Remote acceptance unconfirmed: device paused" end
-    if not device.connected then return false, "Remote acceptance unconfirmed: device offline" end
-    if remoteState == "valid" then return true, "Remote sharing confirmed" end
-    if remoteState == "paused" then return true, "Remote folder paused" end
-    if remoteState == "notSharing" then return false, "Remote is not sharing back" end
+    local known = connection.fresh and device and device.connected and not device.paused
+    local state = known and remoteState or "unknown"
+    if state == "valid" then return true, "" end
+    if state == "paused" then return true, "Remote folder paused" end
+    if state == "notSharing" then return false, "Remote is not sharing back" end
     return false, "Remote acceptance unconfirmed"
 end
 
@@ -164,9 +243,7 @@ end
 
 function Model.hasProblems(snapshot)
     for _, folder in snapshot.folders or {} do
-        local status = folder.status or {}
-        if status.state == "error" or (status.error and status.error ~= "")
-            or (status.pullErrors or 0) > 0 or #(status.errors or {}) > 0 then return true end
+        if Model.folderProblem(folder) then return true end
     end
     return false
 end
@@ -204,35 +281,28 @@ function Model.totals(snapshot)
     return total
 end
 
-function Model.folderState(snapshot, folder, view)
-    if not folder then return "UNKNOWN", "Status unavailable" end
-    local status = folder.status or {}
-    if folder.paused then return "UNLINKED", "Syncing paused; local files remain" end
-    if not (snapshot.connection or {}).online or not (snapshot.connection or {}).fresh then
-        return "UNKNOWN", "Current status unavailable; last reported values shown"
-    end
-    if Model.hasProblems({ folders = { folder } }) then return "ERROR", "Needs attention; open folder errors" end
+function Model.folderState(snapshot, folder, view, rescan)
+    if not (snapshot.connection or {}).online or not folder then return "UNKNOWN" end
+    if folder.paused then return "UNLINKED" end
+    if Model.folderProblem(folder) then return "ERROR" end
     local activity = (snapshot.activity or {}).current
-    local syncing = status.state == "syncing" or (status.needTotalItems or 0) > 0 or (activity and activity.folderId == folder.id)
-    local scanning = string.sub(status.state or "", 1, 4) == "scan" or (view.scanning or {})[folder.id]
-    if scanning and syncing then return "SCAN+SYNC", "Scanning local changes and applying synchronization" end
-    if scanning then return "SCANNING", "Scanning local changes" end
-    if syncing then return "SYNCING", "Applying changes" end
-    if view.recentlyLinked == folder.id then return "LINKED", "Newly linked" end
-    if status.state == "idle" then return "SYNCED", "Up to date" end
-    return "UNKNOWN", "Folder status unavailable"
+    local hasActivity = activity ~= nil and activity.folderId == folder.id
+    local syncing = Model.folderSyncing(folder) or hasActivity
+    if Model.folderRescanning(snapshot, folder, rescan) then return syncing and "SCAN+SYNC" or "SCANNING" end
+    if view.recentlyLinked == folder.id then return "LINKED" end
+    return syncing and "SYNCING" or "SYNCED"
 end
 
 function Model.folderMeta(snapshot, folder, scanning)
     local status = folder.status or {}
-    if Model.hasProblems({ folders = { folder } }) then
+    if Model.folderProblem(folder) then
         local first = (status.errors or {})[1]
         return (status.error ~= "" and status.error) or (first and first.error) or "Folder needs attention"
     end
     local suffix = (folder.label or "") ~= "" and folder.label ~= Model.folderLabel(folder) and (" · " .. folder.label) or ""
     if folder.paused then return "Syncing paused" .. suffix end
     if scanning then return "Scanning local changes" .. suffix end
-    if status.state == "syncing" or (status.needTotalItems or 0) > 0 then
+    if Model.folderSyncing(folder) then
         local items = status.needTotalItems or 0
         local remaining = Model.count(items) .. " item" .. (items == 1 and "" or "s") .. " remaining"
         return ((status.needBytes or 0) > 0 and (remaining .. " · " .. Model.bytes(status.needBytes)) or remaining) .. suffix
@@ -259,31 +329,72 @@ function Model.folderStateRole(state)
     return state == "ERROR" and "error" or "muted"
 end
 
-function Model.deviceStateRole(device, fresh)
-    if not fresh then return "muted" end
+function Model.deviceStateRole(device)
     if device.paused then return "warning" end
     return device.connected and "success" or "muted"
 end
 
+function Model.lifecycleAvailable(lifecycle)
+    return lifecycle.targetMatch == true and (lifecycle.canControl == true or lifecycle.canStart == true)
+end
+
+-- Omarchy's icon variant and tooltip summary.
 function Model.indicator(snapshot, status)
     local connection, lifecycle, counts = snapshot.connection or {}, snapshot.lifecycle or {}, snapshot.counts or {}
-    if not status.ready then return "notify", "Worker unavailable" end
-    if (lifecycle.canControl or lifecycle.canStart) and lifecycle.active == false then return "pause", "Service stopped" end
-    if not connection.online then return "notify", "Connection unavailable" end
-    if not connection.fresh or (counts.folderProblems or 0) > 0 or Model.hasProblems(snapshot) then return "notify", "Needs attention" end
-    local scanning = snapshot.scanningFolders or Model.totals(snapshot).scanning
+    local installation = snapshot.installation or {}
+    local phase = connection.phase or "discovering"
+    local rescanning = status.rescan ~= nil or (status.busyAction == "folder.rescan" or status.busyAction == "folder.rescan-all")
     local activity = snapshot.activityActive or (snapshot.activity or {}).current ~= nil
-    if scanning > 0 and ((counts.syncingFolders or 0) > 0 or activity) then return "sync", "Scanning and syncing" end
-    if scanning > 0 then return "sync", "Scanning" end
-    if (counts.syncingFolders or 0) > 0 or activity then return "sync", "Syncing" end
-    return "default", "Up to date"
+    local syncInProgress = (counts.syncingFolders or 0) > 0 or activity or rescanning
+    local problems = counts.folderProblems or 0
+    local serviceOff = Model.lifecycleAvailable(lifecycle) and lifecycle.active ~= true
+    local summary = "Up to date"
+    if not status.ready then summary = "Syncthing unavailable"
+    elseif installation.available == false and not connection.online then summary = "Syncthing is not installed"
+    elseif serviceOff then summary = "Syncing stopped"
+    elseif phase == "discovering" then summary = "Finding Syncthing"
+    elseif phase == "loading" then summary = "Reading status"
+    elseif phase == "error" then summary = "Syncthing unavailable"
+    elseif problems > 0 then summary = tostring(problems) .. " folder problem" .. (problems == 1 and "" or "s")
+    elseif (counts.syncingFolders or 0) > 0 then
+        summary = tostring(counts.syncingFolders) .. " folder" .. (counts.syncingFolders == 1 and "" or "s") .. " syncing"
+    end
+    local variant = "default"
+    if not status.ready or (installation.available ~= true and not connection.online) then variant = "notify"
+    elseif serviceOff then variant = "pause"
+    elseif phase == "error" or problems > 0 then variant = "notify"
+    elseif status.busy or syncInProgress then variant = "sync" end
+    if variant == "sync" and syncInProgress then summary = "Sync in progress..." end
+    return variant, summary
+end
+
+-- Omarchy's choice between the saved preference and systemd's autostart state.
+function Model.driftDecision(config, lifecycle)
+    local unit, active = lifecycle.unitFileState or "", lifecycle.activeState or ""
+    if config ~= "enabled" and config ~= "disabled" then
+        return { status = "unsupported", reason = "Configured service state is unsupported: " .. (config or "empty") }
+    end
+    if unit ~= "enabled" and unit ~= "disabled" then
+        return { status = "unsupported", reason = "Systemd unit-file state is unsupported: " .. (unit ~= "" and unit or "empty") }
+    end
+    if config == unit then return { status = "aligned" } end
+    if active ~= "active" and active ~= "inactive" then
+        return { status = "unsupported", reason = "Systemd runtime state is not settled: " .. (active ~= "" and active or "empty") }
+    end
+    local preferred = active == "active" and "enabled" or "disabled"
+    local system = { side = "system", value = config, label = (config == "enabled" and "Enable" or "Disable") .. " systemd autostart" }
+    local host = { side = "config", value = unit, label = "Set Syncthing config to " .. unit }
+    if system.value == preferred then system.label ..= " (preferred)" end
+    if host.value == preferred then host.label ..= " (preferred)" end
+    return { status = "drift", first = system.value == preferred and system or host, second = system.value == preferred and host or system,
+        message = "Syncthing config (" .. config .. ") differs from its systemd autostart setting (" .. unit .. ").\n\nPlease choose:" }
 end
 
 function Model.newView(now)
     return { view = "panel-" .. tostring(now), sequence = 0, formSequence = 0,
         section = "folders", search = "", sort = "name",
         filters = { ready = true, active = true, errors = true, paused = true, unknown = true },
-        more = false, scanning = {}, message = "", form = nil, confirm = nil }
+        more = false, message = "", form = nil, confirm = nil }
 end
 
 return Model

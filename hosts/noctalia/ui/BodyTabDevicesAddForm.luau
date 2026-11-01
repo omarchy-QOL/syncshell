@@ -9,28 +9,19 @@ local IdCopyButton = require("./SharedWidgetIdCopyButton.luau")
 local Form = {}
 
 local function sourceSelector(controller, form)
-    local rows = { { id = "", label = "Custom Device ID", description = "Copy the ID from the remote Syncthing device" } }
+    local rows = { { id = "", label = "Custom Device ID" } }
     local sources = { [""] = { id = "", name = "", address = "" } }
-    for _, device in controller.snapshot.pendingDevices or {} do
-        if not Model.find(controller.snapshot.devices, device.id) then
-            sources[device.id] = device
-            table.insert(rows, { id = device.id, label = device.name ~= "" and device.name or "Pending device",
-                description = "Invitation | " .. device.id .. " | " .. (device.address or "No observed address") })
-        end
-    end
     for _, device in controller.snapshot.nearbyDevices or {} do
-        if not sources[device.id] and not Model.find(controller.snapshot.devices, device.id)
-            and device.id ~= (controller.snapshot.identity or {}).deviceId then
-            sources[device.id] = { id = device.id, name = "", address = table.concat(device.addresses or {}, ", ") }
-            table.insert(rows, { id = device.id, label = "Nearby device", description = device.id .. " | " .. sources[device.id].address })
-        end
+        local addresses = device.addresses or {}
+        sources[device.id] = { id = device.id, name = "", address = addresses[1] or "" }
+        table.insert(rows, { id = device.id, label = Model.shortDeviceId(device.id) .. (addresses[1] and (" · " .. addresses[1]) or "") })
     end
     form.nearbyEmpty = #rows == 1
     return ui.column({ gap = 4 }, {
         SharedWidgetControls.caption("Device source"),
         Dropdown.render(controller, form, "device-source", "Device source", rows, form.sourceId or "", function(id)
             local source = sources[id]
-            form.sourceId, form.deviceId, form.name, form.address = id, id, source.name or "", source.address or ""
+            form.sourceId, form.deviceId, form.address = id, id, source.address or ""
             form.sourceRevision = (form.sourceRevision or 0) + 1
         end),
     })

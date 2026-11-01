@@ -16,7 +16,7 @@ end
 
 function Form.sharingAvailable(snapshot, folder)
     local connection = snapshot.connection or {}
-    return folder ~= nil and folder.devices ~= nil and connection.online == true and connection.fresh == true
+    return folder ~= nil and folder.devices ~= nil and connection.online == true
 end
 
 -- New remote configuration is never treated as an unchecked removal.
@@ -30,7 +30,6 @@ function Form.reconcile(snapshot, form)
             if device.id ~= (snapshot.identity or {}).deviceId then current[device.id] = true end
         end
     else
-        if not (snapshot.connection or {}).fresh then return end
         for _, folder in snapshot.folders or {} do
             if folder.devices == nil then return end
             if Model.shares(folder, form.deviceId) then current[folder.id] = true end
@@ -55,7 +54,7 @@ function Form.problem(snapshot, form)
         end
     elseif form.kind == "deviceFolders" then
         if not Model.find(snapshot.devices, form.deviceId) then return "This device is no longer configured" end
-        if not connection.online or not connection.fresh then return "Refresh before removing shares" end
+        if not connection.online then return "Refresh before removing shares" end
         for _, folder in snapshot.folders or {} do
             if folder.devices == nil then return "Sharing data unavailable. Refresh before removing shares." end
         end
@@ -73,12 +72,11 @@ function Form.problem(snapshot, form)
             local offer = Form.offer(snapshot, form)
             if not offer then return "This folder invitation is no longer available" end
             if offer.receiveEncrypted or offer.remoteEncrypted then return "This encrypted invitation requires the Web UI" end
-            if not form.selected[form.pendingDeviceId] then return "Keep the offering device selected to accept this invitation" end
         end
         if Form.trim(form.path) == "" or Form.trim(form.folderId) == "" then return "Enter a directory and folder ID" end
         if Model.find(snapshot.folders, Form.trim(form.folderId)) then return "This folder ID is already configured" end
     end
-    if not connection.online or not connection.fresh then return "Current configuration unavailable. Refresh before saving." end
+    if not connection.online then return "Current configuration unavailable. Refresh before saving." end
     if form.kind == "sharing" or form.kind == "addFolder" or form.kind == "acceptFolder" then
         for id, checked in form.selected do
             if checked and not Model.find(snapshot.devices, id) then return "Selected device is no longer configured: " .. id end

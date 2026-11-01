@@ -67,8 +67,8 @@ local rows = Model.folderRows(snapshot, view)
 equal(rows[1].id, "a", "duplicate labels retain deterministic IDs")
 view.filters.paused = false
 equal(#Model.folderRows(snapshot, view), 1, "paused filter")
-view.search = "/work/"
-equal(Model.folderRows(snapshot, view)[1].id, "b", "path search")
+view.search = "(work)"
+equal(Model.folderRows(snapshot, view)[1].id, "b", "label search")
 equal(Model.validDeviceId(remoteID), true, "device ID validation")
 
 local values = { status = { ready = true, generation = "generation-1" },
@@ -174,8 +174,7 @@ entry.onOpen()
 entry.onFrameTick()
 assert(rendered, "panel did not render")
 entry.onClose()
-local retained = host.state.get("view")
-assert(retained.form and retained.form.path == "/missing/draft", "close discarded draft")
+equal(host.state.get("view").form, nil, "closing discards the form, as in Omarchy")
 entry.onOpen()
 
 local function validate(node)

@@ -5,6 +5,13 @@ local Model = require("../models/PanelModel.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
 local Header = {}
 
+local function truncated(values)
+    for _, key in { "devices", "folders", "folderDevices", "pendingFolders", "pendingOffers", "pendingDevices", "nearbyDevices" } do
+        if ((values or {})[key] or 0) > 0 then return true end
+    end
+    return false
+end
+
 function Header.render(controller, compact)
     local s = controller.snapshot
     local identity, lifecycle, counts = s.identity or {}, s.lifecycle or {}, s.counts or {}
@@ -13,9 +20,11 @@ function Header.render(controller, compact)
     local connection = s.connection or {}
     local total = Model.totals(s)
     local variant = Model.indicator(s, controller.status)
-    local canToggle = lifecycle.canControl == true or (not lifecycle.active and lifecycle.canStart == true)
+    local canToggle = Model.lifecycleAvailable(lifecycle)
+    local managedStop = canToggle and lifecycle.active ~= true
     local title = {
-        ui.image({ path = Palette.statusIcon(controller.host, variant), width = Ui.heroIcon, height = Ui.heroIcon }),
+        ui.image({ path = Palette.statusIcon(controller.host, variant), width = Ui.heroIcon, height = Ui.heroIcon,
+            opacity = (connection.online and not managedStop) and 1 or 0.5 }),
         ui.column({ gap = 2, flexGrow = 1, minWidth = 0 }, {
             ui.label({ text = "Syncthing", fontSize = Ui.title, fontWeight = "bold", maxLines = 1 }),
             ui.row({ gap = 6, align = "center" }, {
@@ -48,21 +57,21 @@ function Header.render(controller, compact)
         table.insert(children, InfoPair.render("Tracked", Model.count(total.files) .. " files · " .. Model.bytes(total.bytes)))
     end
     if controller.status.backgroundError then
-        table.insert(children, SharedWidgetControls.notice(controller, controller.status.backgroundError
-            .. "\nCheck plugin settings and the selected Web UI profile.", "error", "background action details"))
+        table.insert(children, SharedWidgetControls.notice(controller, controller.status.backgroundError, "error", "background action details"))
     end
-    -- Omarchy stays quiet when the instance is off because the user stopped it.
-    local managedStop = lifecycle.canControl == true and lifecycle.active ~= true
-    if managedStop then
-        -- No connection problem to report.
-    elseif connection.error then
-        table.insert(children, SharedWidgetControls.notice(controller, connection.error.message .. "\nCheck connection and credential settings, then Refresh.", "error", "connection details"))
-    elseif not connection.fresh then
-        table.insert(children, SharedWidgetControls.notice(controller, "Current status unavailable; last reported values shown", "error", "status details"))
+    -- Omarchy's warning and error rows; a deliberate stop reports no connection problem.
+    local missing = (s.installation or {}).available == false and not connection.online
+    local warning
+    if missing then warning = "Syncthing is not installed. Open More for installation help."
+    elseif managedStop then warning = "Syncing stopped"
+    elseif truncated(s.truncation) then warning = "Some Syncthing items exceed panel limits; use the Web UI for the hidden entries"
+    elseif lifecycle.canControl then
+        local decision = Model.driftDecision(controller.host.getConfig("serviceState"), lifecycle)
+        if decision.status == "unsupported" and lifecycle.unitFileState ~= "not-found" then warning = decision.reason end
     end
-    if lifecycle.error then
-        table.insert(children, SharedWidgetControls.notice(controller, lifecycle.error, "on_surface_variant", "service details"))
-    end
+    if warning then table.insert(children, SharedWidgetControls.hint(warning, Palette.roles.warning)) end
+    local failure = controller.status.error or (not managedStop and not missing and connection.error and connection.error.message) or lifecycle.error
+    if failure then table.insert(children, SharedWidgetControls.notice(controller, failure, "error", "connection details")) end
     return ui.column({ gap = 4 }, children)
 end
 

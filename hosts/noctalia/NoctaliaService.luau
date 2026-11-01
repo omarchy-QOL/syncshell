@@ -20,6 +20,7 @@ local configureNeeded = false
 local alive = true
 local lastPalette, themeCheckAt, currentTheme = nil, 0, nil
 local webUiCheck = true
+local queued
 local ownedThemes = { modern = "syncshell-noctalia-modern", themed = "syncshell-noctalia-themed" }
 local cleanupReady = false
 
@@ -48,7 +49,8 @@ local function retire(message)
             "Connection interrupted; the action may have completed. Refresh before trying again.", "uncertain")
         pending = nil
     end
-    status.ready, status.busy, status.error = false, nil, message
+    queued = nil
+    status.ready, status.busy, status.busyAction, status.error, status.rescan = false, nil, nil, message, nil
     publish()
     if directory then control("stop") end
     attempt += 1
@@ -65,7 +67,8 @@ local function dispatch(intent)
     local ownEpoch = epoch
     pending = intent
     pending.started = noctalia.nowMs()
-    status.busy = intent.id
+    -- Background work does not lock the panel's controls.
+    if intent.view ~= "service" then status.busy, status.busyAction = intent.id, intent.request.action end
     publish()
     if not noctalia.writeFile(directory .. "/request-slot.json", raw) then
         retire("Cannot write the private request file")
@@ -78,6 +81,32 @@ local function dispatch(intent)
     if not launched then retire("Cannot launch request forwarding") end
 end
 
+-- Published for the panel and sent to the desktop, as Omarchy's notices are.
+local function announce(text, kind)
+    if text == nil or text == "" then return end
+    status.noticeSequence = (status.noticeSequence or 0) + 1
+    status.notice = { sequence = status.noticeSequence, text = text, kind = kind }
+    if kind == "error" then noctalia.notifyError("Syncthing", text) else noctalia.notify("Syncthing", text) end
+end
+
+-- A rescan stays busy until Syncthing reports its folders idle again.
+local function reconcileRescan(state)
+    local rescan = status.rescan
+    if not rescan then return end
+    if not (state.connection or {}).online then
+        status.rescan = nil
+        announce("Could not confirm rescan completion because Syncthing became unavailable", "error")
+        return
+    end
+    local scanning = {}
+    for _, folder in state.folders or {} do
+        if string.sub((folder.status or {}).state or "", 1, 4) == "scan" then scanning[folder.id] = true end
+    end
+    for _, id in rescan.running do if scanning[id] then return end end
+    status.rescan = nil
+    announce(rescan.notice, "success")
+end
+
 local function receive(frame)
     if type(frame) ~= "table" or frame.v ~= 2 then
         retire("Core protocol 2 is required")
@@ -85,9 +114,10 @@ local function receive(frame)
         status.build = frame.build
     elseif frame.type == "snapshot" then
         currentTheme = frame.state.webUi and frame.state.webUi.theme
+        reconcileRescan(frame.state)
         snapshotStore.commit(frame.revision, noctalia.nowMs())
         noctalia.state.set("summary", { generation = status.generation,
-            state = { counts = frame.state.counts, lifecycle = frame.state.lifecycle, connection = frame.state.connection,
+            state = { counts = frame.state.counts, lifecycle = frame.state.lifecycle, connection = frame.state.connection, installation = frame.state.installation,
                 activityActive = (frame.state.activity or {}).current ~= nil, scanningFolders = Model.totals(frame.state).scanning } })
         status.ready, status.error = true, nil
         attempt = 0
@@ -107,11 +137,30 @@ local function receive(frame)
                 and pending.request.args.profile == "themed" then
                 lastPalette = Palette.signature(pending.request.args.palette)
             end
+            local action = pending.request.action
+            if action == "folder.rescan" or action == "folder.rescan-all" then
+                local data = frame.data or {}
+                if not frame.ok then
+                    noctalia.notifyError("Syncthing", (frame.error or {}).message or "Could not complete the folder operation")
+                elseif data.state == "running" and #(data.runningFolderIds or {}) > 0 then
+                    status.rescan = { action = action, folderId = (pending.request.args or {}).folderId,
+                        running = data.runningFolderIds, notice = pending.notice }
+                else
+                    announce(pending.notice, "success")
+                end
+            elseif frame.ok and pending.view ~= "service" and pending.notice and pending.notice ~= "" then
+                noctalia.notify("Syncthing", pending.notice)
+            end
             result(frame.id, pending.view, frame.ok, frame.data,
                 frame.error and frame.error.message, frame.error and frame.error.code)
             pending = nil
-            status.busy = nil
+            status.busy, status.busyAction = nil, nil
             publish()
+            if queued then
+                local nextIntent = queued
+                queued = nil
+                dispatch(nextIntent)
+            end
         end
     elseif frame.type == "end" or frame.type == "fatal" then
         retire(frame.message or "The core worker stopped")
@@ -193,6 +242,10 @@ noctalia.state.watch("intent", function(intent)
         or type(intent.request) ~= "table" or intent.request.id ~= intent.id then return end
     for _, settled in results do if settled.id == intent.id then return end end
     if pending and pending.id == intent.id then return end
+    if status.ready and pending and pending.view == "service" and not queued then
+        queued = intent
+        return
+    end
     if not status.ready or pending then
         result(intent.id, intent.view, false, nil, "Wait for the current action or reconnect", "busy")
         return

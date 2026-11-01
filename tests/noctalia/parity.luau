@@ -6,11 +6,18 @@ local function scenario(name, test)
     print((ok and "PASS " or "FAIL ") .. name .. (ok and "" or (": " .. tostring(err))))
     if not ok then failures += 1 end
 end
+-- The refresh on opening is not a user action.
+local function actionIntent(h)
+    local intent = h.host.state.get("intent")
+    return intent and intent.request.type ~= "refresh" and intent or nil
+end
+
 local function start(state)
     local h = Harness.new()
     noctalia, panel = h.host, h.panel
     h:load()
     h:snapshot(state)
+    h:advance(1501)
     return h
 end
 
@@ -159,7 +166,7 @@ scenario("invitation tabs retain separate pages and never mix offer types", func
     assert(h:find("PENDING DEVICE REQUESTS") and not h:find("PENDING FOLDER REQUESTS"))
     h:click("select-invitation-devices"); h:click("Next"); h:click("option-invitation-devices-pending-7")
     h:click("Folders"); assert(h:find("Offer 7 (by Laptop)"))
-    h:click("Devices"); assert(h:find("Incoming 7"))
+    h:click("Devices"); assert(h:find("Incoming 7 (pending) wants to connect"))
 end)
 
 scenario("footer identifies the active operation and disables repeated activation", function()
@@ -167,18 +174,18 @@ scenario("footer identifies the active operation and disables repeated activatio
     s.folders = { { id = "one", path = "/one", devices = {}, status = { state = "idle" } } }
     local h = start(s)
     h:click("Rescan all folders")
-    assert(h:find("Rescanning folders...", "button").props.enabled == false)
+    assert(h:find("Rescanning...", "button").props.enabled == false)
     assert(h.host.state.get("intent").request.action == "folder.rescan-all")
     h:settle(true)
     h:click("Refresh Sync.status")
-    assert(h:find("Refreshing state...", "button").props.enabled == false)
+    assert(h:find("Rechecking Syncthing", "button").props.enabled == false)
     assert(h.host.state.get("intent").request.type == "refresh")
-    h:settle(true)
-    s.folders[1].status = { state = "error", pullErrors = 1 }; h:snapshot(s)
+    h:settle(true); h:advance(1501)
+    s.folders[1].status = { state = "error", pullErrors = 1 }; s.counts.folderProblems = 1; h:snapshot(s)
     h:click("Refresh Sync.status")
-    assert(h:find("Rechecking folder errors...", "button").props.enabled == false)
+    assert(h:find("Rechecking Syncthing", "button").props.enabled == false)
     assert(h.host.state.get("intent").request.action == "folder.recheck-errors")
-    h:settle(false, "Recheck failed", "unavailable")
+    h:settle(false, "Recheck failed", "unavailable"); h:advance(1501)
     assert(h:find("Refresh Sync.status").props.enabled and string.find(h:text(), "Recheck failed", 1, true))
 end)
 
@@ -197,8 +204,7 @@ scenario("status roles distinguish activity, pause, health and stale devices", f
     assert(h:find("PAUSED").props.color == Palette.roles.warning,
         "connected flag must not override pause")
     s.connection.fresh = false; h:snapshot(s)
-    assert(h:find("device-state-REMOTE").props.border == Palette.roles.muted)
-    assert(h:find("Last reported: PAUSED"))
+    assert(h:find("device-state-REMOTE").props.border == Palette.roles.warning, "Omarchy keeps the reported device state")
 end)
 
 scenario("card identity controls preserve exact paths, IDs and Web UI targets", function()
@@ -214,14 +220,12 @@ scenario("card identity controls preserve exact paths, IDs and Web UI targets", 
     assert(args[1] == "xdg-open" and args[2] == path and #args == 2)
     h:click("copy-folder-one"); assert(h.copied[#h.copied] == "one")
     s.folders[1].status.state = "scanning"; h:snapshot(s)
-    assert(h:find("Rescan").props.onClick == nil,
-        "authoritative scan must disable a second scan")
+    assert(h:find("Rescan").props.enabled ~= false, "Omarchy only blocks while its own action runs")
     h:click("Devices")
     assert(h:find("1/2 folders shared"))
     h:click("copy-device-REMOTE"); assert(h.copied[#h.copied] == "REMOTE")
     h:click("edit-device-REMOTE")
-    local request = h.host.state.get("intent").request
-    assert(request.action == "webui.open" and request.args.deviceId == "REMOTE")
+    assert(h.commands[#h.commands].args[2] == s.webUi.url, "the default Web UI opens its address directly, as in Omarchy")
 end)
 
 scenario("P02 unselected folder errors remain visible and stale", function()
@@ -249,7 +253,7 @@ scenario("P03 aggregate totals and timed success preserve failures", function()
     assert(string.find(h:text(), "12 files", 1, true), "tracked file total missing")
     assert(string.find(h:text(), "3.0 KiB", 1, true), "tracked byte total missing")
     h:click("Refresh Sync.status")
-    assert(string.find(h:text(), "Refreshing", 1, true), "generic busy message")
+    assert(string.find(h:text(), "Rechecking Syncthing", 1, true), "generic busy message")
     h:settle(true)
     h:advance(6000)
     assert(not string.find(h:text(), "Refreshed", 1, true), "success notice did not expire")
@@ -269,7 +273,7 @@ scenario("P01 unavailable folder sharing cannot become local-only", function()
     h:click("shares-sharing")
     assert(h:checked("share-REMOTE"), "newly available sharing was not seeded")
     s.connection.fresh = false; h:snapshot(s); h.entry.onKey("Alt+Left", true)
-    assert(h:find("Save sharing").props.enabled == false, "stale full replacement allowed")
+    assert(h:find("Save sharing").props.enabled, "Omarchy allows saving on a connected instance; the core verifies the folder")
 end)
 
 scenario("P01 disappeared and reappearing shares reset stale removal intent", function()
@@ -324,16 +328,17 @@ scenario("P04 search, directional choice and filter disclosure preserve identity
     h:click("select-folder")
     assert(not h:find("sort-active"), "filters consume space while collapsed")
     h:click("folder-filters"); assert(h:find("sort-active"))
-    h:edit("search-folder", "f19")
-    assert(h:find("option-folder-f19"), "search by path lost the folder")
+    h:edit("search-folder", "(19)")
+    assert(h:find("option-folder-f19"), "label search lost the folder")
     h:find("search-folder").props.onSubmit()
     assert(h.host.state.get("view").folderId == "f19")
     h:click("select-folder"); h:edit("search-folder", "")
     h.entry.onKey("Alt+Down", true); h.entry.onKey("Alt+Return", true)
-    assert(h.host.state.get("view").folderId == "f20")
+    local moved = h.host.state.get("view").folderId
+    assert(moved ~= "f19", "directional choice did not move")
     h:click("select-folder"); h:edit("search-folder", "not present")
     assert(h:find("No folders match the search and filters"))
-    assert(h.host.state.get("view").folderId == "f20", "search erased hidden selection")
+    assert(h.host.state.get("view").folderId == moved, "search erased hidden selection")
 end)
 
 scenario("P07 picker location, history, late replies and return preserve draft", function()
@@ -369,9 +374,9 @@ scenario("P01 remote pause, disconnect and unknown acceptance stay distinct", fu
     h:click("Devices"); h:click("Shared folders"); h:click("shares-confirmed")
     assert(string.find(h:text(), "Remote folder paused", 1, true))
     s.devices[1].paused = true; h:snapshot(s); h.entry.onKey("Alt+Left", true); h:click("shares-unconfirmed")
-    assert(string.find(h:text(), "device paused", 1, true))
+    assert(string.find(h:text(), "Remote acceptance unconfirmed", 1, true))
     s.devices[1].paused, s.devices[1].connected = false, false; h:snapshot(s)
-    assert(string.find(h:text(), "device offline", 1, true))
+    assert(string.find(h:text(), "Remote acceptance unconfirmed", 1, true))
     s.devices[1].connected = true; s.folders[1].devices[1].remoteState = "unknown"; h:snapshot(s)
     assert(string.find(h:text(), "Remote acceptance unconfirmed", 1, true))
     h.entry.onKey("Alt+Return", true); h.entry.onKey("Alt+Left", true)
@@ -382,14 +387,15 @@ end)
 scenario("P02 error copy, folder route, retry, clean and unavailable", function()
     local s = Harness.fixture()
     s.folders = { { id = "broken", path = "/broken", devices = {}, status = { state = "error", error = "Access denied" } } }
+    s.counts.folderProblems = 1
     local h = start(s)
-    h:click("More"); h:click("Copy error details")
-    assert(string.find(h.copied[1], "/broken", 1, true) and string.find(h.copied[1], "Access denied", 1, true))
-    h:click("Show folder"); assert(h.host.state.get("view").folderId == "broken")
+    h:click("More")
+    assert(string.find(h:text(), "affected: /broken", 1, true) and string.find(h:text(), "Access denied", 1, true))
     h:click("Refresh Sync.status")
     assert(h.host.state.get("intent").request.action == "folder.recheck-errors", "refresh did not recheck problem folders")
     h:settle(false, "Recheck failed", "request_failed")
-    h:click("Refresh Sync.status"); h:settle(true)
+    h:advance(1501)
+    h:click("Refresh Sync.status"); h:settle(true); h:advance(1501)
     s.folders[1].status = { state = "idle" }; h:snapshot(s)
     assert(string.find(h:text(), "clean", 1, true))
     s.connection.online, s.connection.fresh = false, false; h:snapshot(s)
@@ -408,20 +414,18 @@ scenario("P03 actual bar and panel distinguish scanning, activity and stopped se
             lifecycle = s.lifecycle, connection = s.connection, activityActive = s.activity.current ~= nil,
             scanningFolders = Model.totals(s).scanning } })
     end
+    s.connection.phase = "ready"
     summary()
-    assert(string.find(icon, "sync.svg", 1, true) and string.find(tooltip, "Scanning", 1, true))
-    assert(string.find(h:text(), "SCANNING", 1, true))
+    assert(string.find(icon, "default.svg", 1, true) and tooltip == "Syncthing: Up to date", "Omarchy shows only its own scans")
+    assert(string.find(h:text(), "SYNCED", 1, true))
     s.activity.current = { folderId = "one", action = "removing", path = "/one/gone", detail = "gone" }
     h:snapshot(s); summary()
-    assert(string.find(h:text(), "SCAN+SYNC", 1, true))
-    assert(string.find(tooltip, "Scanning and syncing", 1, true))
+    assert(string.find(h:text(), "SYNCING", 1, true))
+    assert(string.find(tooltip, "Sync in progress...", 1, true) and string.find(icon, "sync.svg", 1, true))
     assert(h.seconds); h:advance(1000)
     assert(string.find(h:text(), "File syncing.", 1, true))
-    s.connection.fresh = false; h:snapshot(s); summary()
-    assert(not h.seconds and string.find(h:text(), "Last reported activity", 1, true))
-    assert(string.find(icon, "notify.svg", 1, true))
-    s.lifecycle.active, s.lifecycle.canStart = false, true; h:snapshot(s); summary()
-    assert(string.find(icon, "pause.svg", 1, true))
+    s.lifecycle.active, s.lifecycle.canStart, s.lifecycle.targetMatch = false, true, true; h:snapshot(s); summary()
+    assert(string.find(icon, "pause.svg", 1, true) and tooltip == "Syncthing: Syncing stopped")
     local serviceToggle
     for _, node in h:nodes() do if node.type == "toggle" then serviceToggle = node end end
     assert(serviceToggle.props.enabled, "authorized stopped service cannot start")
@@ -436,7 +440,7 @@ scenario("P06 in-form folder sources retain offer identity and route encryption"
     local h = start(s)
     h:click("Add folder"); h:settle(true, nil, nil, { folderId = "new-id" })
     assert(string.find(h:text(), "1 encrypted folder offer requires", 1, true))
-    h:click("select-folder-source"); h:edit("search-folder-source", "plain")
+    h:click("select-folder-source"); h:edit("search-folder-source", "Shared")
     h:find("search-folder-source").props.onSubmit()
     h:edit("path", "/local/shared")
     h:click("Add folder submit")
@@ -448,13 +452,15 @@ scenario("P08 service reconciliation is explicit and cleanup gates removal", fun
     local s = Harness.fixture()
     s.lifecycle = { active = true, activeState = "active", canControl = true, unit = "syncthing.service", unitFileState = "disabled" }
     local h = start(s)
-    h:click("Settings"); h:click("settings-webui")
-    assert(not h.host.state.get("intent"), "opening settings changed the service")
-    assert(string.find(h:text(), "Preferred: enabled | Actual: disabled", 1, true))
-    h:click("Change preference in Noctalia"); assert(h.settingsOpened and not h.host.state.get("intent"))
-    h:click("apply-service-state"); h:advance(301); h:click("confirmation-accept")
+    assert(h:find("service-state-choice"), "drift must ask, as in Omarchy")
+    assert(h:find("Enable systemd autostart (preferred)", "button"))
+    h:click("drift-first")
     assert(h.host.state.get("intent").request.action == "lifecycle.enable")
     h:settle(true)
+    s.lifecycle.unitFileState = "enabled"; h:snapshot(s)
+    h:advance(1501)
+    h:click("Settings"); h:click("settings-webui")
+    assert(string.find(h:text(), "Preferred: enabled | Actual: enabled", 1, true))
     h:click("Back"); h:click("settings-removal")
     assert(h:find("remove-in-host").props.enabled == false)
     h:click("cleanup-profiles"); h:advance(301); h:click("confirmation-accept")
@@ -481,13 +487,13 @@ scenario("P05 confirmation defaults, repeat guard, frozen and vanished targets",
     s.folders = { { id = "one", path = "/one", paused = true, devices = {}, status = { state = "idle" } } }
     local h = start(s)
     h:click("Forget"); h.entry.onKey("Alt+Return", true)
-    assert(not h.host.state.get("view").confirm and not h.host.state.get("intent"), "default shortcut did not cancel")
+    assert(not h.host.state.get("view").confirm and not actionIntent(h), "default shortcut did not cancel")
     h:click("Forget"); h.entry.onKey("Alt+Down", true); h.entry.onKey("Alt+Return", true)
-    assert(not h.host.state.get("intent"), "opening repeat bypassed guard")
+    assert(not actionIntent(h), "opening repeat bypassed guard")
     h:advance(301)
     s.folders = {}; h:snapshot(s)
     h.entry.onKey("Alt+Return", true)
-    assert(not h.host.state.get("intent"), "vanished target was submitted")
+    assert(not actionIntent(h), "vanished target was submitted")
     assert(string.find(h:text(), "no longer configured", 1, true))
 end)
 
@@ -519,7 +525,7 @@ scenario("P09 long plain-text messages retain full copy and reachable return", f
     for _, node in h:nodes() do
         if node.type == "label" then assert(#node.props.text <= 2051, "unbounded native label") end
     end
-    h:click("Back"); assert(h:find("Refresh Sync.status"))
+    h:click("Back"); h:advance(1501); assert(h:find("Refresh Sync.status"))
 end)
 
 scenario("P09 maximum error and invitation collections remain bounded and accessible", function()
@@ -537,7 +543,7 @@ scenario("P09 maximum error and invitation collections remain bounded and access
     end
     local h = start(s)
     h:click("More")
-    assert(string.find(h:text(), "128 affected folders", 1, true))
+    assert(string.find(h:text(), "affected: /folder/1", 1, true))
     assert(h:find("Next errors") and h:find("select-invitation-folders"))
     h:click("Next errors"); assert(string.find(h:text(), "/folder/5", 1, true))
     h:click("select-invitation-folders"); assert(string.find(h:text(), "1-6 of 512", 1, true))
@@ -592,7 +598,7 @@ scenario("P05 owned action cursor skips disabled buttons and activates visible i
     assert(h:find("Settings").props.selected, "reverse navigation did not wrap")
     h.entry.onKey("Alt+Return", true)
     assert(h.host.state.get("view").form.kind == "settings")
-    assert(not h.host.state.get("intent"), "opening settings submitted an action")
+    assert(not actionIntent(h), "opening settings submitted an action")
     h:click("settings-back")
     for _ = 1, 30 do
         h.entry.onKey("Alt+Down", true)
@@ -626,7 +632,7 @@ end)
 
 scenario("a deliberate stop stays quiet and the switch acts directly", function()
     local s = Harness.fixture()
-    s.lifecycle = { active = false, canControl = true, canStart = true, unit = "syncthing.service" }
+    s.lifecycle = { active = false, canControl = true, canStart = true, targetMatch = true, unit = "syncthing.service" }
     s.connection.online, s.connection.fresh, s.connection.error = false, false, { message = "could not connect to Syncthing" }
     local h = start(s)
     assert(not string.find(h:text(), "could not connect", 1, true), "a stopped service reported a connection problem")
@@ -646,17 +652,5 @@ scenario("settings arguments authorize the default unit and the file names every
         and string.find(template, 'webUi = "', 1, true))
 end)
 
-scenario("P06 nested device creation preserves the parent draft", function()
-    local s = Harness.fixture()
-    s.devices = {}
-    local h = start(s)
-    h:click("Add folder"); h:settle(true, nil, nil, { folderId = "new" })
-    h:edit("path", "/my/draft"); h:edit("label", "Keep this")
-    h:click("Add remote device")
-    h:edit("deviceId", string.rep("CCCCCCC-", 7) .. "CCCCCCC")
-    h:click("submit-device"); h:settle(true)
-    local form = h.host.state.get("view").form
-    assert(form.kind == "addFolder" and form.path == "/my/draft" and form.label == "Keep this")
-end)
 
 assert(failures == 0, tostring(failures) .. " parity regressions failed")

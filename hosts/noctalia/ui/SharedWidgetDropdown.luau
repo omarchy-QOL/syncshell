@@ -1,6 +1,7 @@
 local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
+local Model = require("../models/PanelModel.luau")
 local Dropdown = {}
 local pageSize = 6
 
@@ -24,8 +25,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     local query = options.query or state.query
     local matches = {}
     for _, row in rows do
-        local text = row.label .. " " .. row.id .. " " .. (row.description or "")
-        if options.filtered or string.find(string.lower(text), string.lower(query), 1, true) then table.insert(matches, row) end
+        if options.filtered or Model.matchesSearch(row.label, query) then table.insert(matches, row) end
     end
     local cursor = 1
     for index, row in matches do if row.id == (state.cursor or selected) then cursor = index end end
@@ -68,8 +68,8 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         local row = matches[index]
         local cells = { ui.button({ key = "option-" .. key .. "-" .. row.id, text = row.label, contentAlign = "start", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
             variant = (index == cursor or row.id == selected) and "default" or "ghost", enabled = row.enabled ~= false and not controller:busy(),
-            tooltip = row.description, onClick = function() state.open = false; choose(row.id); controller:save() end }) }
-        if row.role then table.insert(cells, ui.box({ width = 8, height = 8, radius = 4, fill = Palette.roles[row.role] })) end
+            onClick = function() state.open = false; choose(row.id); controller:save() end }) }
+        if row.role then table.insert(cells, ui.box({ width = 8, height = 8, radius = 4, fill = Palette.roles[row.role], tooltip = row.description })) end
         table.insert(list, ui.row({ key = row.id, gap = 8, align = "center" }, cells))
     end
     if #matches == 0 then table.insert(list, SharedWidgetControls.hint(options.empty or (#rows == 0 and "No available items" or "No matching items"))) end

@@ -18,10 +18,10 @@ function Form.render(controller, form)
     elseif problem then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
     if #devices == 0 then
         table.insert(children, SharedWidgetControls.hint("No remote devices available. Add a remote device below.", Palette.roles.warning))
-        table.insert(children, SharedWidgetControls.button("Add remote device", function() controller:openForm("addDevice") end, not controller:busy()))
+    else
+        table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.set-sharing", "SAVE SHARING", "SAVING..."), function() controller:submitForm() end,
+            problem == nil and not controller:busy() and controller.status.ready, "outline", "Save sharing"))
     end
-    table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.set-sharing", "SAVE SHARING", "SAVING..."), function() controller:submitForm() end,
-        problem == nil and not controller:busy() and controller.status.ready, "outline", "Save sharing"))
     return ui.column({ gap = 8 }, children)
 end
 

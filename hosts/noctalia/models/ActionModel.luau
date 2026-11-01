@@ -1,10 +1,10 @@
 local Model = require("./PanelModel.luau")
 local Actions = {}
 local labels = {
-    refresh = { "Refresh", "Refreshing state...", "Refreshed state" },
-    ["folder.rescan"] = { "Rescan folder", "Rescanning folder...", "Folder rescan finished" },
-    ["folder.rescan-all"] = { "Rescan all", "Rescanning folders...", "Folder rescans finished" },
-    ["folder.recheck-errors"] = { "Recheck errors", "Rechecking folder errors...", "Folder errors rechecked" },
+    refresh = { "Refresh", "Refreshing...", "Refreshed state" },
+    ["folder.rescan"] = { "Rescan folder", "RESCANNING", "Folder rescan finished" },
+    ["folder.rescan-all"] = { "Rescan all", "Rescanning...", "Folder rescans finished" },
+    ["folder.recheck-errors"] = { "Recheck errors", "Refreshing...", "Folder errors rechecked" },
     ["folder.suggest-id"] = { "Generate ID", "Generating folder ID...", "Folder ID generated" },
     ["folder.add-existing"] = { "Add folder", "Adding folder...", "Folder added" },
     ["folder.set-sharing"] = { "Save sharing", "Saving folder sharing...", "Folder sharing saved" },
@@ -44,8 +44,8 @@ local function folderName(snapshot, id)
 end
 
 local function deviceName(snapshot, id)
-    local device = named(snapshot.devices, id) or named(snapshot.pendingDevices, id)
-    return device and device.name ~= "" and device.name or string.sub(tostring(id), 1, 7)
+    local device = named(snapshot.devices, id)
+    return device and device.name ~= "" and device.name or ("Device " .. string.sub(tostring(id), 1, 7))
 end
 
 -- Omarchy's result sentences, as in shared/AdapterService.qml. Taken when the
@@ -79,7 +79,8 @@ function Actions.notice(action, args, snapshot)
         local label = args.deviceName ~= "" and args.deviceName or ("Device " .. string.sub(device, 1, 7))
         return label .. " added. Add this device on " .. label .. " to complete connection."
     elseif action == "device.dismiss-pending" then
-        return "Dismissed pending request from " .. deviceName(snapshot, device) .. "."
+        local pending = named(snapshot.pendingDevices, device)
+        return "Dismissed pending request from " .. (pending and pending.name ~= "" and pending.name or string.sub(device, 1, 7)) .. "."
     elseif action == "device.pause" then
         return "Paused synchronization with " .. deviceName(snapshot, device) .. "."
     elseif action == "device.resume" then
@@ -88,16 +89,11 @@ function Actions.notice(action, args, snapshot)
         return deviceName(snapshot, device) .. " removed from this device."
     elseif action == "device.remove-folder-shares" then
         return "Selected folder shares removed from " .. deviceName(snapshot, device) .. "."
-    elseif action == "folder.recheck-errors" then return "Folder errors checked"
-    elseif action == "webui.set-theme" then return "Web UI theme updated"
-    elseif action == "webui.apply-profile" then return "Web UI profile updated"
+    elseif action == "folder.rescan" then return "Rescan complete for " .. folderName(snapshot, folder)
+    elseif action == "folder.rescan-all" then return "Rescan complete for all folders"
     elseif action == "webui.remove-profile" then return "Default Web UI restored; this adapter's profiles removed"
-    elseif action == "lifecycle.enable" then return "Syncthing enabled"
-    elseif action == "lifecycle.disable" then return "Syncthing disabled"
-    elseif action == "lifecycle.start" then return "Syncthing started"
-    elseif action == "lifecycle.stop" then return "Syncthing stopped"
     end
-    -- Omarchy reports rescans and refreshes through state, not a sentence.
+    -- Refreshes, service and Web UI actions report through state, not a sentence.
     return ""
 end
 

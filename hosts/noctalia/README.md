@@ -105,7 +105,7 @@ The panel is a fixed 400 by 540, clamped by the host, with Omarchy's font and
 control sizes (`ui/UiConstants.luau`). Forms replace the body and footer.
 Selection and detail views use the same panel with
 an explicit return. Footers remain outside their scrollable content. Escape
-retains native dismissal; closing the panel retains drafts in memory.
+closes the panel, and closing discards open forms and dialogs, as in Omarchy.
 Unsubmitted drafts are never written to disk.
 
 | View         | Owned keys                                               |

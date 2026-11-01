@@ -8,13 +8,18 @@ function Source.render(controller, form)
     local rows = { { id = "", label = "Create a new folder identity", description = "Create a folder or enter an existing folder ID" } }
     local offers, encrypted = {}, 0
     for id, pending in controller.snapshot.pendingFolders or {} do
+        local isEncrypted = false
+        for _, offer in pending.offeredBy or {} do
+            isEncrypted = isEncrypted or offer.receiveEncrypted == true or offer.remoteEncrypted == true
+        end
+        if isEncrypted then encrypted += 1 end
         for deviceId, offer in pending.offeredBy or {} do
-            if offer.receiveEncrypted or offer.remoteEncrypted then encrypted += 1
+            if isEncrypted then -- counted once below
             else
                 local key = controller.host.json.encode({ id, deviceId })
                 local device = Model.find(controller.snapshot.devices, deviceId)
                 offers[key] = { id = id, deviceId = deviceId, label = offer.label or id }
-                table.insert(rows, { id = key, label = (offer.label ~= "" and offer.label or id) .. " (by " .. (device and device.name ~= "" and device.name or string.sub(deviceId, 1, 7)) .. ")",
+                table.insert(rows, { id = key, label = (offer.label ~= "" and offer.label or id) .. " (by " .. (device and Model.deviceLabel(device) or "Unknown device") .. ")",
                     description = id .. " | Offered by " .. (device and device.name or deviceId) .. " | " .. deviceId })
             end
         end
@@ -28,21 +33,14 @@ function Source.render(controller, form)
             local offer = offers[key]
             form.selected = {}
             form.pendingDeviceId = offer and offer.deviceId or nil
-            form.folderId, form.label = offer and offer.id or "", offer and offer.label or ""
+            form.folderId, form.label = offer and offer.id or "", offer and offer.label or (form.labelFromOffer and "" or form.label)
+            form.labelFromOffer = offer ~= nil
             form.idRevision, form.labelRevision = (form.idRevision or 0) + 1, (form.labelRevision or 0) + 1
             if offer then form.selected[offer.deviceId] = true else controller:send("folder.suggest-id", {}) end
         end))
     end
-    if form.kind == "acceptFolder" then
-        -- Omarchy's accept action opens this form with the offer already chosen.
-        local chosen
-        for _, row in rows do if row.id == selected then chosen = row end end
-        table.insert(children, SharedWidgetControls.selectTrigger("folder-offer", chosen and chosen.label or form.folderId, nil, false))
-    end
     if encrypted > 0 then
         table.insert(children, SharedWidgetControls.hint(tostring(encrypted) .. " encrypted folder offer" .. (encrypted == 1 and " requires" or "s require") .. " the Syncthing Web UI.", Palette.roles.warning))
-        table.insert(children, SharedWidgetControls.button("Open encrypted offers in Web UI", function() controller:send("webui.open", {}) end,
-            not controller:busy() and (controller.snapshot.connection or {}).online))
     end
     if #children == 0 then return ui.column({ visible = false }) end
     return ui.column({ gap = 6 }, children)

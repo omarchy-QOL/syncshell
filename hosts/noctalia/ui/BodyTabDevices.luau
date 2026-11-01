@@ -9,13 +9,12 @@ function Devices.render(controller)
     local devices, rows = Model.remoteDevices(controller.snapshot), {}
     local connection = controller.snapshot.connection or {}
     for _, device in devices do
-        table.insert(rows, { id = device.id, label = device.name ~= "" and device.name or device.id,
-            role = Model.deviceStateRole(device, connection.online and connection.fresh),
-            description = ((not connection.online or not connection.fresh) and "Current status unavailable"
-                or (device.paused and "Paused" or (device.connected and "Connected" or "Offline"))) .. " | " .. device.id })
+        local state = device.paused and "PAUSED · Connections disabled" or (device.connected and "CONNECTED · Available" or "DISCONNECTED")
+        table.insert(rows, { id = device.id, label = Model.deviceLabel(device), role = Model.deviceStateRole(device), description = state })
     end
     local device = Model.find(devices, view.deviceId)
-    local enabled = connection.online and connection.fresh and not controller:busy()
+    local busy = controller:busy()
+    local online = connection.online == true
     local toolbar = {}
     if #devices > 0 then
         table.insert(toolbar, Dropdown.render(controller, view, "device", "Device", rows, view.deviceId,
@@ -26,16 +25,16 @@ function Devices.render(controller)
     end
     table.insert(toolbar, ActionButton.render("Add device", "plus", function()
         controller:openForm("addDevice")
-    end, enabled))
+    end, online and not busy))
     if #devices > 0 then
         table.insert(toolbar, ActionButton.render("Shared folders", "folders", function()
             controller:openForm("deviceFolders", device)
-        end, enabled and device ~= nil, nil, "View folder shared\nwith selected device"))
+        end, device ~= nil and not busy, nil, "View folder shared\nwith selected device"))
         table.insert(toolbar, ActionButton.render("Remove", "x", function()
-            controller:confirm("Remove " .. (device.name ~= "" and device.name or device.id) .. " from this device?\n\n"
+            controller:confirm("Remove " .. (device.name ~= "" and device.name or Model.shortDeviceId(device.id)) .. " from this device?\n\n"
                 .. "Folder sharing with it will be removed locally. Local folders and files remain.\nThe other device is unchanged.",
                 "device.remove", { deviceId = device.id })
-        end, enabled and device ~= nil, nil, "Remove selected device", nil, "error"))
+        end, device ~= nil and online and not busy, nil, "Remove selected device", nil, "error"))
     end
     local children = { ui.row({ key = "device-toolbar", gap = 6, align = "center" }, toolbar) }
     if controller.dropdownList then table.insert(children, controller.dropdownList)

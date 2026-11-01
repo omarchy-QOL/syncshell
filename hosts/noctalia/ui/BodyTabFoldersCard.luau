@@ -9,10 +9,9 @@ local Card = {}
 function Card.render(controller, folder)
     if not folder then return SharedWidgetControls.label("Select a folder. The previous selection may no longer exist.") end
     local online = (controller.snapshot.connection or {}).online == true
-    local state = Model.folderState(controller.snapshot, folder, controller.view)
-    local status = folder.status or {}
-    local scanning = controller.view.scanning[folder.id] == true
-        or string.sub(status.state or "", 1, 4) == "scan"
+    local rescan = controller:rescanState()
+    local state = Model.folderState(controller.snapshot, folder, controller.view, rescan)
+        local scanning = Model.folderRescanning(controller.snapshot, folder, rescan)
     local enabled = online and not controller:busy()
     local problem = state == "ERROR"
     local color = Palette.roles[Model.folderStateRole(state)]
@@ -35,7 +34,12 @@ function Card.render(controller, folder)
     local details = { ui.label({ text = Model.folderMeta(controller.snapshot, folder, scanning), fontSize = Ui.caption, maxLines = 2,
         color = problem and "error" or "on_surface_variant" }) }
     if problem then
-        table.insert(details, ui.row({ key = "see-more", onClick = function() controller.view.more = true; controller:save() end }, {
+        table.insert(details, ui.row({ key = "see-more", onClick = function()
+            local v = controller.view
+            v.folderId, v.more = folder.id, not v.more
+            if v.more then v.scrollRevision = (v.scrollRevision or 0) + 1 end
+            controller:save()
+        end }, {
             SharedWidgetControls.hint('(see "More" below)', "error"),
         }))
     end
@@ -57,7 +61,7 @@ function Card.render(controller, folder)
     local activity = not folder.paused and BodyTabFoldersCardActivity.render(controller, folder.id)
     if activity then table.insert(children, activity) end
     return SharedWidgetControls.column({ key = "folder-" .. folder.id, gap = 10, padding = 6, radius = 2,
-        border = problem and "error" or (scanning and Palette.roles.warning or "outline"), borderWidth = 1 }, children)
+        border = scanning and Palette.roles.warning or (problem and "error" or (Model.folderSyncing(folder) and "on_surface" or "outline")), borderWidth = 1 }, children)
 end
 
 return Card

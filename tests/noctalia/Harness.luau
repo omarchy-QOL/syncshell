@@ -148,7 +148,7 @@ function Harness.fixture()
         connection = { online = true, fresh = true }, lifecycle = { active = true, canControl = false },
         devices = { { id = "REMOTE", name = "Laptop", connected = true, paused = false } },
         folders = {}, pendingFolders = {}, pendingDevices = {}, nearbyDevices = {},
-        counts = { folders = 0, devices = 1, connectedDevices = 1 }, webUi = { theme = "default" },
+        counts = { folders = 0, devices = 1, connectedDevices = 1 }, webUi = { theme = "default", url = "http://127.0.0.1:8384" },
         installation = { available = true, executablePath = "/usr/bin/syncthing" }, activity = {}, truncation = {} }
 end
 

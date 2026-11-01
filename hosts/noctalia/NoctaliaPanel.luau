@@ -18,6 +18,7 @@ local SettingsPage = require("./hosts/noctalia/ui/SettingsPage.luau")
 local SettingsMenu = require("./hosts/noctalia/ui/SettingsMenu.luau")
 local SettingsSelfRemovalSteps = require("./hosts/noctalia/ui/SettingsSelfRemovalSteps.luau")
 local Confirmation = require("./hosts/noctalia/ui/SharedDialogConfirm.luau")
+local SharedDialogChoice = require("./hosts/noctalia/ui/SharedDialogChoice.luau")
 local FooterActions = require("./hosts/noctalia/ui/FooterActions.luau")
 local FooterShortcutHint = require("./hosts/noctalia/ui/FooterShortcutHint.luau")
 
@@ -30,7 +31,7 @@ local function formTree(form)
         if form.page == "removal" then return SettingsSelfRemovalSteps.render(controller) end
         return SettingsMenu.render(controller)
     end
-    if form.kind == "addFolder" or form.kind == "acceptFolder" then return BodyTabFoldersAddForm.render(controller, form) end
+    if form.kind == "addFolder" then return BodyTabFoldersAddForm.render(controller, form) end
     if form.kind == "addDevice" or form.kind == "acceptDevice" then return AddDeviceForm.render(controller, form) end
     if form.kind == "sharing" then return BodyTabFoldersShareForm.render(controller, form) end
     if form.kind == "deviceFolders" then return BodyTabDevicesFoldersForm.render(controller, form) end
@@ -103,6 +104,27 @@ local function render()
     local opacity = v.confirm and 0.35 or 1
     local top_ = ui.column({ key = "panel-top", gap = 8, opacity = opacity }, top)
     local bottom_ = ui.column({ key = "panel-bottom", gap = 8, opacity = opacity }, bottom)
+    local lifecycle = controller.snapshot.lifecycle or {}
+    local drift = lifecycle.canControl and not v.confirm and Model.driftDecision(noctalia.getConfig("serviceState"), lifecycle)
+    if drift and drift.status == "drift" then
+        v.driftChoice = v.driftChoice or "drift-first"
+        controller.navigation = function(chord)
+            if chord == "Alt+Up" or chord == "Alt+Down" then
+                v.driftChoice = v.driftChoice == "drift-first" and "drift-second" or "drift-first"; controller:save()
+            elseif chord == "Alt+Return" then
+                controller:chooseDrift(v.driftChoice == "drift-first" and drift.first or drift.second)
+            end
+            return true
+        end
+        top_.props.opacity, bottom_.props.opacity = 0.35, 0.35
+        Confirmation.dim(top_); Confirmation.dim(bottom_)
+        panel.render(ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
+            top_,
+            ui.column({ key = "panel-dialog", flexGrow = 1, justify = "center" }, { SharedDialogChoice.render(controller, drift) }),
+            bottom_,
+        }))
+        return
+    end
     if v.confirm then
         Confirmation.dim(top_); Confirmation.dim(bottom_)
         panel.render(ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
@@ -114,7 +136,7 @@ local function render()
     end
     local tree = ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
         top_,
-        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8, padding = 0 }, body),
+        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8, padding = 0, scrollToBottomRev = v.scrollRevision or 0 }, body),
         bottom_,
     })
     Navigation.decorate(controller, tree)
@@ -138,10 +160,13 @@ function onOpen()
     snapshots.select(noctalia.state.get("snapshot"))
     controller:setResults(noctalia.state.get("results"))
     render()
+    -- As Omarchy does on opening, without waiting for the next timed refresh.
+    controller:refreshInBackground()
 end
 
 function onClose()
     opened = false
+    controller:resetTransient()
     panel.setWantsSecondTicks(false)
     panel.setNeedsFrameTick(false)
     controller:save()
@@ -178,7 +203,7 @@ function onKey(chord, pressed)
     end
     if v.form then return end
     if chord == "r" then controller:rescanAll()
-    elseif chord == "w" and (controller.snapshot.connection or {}).online then controller:send("webui.open", {})
+    elseif chord == "w" then controller:openWebUi()
     elseif chord == "s" then controller:openForm("settings")
     elseif chord == "slash" then
         local key = v.section == "folders" and "folder" or "device"
@@ -188,7 +213,7 @@ function onKey(chord, pressed)
         controller:save()
     elseif chord == "p" then
         local lifecycle = controller.snapshot.lifecycle or {}
-        if lifecycle.canControl or (not lifecycle.active and lifecycle.canStart) then
+        if lifecycle.canControl or lifecycle.canStart then
             controller:send(lifecycle.active and "lifecycle.stop" or "lifecycle.start", {})
         end
     end

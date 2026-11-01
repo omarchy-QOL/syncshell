@@ -6,12 +6,10 @@ local Selector = {}
 function Selector.render(controller)
     local v, snapshot = controller.view, controller.snapshot
     local selected = Model.find(snapshot.folders, v.folderId)
-    local rows = Model.folderRows(snapshot, v)
-    -- Omarchy's view options close with the list.
-    if not (v.selectors and v.selectors.folder and v.selectors.folder.open) then v.filtersOpen = false end
+    local rows = Model.folderRows(snapshot, v, controller:rescanState())
     for _, row in rows do
-        row.description = string.upper(row.group) .. " | " .. row.path .. " | " .. row.id
-        row.role = Model.folderGroupRole(row.group)
+        row.role = Model.folderStateRole(row.state)
+        row.description = Model.folderStateHelp(row.state)
     end
     return Dropdown.render(controller, v, "folder", "Folder", rows, v.folderId, function(id) v.folderId = id end, {
         selectedLabel = selected and Model.folderLabel(selected), detached = true,

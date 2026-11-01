@@ -30,7 +30,7 @@ function MultiSelect.render(controller, form, rows, help, options)
     for _, row in rows do
         available[row.id] = true
         local text = (row.name or row.label or row.id) .. "\n" .. (row.path and (row.path .. " | ") or "") .. row.id
-            .. "\n" .. (row.description or (row.untrusted and "Encrypted sharing: use Web UI" or "Will receive a folder share offer"))
+            .. "\n" .. (row.description or "")
         if string.find(string.lower(text), string.lower(query), 1, true) then
             table.insert(matches, { row = row, text = text })
             if form.shareCursors[key] == row.id then cursor = #matches end
@@ -39,7 +39,7 @@ function MultiSelect.render(controller, form, rows, help, options)
     form.shareCursors[key] = matches[cursor] and matches[cursor].row.id
     local function toggle()
         local item = matches[cursor]
-        if item and not item.row.untrusted and not controller:busy() then
+        if item and not controller:busy() then
             form.selected[item.row.id] = not form.selected[item.row.id]; controller:save()
         end
     end
@@ -50,7 +50,7 @@ function MultiSelect.render(controller, form, rows, help, options)
         if delta == 0 then return false end
         for offset = 1, #matches do
             local index = ((cursor - 1 + delta * offset) % #matches) + 1
-            if not matches[index].row.untrusted then form.shareCursors[key] = matches[index].row.id; break end
+            form.shareCursors[key] = matches[index].row.id; break
         end
         controller:save(); return true
     end
@@ -63,10 +63,11 @@ function MultiSelect.render(controller, form, rows, help, options)
     local list = {}
     for index = first, math.min(first + pageSize - 1, #matches) do
         local row = matches[index].row
-        local description = row.description or (row.untrusted and "Encrypted sharing: use Web UI") or nil
+        local description = row.description or (row.untrusted and "Encrypted sharing requires the Web UI")
+            or (not row.path and "Will receive a folder share offer") or nil
         table.insert(list, Checkbox.render("share-" .. row.id, row.name or row.label or row.id, form.selected[row.id] == true, function()
             form.selected[row.id] = not form.selected[row.id]; controller:save()
-        end, not controller:busy() and not row.untrusted, row.path and (row.path .. " | " .. row.id) or row.id, false, description))
+        end, not controller:busy(), row.path and (row.path .. " | " .. row.id) or row.id, false, description))
     end
     if #matches == 0 then table.insert(list, SharedWidgetControls.hint(#rows == 0 and "No available items" or "No matching items")) end
     table.insert(children, ui.column({ key = "share-results-" .. key, gap = 2 }, list))
@@ -90,11 +91,6 @@ function MultiSelect.render(controller, form, rows, help, options)
             end
         end
     end
-    local encrypted = false
-    for _, row in rows do if row.untrusted then encrypted = true end end
-    if encrypted then table.insert(children, SharedWidgetControls.button("Manage encrypted sharing in Web UI", function()
-        controller:send("webui.open", {})
-    end, not controller:busy() and (controller.snapshot.connection or {}).online)) end
     return SharedWidgetControls.column({ gap = 4 }, children)
 end
 

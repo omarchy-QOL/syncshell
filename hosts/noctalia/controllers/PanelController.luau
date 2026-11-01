@@ -22,13 +22,12 @@ function Controller:notice(message, kind, visibleMs)
     local v = self.view
     v.message, v.noticeKind = message, kind
     v.noticeUntil = kind == "success" and (self.host.nowMs() + (visibleMs or 5000)) or nil
-    if kind == "error" or kind == "uncertain" then v.lastFailure = message end
 end
 
 function Controller:needsTicks()
     local connection = self.snapshot.connection or {}
-    return self.view.noticeUntil ~= nil or self.view.linkedUntil ~= nil
-        or (connection.online == true and connection.fresh == true and (self.snapshot.activity or {}).current ~= nil)
+    return self.view.noticeUntil ~= nil or self.view.linkedUntil ~= nil or self.view.refreshUntil ~= nil
+        or (self.snapshot.activity or {}).current ~= nil
 end
 
 function Controller:tick()
@@ -39,8 +38,8 @@ function Controller:tick()
         changed = true
     end
     if v.linkedUntil and now >= v.linkedUntil then v.recentlyLinked, v.linkedUntil = nil, nil; changed = true end
-    if (self.snapshot.connection or {}).online and (self.snapshot.connection or {}).fresh
-        and (self.snapshot.activity or {}).current then
+    if v.refreshUntil and now >= v.refreshUntil then v.refreshUntil = nil; changed = true end
+    if (self.snapshot.activity or {}).current then
         self.activityPhase = ((self.activityPhase or 0) + 1) % 4
         changed = true
     end
@@ -57,6 +56,11 @@ function Controller:setStatus(status)
         self.snapshot, self.received, self.view.profilesRemoved = {}, nil, nil
     end
     self.status = status or {}
+    local notice = self.status.notice
+    if notice and notice.sequence ~= self.view.noticeSequence then
+        self.view.noticeSequence = notice.sequence
+        self:notice(notice.text, notice.kind, 10000)
+    end
     if self.view.pending and self.view.pending.generation ~= self.status.generation then
         self.view.pending = nil
         self:notice("Worker restarted. The previous action may have completed; refresh before retrying.", "uncertain")
@@ -71,12 +75,6 @@ function Controller:setSnapshot(value)
     if not v.folderId and #(self.snapshot.folders or {}) > 0 then v.folderId = self.snapshot.folders[1].id end
     local devices = Model.remoteDevices(self.snapshot)
     if not v.deviceId and #devices > 0 then v.deviceId = devices[1].id end
-    for id in v.scanning do
-        local folder = Model.find(self.snapshot.folders, id)
-        if not folder or string.sub((folder.status or {}).state or "", 1, 4) ~= "scan" then
-            v.scanning[id] = nil
-        end
-    end
 end
 
 function Controller:setResults(results)
@@ -85,12 +83,19 @@ function Controller:setResults(results)
     for _, result in results or {} do
         if result.id == pending.id and result.view == self.view.view and result.generation == pending.generation then
             self.view.pending = nil
-            self:notice(result.ok and pending.notice or (result.error or "Action failed"),
-                result.ok and "success" or (result.code == "uncertain" and "uncertain" or "error"),
-                pending.action == "device.add" and 15000 or 10000)
-            if result.ok then self.view.lastFailure = nil end
+            if pending.action == "webui.open" and not result.ok then
+                -- As in Omarchy, a failed bridge still opens the plain address.
+                self:openExternal((self.snapshot.webUi or {}).url or "")
+            elseif pending.requestType == "refresh" or pending.action == "folder.recheck-errors" then
+                self.view.refreshUntil = self.host.nowMs() + 1500
+                if not result.ok then self:notice(result.error or "Could not recheck Syncthing errors", "error") end
+            elseif not result.ok then
+                self:notice(result.error or "Action failed", result.code == "uncertain" and "uncertain" or "error")
+            elseif pending.action ~= "folder.rescan" and pending.action ~= "folder.rescan-all" then
+                self:notice(pending.notice, "success", pending.action == "device.add" and 15000 or 10000)
+            end
             if result.ok and pending.action == "folder.resume" then
-                self.view.recentlyLinked, self.view.linkedUntil = pending.args.folderId, self.host.nowMs() + 5000
+                self.view.recentlyLinked, self.view.linkedUntil = pending.args.folderId, self.host.nowMs() + 10000
             end
             if result.ok and pending.action == "webui.remove-profile" then self.view.profilesRemoved = true end
             if result.ok and (pending.action == "webui.apply-profile" or pending.action == "webui.set-theme") then
@@ -105,43 +110,78 @@ function Controller:setResults(results)
                 local args = Model.copy(pending.args)
                 args.createDirectory = true
                 -- The dialog answers the error; Omarchy never shows it behind.
-                self.view.message, self.view.noticeKind, self.view.lastFailure = "", nil, nil
+                self.view.message, self.view.noticeKind = "", nil
                 self.view.confirm = { message = "Create " .. args.path .. " and add the folder?", action = pending.action, args = args,
                     closeForm = true, choice = "accept", opened = self.host.nowMs() }
             elseif result.ok and pending.closeForm and sameForm then
-                self.view.form, self.view.confirm = form.returnForm, nil
+                self.view.form, self.view.confirm = nil, nil
                 if result.data and result.data.folderId then self.view.folderId = result.data.folderId end
-            end
-            if result.ok and result.data and result.data.runningFolderIds then
-                if #result.data.runningFolderIds > 0 then self:notice("Rescan requested; scanning continues until Syncthing reports completion.", "success") end
-                for _, id in result.data.runningFolderIds do self.view.scanning[id] = true end
             end
             return
         end
     end
 end
 
+function Controller:canRefresh()
+    return (self.snapshot.connection or {}).online == true and not self:busy() and self.status.ready == true
+        and (self.view.refreshUntil or 0) <= self.host.nowMs()
+end
+
 function Controller:refresh()
-    if (self.snapshot.connection or {}).online and Model.hasProblems(self.snapshot) then
+    if ((self.snapshot.counts or {}).folderProblems or 0) > 0 then
         return self:send("folder.recheck-errors", {})
     end
     return self:send(nil, nil, false, "refresh")
 end
 
+-- Opening the panel or the device form must not lock what the user is reaching for.
+function Controller:refreshInBackground()
+    if not self.status.ready or self:busy() then return end
+    self.view.sequence += 1
+    local id = self.view.view .. "-" .. tostring(self.view.sequence)
+    self.host.state.set("intent", { id = id, generation = self.status.generation, view = "service",
+        request = { v = 2, type = "refresh", id = id } })
+end
+
+function Controller:openWebUi()
+    local connection, webUi = self.snapshot.connection or {}, self.snapshot.webUi or {}
+    if not connection.online then return end
+    if webUi.theme == "syncshell-noctalia-modern" or webUi.theme == "syncshell-noctalia-themed" then
+        return self:send("webui.open", {})
+    end
+    self:openExternal(webUi.url or "")
+end
+
+function Controller:rescanState()
+    if self.status.rescan then return self.status.rescan end
+    local pending = self.view.pending
+    if pending and (pending.action == "folder.rescan" or pending.action == "folder.rescan-all") then
+        return { action = pending.action, folderId = (pending.args or {}).folderId }
+    end
+    return nil
+end
+
+-- Omarchy closes these on close; only the folder picker survives there, and
+-- this adapter's picker cannot outlive the panel.
+function Controller:resetTransient()
+    local v = self.view
+    v.more, v.form, v.confirm, v.details, v.filtersOpen, v.actionCursor = false, nil, nil, nil, false, nil
+    for _, item in v.selectors or {} do item.open = false end
+    self:save()
+end
+
 function Controller:canRescan()
     local connection = self.snapshot.connection or {}
-    if not self.status.ready or self:busy() or not connection.online or not connection.fresh then return false end
+    if not self.status.ready or self:busy() or not connection.online then return false end
     for _, folder in self.snapshot.folders or {} do
-        if not folder.paused and not self.view.scanning[folder.id]
-            and string.sub((folder.status or {}).state or "", 1, 4) ~= "scan" then return true end
+        if not folder.paused then return true end
     end
     return false
 end
 
 function Controller:rescanAll()
     if self:canRescan() then return self:send("folder.rescan-all", {}) end
-    self:notice("Connect to Syncthing and link a folder before rescanning. Folders already scanning must finish first.", "error")
-    self:save(); return false
+    return false
 end
 
 function Controller:actionKey(action)
@@ -154,7 +194,7 @@ function Controller:actionLabel(action, label, busyLabel)
 end
 
 function Controller:busy()
-    return self.view.pending ~= nil or self.status.busy ~= nil
+    return self.view.pending ~= nil or self.status.busy ~= nil or self.status.rescan ~= nil
 end
 
 function Controller:send(action, args, closeForm, requestType)
@@ -175,7 +215,7 @@ function Controller:send(action, args, closeForm, requestType)
     local request = { v = 2, type = requestType or "action", id = id }
     if request.type == "action" then request.action, request.args = action, frozen end
     self.host.state.set("intent", { id = id, generation = self.status.generation,
-        view = self.view.view, request = request })
+        view = self.view.view, request = request, notice = self.view.pending.notice })
     return true
 end
 
@@ -198,21 +238,17 @@ function Controller:cancel()
     if self.view.confirm then self.view.confirm = nil
     elseif self.view.form and self.view.form.page then self.view.form.page = nil
     elseif self.view.form and self.view.form.picker then self.view.form.picker = nil
-    else self.view.form = self.view.form and self.view.form.returnForm end
+    else self.view.form = nil end
     self:save()
 end
 
 function Controller:openForm(kind, target)
     if self:busy() then return end
     if self.view.form and self.view.form.kind == kind then return end
-    local parent = self.view.form
-    local nested = parent and (kind == "settings" or (kind == "addDevice"
-        and (parent.kind == "sharing" or parent.kind == "addFolder" or parent.kind == "acceptFolder")))
     self.view.actionCursor = nil
     self.view.formSequence += 1
     local form = { kind = kind, token = self.view.formSequence, search = "", selected = {},
         folderId = "", deviceId = "", path = "", label = "", name = "", address = "" }
-    form.returnForm = nested and parent or nil
     if kind == "sharing" then
         form.folderId = target.id
         for _, device in target.devices or {} do
@@ -229,6 +265,8 @@ function Controller:openForm(kind, target)
     elseif kind == "acceptDevice" then
         form.deviceId, form.name, form.address = target.id, target.name or "", target.address or ""
     elseif kind == "acceptFolder" then
+        -- Omarchy accepts through the add form with the offer already chosen.
+        form.kind = "addFolder"
         form.folderId, form.pendingDeviceId, form.label = target.id, target.deviceId, target.label
         form.selected[target.deviceId] = true
     end
@@ -237,6 +275,7 @@ function Controller:openForm(kind, target)
     self.view.noticeUntil, self.view.noticeKind = nil, nil
     self:save()
     if kind == "addFolder" then self:send("folder.suggest-id", {}) end
+    if kind == "addDevice" then self:refreshInBackground() end
 end
 
 function Controller:submitForm()
@@ -245,9 +284,11 @@ function Controller:submitForm()
     local kind = form.kind
     local problem = Form.problem(self.snapshot, form)
     if problem then self:notice(problem, "error"); self:save(); return end
-    if kind == "addFolder" or kind == "acceptFolder" then
-        self:send("folder.add-existing", { folderId = Form.trim(form.folderId), label = Form.trim(form.label),
-            path = Form.trim(form.path), deviceIds = Model.selected(form.selected), pendingDeviceId = form.pendingDeviceId }, true)
+    if kind == "addFolder" then
+        local path, label = Form.trim(form.path), Form.trim(form.label)
+        self:send("folder.add-existing", { folderId = Form.trim(form.folderId), label = label ~= "" and label or Model.pathLabel(path),
+            path = Model.resolvePath(path, self.host.getenv("HOME") or ""), deviceIds = Model.selected(form.selected),
+            pendingDeviceId = form.pendingDeviceId and form.selected[form.pendingDeviceId] and form.pendingDeviceId or nil }, true)
     elseif kind == "sharing" then
         self:send("folder.set-sharing", { folderId = form.folderId, deviceIds = Model.selected(form.selected) }, true)
     elseif kind == "deviceFolders" then
@@ -260,6 +301,24 @@ function Controller:submitForm()
     end
 end
 
+-- The preference lives in the adapter's settings file; Noctalia's window can override it.
+function Controller:chooseDrift(item)
+    if item.side == "system" then
+        return self:send(item.value == "enabled" and "lifecycle.enable" or "lifecycle.disable", {})
+    end
+    local path = Settings.filePath(self.host)
+    local function write()
+        local text = self.host.readFile(path) or Settings.template(self.host)
+        local updated, count = string.gsub(text, "\n#? ?serviceState = \"[a-z]*\"", "\nserviceState = \"" .. item.value .. "\"")
+        if count == 0 then self:notice("Could not update " .. path, "error"); self:save(); return end
+        if not self.host.writeFile(path, updated) then self:notice("Could not update " .. path, "error"); self:save() end
+    end
+    if self.host.fileExists(path) then return write() end
+    self.host.runAsync({ "mkdir", "-p", (string.gsub(path, "/[^/]*$", "")) }, function(reply)
+        if reply.exitCode == 0 then write() else self:notice("Could not create " .. path, "error"); self:save() end
+    end)
+end
+
 function Controller:copy(text, notice)
     local ok = self.host.copyToClipboard(text, "text/plain")
     self:notice(ok and (notice or "Copied") or "Clipboard unavailable", ok and "success" or "error")
@@ -267,6 +326,7 @@ function Controller:copy(text, notice)
 end
 
 function Controller:openExternal(target)
+    if target == "" then return end
     if not self.host.commandExists("xdg-open") then
         self:notice("Install xdg-utils to open this destination", "error"); self:save(); return
     end

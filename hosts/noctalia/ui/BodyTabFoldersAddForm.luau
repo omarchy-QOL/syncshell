@@ -27,19 +27,19 @@ function Form.render(controller, form)
             end, not controller:busy()) }),
         SharedWidgetControls.field(controller, form, "label", "Label", { revision = form.labelRevision,
             placeholder = "Derived from the directory name when empty" }),
-        SharedWidgetControls.field(controller, form, "folderId", "Folder ID", { enabled = not form.pendingDeviceId, revision = form.idRevision,
+        SharedWidgetControls.field(controller, form, "folderId", "Folder ID", { revision = form.idRevision,
             placeholder = controller:actionLabel("folder.suggest-id", "") ~= "" and "Generating..." or "Required folder identity",
             onSubmit = function() controller:submitForm() end,
-            trailing = trailing(controller:actionKey("generate-id"), "NEW ID", "Generate a new Syncthing folder ID", function() controller:send("folder.suggest-id", {}) end,
-                not form.pendingDeviceId and not controller:busy()) }),
+            trailing = trailing(controller:actionKey("generate-id"), "NEW ID", "Generate a new Syncthing folder ID", function()
+                -- A new identity leaves any chosen offer, as in Omarchy.
+                form.pendingDeviceId, form.folderId, form.idRevision = nil, "", (form.idRevision or 0) + 1
+                controller:send("folder.suggest-id", {})
+            end, not controller:busy()) }),
         SharedWidgetControls.hint("Reuse the exact ID to rejoin an existing remote folder. A new ID creates a different folder identity."),
         MultiSelect.render(controller, form, devices, "Share with selected devices. No selection keeps the folder local only."),
         SharedWidgetControls.hint(selected == 0 and "Local only: not shared with other devices."
             or "Selected devices receive a share offer and may need to accept it.", selected == 0 and Palette.roles.warning or nil),
     }
-    if #devices == 0 then
-        table.insert(children, SharedWidgetControls.button("Add remote device", function() controller:openForm("addDevice") end, not controller:busy()))
-    end
     -- Omarchy stays quiet until there is an entry to judge.
     if problem and form.path ~= "" then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.add-existing", "ADD FOLDER", "ADDING..."), function() controller:submitForm() end,
