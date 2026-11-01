@@ -93,7 +93,7 @@ max = 3600
 key = "webUi"
 type = "select"
 label_key = "settings.webUi.label"
-default = "default"
+default = "themed"
 options = [
   { value = "default", label_key = "settings.webUi.default" },
   { value = "modern", label_key = "settings.webUi.modern" },

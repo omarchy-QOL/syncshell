@@ -155,9 +155,10 @@ table.insert(refreshed.folders, { id = "new-share", path = "/new", devices = { {
 c:setSnapshot({ generation = "generation-1", state = refreshed })
 assert(c.view.form.selected["new-share"], "new sharing was marked for removal during refresh")
 c:submitForm()
-equal(#c.view.confirm.args.folderIds, 1, "refresh removed a newly added share")
-equal(c.view.confirm.args.folderIds[1], "b", "explicitly unchecked share lost")
-c:cancel()
+-- Omarchy saves the removal without a confirmation.
+equal(#c.view.pending.args.folderIds, 1, "refresh removed a newly added share")
+equal(c.view.pending.args.folderIds[1], "b", "explicitly unchecked share lost")
+c.view.pending = nil
 c.view.form = { kind = "addFolder", path = "/missing/draft", token = 100, selected = {}, search = "" }
 c:save()
 

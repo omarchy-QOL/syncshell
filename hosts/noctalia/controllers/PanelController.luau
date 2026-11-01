@@ -297,8 +297,7 @@ function Controller:submitForm()
     elseif kind == "deviceFolders" then
         local removed = Model.removedShares(self.snapshot, form)
         if #removed == 0 then return end
-        self:confirm("Remove the selected shares from this device? Local files remain.",
-            "device.remove-folder-shares", { deviceId = form.deviceId, folderIds = removed }, true)
+        self:send("device.remove-folder-shares", { deviceId = form.deviceId, folderIds = removed }, true)
     elseif kind == "addDevice" or kind == "acceptDevice" then
         self:send("device.add", { deviceId = Form.deviceId(form.deviceId), deviceName = Form.trim(form.name) }, true)
     end

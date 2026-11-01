@@ -380,7 +380,7 @@ scenario("P01 remote pause, disconnect and unknown acceptance stay distinct", fu
     s.devices[1].connected = true; s.folders[1].devices[1].remoteState = "unknown"; h:snapshot(s)
     assert(string.find(h:text(), "Remote acceptance unconfirmed", 1, true))
     h.entry.onKey("Alt+Return", true); h.entry.onKey("Alt+Left", true)
-    h:click("save-device-folders"); h:advance(301); h:click("confirmation-accept")
+    h:click("save-device-folders")
     assert(h.host.state.get("intent").request.args.folderIds[1] == "one")
 end)
 
@@ -790,7 +790,7 @@ scenario("wiring: sharing, share removal and device add send the whole selection
     h:settle(true)
     h:click("Devices"); h:click("Shared folders"); h:click("shares-confirmed"); h:click("share-one")
     h.entry.onKey("Alt+Left", true)
-    h:click("save-device-folders"); h:advance(301); h:click("confirmation-accept")
+    h:click("save-device-folders")
     action, args, notice = sent(h)
     assert(action == "device.remove-folder-shares" and args.deviceId == "REMOTE")
     sameList(args.folderIds, { "one" })

@@ -19,7 +19,7 @@ local pingAt, pingBusy, startedAt = 0, false, 0
 local configureNeeded = false
 local alive = true
 local lastPalette, themeCheckAt, currentTheme = nil, 0, nil
-local webUiCheck = true
+local webUiCheck, webUiChanged = true, false
 local queued
 local ownedThemes = { modern = "syncshell-noctalia-modern", themed = "syncshell-noctalia-themed" }
 local cleanupReady = false
@@ -286,10 +286,13 @@ function update()
             config = { refreshIntervalSeconds = settings.refreshSeconds,
                 probeIntervalSeconds = settings.probeSeconds, desiredServiceState = settings.serviceState } } })
     end
-    -- As in Omarchy, the saved preference selects the Web UI. Only a change of
-    -- preference or a start does so: a default choice leaves other themes alone.
+    -- As in Omarchy, the saved preference selects the Web UI on a change or a
+    -- start. A start never takes over a theme another client selected.
     if status.ready and not pending and webUiCheck and currentTheme then
         webUiCheck = false
+        local foreign = currentTheme ~= "default" and currentTheme ~= ownedThemes.modern and currentTheme ~= ownedThemes.themed
+        if foreign and not webUiChanged then currentTheme = ownedThemes[settings.webUi] or currentTheme end
+        webUiChanged = false
         local id, action, args = "webui-" .. tostring(now), nil, nil
         if settings.webUi == "default" then
             if currentTheme == ownedThemes.modern or currentTheme == ownedThemes.themed then
@@ -326,7 +329,7 @@ end
 function onConfigChanged()
     local previous = settings
     settings = Settings.read(noctalia)
-    webUiCheck = true
+    webUiCheck, webUiChanged = true, settings.webUi ~= previous.webUi
     if settings.refreshSeconds ~= previous.refreshSeconds or settings.probeSeconds ~= previous.probeSeconds
         or settings.serviceState ~= previous.serviceState then configureNeeded = true end
     -- Icon and Web UI choices do not need a new worker.
