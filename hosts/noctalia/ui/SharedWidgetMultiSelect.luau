@@ -1,5 +1,6 @@
+local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
-local Model = require("../models/PanelModel.luau")
+local Checkbox = require("./SharedWidgetCheckbox.luau")
 local MultiSelect = {}
 local pageSize = 6
 
@@ -54,7 +55,7 @@ function MultiSelect.render(controller, form, rows, help, options)
     end
     table.insert(children, SharedWidgetControls.hint(help))
     table.insert(children, ui.input({ key = "share-search-" .. tostring(form.token) .. "-" .. key,
-        value = query, focus = true, controlSize = "sm", placeholder = options.placeholder or "Find a device...",
+        value = query, focus = true, height = Ui.control, fontSize = Ui.body, placeholder = options.placeholder or "Find a device...",
         onChange = function(text) form.queries[key], form.shareCursors[key] = text, nil; controller:save() end,
         onSubmit = toggle }))
     local first = math.max(1, math.floor((cursor - 1) / pageSize) * pageSize + 1)
@@ -62,25 +63,19 @@ function MultiSelect.render(controller, form, rows, help, options)
     for index = first, math.min(first + pageSize - 1, #matches) do
         local row = matches[index].row
         local description = row.description or (row.untrusted and "Encrypted sharing: use Web UI") or nil
-        local text = { ui.label({ text = row.name or row.label or row.id, fontSize = 12, maxLines = 1 }) }
-        if description then table.insert(text, SharedWidgetControls.hint(description)) end
-        table.insert(list, ui.row({ key = row.id, gap = 8, align = "center", paddingH = 4, paddingV = 2, radius = 4,
-            fill = index == cursor and "surface_variant" or nil, tooltip = row.path and (row.path .. " | " .. row.id) or row.id }, {
-            ui.toggle({ key = "share-" .. row.id, checked = form.selected[row.id] == true,
-                enabled = not controller:busy() and not row.untrusted,
-                onChange = function(value) form.selected[row.id] = Model.bool(value); controller:save() end }),
-            ui.column({ flexGrow = 1, minWidth = 0 }, text),
-        }))
+        table.insert(list, Checkbox.render("share-" .. row.id, row.name or row.label or row.id, form.selected[row.id] == true, function()
+            form.selected[row.id] = not form.selected[row.id]; controller:save()
+        end, not controller:busy() and not row.untrusted, row.path and (row.path .. " | " .. row.id) or row.id, false, description))
     end
     if #matches == 0 then table.insert(list, SharedWidgetControls.hint(#rows == 0 and "No available items" or "No matching items")) end
     table.insert(children, ui.column({ key = "share-results-" .. key, gap = 2 }, list))
     if #matches > pageSize then
         table.insert(children, ui.row({ gap = 6, align = "center" }, {
-            ui.button({ key = "Previous", glyph = "chevron-left", text = "", variant = "ghost", controlSize = "sm", enabled = first > 1, tooltip = "Previous page",
+            ui.button({ key = "Previous", glyph = "chevron-left", text = "", variant = "ghost", height = Ui.control, enabled = first > 1, tooltip = "Previous page",
                 onClick = function() form.shareCursors[key] = matches[math.max(1, first - pageSize)].row.id; controller:save() end }),
             ui.label({ text = tostring(first) .. "-" .. tostring(math.min(first + pageSize - 1, #matches)) .. " of " .. tostring(#matches),
-                color = "on_surface_variant", fontSize = 11, textAlign = "center", flexGrow = 1 }),
-            ui.button({ key = "Next", glyph = "chevron-right", text = "", variant = "ghost", controlSize = "sm", enabled = first + pageSize <= #matches, tooltip = "Next page",
+                color = "on_surface_variant", fontSize = Ui.caption, textAlign = "center", flexGrow = 1 }),
+            ui.button({ key = "Next", glyph = "chevron-right", text = "", variant = "ghost", height = Ui.control, enabled = first + pageSize <= #matches, tooltip = "Next page",
                 onClick = function() form.shareCursors[key] = matches[first + pageSize].row.id; controller:save() end }),
         }))
     end

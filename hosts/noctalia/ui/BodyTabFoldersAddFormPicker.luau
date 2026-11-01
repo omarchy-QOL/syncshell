@@ -1,6 +1,8 @@
+local Ui = require("./UiConstants.luau")
 local BodyFormHeader = require("./BodyFormHeader.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Form = require("../models/FormModel.luau")
+local Model = require("../models/PanelModel.luau")
 local Picker = {}
 local pageSize = 8
 
@@ -62,9 +64,9 @@ function Picker.render(controller, form)
         else return false end
         return true
     end
-    local children = { BodyFormHeader.render(controller, "Choose directory"),
-        SharedWidgetControls.label("Location", "on_surface_variant"),
-        ui.input({ key = "picker-location-" .. p.path .. "-" .. p.after, value = p.location, focus = true,
+    local children = { BodyFormHeader.render(controller, "CHOOSE DIRECTORY"),
+        SharedWidgetControls.caption("Location"),
+        ui.input({ key = "picker-location-" .. p.path .. "-" .. p.after, value = p.location, focus = true, height = Ui.control, fontSize = Ui.body,
             enabled = not p.loading, onChange = function(value) p.location = value; controller:save() end, onSubmit = go }),
         ui.row({ gap = 6 }, {
             SharedWidgetControls.button("Go", go, not p.loading),
@@ -72,15 +74,15 @@ function Picker.render(controller, form)
             SharedWidgetControls.button("Parent directory", function() Picker.open(controller, p.parent) end,
                 not p.loading and p.parent ~= nil and p.parent ~= p.path),
         }),
-        SharedWidgetControls.label(p.path),
+        SharedWidgetControls.hint(Model.shortPath(p.path)),
     }
     if p.loading then table.insert(children, SharedWidgetControls.label("Reading directories...")) end
     if p.error then table.insert(children, SharedWidgetControls.label(p.error, "error")) end
     local list, first = {}, p.cursor
     for index = first, math.min(first + pageSize - 1, #p.entries) do
         local entry = p.entries[index]
-        table.insert(list, SharedWidgetControls.button(entry.name, function() Picker.open(controller, entry.path) end,
-            not p.loading, index == p.cursor and "primary" or "ghost", entry.path))
+        table.insert(list, ui.button({ key = entry.path, text = entry.name, glyph = "folder", glyphSize = Ui.body, fontSize = Ui.body, contentAlign = "start", height = Ui.control,
+            variant = index == p.cursor and "default" or "ghost", enabled = not p.loading, onClick = function() Picker.open(controller, entry.path) end }))
     end
     if not p.loading and not p.error and #p.entries == 0 then table.insert(list, SharedWidgetControls.label("No subdirectories")) end
     table.insert(children, ui.scroll({ key = "directories-" .. tostring(p.cursor), height = 220, gap = 4 }, list))
@@ -91,11 +93,10 @@ function Picker.render(controller, form)
     if p.next and p.next ~= "" then table.insert(children, SharedWidgetControls.button("Next directory page", function()
         Picker.open(controller, p.path, p.next)
     end, not p.loading)) end
-    table.insert(children, SharedWidgetControls.button("Use this directory", function()
+    table.insert(children, SharedWidgetControls.button("USE THIS DIRECTORY", function()
         form.path, form.pathRevision, form.picker = p.path, (form.pathRevision or 0) + 1, nil
         controller:save()
-    end, not p.loading and not p.error, "primary"))
-    table.insert(children, SharedWidgetControls.label("Alt+Up/Down: select directory | Alt+Enter: open | Alt+Left: back", "on_surface_variant"))
+    end, not p.loading and not p.error, "outline", "Use this directory"))
     return ui.column({ gap = 8 }, children)
 end
 

@@ -1,6 +1,8 @@
+local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local InfoPair = require("./SharedWidgetInfoPair.luau")
 local Model = require("../models/PanelModel.luau")
+local Palette = require("../controllers/ThemePaletteController.luau")
 local Header = {}
 
 function Header.render(controller, compact)
@@ -11,28 +13,27 @@ function Header.render(controller, compact)
     local connection = s.connection or {}
     local total = Model.totals(s)
     local variant = Model.indicator(s, controller.status)
-    local prefix = controller.host.getConfig("brandedIcon") and "/assets/" or "/assets/mono/"
     local canToggle = lifecycle.canControl == true or (not lifecycle.active and lifecycle.canStart == true)
     local title = {
-        ui.image({ path = controller.host.pluginDir() .. prefix .. "status-" .. variant .. ".svg", width = 32, height = 32 }),
+        ui.image({ path = Palette.statusIcon(controller.host, variant), width = Ui.heroIcon, height = Ui.heroIcon }),
         ui.column({ gap = 2, flexGrow = 1, minWidth = 0 }, {
-            ui.label({ text = "Syncthing", fontSize = 15, fontWeight = "bold", maxLines = 1 }),
+            ui.label({ text = "Syncthing", fontSize = Ui.title, fontWeight = "bold", maxLines = 1 }),
             ui.row({ gap = 6, align = "center" }, {
-                ui.label({ text = string.upper(hostname), color = "on_surface_variant", fontSize = 11, maxLines = 1 }),
-                ui.button({ key = "Copy ID", text = "device ID", glyph = "copy", fontSize = 10, glyphSize = 11, height = 18,
-                    controlSize = "sm", variant = "outline", tooltip = "Copy device ID", enabled = identity.deviceId ~= nil,
-                    onClick = function() controller:copy(identity.deviceId or "") end }),
+                ui.label({ text = string.upper(hostname), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }),
+                ui.button({ key = "Copy ID", text = "device ID", glyph = "copy", fontSize = Ui.caption - 1, glyphSize = Ui.caption - 1, height = 16,
+                    variant = "outline", tooltip = "Copy device ID", enabled = identity.deviceId ~= nil,
+                    onClick = function() controller:copy(identity.deviceId or "", "ID copied") end }),
             }),
         }),
     }
     -- Omarchy hides the switch when the instance is not ours to control.
     if canToggle then
-        table.insert(title, ui.toggle({ checked = lifecycle.active == true, enabled = not controller:busy(),
-            onChange = function(value)
-                local enable = Model.bool(value)
-                controller:confirm(enable and "Start the authorized Syncthing service?" or "Stop the authorized Syncthing service?",
-                    enable and "lifecycle.start" or "lifecycle.stop", {})
-            end }))
+        table.insert(title, ui.row({ tooltip = lifecycle.active and "Stop syncing" or "Start syncing" }, {
+            ui.toggle({ key = "service-toggle", checked = lifecycle.active == true, enabled = not controller:busy(),
+                onChange = function(value)
+                    controller:send(Model.bool(value) and "lifecycle.start" or "lifecycle.stop", {})
+                end }),
+        }))
     end
     local children = {
         ui.row({ gap = 10, align = "center" }, title),

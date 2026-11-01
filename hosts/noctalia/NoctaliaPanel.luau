@@ -1,3 +1,4 @@
+local Ui = require("./hosts/noctalia/ui/UiConstants.luau")
 local SnapshotStore = require("./hosts/noctalia/transport/SnapshotStore.luau")
 local Controller = require("./hosts/noctalia/controllers/PanelController.luau")
 local Navigation = require("./hosts/noctalia/models/PanelNavigation.luau")
@@ -14,6 +15,8 @@ local AddDeviceForm = require("./hosts/noctalia/ui/BodyTabDevicesAddForm.luau")
 local BodyTabFoldersShareForm = require("./hosts/noctalia/ui/BodyTabFoldersShareForm.luau")
 local BodyTabDevicesFoldersForm = require("./hosts/noctalia/ui/BodyTabDevicesFoldersForm.luau")
 local SettingsPage = require("./hosts/noctalia/ui/SettingsPage.luau")
+local SettingsMenu = require("./hosts/noctalia/ui/SettingsMenu.luau")
+local SettingsSelfRemovalSteps = require("./hosts/noctalia/ui/SettingsSelfRemovalSteps.luau")
 local Confirmation = require("./hosts/noctalia/ui/SharedDialogConfirm.luau")
 local FooterActions = require("./hosts/noctalia/ui/FooterActions.luau")
 local FooterShortcutHint = require("./hosts/noctalia/ui/FooterShortcutHint.luau")
@@ -22,11 +25,16 @@ local controller
 local opened = false
 
 local function formTree(form)
+    if form.kind == "settings" then
+        if form.page == "webui" then return SettingsPage.render(controller) end
+        if form.page == "removal" then return SettingsSelfRemovalSteps.render(controller) end
+        return SettingsMenu.render(controller)
+    end
     if form.kind == "addFolder" or form.kind == "acceptFolder" then return BodyTabFoldersAddForm.render(controller, form) end
     if form.kind == "addDevice" or form.kind == "acceptDevice" then return AddDeviceForm.render(controller, form) end
     if form.kind == "sharing" then return BodyTabFoldersShareForm.render(controller, form) end
     if form.kind == "deviceFolders" then return BodyTabDevicesFoldersForm.render(controller, form) end
-    return SettingsPage.render(controller)
+    error("unknown form " .. tostring(form.kind))
 end
 
 local function render()
@@ -50,7 +58,7 @@ local function render()
         table.insert(body, formTree(v.form))
     else
         local function tab(key, text, section)
-            return ui.button({ key = key, text = text, controlSize = "sm", fontSize = 11, height = 26,
+            return ui.button({ key = key, text = text, fontSize = Ui.caption, height = Ui.control,
                 variant = v.section == section and "secondary" or "outline",
                 onClick = function() v.section = section; controller:save() end })
         end
@@ -84,9 +92,10 @@ local function render()
     local bodyKey = v.form and ("form-" .. tostring(v.form.token)) or ("overview-" .. v.section)
     local noticeColor = (controller.status.error or v.noticeKind == "error" or v.noticeKind == "uncertain") and "error"
         or (v.noticeKind == "success" and Palette.roles.success or "on_surface_variant")
-    local top = { Header.render(controller, v.form ~= nil) }
+    -- Omarchy's settings menu replaces the whole panel.
+    local top = (v.form and v.form.kind == "settings") and {} or { Header.render(controller, v.form ~= nil) }
     if message ~= "" then table.insert(top, SharedWidgetControls.notice(controller, message, noticeColor, "action details")) end
-    table.insert(top, ui.separator({}))
+    if #top > 0 then table.insert(top, ui.separator({})) end
     -- Omarchy's forms open beside the panel; this fixed surface lends them the footer's space.
     local bottom = v.form and {} or { ui.separator({}), FooterActions.render(controller, enabled), FooterShortcutHint.render() }
     -- Retained native nodes keep an omitted prop, so opacity is always explicit.
@@ -104,11 +113,10 @@ local function render()
     end
     local tree = ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
         top_,
-        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8 }, body),
+        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8, padding = 0 }, body),
         bottom_,
     })
-    local selection = Navigation.decorate(controller, tree)
-    if v.actionCursor then table.insert(bottom_.children, selection) end
+    Navigation.decorate(controller, tree)
     panel.render(tree)
 end
 
@@ -137,9 +145,15 @@ function onClose()
     controller:save()
 end
 
+-- Omarchy's plain keys. Left and Right stay with text fields and Enter with
+-- the focused control, as a captured chord is always consumed: Space activates
+-- the cursor instead. Printable keys go to a focused field first.
+local chords = { Up = "Alt+Up", Down = "Alt+Down", k = "Alt+Up", j = "Alt+Down", h = "Alt+Up", l = "Alt+Down", space = "Alt+Return" }
+
 function onKey(chord, pressed)
     if not pressed then return end
     local v = controller.view
+    chord = chords[chord] or chord
     if v.details then
         if chord == "Alt+Left" then v.details = nil; controller:save() end
         return
@@ -156,16 +170,24 @@ function onKey(chord, pressed)
     if controller.navigation and controller.navigation(chord) then return end
     if chord == "Alt+Left" then controller:cancel(); return end
     if controller.actionNavigation and controller.actionNavigation(chord) then return end
-    if chord == "q" then panel.close(); return end
+    if chord == "q" then
+        if v.form then controller:cancel() else panel.close() end
+        return
+    end
     if v.form then return end
     if chord == "r" then controller:rescanAll()
     elseif chord == "w" and (controller.snapshot.connection or {}).online then controller:send("webui.open", {})
     elseif chord == "s" then controller:openForm("settings")
+    elseif chord == "slash" then
+        local key = v.section == "folders" and "folder" or "device"
+        v.selectors = v.selectors or {}
+        v.selectors[key] = v.selectors[key] or { open = false, query = "" }
+        v.selectors[key].open = true
+        controller:save()
     elseif chord == "p" then
         local lifecycle = controller.snapshot.lifecycle or {}
         if lifecycle.canControl or (not lifecycle.active and lifecycle.canStart) then
-            controller:confirm(lifecycle.active and "Stop Syncthing?" or "Start Syncthing?",
-                lifecycle.active and "lifecycle.stop" or "lifecycle.start", {})
+            controller:send(lifecycle.active and "lifecycle.stop" or "lifecycle.start", {})
         end
     end
 end

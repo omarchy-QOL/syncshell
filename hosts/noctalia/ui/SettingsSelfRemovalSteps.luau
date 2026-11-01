@@ -1,10 +1,11 @@
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
+local BodyFormHeader = require("./BodyFormHeader.luau")
 local Removal = {}
 
 function Removal.render(controller)
     local cleanup = controller.host.state.get("cleanup")
     local children = {
-        SharedWidgetControls.label("Remove Syncshell from Noctalia"),
+        BodyFormHeader.render(controller, "REMOVE SYNCTHING PLUGIN"),
         SharedWidgetControls.label("1. Restore the default Web UI and remove Noctalia's owned profiles. Synchronized files and other adapters' profiles remain."),
         SharedWidgetControls.button("Restore default and remove Noctalia profiles", function()
             controller:confirm("Restore Syncthing's default Web UI and remove only Syncshell Noctalia's profiles? Your synchronized files remain unchanged.",

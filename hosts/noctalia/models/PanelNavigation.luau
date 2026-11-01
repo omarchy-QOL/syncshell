@@ -1,6 +1,6 @@
-local SharedWidgetControls = require("../ui/SharedWidgetControls.luau")
 local Navigation = {}
 
+-- Omarchy marks its keyboard cursor on the control itself, without a caption.
 local function caption(node)
     for _, child in node.children do
         if child.type == "label" and child.props.text ~= "" then return child.props.text end
@@ -60,13 +60,6 @@ function Navigation.decorate(controller, tree)
         end
         return true
     end
-    local action = selected and actions[selected]
-    if not action then return SharedWidgetControls.label("Alt+Up/Down: choose an action | Alt+Enter: activate", "on_surface_variant") end
-    return ui.column({ key = "keyboard-action", gap = 2 }, {
-        ui.label({ text = "Action " .. tostring(selected) .. "/" .. tostring(#actions) .. ": " .. action.label,
-            color = "primary", maxLines = 2 }),
-        ui.label({ text = action.context, color = "on_surface_variant", maxLines = 2 }),
-    })
 end
 
 return Navigation

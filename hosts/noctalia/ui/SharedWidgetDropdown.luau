@@ -1,3 +1,4 @@
+local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
 local Dropdown = {}
@@ -18,7 +19,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
             for other, item in owner.selectors do if other ~= key then item.open = false end end
         end
         controller:save()
-    end, not controller:busy())
+    end, not controller:busy(), false, options.help)
     if not state.open then return trigger end
     local query = options.query or state.query
     local matches = {}
@@ -49,7 +50,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         end
         return true
     end
-    local search = ui.input({ key = "search-" .. key, value = query, focus = true, controlSize = "sm", flexGrow = 1,
+    local search = ui.input({ key = "search-" .. key, value = query, focus = true, height = Ui.control, fontSize = Ui.body, flexGrow = 1,
         placeholder = options.placeholder or "Search names, paths or IDs",
         onChange = function(text)
             state.query, state.cursor = text, nil
@@ -65,7 +66,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     local list = {}
     for index = first, math.min(first + pageSize - 1, #matches) do
         local row = matches[index]
-        local cells = { ui.button({ key = "option-" .. key .. "-" .. row.id, text = row.label, contentAlign = "start", controlSize = "sm", flexGrow = 1,
+        local cells = { ui.button({ key = "option-" .. key .. "-" .. row.id, text = row.label, contentAlign = "start", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
             variant = (index == cursor or row.id == selected) and "default" or "ghost", enabled = row.enabled ~= false and not controller:busy(),
             tooltip = row.description, onClick = function() state.open = false; choose(row.id); controller:save() end }) }
         if row.role then table.insert(cells, ui.box({ width = 8, height = 8, radius = 4, fill = Palette.roles[row.role] })) end
@@ -75,11 +76,11 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     table.insert(children, ui.column({ key = "results-" .. key, gap = 2 }, list))
     if #matches > pageSize then
         table.insert(children, ui.row({ gap = 6, align = "center" }, {
-            ui.button({ key = "Previous", glyph = "chevron-left", text = "", variant = "ghost", controlSize = "sm", enabled = first > 1, tooltip = "Previous page",
+            ui.button({ key = "Previous", glyph = "chevron-left", text = "", variant = "ghost", height = Ui.control, enabled = first > 1, tooltip = "Previous page",
                 onClick = function() state.cursor = matches[math.max(1, first - pageSize)].id; controller:save() end }),
             ui.label({ text = tostring(first) .. "-" .. tostring(math.min(first + pageSize - 1, #matches)) .. " of " .. tostring(#matches),
-                color = "on_surface_variant", fontSize = 11, textAlign = "center", flexGrow = 1 }),
-            ui.button({ key = "Next", glyph = "chevron-right", text = "", variant = "ghost", controlSize = "sm", enabled = first + pageSize <= #matches, tooltip = "Next page",
+                color = "on_surface_variant", fontSize = Ui.caption, textAlign = "center", flexGrow = 1 }),
+            ui.button({ key = "Next", glyph = "chevron-right", text = "", variant = "ghost", height = Ui.control, enabled = first + pageSize <= #matches, tooltip = "Next page",
                 onClick = function() state.cursor = matches[first + pageSize].id; controller:save() end }),
         }))
     end

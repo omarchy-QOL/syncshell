@@ -104,7 +104,7 @@ options = [
 key = "brandedIcon"
 type = "bool"
 label_key = "settings.brandedIcon.label"
-default = true
+default = false
 
 [[service]]
 id = "service"
@@ -117,9 +117,9 @@ entry = "hosts/noctalia/NoctaliaBarEntry.luau"
 [[panel]]
 id = "panel"
 entry = "hosts/noctalia/NoctaliaPanel.luau"
-width = 420
-height = 600
+width = 400
+height = 540
 placement = "attached"
 open_near_click = true
 keyboard_focus = "exclusive"
-capture_keys = ["r", "w", "p", "s", "q", "Alt+Up", "Alt+Down", "Alt+Left", "Alt+Return"]
+capture_keys = ["r", "w", "p", "s", "q", "h", "j", "k", "l", "slash", "space", "Up", "Down", "Alt+Up", "Alt+Down", "Alt+Left", "Alt+Return"]

@@ -16,10 +16,11 @@ function Controller.new(host, changed)
     return self
 end
 
-function Controller:notice(message, kind)
+-- Omarchy's notice timings: brief for feedback, longer for result sentences.
+function Controller:notice(message, kind, visibleMs)
     local v = self.view
     v.message, v.noticeKind = message, kind
-    v.noticeUntil = kind == "success" and (self.host.nowMs() + 5000) or nil
+    v.noticeUntil = kind == "success" and (self.host.nowMs() + (visibleMs or 5000)) or nil
     if kind == "error" or kind == "uncertain" then v.lastFailure = message end
 end
 
@@ -84,7 +85,8 @@ function Controller:setResults(results)
         if result.id == pending.id and result.view == self.view.view and result.generation == pending.generation then
             self.view.pending = nil
             self:notice(result.ok and pending.notice or (result.error or "Action failed"),
-                result.ok and "success" or (result.code == "uncertain" and "uncertain" or "error"))
+                result.ok and "success" or (result.code == "uncertain" and "uncertain" or "error"),
+                pending.action == "device.add" and 15000 or 10000)
             if result.ok and pending.action == "folder.resume" then
                 self.view.recentlyLinked, self.view.linkedUntil = pending.args.folderId, self.host.nowMs() + 5000
             end
@@ -144,9 +146,9 @@ function Controller:actionKey(action)
     return action .. "-" .. tostring(self.view.sequence)
 end
 
-function Controller:actionLabel(action, label)
+function Controller:actionLabel(action, label, busyLabel)
     local pending = self.view.pending
-    return pending and (pending.action or pending.requestType) == action and Actions.label(action, 2) or label
+    return pending and (pending.action or pending.requestType) == action and (busyLabel or Actions.label(action, 2)) or label
 end
 
 function Controller:busy()
@@ -165,7 +167,8 @@ function Controller:send(action, args, closeForm, requestType)
         action = action, requestType = requestType or "action", args = frozen, closeForm = closeForm,
         notice = action and Actions.notice(action, frozen, self.snapshot) or "",
         formToken = self.view.form and self.view.form.token }
-    self:notice(Actions.label(action or requestType, 2), "progress")
+    -- Omarchy shows progress on the control, not as a notice.
+    self:notice("", nil)
     self:save()
     local request = { v = 2, type = requestType or "action", id = id }
     if request.type == "action" then request.action, request.args = action, frozen end
@@ -191,6 +194,7 @@ end
 function Controller:cancel()
     if self:busy() then return end
     if self.view.confirm then self.view.confirm = nil
+    elseif self.view.form and self.view.form.page then self.view.form.page = nil
     elseif self.view.form and self.view.form.picker then self.view.form.picker = nil
     else self.view.form = self.view.form and self.view.form.returnForm end
     self:save()
@@ -254,9 +258,9 @@ function Controller:submitForm()
     end
 end
 
-function Controller:copy(text)
+function Controller:copy(text, notice)
     local ok = self.host.copyToClipboard(text, "text/plain")
-    self:notice(ok and "Copied" or "Clipboard unavailable", ok and "success" or "error")
+    self:notice(ok and (notice or "Copied") or "Clipboard unavailable", ok and "success" or "error")
     self:save()
 end
 

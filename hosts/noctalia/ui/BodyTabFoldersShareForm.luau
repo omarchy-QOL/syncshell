@@ -19,7 +19,7 @@ function Form.render(controller, form)
         table.insert(children, SharedWidgetControls.hint("No remote devices available. Add a remote device below.", "secondary"))
         table.insert(children, SharedWidgetControls.button("Add remote device", function() controller:openForm("addDevice") end, not controller:busy()))
     end
-    table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.set-sharing", "SAVE SHARING"), function() controller:submitForm() end,
+    table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.set-sharing", "SAVE SHARING", "SAVING..."), function() controller:submitForm() end,
         problem == nil and not controller:busy() and controller.status.ready, "outline", "Save sharing"))
     return ui.column({ gap = 8 }, children)
 end

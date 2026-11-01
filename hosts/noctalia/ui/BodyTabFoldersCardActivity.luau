@@ -1,4 +1,4 @@
-local SharedWidgetControls = require("./SharedWidgetControls.luau")
+local Ui = require("./UiConstants.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
 local Activity = {}
 
@@ -9,9 +9,9 @@ function Activity.render(controller, folderId)
         or (activity.action == "upload" and "success" or "info")]
     local live = (controller.snapshot.connection or {}).online and (controller.snapshot.connection or {}).fresh
     local dots = live and string.rep(".", controller.activityPhase or 0) or ""
-    return ui.column({ gap = 4 }, {
-        SharedWidgetControls.label((live and "File syncing" or "Last reported activity") .. dots .. " | " .. activity.action, color),
-        SharedWidgetControls.label(activity.path .. "\n" .. activity.detail, color),
+    return ui.row({ gap = 4, align = "center" }, {
+        ui.label({ text = (live and "File syncing" or "Last reported activity") .. dots, color = color, fontSize = Ui.caption, maxLines = 1 }),
+        ui.label({ text = activity.detail or activity.path, color = color, fontSize = Ui.caption, maxLines = 1, flexGrow = 1 }),
     })
 end
 

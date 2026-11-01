@@ -20,6 +20,9 @@ function Harness.new()
         },
         pluginDir = function() return "/package" end,
         pluginDataDir = function() return "/private/plugin-data" end,
+        writeFile = function() return true end,
+        fileExists = function() return false end,
+        readFile = function() return "<svg stroke='#fff'/>" end,
         getConfig = function(key) return key == "webUi" and "default" or (key == "serviceState" and "enabled" or false) end,
         getenv = function(key) return key == "HOME" and "/home/fixture" or "fixture" end,
         expandPath = function(path) return path end,
@@ -88,14 +91,14 @@ end
 function Harness:click(value)
     local node
     for _, candidate in self:nodes() do
-        if (candidate.type == "button" or (candidate.type == "row" and candidate.props.onClick))
+        if (candidate.type == "button" or ((candidate.type == "row" or candidate.type == "column") and candidate.props.onClick))
             and (candidate.props.key == value or candidate.props.text == value) then
             assert(node == nil, "ambiguous button: " .. value)
             node = candidate
         end
     end
     assert(node, "missing button: " .. value)
-    if node.type == "row" then assert(type(node.props.onClick) == "function", "disabled row: " .. value) end
+    if node.type ~= "button" then assert(type(node.props.onClick) == "function", "disabled row: " .. value) end
     assert(node.props.enabled ~= false, "disabled control: " .. value)
     assert(type(node.props.onClick) == "function", "control is not clickable: " .. value)
     local ok, err = pcall(function() withBudget(node.props.onClick, 25) end)
@@ -113,6 +116,11 @@ function Harness:edit(field, value)
         end
     end
     error("missing input: " .. field)
+end
+
+function Harness:checked(key)
+    local node = assert(self:find(key), "missing checkbox: " .. key)
+    return node.children[1].children[1].props.visible
 end
 
 function Harness:text()

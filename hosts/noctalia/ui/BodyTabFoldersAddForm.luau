@@ -1,3 +1,4 @@
+local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local BodyFormHeader = require("./BodyFormHeader.luau")
 local Model = require("../models/PanelModel.luau")
@@ -8,7 +9,7 @@ local Validation = require("../models/FormModel.luau")
 local Form = {}
 
 local function trailing(key, text, help, callback, enabled)
-    return ui.button({ key = key, text = text, tooltip = help, controlSize = "sm", fontSize = 11, variant = "outline", enabled = enabled, onClick = callback })
+    return ui.button({ key = key, text = text, tooltip = help, height = Ui.control, fontSize = Ui.caption, variant = "outline", enabled = enabled, onClick = callback })
 end
 
 function Form.render(controller, form)
@@ -17,7 +18,7 @@ function Form.render(controller, form)
     local devices = Model.remoteDevices(controller.snapshot)
     local selected = #Model.selected(form.selected)
     local children = {
-        BodyFormHeader.render(controller, form.pendingDeviceId and "ACCEPT FOLDER" or "ADD FOLDER"),
+        BodyFormHeader.render(controller, "ADD FOLDER"),
         Source.render(controller, form),
         SharedWidgetControls.field(controller, form, "path", "Local directory", { focus = true, revision = form.pathRevision,
             placeholder = "/path/to/my/folder", trailing = trailing("Browse directories", "BROWSE", "Choose an existing local directory", function()
@@ -38,8 +39,9 @@ function Form.render(controller, form)
     if #devices == 0 then
         table.insert(children, SharedWidgetControls.button("Add remote device", function() controller:openForm("addDevice") end, not controller:busy()))
     end
-    if problem then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
-    table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.add-existing", "ADD FOLDER"), function() controller:submitForm() end,
+    -- Omarchy stays quiet until there is an entry to judge.
+    if problem and form.path ~= "" then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
+    table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.add-existing", "ADD FOLDER", "ADDING..."), function() controller:submitForm() end,
         problem == nil and not controller:busy() and controller.status.ready, "outline", "Add folder submit"))
     return ui.column({ gap = 8 }, children)
 end

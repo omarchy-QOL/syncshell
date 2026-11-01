@@ -1,3 +1,4 @@
+local Ui = require("./UiConstants.luau")
 local Actions = require("../models/ActionModel.luau")
 local Confirm = {}
 
@@ -15,13 +16,13 @@ function Confirm.render(controller)
     local create = confirm.action == "folder.add-existing"
     local accept, cancel = confirm.choice == "accept", confirm.choice ~= "accept"
     local border = create and "outline" or "error"
-    return ui.column({ key = "confirmation", gap = 12, padding = 12, radius = 6, border = border, borderWidth = 1 }, {
-        ui.label({ text = confirm.message, fontSize = 13, maxLines = 0 }),
+    return ui.column({ key = "confirmation", gap = 12, padding = 12, radius = 4, border = border, borderWidth = 1 }, {
+        ui.label({ text = confirm.message, fontSize = Ui.body, maxLines = 0 }),
         ui.row({ gap = 8 }, {
-            ui.button({ key = "confirmation-accept", text = create and "Create and add" or "Yes", controlSize = "sm", flexGrow = 1,
+            ui.button({ key = "confirmation-accept", text = create and "Create and add" or "Yes", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
                 variant = accept and (create and "primary" or "destructive") or "outline", enabled = not controller:busy(),
                 onClick = function() controller:acceptConfirmation() end }),
-            ui.button({ key = "confirmation-cancel", text = create and "Cancel" or "No", controlSize = "sm", flexGrow = 1,
+            ui.button({ key = "confirmation-cancel", text = create and "Cancel" or "No", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
                 variant = cancel and (create and "primary" or "destructive") or "outline", enabled = not controller:busy(),
                 onClick = function() controller:cancel() end }),
         }),

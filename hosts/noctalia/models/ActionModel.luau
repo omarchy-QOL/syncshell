@@ -1,3 +1,4 @@
+local Model = require("./PanelModel.luau")
 local Actions = {}
 local labels = {
     refresh = { "Refresh", "Refreshing state...", "Refreshed state" },
@@ -39,7 +40,7 @@ end
 
 local function folderName(snapshot, id)
     local folder = named(snapshot.folders, id)
-    return folder and folder.label ~= "" and folder.label or id
+    return folder and Model.folderLabel(folder) or id
 end
 
 local function deviceName(snapshot, id)

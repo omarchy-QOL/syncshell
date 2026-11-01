@@ -101,32 +101,34 @@ fresh; these are text updates, not a claim of identical Omarchy animation.
 
 ## Geometry and keyboard
 
-The approved adaptation uses a fixed 480 by 700 panel, clamped by the host.
-Forms replace the body. Selection and detail views use the same panel with
+The panel is a fixed 400 by 540, clamped by the host, with Omarchy's font and
+control sizes (`ui/UiConstants.luau`). Forms replace the body and footer. Selection and detail views use the same panel with
 an explicit return. Footers remain outside their scrollable content. Escape
 retains native dismissal; closing the panel retains drafts in memory.
 Unsubmitted drafts are never written to disk.
 
 | View         | Owned keys                                               |
 | ------------ | -------------------------------------------------------- |
-| Overview     | r rescan, w Web UI, p service, s settings, q close       |
-| Action rows  | Alt+Up/Down selects; Alt+Enter activates                 |
+| Overview     | r rescan, w Web UI, p service, s settings, q close, / find |
+| Action rows  | Up/Down, j/k or h/l selects; Space activates             |
 | Selection    | Alt+Up/Down selects; Enter in search chooses or toggles  |
 | Selection    | Alt+Enter activates; Alt+Left returns                    |
 | Directory    | Enter in location goes there; Alt+Enter opens selection  |
-| Confirmation | Alt+Up/Down chooses; Alt+Enter activates; default Cancel |
-| Nested view  | Alt+Left returns or cancels                              |
+| Confirmation | Up/Down or j/k chooses; Space activates; default No      |
+| Nested view  | q or Alt+Left returns or cancels                         |
 
-Native Tab/Shift-Tab traverses controls; Enter/Space activates the native
-focused button. Printable keys and plain editing arrows remain with text
-inputs. Native Enter is not globally captured. Confirmations freeze their
-targets, put Cancel first and reject activation within 300 ms of opening.
+Alt+Up/Down and Alt+Enter remain aliases.
+
+Native Tab/Shift-Tab traverses controls; Enter activates the native focused
+button. Printable keys and Left/Right remain with text inputs. Native Enter is
+not captured, as a captured chord is always consumed; that is why Space, not
+Omarchy's Enter, activates the cursor. Confirmations freeze their targets,
+default to No and reject activation within 300 ms of opening.
 Busy/result guards prevent duplicate in-flight actions. Direct action
 buttons receive a new native key on dispatch so a held native activation
 cannot retain focus on the replacement action.
 
-The owned action cursor highlights buttons and repeats the chosen action
-and context in the footer. It is distinct from native keyboard focus. The
+The owned action cursor highlights the chosen control. It is distinct from native keyboard focus. The
 pinned API has no arbitrary button-focus or ensure-visible binding. It also
 does not implement automatic focused-control scrolling for plugin panels.
 Input focus is available only on creation. Selection windows therefore move

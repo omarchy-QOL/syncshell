@@ -21,7 +21,7 @@ function Form.render(controller, form)
         { key = "unconfirmed", label = "Unconfirmed shares", note = "(acceptance pending/device offline)", group = true,
             empty = "No unconfirmed shares", placeholder = "Find a folder..." }))
     table.insert(children, SharedWidgetControls.hint("Use the share folder button to restore a folder.", "secondary"))
-    table.insert(children, SharedWidgetControls.button(controller:actionLabel("device.remove-folder-shares", "SAVE SHARING"), function() controller:submitForm() end,
+    table.insert(children, SharedWidgetControls.button(controller:actionLabel("device.remove-folder-shares", "SAVE SHARING", "SAVING..."), function() controller:submitForm() end,
         Validation.problem(controller.snapshot, form) == nil and not controller:busy()
             and controller.status.ready, "outline", "save-device-folders"))
     return ui.column({ gap = 8 }, children)

@@ -229,12 +229,13 @@ function Model.folderMeta(snapshot, folder, scanning)
         local first = (status.errors or {})[1]
         return (status.error ~= "" and status.error) or (first and first.error) or "Folder needs attention"
     end
-    if folder.paused then return "Syncing paused" end
-    if scanning then return "Scanning local changes" end
+    local suffix = (folder.label or "") ~= "" and folder.label ~= Model.folderLabel(folder) and (" · " .. folder.label) or ""
+    if folder.paused then return "Syncing paused" .. suffix end
+    if scanning then return "Scanning local changes" .. suffix end
     if status.state == "syncing" or (status.needTotalItems or 0) > 0 then
         local items = status.needTotalItems or 0
         local remaining = Model.count(items) .. " item" .. (items == 1 and "" or "s") .. " remaining"
-        return (status.needBytes or 0) > 0 and (remaining .. " · " .. Model.bytes(status.needBytes)) or remaining
+        return ((status.needBytes or 0) > 0 and (remaining .. " · " .. Model.bytes(status.needBytes)) or remaining) .. suffix
     end
     local shared = 0
     for _, member in folder.devices or {} do

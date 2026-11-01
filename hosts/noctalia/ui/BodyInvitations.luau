@@ -58,7 +58,7 @@ function BodyInvitations.render(controller)
                 if devices then controller:openForm("acceptDevice", selected.device)
                 elseif encrypted then controller:send("webui.open", {})
                 else controller:openForm("acceptFolder", { id = selected.folderId, deviceId = selected.deviceId, label = selected.offer.label }) end
-            end, enabled, nil, devices and "Accept device request"
+            end, enabled, nil, devices and "Accept remote device connection"
                 or (encrypted and "Encrypted: open the Syncthing Web UI" or "Accept folder request"), nil, Palette.roles.success),
             ActionButton.render("Dismiss", "x", function()
                 if devices then

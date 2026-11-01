@@ -12,7 +12,7 @@ assert manifest["id"] == "syncshell/syncshell"
 assert manifest["plugin_api"] == 31
 assert re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", manifest["version"])
 keys = manifest["panel"][0]["capture_keys"]
-assert "Return" not in keys and "Up" not in keys and "Down" not in keys, "capture steals editor keys"
+assert "Return" not in keys and "Left" not in keys and "Right" not in keys, "capture steals editor keys"
 assert {"Alt+Up", "Alt+Down", "Alt+Return", "Alt+Left"}.issubset(keys)
 settings = {setting["key"]: setting for setting in manifest["setting"]}
 assert settings["refreshSeconds"]["min"] == 60

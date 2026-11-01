@@ -1,3 +1,4 @@
+local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Model = require("../models/PanelModel.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
@@ -7,7 +8,7 @@ local Details = {}
 function Details.render(controller)
     local v, s = controller.view, controller.snapshot
     local children = { ui.button({ key = v.more and "Less" or "More", text = v.more and "Less" or "More", glyph = v.more and "chevron-up" or "chevron-down",
-        variant = "ghost", contentAlign = "start", controlSize = "sm", fontSize = 13, glyphSize = 14, onClick = function() v.more = not v.more; controller:save() end }) }
+        variant = "ghost", contentAlign = "start", height = Ui.control, fontSize = Ui.body, glyphSize = Ui.body, onClick = function() v.more = not v.more; controller:save() end }) }
     if v.more then
         local connection, installation = s.connection or {}, s.installation or {}
         if v.lastFailure then
@@ -18,7 +19,7 @@ function Details.render(controller)
         local clean = #problems == 0 and connection.online and connection.fresh
         table.insert(children, ui.row({ gap = 8, align = "center" }, {
             SharedWidgetControls.caption("SYNCTHING STATUS"),
-            ui.label({ text = #problems > 0 and "errors" or (clean and "clean" or "unavailable"), fontSize = 12, fontWeight = "bold",
+            ui.label({ text = #problems > 0 and "errors" or (clean and "clean" or "unavailable"), fontSize = Ui.caption, fontWeight = "bold",
                 color = #problems > 0 and "error" or (clean and Palette.roles.success or "on_surface_variant") }),
         }))
         if #problems > 0 and (not connection.online or not connection.fresh) then

@@ -82,9 +82,9 @@ scenario("folder toolbar keeps contextual actions and card lifecycle targets", f
     local found = false
     for _ = 1, 40 do
         h.entry.onKey("Alt+Down", true)
-        if string.find(h:text(), ": Share folder\n(other device)", 1, true) then found = true; break end
+        if h:find("Sharing").props.selected then found = true; break end
     end
-    assert(found, "icon action has no readable keyboard label")
+    assert(found, "keyboard cursor never reached the icon action")
     h.entry.onKey("Alt+Return", true)
     assert(h:find("Save sharing"), "keyboard sharing action did not open the selected folder")
     h:click("Cancel")
@@ -106,12 +106,12 @@ scenario("P01 confirmed and unconfirmed groups expose acceptance", function()
     assert(h:find("save-device-folders").props.enabled == false, "no-change removal enabled")
     h:click("shares-unconfirmed")
     assert(string.find(h:text(), "Remote is not sharing back", 1, true))
-    h:find("share-offered").props.onChange("false")
+    h:click("share-offered")
     s.folders[44].devices[1].remoteState = "valid"
     h:snapshot(s)
     h.entry.onKey("Alt+Left", true); h:click("shares-confirmed")
     h:edit("share-search-1-confirmed", "offered")
-    assert(h:find("share-offered").props.checked == false, "acceptance reset draft")
+    assert(h:checked("share-offered") == false, "acceptance reset draft")
     h:edit("share-search-1-confirmed", "Remote folder paused")
     assert(string.find(h:text(), "Remote folder paused", 1, true))
     s.connection.fresh = false
@@ -131,7 +131,7 @@ scenario("device toolbar targets selection and pause gives bounded busy feedback
     h:click("device-pause")
     local request = h.host.state.get("intent").request
     assert(request.action == "device.pause" and request.args.deviceId == "REMOTE")
-    assert(h:find("Pausing device...", "button").props.enabled == false)
+    assert(h:find("PAUSING", "button").props.enabled == false)
     assert(h:find("Remove").props.onClick == nil)
     h:settle(true)
     h:click("Remove"); h:advance(301); h:click("confirmation-accept")
@@ -214,7 +214,7 @@ scenario("card identity controls preserve exact paths, IDs and Web UI targets", 
     assert(args[1] == "xdg-open" and args[2] == path and #args == 2)
     h:click("copy-folder-one"); assert(h.copied[#h.copied] == "one")
     s.folders[1].status.state = "scanning"; h:snapshot(s)
-    assert(h:find("SCANNING...", "button").props.enabled == false,
+    assert(h:find("Rescan").props.onClick == nil,
         "authoritative scan must disable a second scan")
     h:click("Devices")
     assert(h:find("1/2 folders shared"))
@@ -267,7 +267,7 @@ scenario("P01 unavailable folder sharing cannot become local-only", function()
     s.folders[1].devices = { { id = "REMOTE" } }
     h:snapshot(s)
     h:click("shares-sharing")
-    assert(h:find("share-REMOTE").props.checked, "newly available sharing was not seeded")
+    assert(h:checked("share-REMOTE"), "newly available sharing was not seeded")
     s.connection.fresh = false; h:snapshot(s); h.entry.onKey("Alt+Left", true)
     assert(h:find("Save sharing").props.enabled == false, "stale full replacement allowed")
 end)
@@ -277,10 +277,10 @@ scenario("P01 disappeared and reappearing shares reset stale removal intent", fu
     s.folders = { { id = "one", path = "/one", status = {}, devices = { { id = "REMOTE", remoteState = "valid" } } } }
     local h = start(s)
     h:click("Devices"); h:click("Shared folders"); h:click("shares-confirmed")
-    h:find("share-one").props.onChange(false)
+    h:click("share-one")
     s.folders[1].devices = {}; h:snapshot(s)
     s.folders[1].devices = { { id = "REMOTE", remoteState = "valid" } }; h:snapshot(s)
-    assert(h:find("share-one").props.checked, "newly restored share inherits stale removal")
+    assert(h:checked("share-one"), "newly restored share inherits stale removal")
     h.entry.onKey("Alt+Left", true)
     assert(h:find("save-device-folders").props.enabled == false)
 end)
@@ -322,8 +322,8 @@ scenario("P04 search, directional choice and filter disclosure preserve identity
         label = "Photos", status = { state = "idle" }, devices = {} }) end
     local h = start(s)
     h:click("select-folder")
-    assert(not h:find("folder-sort"), "filters consume space while collapsed")
-    h:click("folder-filters"); assert(h:find("folder-sort"))
+    assert(not h:find("sort-active"), "filters consume space while collapsed")
+    h:click("folder-filters"); assert(h:find("sort-active"))
     h:edit("search-folder", "f19")
     assert(h:find("option-folder-f19"), "search by path lost the folder")
     h:find("search-folder").props.onSubmit()
@@ -409,7 +409,7 @@ scenario("P03 actual bar and panel distinguish scanning, activity and stopped se
             scanningFolders = Model.totals(s).scanning } })
     end
     summary()
-    assert(string.find(icon, "status-sync.svg", 1, true) and string.find(tooltip, "Scanning", 1, true))
+    assert(string.find(icon, "sync.svg", 1, true) and string.find(tooltip, "Scanning", 1, true))
     assert(string.find(h:text(), "SCANNING", 1, true))
     s.activity.current = { folderId = "one", action = "removing", path = "/one/gone", detail = "gone" }
     h:snapshot(s); summary()
@@ -419,13 +419,13 @@ scenario("P03 actual bar and panel distinguish scanning, activity and stopped se
     assert(string.find(h:text(), "File syncing.", 1, true))
     s.connection.fresh = false; h:snapshot(s); summary()
     assert(not h.seconds and string.find(h:text(), "Last reported activity", 1, true))
-    assert(string.find(icon, "status-notify.svg", 1, true))
+    assert(string.find(icon, "notify.svg", 1, true))
     s.lifecycle.active, s.lifecycle.canStart = false, true; h:snapshot(s); summary()
-    assert(string.find(icon, "status-pause.svg", 1, true))
+    assert(string.find(icon, "pause.svg", 1, true))
     local serviceToggle
     for _, node in h:nodes() do if node.type == "toggle" then serviceToggle = node end end
     assert(serviceToggle.props.enabled, "authorized stopped service cannot start")
-    serviceToggle.props.onChange(true); h:advance(301); h:click("confirmation-accept")
+    serviceToggle.props.onChange(true)
     assert(h.host.state.get("intent").request.action == "lifecycle.start")
 end)
 
@@ -448,14 +448,14 @@ scenario("P08 service reconciliation is explicit and cleanup gates removal", fun
     local s = Harness.fixture()
     s.lifecycle = { active = true, activeState = "active", canControl = true, unit = "syncthing.service", unitFileState = "disabled" }
     local h = start(s)
-    h:click("Settings")
+    h:click("Settings"); h:click("settings-webui")
     assert(not h.host.state.get("intent"), "opening settings changed the service")
     assert(string.find(h:text(), "Preferred: enabled | Actual: disabled", 1, true))
     h:click("Change preference in Noctalia"); assert(h.settingsOpened and not h.host.state.get("intent"))
     h:click("apply-service-state"); h:advance(301); h:click("confirmation-accept")
     assert(h.host.state.get("intent").request.action == "lifecycle.enable")
     h:settle(true)
-    h:click("Removal and recovery")
+    h:click("Back"); h:click("settings-removal")
     assert(h:find("remove-in-host").props.enabled == false)
     h:click("cleanup-profiles"); h:advance(301); h:click("confirmation-accept")
     assert(h.host.state.get("intent").request.action == "webui.remove-profile")
@@ -555,15 +555,15 @@ scenario("P04 mixed filters, all, sorting and reset affect visible results", fun
     }
     local h = start(s)
     h:click("select-folder"); h:click("folder-filters")
-    h:find("filter-paused").props.onChange(false)
-    assert(h:find("All (mixed)") and not h:find("option-folder-b-paused"))
-    h:find("folder-sort").props.onChange("2")
+    h:click("filter-paused")
+    assert(h:checked("filter-all") == false and not h:find("option-folder-b-paused"))
+    h:click("sort-errors")
     local first
     for _, node in h:nodes() do
         if node.props.key and string.find(node.props.key, "option-folder-", 1, true) == 1 then first = node; break end
     end
     assert(first.props.key == "option-folder-z-error")
-    h:find("filter-all").props.onChange(false)
+    h:click("filter-all"); h:click("filter-all")
     assert(h:find("No folders match the search and filters"))
     h:click("Reset")
     local v = h.host.state.get("view")
@@ -590,15 +590,39 @@ scenario("P05 owned action cursor skips disabled buttons and activates visible i
     local h = start(s)
     assert(h:find("Rescan all folders").props.enabled == false)
     h.entry.onKey("Alt+Up", true)
-    assert(string.find(h:text(), ": Settings", 1, true), "reverse navigation did not wrap")
+    assert(h:find("Settings").props.selected, "reverse navigation did not wrap")
     h.entry.onKey("Alt+Return", true)
     assert(h.host.state.get("view").form.kind == "settings")
     assert(not h.host.state.get("intent"), "opening settings submitted an action")
-    h:click("Cancel")
+    h:click("settings-back")
     for _ = 1, 30 do
         h.entry.onKey("Alt+Down", true)
         assert(not string.find(h:text(), ": Rescan all", 1, true), "disabled action entered keyboard navigation")
     end
+end)
+
+scenario("plain keys drive the cursor, search and confirmation as in Omarchy", function()
+    local h = start(Harness.fixture())
+    h.entry.onKey("j", true)
+    local first = h.host.state.get("view").actionCursor
+    assert(first, "j did not move the cursor")
+    h.entry.onKey("Down", true)
+    assert(h.host.state.get("view").actionCursor ~= first, "Down did not move the cursor")
+    h.entry.onKey("k", true)
+    assert(h.host.state.get("view").actionCursor == first, "k did not move back")
+    for _ = 1, 40 do
+        h.entry.onKey("j", true)
+        if h:find("Devices", "button").props.selected then break end
+    end
+    h.entry.onKey("space", true); assert(h.host.state.get("view").section == "devices", "space did not activate the cursor")
+    local s = Harness.fixture()
+    s.folders = { { id = "one", path = "/one", paused = false, devices = {}, status = { state = "idle" } } }
+    h = start(s)
+    h.entry.onKey("slash", true); assert(h:find("search-folder"), "slash did not open the selector")
+    h.entry.onKey("Alt+Left", true)
+    h:click("Unlink"); h:advance(301)
+    h.entry.onKey("j", true); h.entry.onKey("space", true)
+    assert(h.host.state.get("intent").request.action == "folder.pause", "space did not accept the chosen answer")
 end)
 
 scenario("P06 nested device creation preserves the parent draft", function()

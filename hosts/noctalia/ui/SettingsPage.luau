@@ -2,17 +2,13 @@ local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local BodyFormHeader = require("./BodyFormHeader.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
 local Service = require("./SettingsPageServiceControls.luau")
-local Removal = require("./SettingsSelfRemovalSteps.luau")
--- Noctalia renders settings as a page in the panel body, not as Omarchy's
--- in-panel SettingsMenu; hence the different file name.
+-- Omarchy keeps these choices in its settings file; Noctalia's need the live service.
 local Settings = {}
 
 function Settings.render(controller)
     local enabled = not controller:busy() and controller.status.ready
     local children = {
-        BodyFormHeader.render(controller, "SETTINGS"),
-        SharedWidgetControls.button("Open Noctalia plugin settings", function() controller.host.openSettings() end),
-        SharedWidgetControls.label("Connection, refresh intervals, icon style and service authorization live in Noctalia's settings."),
+        BodyFormHeader.render(controller, "WEB UI AND SERVICE"),
         SharedWidgetControls.label("Preferred Web UI: " .. tostring(controller.host.getConfig("webUi"))
             .. " | Actual: " .. ((controller.snapshot.webUi or {}).theme or "Unknown")),
         SharedWidgetControls.button("Use Syncthing default", function()
@@ -36,12 +32,8 @@ function Settings.render(controller)
                 choice == "default" and { theme = "default" } or { profile = choice, palette = choice == "themed" and colors or nil })
         end, enabled),
         Service.render(controller),
-        SharedWidgetControls.button(controller.view.removalOpen and "Hide removal steps" or "Removal and recovery", function()
-            controller.view.removalOpen = not controller.view.removalOpen; controller:save()
-        end),
     }
-    if controller.view.removalOpen then table.insert(children, Removal.render(controller)) end
-    return ui.column({ gap = 10 }, children)
+    return ui.column({ gap = 8 }, children)
 end
 
 return Settings
