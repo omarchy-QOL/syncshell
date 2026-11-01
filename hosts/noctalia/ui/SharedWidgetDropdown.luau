@@ -66,7 +66,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     for index = first, math.min(first + pageSize - 1, #matches) do
         local row = matches[index]
         local cells = { ui.button({ key = "option-" .. key .. "-" .. row.id, text = row.label, contentAlign = "start", controlSize = "sm", flexGrow = 1,
-            variant = (index == cursor or row.id == selected) and "secondary" or "ghost", enabled = row.enabled ~= false and not controller:busy(),
+            variant = (index == cursor or row.id == selected) and "default" or "ghost", enabled = row.enabled ~= false and not controller:busy(),
             tooltip = row.description, onClick = function() state.open = false; choose(row.id); controller:save() end }) }
         if row.role then table.insert(cells, ui.box({ width = 8, height = 8, radius = 4, fill = Palette.roles[row.role] })) end
         table.insert(list, ui.row({ key = row.id, gap = 8, align = "center" }, cells))

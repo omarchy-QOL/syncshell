@@ -35,7 +35,7 @@ function Devices.render(controller)
             controller:confirm("Remove " .. (device.name ~= "" and device.name or device.id) .. " from this device?\n\n"
                 .. "Folder sharing with it will be removed locally. Local folders and files remain.\nThe other device is unchanged.",
                 "device.remove", { deviceId = device.id })
-        end, enabled and device ~= nil, "destructive", "Remove selected device"))
+        end, enabled and device ~= nil, nil, "Remove selected device", nil, "error"))
     end
     local children = { ui.row({ key = "device-toolbar", gap = 6, align = "center" }, toolbar) }
     if controller.dropdownList then table.insert(children, controller.dropdownList)

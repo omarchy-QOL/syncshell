@@ -132,7 +132,7 @@ scenario("device toolbar targets selection and pause gives bounded busy feedback
     local request = h.host.state.get("intent").request
     assert(request.action == "device.pause" and request.args.deviceId == "REMOTE")
     assert(h:find("Pausing device...", "button").props.enabled == false)
-    assert(h:find("Remove").props.enabled == false)
+    assert(h:find("Remove").props.onClick == nil)
     h:settle(true)
     h:click("Remove"); h:advance(301); h:click("confirmation-accept")
     request = h.host.state.get("intent").request
@@ -152,15 +152,14 @@ scenario("invitation tabs retain separate pages and never mix offer types", func
         s.pendingFolders["offer-" .. i] = { offeredBy = { REMOTE = { label = "Offer " .. i } } }
     end
     local h = start(s)
-    assert(h:find("offer-offer-1-REMOTE") and not h:find("pending-device-pending-1"))
-    h:click("Next invitations")
-    assert(h:find("offer-offer-7-REMOTE"))
+    assert(h:find("PENDING FOLDER REQUESTS") and not h:find("PENDING DEVICE REQUESTS"))
+    h:click("select-invitation-folders"); h:click("Next")
+    h:click("option-invitation-folders-offer-7\nREMOTE")
     h:click("Devices")
-    assert(h:find("pending-device-pending-1") and not h:find("offer-offer-7-REMOTE"))
-    h:click("Next invitations")
-    assert(h:find("pending-device-pending-7"))
-    h:click("Folders"); assert(h:find("offer-offer-7-REMOTE"))
-    h:click("Devices"); assert(h:find("pending-device-pending-7"))
+    assert(h:find("PENDING DEVICE REQUESTS") and not h:find("PENDING FOLDER REQUESTS"))
+    h:click("select-invitation-devices"); h:click("Next"); h:click("option-invitation-devices-pending-7")
+    h:click("Folders"); assert(h:find("Offer 7 (by Laptop)"))
+    h:click("Devices"); assert(h:find("Incoming 7"))
 end)
 
 scenario("footer identifies the active operation and disables repeated activation", function()
@@ -540,9 +539,10 @@ scenario("P09 maximum error and invitation collections remain bounded and access
     local h = start(s)
     h:click("More")
     assert(string.find(h:text(), "128 affected folders", 1, true))
-    assert(h:find("Next errors") and h:find("Next invitations"))
+    assert(h:find("Next errors") and h:find("select-invitation-folders"))
     h:click("Next errors"); assert(string.find(h:text(), "/folder/5", 1, true))
-    h:click("Next invitations"); assert(string.find(h:text(), "512 invitations | Page 2", 1, true))
+    h:click("select-invitation-folders"); assert(string.find(h:text(), "1-6 of 512", 1, true))
+    h:click("Next"); assert(string.find(h:text(), "7-12 of 512", 1, true))
     assert(#h:nodes() < 500, "large collections render unbounded control trees")
 end)
 
@@ -601,14 +601,12 @@ scenario("P05 owned action cursor skips disabled buttons and activates visible i
     end
 end)
 
-scenario("P06 nested settings and device creation preserve the parent draft", function()
+scenario("P06 nested device creation preserves the parent draft", function()
     local s = Harness.fixture()
     s.devices = {}
     local h = start(s)
     h:click("Add folder"); h:settle(true, nil, nil, { folderId = "new" })
     h:edit("path", "/my/draft"); h:edit("label", "Keep this")
-    h:click("Settings"); h:click("Back")
-    assert(h.host.state.get("view").form.path == "/my/draft")
     h:click("Add remote device")
     h:edit("deviceId", string.rep("CCCCCCC-", 7) .. "CCCCCCC")
     h:click("submit-device"); h:settle(true)

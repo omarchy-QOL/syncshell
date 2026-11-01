@@ -33,7 +33,7 @@ function Source.render(controller, form)
         end))
     end
     if form.pendingDeviceId then
-        table.insert(children, SharedWidgetControls.hint("Accepting " .. form.folderId .. " from " .. form.pendingDeviceId))
+        table.insert(children, SharedWidgetControls.hint("Accepting " .. form.folderId .. " from " .. string.sub(form.pendingDeviceId, 1, 7)))
     end
     if encrypted > 0 then
         table.insert(children, SharedWidgetControls.hint(tostring(encrypted) .. " encrypted folder offer" .. (encrypted == 1 and " requires" or "s require") .. " the Syncthing Web UI.", "secondary"))

@@ -7,7 +7,7 @@ local Details = {}
 function Details.render(controller)
     local v, s = controller.view, controller.snapshot
     local children = { ui.button({ key = v.more and "Less" or "More", text = v.more and "Less" or "More", glyph = v.more and "chevron-up" or "chevron-down",
-        variant = "ghost", contentAlign = "start", controlSize = "sm", onClick = function() v.more = not v.more; controller:save() end }) }
+        variant = "ghost", contentAlign = "start", controlSize = "sm", fontSize = 13, glyphSize = 14, onClick = function() v.more = not v.more; controller:save() end }) }
     if v.more then
         local connection, installation = s.connection or {}, s.installation or {}
         if v.lastFailure then

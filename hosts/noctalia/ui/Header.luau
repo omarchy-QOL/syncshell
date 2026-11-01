@@ -3,7 +3,7 @@ local InfoPair = require("./SharedWidgetInfoPair.luau")
 local Model = require("../models/PanelModel.luau")
 local Header = {}
 
-function Header.render(controller)
+function Header.render(controller, compact)
     local s = controller.snapshot
     local identity, lifecycle, counts = s.identity or {}, s.lifecycle or {}, s.counts or {}
     local localDevice = Model.find(s.devices, identity.deviceId)
@@ -36,11 +36,13 @@ function Header.render(controller)
     end
     local children = {
         ui.row({ gap = 10, align = "center" }, title),
-        InfoPair.render("Folders", counts.folders or 0),
-        InfoPair.render("Devices", tostring(counts.connectedDevices or 0)
-            .. " of " .. tostring(counts.devices or 0) .. " connected"),
-        InfoPair.render("Tracked", Model.count(total.files) .. " files · " .. Model.bytes(total.bytes)),
     }
+    if not compact then
+        table.insert(children, InfoPair.render("Folders", counts.folders or 0))
+        table.insert(children, InfoPair.render("Devices", tostring(counts.connectedDevices or 0)
+            .. " of " .. tostring(counts.devices or 0) .. " connected"))
+        table.insert(children, InfoPair.render("Tracked", Model.count(total.files) .. " files · " .. Model.bytes(total.bytes)))
+    end
     if controller.status.backgroundError then
         table.insert(children, SharedWidgetControls.notice(controller, controller.status.backgroundError
             .. "\nCheck plugin settings and the selected Web UI profile.", "error", "background action details"))

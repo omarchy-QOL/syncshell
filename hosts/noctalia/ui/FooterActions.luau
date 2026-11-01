@@ -3,7 +3,7 @@ local ActionButton = require("./SharedWidgetSquareActionButton.luau")
 local FooterActions = {}
 
 local function action(key, text, glyph, callback, enabled, help)
-    return ui.button({ key = key, text = text, glyph = glyph, controlSize = "sm", fontSize = 12, glyphSize = 14,
+    return ui.button({ key = key, text = text, glyph = glyph, controlSize = "sm", fontSize = 12, glyphSize = glyph and 14 or nil,
         variant = "outline", enabled = enabled ~= false, tooltip = help, onClick = callback, flexGrow = glyph and 1 or nil })
 end
 

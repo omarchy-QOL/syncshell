@@ -64,7 +64,8 @@ local function render()
             table.insert(body, BodyTabDevices.render(controller))
         end
         if not controller.dropdownList then
-            table.insert(body, BodyInvitations.render(controller))
+            local invitations = BodyInvitations.render(controller)
+            if invitations then table.insert(body, invitations) end
             table.insert(body, BodyMore.render(controller))
         end
     end
@@ -83,13 +84,16 @@ local function render()
     local bodyKey = v.form and ("form-" .. tostring(v.form.token)) or ("overview-" .. v.section)
     local noticeColor = (controller.status.error or v.noticeKind == "error" or v.noticeKind == "uncertain") and "error"
         or (v.noticeKind == "success" and Palette.roles.success or "on_surface_variant")
-    local top = { Header.render(controller) }
+    local top = { Header.render(controller, v.form ~= nil) }
     if message ~= "" then table.insert(top, SharedWidgetControls.notice(controller, message, noticeColor, "action details")) end
     table.insert(top, ui.separator({}))
-    local bottom = { ui.separator({}), FooterActions.render(controller, enabled), FooterShortcutHint.render() }
-    local top_, bottom_ = ui.column({ key = "panel-top", gap = 8 }, top), ui.column({ key = "panel-bottom", gap = 8 }, bottom)
+    -- Omarchy's forms open beside the panel; this fixed surface lends them the footer's space.
+    local bottom = v.form and {} or { ui.separator({}), FooterActions.render(controller, enabled), FooterShortcutHint.render() }
+    -- Retained native nodes keep an omitted prop, so opacity is always explicit.
+    local opacity = v.confirm and 0.35 or 1
+    local top_ = ui.column({ key = "panel-top", gap = 8, opacity = opacity }, top)
+    local bottom_ = ui.column({ key = "panel-bottom", gap = 8, opacity = opacity }, bottom)
     if v.confirm then
-        top_.props.opacity, bottom_.props.opacity = 0.35, 0.35
         Confirmation.dim(top_); Confirmation.dim(bottom_)
         panel.render(ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
             top_,
@@ -100,7 +104,7 @@ local function render()
     end
     local tree = ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
         top_,
-        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 10 }, body),
+        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8 }, body),
         bottom_,
     })
     local selection = Navigation.decorate(controller, tree)

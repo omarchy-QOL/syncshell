@@ -100,7 +100,10 @@ function Controller:setResults(results)
             elseif not result.ok and result.code == "path_missing" and pending.action == "folder.add-existing" and sameForm then
                 local args = Model.copy(pending.args)
                 args.createDirectory = true
-                self:confirm("Create " .. args.path .. " and add this folder?", pending.action, args, true)
+                -- The dialog answers the error; Omarchy never shows it behind.
+                self.view.message, self.view.noticeKind, self.view.lastFailure = "", nil, nil
+                self.view.confirm = { message = "Create " .. args.path .. " and add the folder?", action = pending.action, args = args,
+                    closeForm = true, choice = "accept", opened = self.host.nowMs() }
             elseif result.ok and pending.closeForm and sameForm then
                 self.view.form, self.view.confirm = form.returnForm, nil
                 if result.data and result.data.folderId then self.view.folderId = result.data.folderId end

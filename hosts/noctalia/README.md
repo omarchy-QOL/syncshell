@@ -66,8 +66,13 @@ it removes folder configuration while leaving local files intact.
 Folder and device selectors have adjacent contextual actions. The folder
 card offers Rescan while linked and Forget while unlinked. The device card
 offers Pause/Resume and editing in the Web UI. In-flight controls display
-their operation and disable repeated activation. Folder invitations appear
-on Folders and device invitations on Devices, with independent paging.
+their operation and disable repeated activation. Pending folder requests appear
+on Folders and pending device requests on Devices, each as a selector with
+accept and reject actions.
+
+The host has no overlays and a fixed panel size. Selector lists replace the
+card, forms replace the body and footer, and confirmations replace the body
+while the rest of the panel is dimmed and inert.
 
 Sharing review separates confirmed and unconfirmed shares. Remote-paused
 folders count as confirmed only with fresh, connected device state. Stale,

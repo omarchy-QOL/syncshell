@@ -2,6 +2,7 @@ local Selector = require("./BodyTabFoldersSelector.luau")
 local Card = require("./BodyTabFoldersCard.luau")
 local Model = require("../models/PanelModel.luau")
 local ActionButton = require("./SharedWidgetSquareActionButton.luau")
+local Palette = require("../controllers/ThemePaletteController.luau")
 local BodyTabFolders = {}
 
 function BodyTabFolders.render(controller)
@@ -29,8 +30,9 @@ function BodyTabFolders.render(controller)
                     and ("Link " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\nSyncthing will resume synchronization for this folder.")
                     or ("Unlink " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\nSyncthing will pause synchronization. Its configuration and local files remain."),
                     folder.paused and "folder.resume" or "folder.pause", { folderId = folder.id })
-            end, enabled and folder ~= nil, folder and not folder.paused and "destructive" or nil,
-            folder and (folder.paused and "Link folder" or "Unlink folder (locally)") or "Select a folder"))
+            end, enabled and folder ~= nil, nil,
+            folder and (folder.paused and "Link folder" or "Unlink folder (locally)") or "Select a folder", nil,
+            folder and folder.paused and Palette.roles.success or "error"))
     end
     local children = { ui.row({ key = "folder-toolbar", gap = 6, align = "center" }, toolbar) }
     if controller.dropdownList then table.insert(children, controller.dropdownList)
