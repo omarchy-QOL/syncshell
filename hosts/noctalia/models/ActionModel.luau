@@ -74,7 +74,9 @@ function Actions.notice(action, args, snapshot)
         return "Sharing with " .. list .. " updated."
     elseif action == "folder.dismiss-pending" then
         local offer = ((snapshot.pendingFolders or {})[folder] or { offeredBy = {} }).offeredBy[args.pendingDeviceId]
-        return "Rejected folder request for " .. (offer and offer.label ~= "" and offer.label or folder) .. "."
+        local peer = named(snapshot.devices, args.pendingDeviceId)
+        return "Rejected folder request for " .. (offer and offer.label ~= "" and offer.label or folder)
+            .. " (by " .. (peer and Model.deviceLabel(peer) or "Unknown device") .. ")."
     elseif action == "device.add" then
         local label = args.deviceName ~= "" and args.deviceName or ("Device " .. string.sub(device, 1, 7))
         return label .. " added. Add this device on " .. label .. " to complete connection."

@@ -32,7 +32,7 @@ function Card.render(controller, folder)
             onClick = function() controller:send("folder.rescan", { folderId = folder.id }) end })
     end
     local metaRow = { ui.label({ text = Model.folderMeta(controller.snapshot, folder, scanning), fontSize = Ui.caption, maxLines = 1,
-        maxWidth = problem and 130 or nil, color = problem and "error" or "on_surface_variant" }) }
+        maxWidth = problem and 190 or nil, color = problem and "error" or "on_surface_variant" }) }
     if problem then
         table.insert(metaRow, ui.row({ key = "see-more", onClick = function()
             local v = controller.view
@@ -42,7 +42,7 @@ function Card.render(controller, folder)
         end }, { SharedWidgetControls.hint('(see "More" below)', "error") }))
     end
     local details = { ui.row({ gap = 4, align = "center" }, metaRow) }
-    table.insert(details, ui.label({ text = Model.shortPath(folder.path), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }))
+    table.insert(details, ui.label({ text = Model.shortPath(folder.path, 40), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }))
     local children = {
         ui.row({ gap = 4, align = "center" }, {
             SharedWidgetControls.chip("open-folder-" .. folder.id, "folder", Model.folderLabel(folder), function()

@@ -653,4 +653,176 @@ scenario("settings arguments authorize the default unit and the file names every
 end)
 
 
+-- The action map: each control sends exactly what Omarchy's does.
+local function wiringFixture()
+    local s = Harness.fixture()
+    s.folders = {
+        { id = "one", label = "One", path = "/data/one", paused = false, markerName = ".stfolder", devices = { { id = "REMOTE", remoteState = "valid" } }, status = { state = "idle" } },
+        { id = "off", label = "Off", path = "/data/off", paused = true, devices = {}, status = { state = "idle" } },
+    }
+    s.counts.folders = 2
+    s.pendingDevices = { { id = string.rep("CCCCCCC-", 7) .. "CCCCCCC", name = "New", address = "tcp://x" } }
+    s.pendingFolders = { offered = { offeredBy = { REMOTE = { label = "Docs" } } } }
+    return s
+end
+
+local function sent(h)
+    local intent = assert(actionIntent(h), "no action was sent")
+    return intent.request.action, intent.request.args, intent.notice
+end
+
+local function sameList(values, expected)
+    assert(#values == #expected, "list size")
+    for index, value in expected do assert(values[index] == value, "list value " .. tostring(value)) end
+end
+
+scenario("wiring: folder toolbar and card send Omarchy's actions and notices", function()
+    local s = wiringFixture()
+    local h = start(s)
+    h.host.state.get("view").folderId = "one"
+    h:click("Unlink"); assert(not actionIntent(h), "unlink needs confirmation")
+    h:advance(301); h:click("confirmation-accept")
+    local action, args, notice = sent(h)
+    assert(action == "folder.pause" and args.folderId == "one")
+    assert(notice == "Synchronization for one paused. The folder ID, device associations, and data remain.", notice)
+    h:settle(true)
+    s.folders[1].paused = true; h:snapshot(s)
+    h:click("Link"); h:advance(301); h:click("confirmation-accept")
+    action, args, notice = sent(h)
+    assert(action == "folder.resume" and args.folderId == "one" and string.find(notice, "Linked one.", 1, true))
+    h:settle(true)
+    assert(h.host.state.get("view").recentlyLinked == "one")
+    s.folders[1].paused = false; h:snapshot(s)
+    h:click("Rescan")
+    action, args, notice = sent(h)
+    assert(action == "folder.rescan" and args.folderId == "one" and notice == "Rescan complete for one")
+    h:settle(true); h:advance(1501)
+    h:click("Rescan all folders")
+    action, args, notice = sent(h)
+    assert(action == "folder.rescan-all" and notice == "Rescan complete for all folders")
+end)
+
+scenario("wiring: forget targets the unlinked folder after confirmation", function()
+    local s = wiringFixture()
+    s.folders = { s.folders[2] }
+    local h = start(s)
+    h:click("Forget"); assert(not actionIntent(h)); h:advance(301); h:click("confirmation-accept")
+    local action, args, notice = sent(h)
+    assert(action == "folder.forget" and args.folderId == "off")
+    assert(string.find(notice, "Re-add Folder ID off to rejoin", 1, true))
+end)
+
+scenario("wiring: add folder resolves paths, derives the label and creates on request", function()
+    local s = wiringFixture()
+    s.pendingFolders = {}
+    local h = start(s)
+    h:click("Add folder")
+    assert(h.host.state.get("intent").request.action == "folder.suggest-id")
+    h:settle(true, nil, nil, { folderId = "abc" })
+    h:edit("path", "~/work/new"); h:click("Add folder submit")
+    local action, args, notice = sent(h)
+    assert(action == "folder.add-existing" and args.folderId == "abc" and args.label == "new")
+    assert(args.path == "/home/fixture/work/new" and #args.deviceIds == 0)
+    assert(notice == "Added new locally. It is linked but not shared with another device.", notice)
+    h:settle(false, "folder path does not exist", "path_missing")
+    assert(string.find(h.host.state.get("view").confirm.message, "and add the folder?", 1, true))
+    assert(h.host.state.get("view").message == "", "the error stays behind the dialog in Omarchy")
+    h:advance(301); h:click("confirmation-accept")
+    action, args = sent(h)
+    assert(action == "folder.add-existing" and args.createDirectory == true)
+end)
+
+scenario("wiring: a pending folder offer is accepted through the add form", function()
+    local s = wiringFixture()
+    local h = start(s)
+    h:click("Accept")
+    local form = h.host.state.get("view").form
+    assert(form.kind == "addFolder" and form.folderId == "offered" and form.label == "Docs" and form.selected.REMOTE)
+    h:edit("path", "/data/docs"); h:click("Add folder submit")
+    local action, args, notice = sent(h)
+    assert(action == "folder.add-existing" and args.pendingDeviceId == "REMOTE" and args.folderId == "offered")
+    sameList(args.deviceIds, { "REMOTE" })
+    assert(notice == "Remote devices may have to accept the folder.", notice)
+end)
+
+scenario("wiring: rejecting an offer and dismissing a device send their identities", function()
+    local s = wiringFixture()
+    local h = start(s)
+    h:click("Dismiss"); h:advance(301); h:click("confirmation-accept")
+    local action, args, notice = sent(h)
+    assert(action == "folder.dismiss-pending" and args.folderId == "offered" and args.pendingDeviceId == "REMOTE")
+    assert(notice == "Rejected folder request for Docs (by Laptop).", notice)
+    h:settle(true)
+    h:click("Devices")
+    h:click("Dismiss"); h:advance(301); h:click("confirmation-accept")
+    action, args, notice = sent(h)
+    assert(action == "device.dismiss-pending" and args.deviceId == s.pendingDevices[1].id)
+    assert(notice == "Dismissed pending request from New.", notice)
+end)
+
+scenario("wiring: device controls send their identities", function()
+    local s = wiringFixture()
+    local h = start(s)
+    h:click("Devices")
+    h:click("device-pause")
+    local action, args, notice = sent(h)
+    assert(action == "device.pause" and args.deviceId == "REMOTE" and notice == "Paused synchronization with Laptop.", notice)
+    h:settle(true)
+    s.devices[1].paused = true; h:snapshot(s)
+    h:click("device-pause")
+    action, args, notice = sent(h)
+    assert(action == "device.resume" and args.deviceId == "REMOTE" and notice == "Resumed synchronization with Laptop.", notice)
+    h:settle(true)
+    h:click("Remove"); h:advance(301); h:click("confirmation-accept")
+    action, args, notice = sent(h)
+    assert(action == "device.remove" and args.deviceId == "REMOTE" and notice == "Laptop removed from this device.", notice)
+end)
+
+scenario("wiring: sharing, share removal and device add send the whole selection", function()
+    local s = wiringFixture()
+    s.pendingFolders, s.pendingDevices = {}, {}
+    local h = start(s)
+    h:click("Sharing"); h:click("Save sharing")
+    local action, args, notice = sent(h)
+    assert(action == "folder.set-sharing" and args.folderId == "one")
+    sameList(args.deviceIds, { "REMOTE" })
+    assert(notice == "Sharing with Laptop updated.", notice)
+    h:settle(true)
+    h:click("Devices"); h:click("Shared folders"); h:click("shares-confirmed"); h:click("share-one")
+    h.entry.onKey("Alt+Left", true)
+    h:click("save-device-folders"); h:advance(301); h:click("confirmation-accept")
+    action, args, notice = sent(h)
+    assert(action == "device.remove-folder-shares" and args.deviceId == "REMOTE")
+    sameList(args.folderIds, { "one" })
+    assert(notice == "Selected folder shares removed from Laptop.", notice)
+    h:settle(true)
+    h:click("Add device")
+    local id = string.rep("CCCCCCC-", 7) .. "CCCCCCC"
+    h:edit("deviceId", string.lower(id)); h:edit("name", "Desk"); h:click("submit-device")
+    action, args, notice = sent(h)
+    assert(action == "device.add" and args.deviceId == id and args.deviceName == "Desk")
+    assert(notice == "Desk added. Add this device on Desk to complete connection.", notice)
+end)
+
+scenario("wiring: service, Web UI and refresh controls follow Omarchy", function()
+    local s = wiringFixture()
+    s.lifecycle = { active = true, canControl = true, canStart = true, targetMatch = true, unitFileState = "enabled", activeState = "active" }
+    local h = start(s)
+    h.entry.onKey("p", true)
+    local action, _, notice = sent(h)
+    assert(action == "lifecycle.stop" and notice == "", "Omarchy reports the service through its state")
+    h:settle(true)
+    h:click(h:find("Web UI", "button").props.key)
+    assert(h.commands[#h.commands].args[1] == "xdg-open" and h.commands[#h.commands].args[2] == s.webUi.url)
+    s.webUi.theme = "syncshell-noctalia-modern"; h:snapshot(s)
+    h:click(h:find("Web UI", "button").props.key)
+    action = sent(h)
+    assert(action == "webui.open")
+    h:settle(false, "bridge failed", "desktop_open")
+    assert(h.commands[#h.commands].args[2] == s.webUi.url, "a failed bridge falls back to the plain address")
+    h:advance(1501)
+    h:click("Refresh Sync.status")
+    assert(h.host.state.get("intent").request.type == "refresh")
+end)
+
 assert(failures == 0, tostring(failures) .. " parity regressions failed")
