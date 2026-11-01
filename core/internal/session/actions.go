@@ -67,8 +67,6 @@ func (s *Session) Act(ctx context.Context, action string, arguments ActionArgume
 		return s.setWebUITheme(ctx, arguments.Theme)
 	case "webui.apply-profile":
 		return s.applyWebProfile(ctx, arguments)
-	case "webui.refresh-profile":
-		return s.refreshWebProfile(ctx, arguments)
 	case "webui.remove-profile":
 		return s.removeWebProfile(ctx)
 	default:
@@ -77,14 +75,14 @@ func (s *Session) Act(ctx context.Context, action string, arguments ActionArgume
 }
 
 func validateActionArguments(action string, arguments ActionArguments) *ActionResult {
-	if action == "webui.apply-profile" || action == "webui.refresh-profile" {
+	if action == "webui.apply-profile" {
 		base := arguments
 		base.Profile = ""
 		base.Palette = nil
 		if validation := validateActionArguments("folder.rescan-all", base); validation != nil {
 			return validation
 		}
-		if (action == "webui.apply-profile" && arguments.Profile == "modern" && len(arguments.Palette) == 0) ||
+		if (arguments.Profile == "modern" && len(arguments.Palette) == 0) ||
 			(arguments.Profile == "themed" && len(arguments.Palette) == 12) {
 			return nil
 		}

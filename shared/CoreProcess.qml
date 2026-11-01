@@ -6,7 +6,7 @@ QtObject {
     id: root
 
     property var startupArguments: []
-    readonly property string corePath: Paths.localFilePath(Qt.resolvedUrl("../bin/syncshell-core"))
+    property string corePath: Paths.localFilePath(Qt.resolvedUrl("../bin/syncshell-core"))
     property bool executableReady: false
     property bool starting: true
     property bool desiredRunning: true
@@ -43,6 +43,8 @@ QtObject {
     }
 
     function terminate() {
+        restartTimer.stop();
+        shutdownTimer.stop();
         _restartRequested = false;
         _expectedStop = true;
         desiredRunning = false;
@@ -53,6 +55,7 @@ QtObject {
     function restart() {
         if (!executableReady)
             return false;
+        incompatible = false;
         restartAttempts = 0;
         _restartRequested = true;
         _expectedStop = true;
@@ -299,7 +302,7 @@ QtObject {
     }
 
     property Process executableProcess: Process {
-        command: ["/usr/bin/find", root.corePath, "-maxdepth", "0", "-type", "f", "-executable", "-print"]
+        command: ["find", root.corePath, "-maxdepth", "0", "-type", "f", "-executable", "-print"]
 
         stdout: StdioCollector {
             waitForEnd: true
@@ -327,7 +330,8 @@ QtObject {
             root._expectedStop = false;
             root.desiredRunning = false;
             Qt.callLater(function () {
-                root.desiredRunning = true;
+                if (!root._expectedStop)
+                    root.desiredRunning = true;
             });
         }
     }

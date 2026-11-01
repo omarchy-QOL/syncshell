@@ -141,26 +141,3 @@ func TestProfilePaletteAndBundleValidation(t *testing.T) {
 		t.Fatal("escaping bundle path was accepted")
 	}
 }
-
-func TestIdenticalProfileDoesNotRewriteFiles(t *testing.T) {
-	p := policy(t)
-	assets := t.TempDir()
-	name, err := p.Prepare(assets, "themed", palette())
-	if err != nil {
-		t.Fatal(err)
-	}
-	before, err := os.Stat(filepath.Join(assets, name, "index.html"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := p.Prepare(assets, "themed", palette()); err != nil {
-		t.Fatal(err)
-	}
-	after, err := os.Stat(filepath.Join(assets, name, "index.html"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !os.SameFile(before, after) || !before.ModTime().Equal(after.ModTime()) {
-		t.Fatal("identical profile was rewritten")
-	}
-}

@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 )
 
@@ -28,8 +27,7 @@ type Policy struct {
 }
 
 type marker struct {
-	Owner  string `json:"owner"`
-	Digest string `json:"digest"`
+	Owner string `json:"owner"`
 }
 
 func (p Policy) Validate() error {
@@ -172,20 +170,14 @@ func (p Policy) Prepare(assets, style string, palette map[string]string) (string
 		return "", err
 	}
 	target := filepath.Join(assets, name)
-	digest := profileDigest(files, style, css)
 	if _, err := os.Lstat(target); err == nil {
 		if err := p.checkOwned(target); err != nil {
 			return "", err
 		}
-		data, err := os.ReadFile(filepath.Join(target, markerName))
-		var existing marker
-		if err == nil && json.Unmarshal(data, &existing) == nil && existing.Digest == digest {
-			return name, nil
-		}
 	} else if !errors.Is(err, fs.ErrNotExist) {
 		return "", err
 	}
-	stage, err := os.MkdirTemp(assets, ".syncshell-"+p.Owner+"-")
+	stage, err := os.MkdirTemp(assets, ".syncshell-profile-")
 	if err != nil {
 		return "", err
 	}
@@ -227,7 +219,7 @@ func (p Policy) Prepare(assets, style string, palette map[string]string) (string
 			}
 		}
 	}
-	ownership, _ := json.Marshal(marker{Owner: p.Owner, Digest: digest})
+	ownership, _ := json.Marshal(marker{Owner: p.Owner})
 	if err := os.WriteFile(filepath.Join(stage, markerName), ownership, 0600); err != nil {
 		return "", err
 	}
@@ -245,21 +237,6 @@ func (p Policy) Prepare(assets, style string, palette map[string]string) (string
 		return "", err
 	}
 	return name, nil
-}
-
-func profileDigest(files map[string][]byte, style, css string) string {
-	keys := make([]string, 0, len(files))
-	for key := range files {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	hash := sha256.New()
-	fmt.Fprintf(hash, "profile-1\x00%s\x00%s\x00", style, css)
-	for _, key := range keys {
-		fmt.Fprintf(hash, "%s\x00%d\x00", key, len(files[key]))
-		hash.Write(files[key])
-	}
-	return hex.EncodeToString(hash.Sum(nil))
 }
 
 // Remove touches only fixed profile names carrying this adapter's owner marker.

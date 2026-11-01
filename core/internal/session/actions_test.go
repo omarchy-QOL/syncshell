@@ -25,7 +25,6 @@ type actionAPI struct {
 	pending           syncthing.PendingFolders
 	theme             string
 	guiAssets         string
-	configPath        string
 	rescans           int
 	status            syncthing.FolderStatus
 	errors            []syncthing.FolderError
@@ -953,7 +952,7 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		if assets == "" {
 			assets = "/tmp/gui"
 		}
-		a.writeValue(writer, map[string]string{"config": a.configPath, "guiAssets": assets, "baseDir-userHome": "/tmp"})
+		a.writeValue(writer, map[string]string{"guiAssets": assets, "baseDir-userHome": "/tmp"})
 	case request.URL.Path == "/rest/config/defaults/folder":
 		a.write(writer, `{"id":"","label":"","path":"","paused":false,"devices":[]}`)
 	case request.URL.Path == "/rest/config/defaults/device":

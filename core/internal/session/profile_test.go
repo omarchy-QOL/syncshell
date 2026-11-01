@@ -16,9 +16,6 @@ func profileSession(t *testing.T) (*Session, *actionAPI) {
 		devices: []syncthing.Device{{DeviceID: "LOCAL"}},
 		pending: syncthing.PendingFolders{}, theme: "default", guiAssets: t.TempDir()}
 	s := newActionSession(t, api)
-	api.mu.Lock()
-	api.configPath = s.target.ConfigPath
-	api.mu.Unlock()
 	bundle, err := filepath.Abs("../../../webui")
 	if err != nil {
 		t.Fatal(err)
@@ -121,31 +118,5 @@ func TestCleanupNeverDeletesUnmarkedDirectory(t *testing.T) {
 	}
 	if _, err := os.Stat(path); err != nil {
 		t.Fatal("unmarked directory was removed")
-	}
-}
-
-func TestPaletteRefreshNeverSelectsOverAnotherAdapter(t *testing.T) {
-	s, api := profileSession(t)
-	api.mu.Lock()
-	api.theme = "another-adapter"
-	api.mu.Unlock()
-	result := s.refreshWebProfile(context.Background(), ActionArguments{})
-	if result.OK || result.Error.Code != "profile_not_selected" || api.currentTheme() != "another-adapter" {
-		t.Fatalf("refresh changed another selection: %#v", result)
-	}
-	entries, err := os.ReadDir(api.guiAssets)
-	if err != nil || len(entries) != 0 {
-		t.Fatalf("refresh wrote unselected files: %v %v", entries, err)
-	}
-}
-
-func TestProfileRejectsDifferentReportedConfiguration(t *testing.T) {
-	s, api := profileSession(t)
-	api.mu.Lock()
-	api.configPath = filepath.Join(t.TempDir(), "other.xml")
-	api.mu.Unlock()
-	result := s.Act(context.Background(), "webui.apply-profile", ActionArguments{Profile: "modern"})
-	if result.OK || result.Error.Code != "profile_target_changed" {
-		t.Fatalf("wrong instance accepted: %#v", result)
 	}
 }
