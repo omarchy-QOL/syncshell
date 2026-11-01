@@ -1,15 +1,19 @@
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
--- Noctalia lists invitations below both tabs instead of inside each tab;
--- hence a Body file of its own.
+-- Both tabs use the same bounded invitation presentation.
 local BodyInvitations = {}
 
 function BodyInvitations.render(controller)
     local children, rows = {}, {}
     local connection = controller.snapshot.connection or {}
     local enabled = not controller:busy() and connection.online == true and connection.fresh == true
-    for _, device in controller.snapshot.pendingDevices or {} do table.insert(rows, { device = device }) end
+    local v = controller.view
+    if v.section == "devices" then
+        for _, device in controller.snapshot.pendingDevices or {} do table.insert(rows, { device = device }) end
+    end
     local ids = {}
-    for id in controller.snapshot.pendingFolders or {} do table.insert(ids, id) end
+    if v.section == "folders" then
+        for id in controller.snapshot.pendingFolders or {} do table.insert(ids, id) end
+    end
     table.sort(ids)
     for _, id in ids do
         local pending = controller.snapshot.pendingFolders[id]
@@ -19,10 +23,11 @@ function BodyInvitations.render(controller)
         for _, deviceId in devices do table.insert(rows, { id = id, deviceId = deviceId, offer = pending.offeredBy[deviceId] }) end
     end
     if #rows == 0 then return ui.column({}) end
-    local v = controller.view
-    v.invitationPage = math.clamp(v.invitationPage or 1, 1, math.ceil(#rows / 6))
-    local first = (v.invitationPage - 1) * 6 + 1
-    table.insert(children, SharedWidgetControls.label(tostring(#rows) .. " invitations | Page " .. tostring(v.invitationPage)))
+    v.invitationPages = v.invitationPages or {}
+    local page = math.clamp(v.invitationPages[v.section] or 1, 1, math.ceil(#rows / 6))
+    v.invitationPages[v.section] = page
+    local first = (page - 1) * 6 + 1
+    table.insert(children, SharedWidgetControls.label(tostring(#rows) .. " invitations | Page " .. tostring(page)))
     for index = first, math.min(first + 5, #rows) do
         local item = rows[index]
         if item.device then
@@ -57,8 +62,8 @@ function BodyInvitations.render(controller)
     end
     if #rows > 6 then
         table.insert(children, ui.row({ gap = 6 }, {
-            SharedWidgetControls.button("Previous invitations", function() v.invitationPage -= 1; controller:save() end, v.invitationPage > 1),
-            SharedWidgetControls.button("Next invitations", function() v.invitationPage += 1; controller:save() end, first + 6 <= #rows),
+            SharedWidgetControls.button("Previous invitations", function() v.invitationPages[v.section] = page - 1; controller:save() end, page > 1),
+            SharedWidgetControls.button("Next invitations", function() v.invitationPages[v.section] = page + 1; controller:save() end, first + 6 <= #rows),
         }))
     end
     return ui.column({ gap = 10 }, children)

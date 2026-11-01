@@ -1,7 +1,7 @@
-local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Model = require("../models/PanelModel.luau")
 local BodyTabDevicesCard = require("./BodyTabDevicesCard.luau")
 local Dropdown = require("./SharedWidgetDropdown.luau")
+local ActionButton = require("./SharedWidgetSquareActionButton.luau")
 local Devices = {}
 
 function Devices.render(controller)
@@ -13,11 +13,33 @@ function Devices.render(controller)
             description = ((not connection.online or not connection.fresh) and "Current status unavailable"
                 or (device.paused and "Paused" or (device.connected and "Connected" or "Offline"))) .. " | " .. device.id })
     end
-    return ui.column({ gap = 8 }, {
-        SharedWidgetControls.button("Add device", function() controller:openForm("addDevice") end, not controller:busy()),
-        Dropdown.render(controller, view, "device", "Device", rows, view.deviceId, function(id) view.deviceId = id end),
-        BodyTabDevicesCard.render(controller, Model.find(devices, view.deviceId)),
-    })
+    local device = Model.find(devices, view.deviceId)
+    local enabled = connection.online and connection.fresh and not controller:busy()
+    local toolbar = {}
+    if #devices > 0 then
+        table.insert(toolbar, ui.column({ flexGrow = 1, minWidth = 0 }, {
+            Dropdown.render(controller, view, "device", "Device", rows, view.deviceId, function(id) view.deviceId = id end),
+        }))
+    else
+        table.insert(toolbar, ui.label({ text = connection.online and "No remote devices configured."
+            or "Device status is unavailable.", color = "on_surface_variant", flexGrow = 1 }))
+    end
+    table.insert(toolbar, ActionButton.render("Add device", "plus", function()
+        controller:openForm("addDevice")
+    end, enabled))
+    if #devices > 0 then
+        table.insert(toolbar, ActionButton.render("Shared folders", "folders", function()
+            controller:openForm("deviceFolders", device)
+        end, enabled and device ~= nil, nil, "View folders shared with selected device"))
+        table.insert(toolbar, ActionButton.render("Remove", "x", function()
+            controller:confirm("Remove " .. device.name .. " (" .. device.id
+                .. ")? Its local folder shares are removed; files and the remote device remain unchanged.",
+                "device.remove", { deviceId = device.id })
+        end, enabled and device ~= nil, "destructive", "Remove selected device"))
+    end
+    local children = { ui.row({ key = "device-toolbar", gap = 6, align = "center" }, toolbar) }
+    if device then table.insert(children, BodyTabDevicesCard.render(controller, device)) end
+    return ui.column({ key = "devices", gap = 8 }, children)
 end
 
 return Devices

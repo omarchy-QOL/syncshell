@@ -113,7 +113,8 @@ static int loadEntry(lua_State* L) {
         const auto path = fs::absolute(luaL_checkstring(L, 1));
         lua_State* entry = lua_newthread(L);
         luaL_sandboxthread(entry);
-        installRequire(entry, path.parent_path());
+        // Native entry imports start at the plugin root; modules use their own directory.
+        installRequire(entry, fs::current_path());
         execute(entry, path, 0);
         lua_pushvalue(entry, LUA_GLOBALSINDEX);
         lua_xmove(entry, L, 1);

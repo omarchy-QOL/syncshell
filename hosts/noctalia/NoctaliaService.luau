@@ -1,10 +1,10 @@
-local Model = require("./models/PanelModel.luau")
-local Frames = require("./transport/Frames.luau")
-local SnapshotStore = require("./transport/SnapshotStore.luau")
-local JsonFrame = require("./transport/JsonFrame.luau")
-local Requests = require("./transport/Requests.luau")
-local Settings = require("./controllers/SettingsController.luau")
-local Palette = require("./controllers/ThemePaletteController.luau")
+local Model = require("./hosts/noctalia/models/PanelModel.luau")
+local Frames = require("./hosts/noctalia/transport/Frames.luau")
+local SnapshotStore = require("./hosts/noctalia/transport/SnapshotStore.luau")
+local JsonFrame = require("./hosts/noctalia/transport/JsonFrame.luau")
+local Requests = require("./hosts/noctalia/transport/Requests.luau")
+local Settings = require("./hosts/noctalia/controllers/SettingsController.luau")
+local Palette = require("./hosts/noctalia/controllers/ThemePaletteController.luau")
 
 local binary = noctalia.pluginDir() .. "/bin/syncshell-core"
 local root = noctalia.getenv("XDG_RUNTIME_DIR")
@@ -101,7 +101,7 @@ local function receive(frame)
                     status.backgroundError, status.backgroundOperation = nil, nil
                 end
             end
-            if frame.ok and (pending.request.action == "webui.apply-profile" or pending.request.action == "webui.refresh-profile")
+            if frame.ok and pending.request.action == "webui.apply-profile"
                 and pending.request.args.profile == "themed" then
                 lastPalette = Palette.signature(pending.request.args.palette)
             end
@@ -239,7 +239,7 @@ function update()
                 themeCheckAt = now + 60000
                 local id = "palette-" .. tostring(now)
                 dispatch({ id = id, view = "service", request = { v = 2, type = "action", id = id,
-                    action = "webui.refresh-profile", args = { profile = "themed", palette = colors } } })
+                    action = "webui.apply-profile", args = { profile = "themed", palette = colors } } })
             end
         end
     end

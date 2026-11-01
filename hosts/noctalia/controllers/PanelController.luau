@@ -142,7 +142,8 @@ function Controller:actionKey(action)
 end
 
 function Controller:actionLabel(action, label)
-    return self.view.pending and self.view.pending.action == action and Actions.label(action, 2) or label
+    local pending = self.view.pending
+    return pending and (pending.action or pending.requestType) == action and Actions.label(action, 2) or label
 end
 
 function Controller:busy()

@@ -71,6 +71,11 @@ with tempfile.TemporaryDirectory(prefix="syncshell-noctalia-copy-") as temporary
     assert "fixture-key" not in cleanup.read_text()
     shutil.rmtree(package)
     try:
+        result = subprocess.run([str(cleanup)], capture_output=True, text=True, cwd=root, timeout=15)
+        assert result.returncode != 0 and not json.loads(result.stdout)["ok"]
+        assert theme == "syncshell-noctalia-modern" and own.is_dir()
+        # The owner selects default independently before retrying saved cleanup.
+        theme = "default"
         for _ in range(2):
             result = subprocess.run([str(cleanup)], check=True, capture_output=True, text=True, cwd=root, timeout=15)
             assert json.loads(result.stdout)["ok"]

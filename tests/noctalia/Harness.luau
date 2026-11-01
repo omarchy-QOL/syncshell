@@ -32,6 +32,7 @@ function Harness.new()
     h.panel = {
         render = function(tree)
             checkTree(tree)
+            assert(tree.props.flexGrow == 1, "panel root must fill the native host viewport")
             local function validate(node, depth)
                 assert(depth <= 32 and #node.children <= 256, "native tree limit exceeded")
                 for _, child in node.children do validate(child, depth + 1) end
@@ -76,15 +77,23 @@ function Harness:nodes()
     return rows
 end
 
-function Harness:find(value)
+function Harness:find(value, nodeType)
     for _, node in self:nodes() do
-        if node.props.key == value or node.props.text == value then return node end
+        if (not nodeType or node.type == nodeType)
+            and (node.props.key == value or node.props.text == value) then return node end
     end
     return nil
 end
 
 function Harness:click(value)
-    local node = assert(self:find(value), "missing control: " .. value)
+    local node
+    for _, candidate in self:nodes() do
+        if candidate.type == "button" and (candidate.props.key == value or candidate.props.text == value) then
+            assert(node == nil, "ambiguous button: " .. value)
+            node = candidate
+        end
+    end
+    assert(node, "missing button: " .. value)
     assert(node.props.enabled ~= false, "disabled control: " .. value)
     assert(type(node.props.onClick) == "function", "control is not clickable: " .. value)
     local ok, err = pcall(function() withBudget(node.props.onClick, 25) end)

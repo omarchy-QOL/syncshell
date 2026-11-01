@@ -4,7 +4,7 @@ local Confirm = {}
 
 function Confirm.render(controller)
     local confirm = controller.view.confirm
-    return ui.column({ key = "confirmation", gap = 12, padding = 12 }, {
+    return ui.column({ key = "confirmation", flexGrow = 1, gap = 12, padding = 12 }, {
         SharedWidgetControls.label(Actions.label(confirm.action)),
         ui.scroll({ flexGrow = 1 }, { SharedWidgetControls.label(confirm.message) }),
         ui.row({ gap = 8 }, {

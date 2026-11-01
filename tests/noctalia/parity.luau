@@ -14,6 +14,86 @@ local function start(state)
     return h
 end
 
+scenario("overview preserves empty-folder guidance and footer action groups", function()
+    local h = start(Harness.fixture())
+    assert(h:find("No folders configured."), "empty state missing")
+    assert(not string.find(h:text(), "previous selection", 1, true), "empty state implies a lost selection")
+    local footer = assert(h:find("footer-actions"), "footer missing")
+    assert(#footer.children == 2, "launchers and session actions must occupy separate rows")
+    assert(footer.children[1].children[1].props.text == "Web UI")
+    assert(footer.children[2].children[1].props.text == "Rescan all")
+    for _, name in { "TUI", "GUI" } do
+        local control = assert(h:find(name))
+        assert(control.props.enabled == false and control.props.onClick == nil,
+            "future launcher must not dispatch an action")
+        assert(control.props.tooltip == "To be added soon.")
+    end
+    h:click("Add folder")
+    assert(h:find("Directory"), "empty state cannot open add-folder form")
+end)
+
+scenario("form return resets the viewport without resetting edits", function()
+    local h = start(Harness.fixture())
+    assert(h:find("overview-folders", "scroll"))
+    h:click("Add folder"); h:settle(true, nil, nil, { folderId = "new" })
+    local form = h.host.state.get("view").form
+    local key = "form-" .. tostring(form.token)
+    assert(h:find(key, "scroll") and not h:find("overview-folders", "scroll"))
+    h:edit("path", "/retained")
+    assert(h:find(key, "scroll"), "editing must not reset the form viewport")
+    h:click("Cancel")
+    assert(h:find("overview-folders", "scroll") and not h:find(key, "scroll"))
+    h:click("Devices")
+    assert(h:find("overview-devices", "scroll"))
+end)
+
+scenario("owned cursor clears selection on retained native buttons", function()
+    local h = start(Harness.fixture())
+    for _ = 1, 5 do h.entry.onKey("Alt+Down", true) end
+    local selected = 0
+    for _, node in h:nodes() do
+        if node.type == "button" then
+            assert(type(node.props.selected) == "boolean", "native selection was left unchanged")
+            if node.props.selected then selected += 1 end
+        end
+    end
+    assert(selected == 1, "only the current action may carry the owned selection")
+end)
+
+scenario("folder toolbar keeps contextual actions and card lifecycle targets", function()
+    local s = Harness.fixture()
+    s.folders = { { id = "one", path = "/one", paused = false, devices = {}, status = { state = "idle" } } }
+    local h = start(s)
+    local toolbar = assert(h:find("folder-toolbar"))
+    assert(toolbar.children[2].props.key == "Add folder")
+    assert(toolbar.children[3].props.key == "Sharing")
+    assert(toolbar.children[4].props.key == "Unlink")
+    assert(h:find("Rescan") and not h:find("Forget"), "linked folder must offer rescan")
+    h:click("Unlink"); h:advance(301); h:click("confirmation-accept")
+    local request = h.host.state.get("intent").request
+    assert(request.action == "folder.pause" and request.args.folderId == "one")
+    h:settle(true)
+    s.folders[1].paused = true; h:snapshot(s)
+    assert(h:find("Forget") and not h:find("Rescan"), "unlinked folder must offer forget")
+    h:click("Link"); h:advance(301); h:click("confirmation-accept")
+    request = h.host.state.get("intent").request
+    assert(request.action == "folder.resume" and request.args.folderId == "one")
+    h:settle(true)
+    local found = false
+    for _ = 1, 40 do
+        h.entry.onKey("Alt+Down", true)
+        if string.find(h:text(), ": Share folder with other devices", 1, true) then found = true; break end
+    end
+    assert(found, "icon action has no readable keyboard label")
+    h.entry.onKey("Alt+Return", true)
+    assert(h:find("Save sharing"), "keyboard sharing action did not open the selected folder")
+    h:click("Cancel")
+    s.connection.online, s.connection.fresh = false, false
+    s.folders = {}; h:snapshot(s)
+    assert(h:find("Folder status is unavailable."), "offline state claims an empty configuration")
+    assert(h:find("Add folder").props.enabled == false, "offline add remains enabled")
+end)
+
 scenario("P01 confirmed and unconfirmed groups expose acceptance", function()
     local s = Harness.fixture()
     for index = 1, 43 do table.insert(s.folders, { id = "folder-" .. index, path = "/data/" .. index,
@@ -38,6 +118,111 @@ scenario("P01 confirmed and unconfirmed groups expose acceptance", function()
     h:snapshot(s)
     h:click("Back to form")
     assert(string.find(h:text(), "0 confirmed", 1, true), "stale acceptance claimed")
+end)
+
+scenario("device toolbar targets selection and pause gives bounded busy feedback", function()
+    local s = Harness.fixture()
+    local h = start(s)
+    h:click("Devices")
+    local toolbar = assert(h:find("device-toolbar"))
+    assert(toolbar.children[2].props.key == "Add device")
+    assert(toolbar.children[3].props.key == "Shared folders")
+    assert(toolbar.children[4].props.key == "Remove")
+    h:click("Pause")
+    local request = h.host.state.get("intent").request
+    assert(request.action == "device.pause" and request.args.deviceId == "REMOTE")
+    assert(h:find("Pausing device...", "button").props.enabled == false)
+    assert(h:find("Remove").props.enabled == false)
+    h:settle(true)
+    h:click("Remove"); h:advance(301); h:click("confirmation-accept")
+    request = h.host.state.get("intent").request
+    assert(request.action == "device.remove" and request.args.deviceId == "REMOTE")
+    h:settle(true)
+    s.devices = {}; h:snapshot(s)
+    assert(h:find("No remote devices configured.") and not h:find("Remove"))
+    s.connection.online = false; h:snapshot(s)
+    assert(h:find("Device status is unavailable."))
+    assert(h:find("Add device").props.enabled == false)
+end)
+
+scenario("invitation tabs retain separate pages and never mix offer types", function()
+    local s = Harness.fixture()
+    for i = 1, 8 do
+        table.insert(s.pendingDevices, { id = "pending-" .. i, name = "Incoming " .. i })
+        s.pendingFolders["offer-" .. i] = { offeredBy = { REMOTE = { label = "Offer " .. i } } }
+    end
+    local h = start(s)
+    assert(h:find("offer-offer-1-REMOTE") and not h:find("pending-device-pending-1"))
+    h:click("Next invitations")
+    assert(h:find("offer-offer-7-REMOTE"))
+    h:click("Devices")
+    assert(h:find("pending-device-pending-1") and not h:find("offer-offer-7-REMOTE"))
+    h:click("Next invitations")
+    assert(h:find("pending-device-pending-7"))
+    h:click("Folders"); assert(h:find("offer-offer-7-REMOTE"))
+    h:click("Devices"); assert(h:find("pending-device-pending-7"))
+end)
+
+scenario("footer identifies the active operation and disables repeated activation", function()
+    local s = Harness.fixture()
+    s.folders = { { id = "one", path = "/one", devices = {}, status = { state = "idle" } } }
+    local h = start(s)
+    h:click("Rescan all")
+    assert(h:find("Rescanning folders...", "button").props.enabled == false)
+    assert(h.host.state.get("intent").request.action == "folder.rescan-all")
+    h:settle(true)
+    h:click("Refresh")
+    assert(h:find("Refreshing state...", "button").props.enabled == false)
+    assert(h.host.state.get("intent").request.type == "refresh")
+    h:settle(true)
+    s.folders[1].status = { state = "error", pullErrors = 1 }; h:snapshot(s)
+    h:click("Refresh")
+    assert(h:find("Rechecking folder errors...", "button").props.enabled == false)
+    assert(h.host.state.get("intent").request.action == "folder.recheck-errors")
+    h:settle(false, "Recheck failed", "unavailable")
+    assert(h:find("Refresh").props.enabled and string.find(h:text(), "Recheck failed", 1, true))
+end)
+
+scenario("status roles distinguish activity, pause, health and stale devices", function()
+    local Palette = require("../../hosts/noctalia/controllers/ThemePaletteController.luau")
+    local s = Harness.fixture()
+    s.folders = { { id = "one", path = "/one", devices = {}, status = { state = "scanning", needTotalItems = 2 } } }
+    local h = start(s)
+    assert(h:find("folder-state-one").props.color == Palette.roles.warning,
+        "combined scan and sync must use warning semantics")
+    s.folders[1].status = { state = "idle" }; h:snapshot(s)
+    assert(h:find("folder-state-one").props.color == Palette.roles.success)
+    s.folders[1].paused = true; h:snapshot(s)
+    assert(h:find("folder-state-one").props.color == Palette.roles.warning)
+    s.devices[1].paused = true; h:snapshot(s); h:click("Devices")
+    assert(h:find("PAUSED").props.color == Palette.roles.warning,
+        "connected flag must not override pause")
+    s.connection.fresh = false; h:snapshot(s)
+    assert(h:find("device-state-REMOTE").props.color == Palette.roles.muted)
+    assert(h:find("Last reported: PAUSED"))
+end)
+
+scenario("card identity controls preserve exact paths, IDs and Web UI targets", function()
+    local s = Harness.fixture()
+    local path = "/data/folder with spaces/'literal' $(not-a-command)"
+    s.folders = {
+        { id = "one", label = "Notes", path = path, devices = { { id = "REMOTE" } }, status = { state = "idle" } },
+        { id = "two", label = "Notes", path = "/other", devices = {}, status = { state = "idle" } },
+    }
+    local h = start(s)
+    h:click("open-folder-one")
+    local args = h.commands[#h.commands].args
+    assert(args[1] == "xdg-open" and args[2] == path and #args == 2)
+    h:click("copy-folder-one"); assert(h.copied[#h.copied] == "one")
+    s.folders[1].status.state = "scanning"; h:snapshot(s)
+    assert(h:find("Scanning...", "button").props.enabled == false,
+        "authoritative scan must disable a second scan")
+    h:click("Devices")
+    assert(h:find("1/2 folders shared"))
+    h:click("copy-device-REMOTE"); assert(h.copied[#h.copied] == "REMOTE")
+    h:click("edit-device-REMOTE")
+    local request = h.host.state.get("intent").request
+    assert(request.action == "webui.open" and request.args.deviceId == "REMOTE")
 end)
 
 scenario("P02 unselected folder errors remain visible and stale", function()
@@ -275,6 +460,7 @@ scenario("P08 service reconciliation is explicit and cleanup gates removal", fun
     h:click("Removal and recovery")
     assert(h:find("remove-in-host").props.enabled == false)
     h:click("cleanup-profiles"); h:advance(301); h:click("confirmation-accept")
+    assert(h.host.state.get("intent").request.action == "webui.remove-profile")
     h:settle(false, "Profile is not owned by Noctalia", "not_owned")
     assert(h:find("remove-in-host").props.enabled == false)
     h:click("cleanup-profiles"); h:advance(301); h:click("confirmation-accept"); h:settle(true)
@@ -391,7 +577,7 @@ scenario("P06 pending device acceptance copies its ID and retains edited name", 
     local id = string.rep("CCCCCCC-", 7) .. "CCCCCCC"
     s.pendingDevices = { { id = id, name = "Incoming", address = "tcp://192.0.2.1:22000" } }
     local h = start(s)
-    h:click("Accept"); h:click("Copy device ID"); assert(h.copied[1] == id)
+    h:click("Devices"); h:click("Accept"); h:click("Copy device ID"); assert(h.copied[1] == id)
     h:edit("name", "My laptop")
     s.pendingDevices[1].name = "Changed upstream"; h:snapshot(s)
     h:click("submit-device")

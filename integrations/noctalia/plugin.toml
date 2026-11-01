@@ -120,5 +120,6 @@ entry = "hosts/noctalia/NoctaliaPanel.luau"
 width = 480
 height = 700
 placement = "attached"
+open_near_click = true
 keyboard_focus = "exclusive"
 capture_keys = ["r", "w", "p", "s", "q", "Alt+Up", "Alt+Down", "Alt+Left", "Alt+Return"]

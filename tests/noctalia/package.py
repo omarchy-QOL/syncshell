@@ -31,9 +31,11 @@ for path in root.rglob("*"):
     assert not path.is_symlink(), f"linked payload: {path}"
     assert path.suffix not in (".qml", ".go", ".cpp"), f"unexpected runtime dependency: {path}"
     assert path.name not in ("TODO", "tests", ".git"), f"unexpected payload: {path}"
+entries = {root / entry["entry"] for kind in ("service", "widget", "panel") for entry in manifest[kind]}
 for path in (root / "hosts/noctalia").rglob("*.luau"):
     for relative in re.findall(r'require\("([^"\n]+)"\)', path.read_text()):
-        module = (path.parent / relative).resolve()
+        base = root if path in entries else path.parent
+        module = (base / relative).resolve()
         assert module.is_relative_to(root) and module.is_file(), f"unresolved module: {module}"
 binary = root / "bin/syncshell-core"
 assert binary.stat().st_mode & 0o111

@@ -17,9 +17,12 @@ function Navigation.decorate(controller, tree)
     local function visit(node, path, context)
         if node.props.visible == false then return end
         if node.props.key then context = caption(node) or context end
+        -- Retained native buttons do not reset an omitted selected prop.
+        if node.type == "button" then node.props.selected = false end
         if node.type == "button" and node.props.enabled ~= false and type(node.props.onClick) == "function" then
-            local id = path .. ":" .. node.props.text
-            table.insert(actions, { id = id, node = node, label = node.props.text,
+            local label = node.props.text ~= "" and node.props.text or node.props.tooltip
+            local id = path .. ":" .. label
+            table.insert(actions, { id = id, node = node, label = label,
                 context = context, activate = node.props.onClick })
         end
         for index, child in node.children do

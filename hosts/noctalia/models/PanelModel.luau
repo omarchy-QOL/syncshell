@@ -208,6 +208,20 @@ function Model.folderState(snapshot, folder, view)
     return "UNKNOWN", "Folder status unavailable"
 end
 
+function Model.folderStateRole(state)
+    if state == "SYNCED" or state == "LINKED" then return "success" end
+    if state == "SYNCING" or state == "SCANNING" or state == "SCAN+SYNC" or state == "UNLINKED" then
+        return "warning"
+    end
+    return state == "ERROR" and "error" or "muted"
+end
+
+function Model.deviceStateRole(device, fresh)
+    if not fresh then return "muted" end
+    if device.paused then return "warning" end
+    return device.connected and "success" or "muted"
+end
+
 function Model.indicator(snapshot, status)
     local connection, lifecycle, counts = snapshot.connection or {}, snapshot.lifecycle or {}, snapshot.counts or {}
     if not status.ready then return "notify", "Worker unavailable" end

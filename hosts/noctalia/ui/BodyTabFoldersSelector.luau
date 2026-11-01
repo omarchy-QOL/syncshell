@@ -9,7 +9,7 @@ function Selector.render(controller)
     local selected = Model.find(snapshot.folders, v.folderId)
     local rows = Model.folderRows(snapshot, v)
     for _, row in rows do row.description = string.upper(row.group) .. " | " .. row.path .. " | " .. row.id end
-    return ui.column({ gap = 6 }, {
+    return ui.column({ gap = 6, flexGrow = 1, minWidth = 0 }, {
         Dropdown.render(controller, v, "folder", "Folder", rows, v.folderId, function(id) v.folderId = id end, {
             selectedLabel = selected and Model.folderLabel(selected),
             empty = "No folders match the search and filters", query = v.search, filtered = true, onSearch = function(text) v.search = text end,

@@ -1,4 +1,4 @@
-local Model = require("./models/PanelModel.luau")
+local Model = require("./hosts/noctalia/models/PanelModel.luau")
 local snapshot = noctalia.state.get("summary")
 local status = noctalia.state.get("status") or {}
 

@@ -63,6 +63,12 @@ scans and Web UI controls. Refresh rechecks problem folders when connected
 and retries discovery when disconnected. Forget requires unlinking first;
 it removes folder configuration while leaving local files intact.
 
+Folder and device selectors have adjacent contextual actions. The folder
+card offers Rescan while linked and Forget while unlinked. The device card
+offers Pause/Resume and editing in the Web UI. In-flight controls display
+their operation and disable repeated activation. Folder invitations appear
+on Folders and device invitations on Devices, with independent paging.
+
 Sharing review separates confirmed and unconfirmed shares. Remote-paused
 folders count as confirmed only with fresh, connected device state. Stale,
 offline and not-sharing-back states have distinct explanations. Search and

@@ -62,7 +62,7 @@ function MultiSelect.render(controller, form, rows, help, options)
             ui.toggle({ key = "share-" .. row.id, checked = form.selected[row.id] == true,
                 enabled = not controller:busy() and not row.untrusted,
                 onChange = function(value) form.selected[row.id] = Model.bool(value); controller:save() end }),
-            SharedWidgetControls.label(text),
+            ui.column({ flexGrow = 1, minWidth = 0 }, { SharedWidgetControls.label(text) }),
         }))
     end
     if #matches == 0 then table.insert(list, SharedWidgetControls.label(#rows == 0 and "No available items" or "No matching items")) end

@@ -1,45 +1,52 @@
 local BodyTabFoldersCardActivity = require("./BodyTabFoldersCardActivity.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Model = require("../models/PanelModel.luau")
+local Palette = require("../controllers/ThemePaletteController.luau")
+local IdCopyButton = require("./SharedWidgetIdCopyButton.luau")
 local Card = {}
 
 function Card.render(controller, folder)
     if not folder then return SharedWidgetControls.label("Select a folder. The previous selection may no longer exist.") end
     local online = (controller.snapshot.connection or {}).online == true
-    local group = Model.folderGroup(folder, online and (controller.snapshot.connection or {}).fresh)
-    local colors = { errors = "error", active = "primary", ready = "tertiary", paused = "on_surface_variant", unknown = "on_surface_variant" }
     local state, explanation = Model.folderState(controller.snapshot, folder, controller.view)
     local status = folder.status or {}
     local scanning = controller.view.scanning[folder.id] == true
+        or string.sub(status.state or "", 1, 4) == "scan"
     local enabled = online and not controller:busy()
+    local open = SharedWidgetControls.button(Model.folderLabel(folder), function()
+        controller:openPath(folder.path)
+    end, type(folder.path) == "string" and folder.path ~= "", "outline",
+        "open-folder-" .. folder.id, "Open " .. (folder.path or "folder"))
+    open.props.flexGrow = 1
     local children = {
-        SharedWidgetControls.label(Model.folderLabel(folder)),
-        SharedWidgetControls.label(state .. " | " .. explanation, colors[group]),
-        SharedWidgetControls.label(folder.path), SharedWidgetControls.label("ID: " .. folder.id, "on_surface_variant"),
-        SharedWidgetControls.label(tostring(status.globalFiles or 0) .. " files | " .. Model.bytes(status.globalBytes)),
-        SharedWidgetControls.label(tostring(status.needTotalItems or 0) .. " items remaining | " .. Model.bytes(status.needBytes)),
-        ui.row({ gap = 6 }, {
-            SharedWidgetControls.button("Open folder", function() controller:openPath(folder.path) end),
-            SharedWidgetControls.button("Copy ID", function() controller:copy(folder.id) end),
-            SharedWidgetControls.button(scanning and "Scanning..." or "Rescan", function() controller:send("folder.rescan", { folderId = folder.id }) end,
-                enabled and not folder.paused and not scanning, nil, controller:actionKey("rescan-" .. folder.id), folder.paused and "Link this folder before rescanning" or "Look for local file changes"),
+        ui.row({ gap = 6, align = "center" }, {
+            open,
+            IdCopyButton.render(controller, folder.id, "copy-folder-" .. folder.id, "Copy folder ID"),
+            ui.label({ key = "folder-state-" .. folder.id, text = state,
+                color = Palette.roles[Model.folderStateRole(state)], fontWeight = "bold" }),
         }),
+        SharedWidgetControls.label(explanation, "on_surface_variant"),
+        SharedWidgetControls.label(tostring(status.globalFiles or 0) .. " files | " .. Model.bytes(status.globalBytes)),
+        SharedWidgetControls.label(folder.path, "on_surface_variant"),
         ui.row({ gap = 6 }, {
-            SharedWidgetControls.button("Sharing", function() controller:openForm("sharing", folder) end, enabled),
-            SharedWidgetControls.button(folder.paused and "Link" or "Unlink", function()
-                controller:confirm((folder.paused and "Resume synchronization for " or "Pause synchronization for ")
-                    .. Model.folderLabel(folder) .. "? Local files remain.",
-                    folder.paused and "folder.resume" or "folder.pause", { folderId = folder.id })
-            end, enabled),
-            SharedWidgetControls.button("Forget", function()
+            folder.paused and SharedWidgetControls.button("Forget", function()
                 controller:confirm("Forget " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n"
                     .. "Only its Syncthing configuration is removed. Local files remain. "
                     .. (folder.markerName == ".stfolder" and "Syncthing also attempts to remove its internal .stfolder marker. " or "")
                     .. "Keep the ID to rejoin this folder.",
                     "folder.forget", { folderId = folder.id })
-            end, enabled and folder.paused, "destructive", nil, "Unlink first, then remove only this folder configuration; local files remain"),
+            end, enabled, "destructive", nil, "Remove only this unlinked Syncthing configuration; local files remain")
+            or SharedWidgetControls.button(controller:actionLabel("folder.rescan",
+                scanning and "Scanning..." or "Rescan"), function()
+                controller:send("folder.rescan", { folderId = folder.id })
+            end, enabled and not scanning, nil, controller:actionKey("rescan-" .. folder.id),
+                "Look for local file changes"),
         }),
     }
+    if (status.needTotalItems or 0) > 0 or (status.needBytes or 0) > 0 then
+        table.insert(children, SharedWidgetControls.label(tostring(status.needTotalItems or 0)
+            .. " items remaining | " .. Model.bytes(status.needBytes)))
+    end
     local remoteCount = 0
     for _, member in folder.devices or {} do
         if member.id ~= (controller.snapshot.identity or {}).deviceId then

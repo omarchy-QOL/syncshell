@@ -1,10 +1,17 @@
 local Palette = {}
 
+-- The pinned host has no dedicated success, warning or information tokens.
+Palette.roles = {
+    success = "tertiary", warning = "secondary", error = "error",
+    info = "primary", muted = "on_surface_variant",
+}
+
 function Palette.read(host)
     local colors = {}
     for key, role in { background = "surface", surface = "surface", surfaceVariant = "surface_variant",
-        foreground = "on_surface", muted = "on_surface_variant", accent = "primary", success = "tertiary",
-        warning = "secondary", danger = "error", border = "outline", info = "primary" } do
+        foreground = "on_surface", muted = Palette.roles.muted, accent = "primary",
+        success = Palette.roles.success, warning = Palette.roles.warning,
+        danger = Palette.roles.error, border = "outline", info = Palette.roles.info } do
         local color = host.getColor(role)
         if type(color) ~= "string" or not string.match(color, "^#%x%x%x%x%x%x$") then
             return nil, "Noctalia did not provide the required palette role: " .. role
