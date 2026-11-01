@@ -20,9 +20,14 @@ IconTextButton {
     horizontalPadding: Tokens.padding.small
     verticalPadding: 0
     icon: copied ? "check" : "content_copy"
+    // Without a caption this is just the glyph, sized to the card's name chip;
+    // the check mark and tooltip carry the copied feedback.
+    readonly property bool iconOnly: caption === ""
+    font: iconOnly ? Tokens.font.body.medium : Tokens.font.body.small
+    label.visible: !iconOnly
     text: copied ? "Copied" : caption
     // Reserve the wider caption so feedback never resizes the row.
-    implicitWidth: Math.max(captionMetrics.advanceWidth, copiedMetrics.advanceWidth) + iconLabel.implicitWidth + spacing + horizontalPadding * 2
+    implicitWidth: iconOnly ? iconLabel.implicitWidth + horizontalPadding * 2 : Math.max(captionMetrics.advanceWidth, copiedMetrics.advanceWidth) + iconLabel.implicitWidth + spacing + horizontalPadding * 2
     disabled: !value
     enabled: !disabled
     activeFocusOnTab: enabled

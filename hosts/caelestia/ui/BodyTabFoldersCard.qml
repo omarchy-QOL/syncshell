@@ -109,6 +109,7 @@ StyledRect {
                 readonly property bool paused: !!root.folder?.paused
                 icon: paused ? "delete" : "refresh"
                 caption: paused ? "Forget" : "Rescan"
+                fitCaption: true
                 busyCaption: paused ? "Forgetting..." : "Rescanning..."
                 busy: root.controller.rescanning(root.folder)
                 help: !root.controller.fresh ? "Refresh current status before changing this folder" : paused ? "Remove only this unlinked Syncthing configuration" : "Rescan this folder for local changes"

@@ -18,12 +18,14 @@ IconTextButton {
     property string caption: ""
     // Caps the caption width; longer captions end with an ellipsis.
     property real maxCaptionWidth: -1
+    // Hugs the current caption instead of reserving room for the busy one.
+    property bool fitCaption: false
     property string busyCaption: "Working..."
     property string help: ""
     property string feedback: ""
     property string copyValue: ""
     text: feedback || (busy ? busyCaption : maxCaptionWidth > 0 ? elideMetrics.elidedText : caption)
-    implicitWidth: Math.max(maxCaptionWidth > 0 ? Math.min(idleMetrics.width, maxCaptionWidth) : idleMetrics.width, busyMetrics.width, feedbackMetrics.width) + (icon !== "" ? iconLabel.implicitWidth + spacing : 0) + horizontalPadding * 2
+    implicitWidth: fitCaption ? (busy ? busyMetrics.advanceWidth : idleMetrics.advanceWidth) + (icon !== "" && !busy ? iconLabel.implicitWidth + spacing : 0) + horizontalPadding * 2 : Math.max(maxCaptionWidth > 0 ? Math.min(idleMetrics.width, maxCaptionWidth) : idleMetrics.width, busyMetrics.width, feedbackMetrics.width) + (icon !== "" ? iconLabel.implicitWidth + spacing : 0) + horizontalPadding * 2
     TextMetrics {
         id: elideMetrics
         font: root.font
