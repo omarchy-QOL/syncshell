@@ -200,7 +200,7 @@ function onKey(chord, pressed)
     end
     if controller.navigation then
         -- An open list owns the keyboard: its letters must never reach the panel's shortcuts.
-        controller.navigation(chord == "q" and "Alt+Left" or (oneAxis[chord] or chord))
+        controller.navigation(chord == "q" and "Alt+Left" or (oneAxis[chord] or chord), chord)
         return
     end
     if chord == "Alt+Left" then controller:cancel(); return end

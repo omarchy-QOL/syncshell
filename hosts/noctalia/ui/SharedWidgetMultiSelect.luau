@@ -54,10 +54,9 @@ function MultiSelect.render(controller, form, rows, help, options)
         if chord == "Alt+Return" then toggle(); return true end
         local delta = chord == "Alt+Down" and 1 or (chord == "Alt+Up" and -1 or 0)
         if delta == 0 then return false end
-        for offset = 1, #matches do
-            local index = ((cursor - 1 + delta * offset) % #matches) + 1
-            form.shareCursors[key] = matches[index].row.id; break
-        end
+        -- Omarchy's list stops at both ends.
+        local target = matches[cursor + delta]
+        if target then form.shareCursors[key] = target.row.id end
         controller:save(); return true
     end
     if help then table.insert(children, SharedWidgetControls.hint(help)) end

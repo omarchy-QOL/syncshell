@@ -18,6 +18,9 @@ function Selector.render(controller)
         empty = "No folders match the search and filters", query = v.search, filtered = true, onSearch = function(text) v.search = text end,
         accessory = function() return ViewOptions.trigger(controller, #rows, #(snapshot.folders or {})) end,
         below = function() return ViewOptions.render(controller) end,
+        holdsKeys = function() return v.filtersOpen end,
+        -- The popup belongs to the list, so it never outlives one.
+        onOpen = function() v.filtersOpen = false end,
     })
 end
 

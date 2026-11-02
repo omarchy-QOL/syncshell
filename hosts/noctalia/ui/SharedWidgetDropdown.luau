@@ -22,6 +22,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
             -- Omarchy clears the search with each opening.
             state.query, state.cursor, state.first = "", nil, nil
             if options.onSearch then options.onSearch("") end
+            if options.onOpen then options.onOpen() end
             owner.disclosures = {}
             for other, item in owner.selectors do if other ~= key then item.open = false end end
         end
@@ -56,7 +57,9 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         return true
     end
     -- The host grants focus once per key, so each opening needs its own.
-    local search = ui.input({ key = "search-" .. key .. "-" .. tostring(state.opens or 0), value = query, focus = true, height = Ui.control, fontSize = Ui.body, flexGrow = 1,
+    -- A focused field would take the letters an open popup needs, so it steps aside.
+    local searching = not (options.holdsKeys and options.holdsKeys())
+    local search = ui.input({ key = "search-" .. key .. "-" .. tostring(state.opens or 0) .. (searching and "" or "-held"), value = query, focus = searching, height = Ui.control, fontSize = Ui.body, flexGrow = 1,
         placeholder = options.placeholder or "Search names, paths or IDs",
         onChange = function(text)
             -- The field already has focus, so the key the placeholder names only clears it.
