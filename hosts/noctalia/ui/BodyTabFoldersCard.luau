@@ -32,7 +32,7 @@ function Card.render(controller, folder)
             onClick = function() controller:send("folder.rescan", { folderId = folder.id }) end })
     end
     local metaRow = { ui.label({ text = Model.folderMeta(controller.snapshot, folder, scanning), fontSize = Ui.caption, maxLines = 1,
-        maxWidth = problem and 190 or nil, color = problem and "error" or "on_surface_variant" }) }
+        maxWidth = problem and 120 or nil, color = problem and "error" or "on_surface_variant" }) }
     if problem then
         table.insert(metaRow, ui.row({ key = "see-more", onClick = function()
             local v = controller.view

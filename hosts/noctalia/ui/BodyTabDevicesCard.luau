@@ -42,7 +42,7 @@ function Card.render(controller, device)
                     detail("download", Model.bytes(device.downloadBps) .. "/s"),
                     detail("upload", Model.bytes(device.uploadBps) .. "/s"),
                 }),
-                detail("topology-star", device.address or "Address unavailable"),
+                detail("sitemap", device.address or "Address unavailable"),
             }),
             ui.button({ key = "device-pause", text = controller:actionLabel(pending, device.paused and "RESUME" or "PAUSE", device.paused and "RESUMING" or "PAUSING"),
                 glyph = device.paused and "player-play" or "player-pause", fontSize = Ui.body, glyphSize = Ui.body, height = Ui.cardControl,

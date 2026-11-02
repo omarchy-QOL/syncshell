@@ -19,8 +19,8 @@ function Navigation.decorate(controller, tree)
         if node.props.key then context = caption(node) or context end
         -- Retained native buttons do not reset an omitted selected prop.
         if node.type == "button" then node.props.selected = false end
-        if node.type == "row" and type(node.props.onClick) == "function" and not node.props.fill then node.props.fill = "#00000000" end
-        local clickableRow = node.type == "row" and type(node.props.onClick) == "function"
+        if (node.type == "row" or node.type == "column") and type(node.props.onClick) == "function" and not node.props.fill then node.props.fill = "#00000000" end
+        local clickableRow = (node.type == "row" or node.type == "column") and type(node.props.onClick) == "function"
         if clickableRow or (node.type == "button" and node.props.enabled ~= false and type(node.props.onClick) == "function") then
             local label = clickableRow and (caption(node) or node.props.key) or (node.props.text ~= "" and node.props.text or node.props.tooltip)
             local id = path .. ":" .. label
