@@ -579,8 +579,44 @@ scenario("P04 mixed filters, all, sorting and reset affect visible results", fun
     assert(h:find("No folders match the search and filters"))
     h:click("Reset")
     local v = h.host.state.get("view")
-    assert(v.sort == "name" and v.search == "" and v.filters.paused and v.filters.ready and v.filters.errors)
-    h:click("select-folder"); assert(h:find("option-folder-b-paused"))
+    assert(v.sort == "name" and v.filters.paused and v.filters.ready and v.filters.errors)
+    assert(v.filtersOpen and h:find("filter-all"), "reset keeps the view options open, as in Omarchy")
+    assert(h:find("option-folder-b-paused"))
+end)
+
+scenario("fresh map: list, dialog and cursor rules follow Omarchy", function()
+    local s = Harness.fixture()
+    s.folders = {
+        { id = "a-idle", path = "/a", status = { state = "idle" }, devices = {} },
+        { id = "b-paused", path = "/b", paused = true, status = { state = "idle" }, devices = {} },
+    }
+    s.counts.folders = 2
+    local h = start(s)
+    -- A tab change closes an open list.
+    h:click("select-folder"); assert(h:search("search-folder"))
+    h:click("Devices"); h:click("Folders")
+    assert(not h:search("search-folder"), "the tab left its list open")
+    -- Partly filtered: All shows a dash and the count appears.
+    h:click("select-folder"); h:click("folder-filters"); h:click("filter-paused")
+    assert(h:find("folder-filter-count"), "no filtered count")
+    assert(h:find("filter-all").children[1].children[1].props.name == "minus")
+    h:click("filter-all"); h:click("Reset")
+    assert(h.host.state.get("view").filtersOpen, "reset closed the view options")
+    -- The key named by the placeholder does not become a search term.
+    h:edit("search-folder", "/")
+    assert(h.host.state.get("view").search == "", "slash stayed in the search")
+    h:click("select-folder")
+    -- The first h lands on the first control, without switching tabs.
+    h.entry.onKey("h", true)
+    assert(h.host.state.get("view").actionCursor ~= nil and h.host.state.get("view").section == "folders")
+    -- Space around a dialog cancels it, as Omarchy's scrim does.
+    h:click("Unlink"); h:advance(301)
+    assert(h.host.state.get("view").confirm)
+    local cancelled = false
+    for _, node in h:nodes() do
+        if node.type == "box" and node.props.onClick then node.props.onClick(); cancelled = true; break end
+    end
+    assert(cancelled and not h.host.state.get("view").confirm, "scrim did not cancel")
 end)
 
 scenario("P06 pending device acceptance copies its ID and retains edited name", function()
@@ -634,8 +670,6 @@ scenario("plain keys drive the cursor, search and confirmation as in Omarchy", f
     local s = Harness.fixture()
     s.folders = { { id = "one", path = "/one", paused = false, devices = {}, status = { state = "idle" } } }
     h = start(s)
-    h.entry.onKey("slash", true); assert(h:search("search-folder"), "slash did not open the selector")
-    h.entry.onKey("Alt+Left", true)
     h:click("Unlink"); h:advance(301)
     h.entry.onKey("j", true); h.entry.onKey("space", true)
     assert(h.host.state.get("intent").request.action == "folder.pause", "space did not accept the chosen answer")
@@ -677,8 +711,8 @@ scenario("a deliberate stop stays quiet and the switch acts directly", function(
     s.connection.online, s.connection.fresh, s.connection.error = false, false, { message = "could not connect to Syncthing" }
     local h = start(s)
     assert(not string.find(h:text(), "could not connect", 1, true), "a stopped service reported a connection problem")
-    assert(h:find("service-toggle").props.checked == false)
-    h:find("service-toggle").props.onChange("true")
+    assert(h:find("service-toggle-0").props.checked == false)
+    h:find("service-toggle-0").props.onChange("true")
     assert(h.host.state.get("intent").request.action == "lifecycle.start")
 end)
 
@@ -703,7 +737,7 @@ scenario("geometry: visual bugs found live stay fixed", function()
     -- A native button dropped the chip's glyph below its text.
     local chip = assert(h:find("Copy ID"))
     assert(chip.type == "row" and chip.props.align == "center" and chip.children[1].type == "glyph")
-    assert(h:find("service-toggle"), "a controllable service shows the switch")
+    assert(h:find("service-toggle-0"), "a controllable service shows the switch")
     assert(h:find("select-folder").props.height == Ui.control)
     assert(h:find("Add folder").props.height == Ui.control and h:find("Add folder").props.width == Ui.control)
     assert(h:find("Rescan").props.height == Ui.cardControl)

@@ -34,7 +34,9 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         if options.filtered or Model.matchesSearch(row.label, query) then table.insert(matches, row) end
     end
     local cursor = 1
-    for index, row in matches do if row.id == (state.cursor or selected) then cursor = index end end
+    -- Omarchy returns to the first result as the search changes.
+    if state.searchEdited then state.searchEdited = nil
+    else for index, row in matches do if row.id == (state.cursor or selected) then cursor = index end end end
     state.cursor = matches[cursor] and matches[cursor].id
     local function activate()
         local row = matches[cursor]
@@ -47,20 +49,21 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         if chord == "Alt+Return" then activate(); return true end
         local delta = chord == "Alt+Down" and 1 or (chord == "Alt+Up" and -1 or 0)
         if delta == 0 then return false end
-        if #matches > 0 then
-            for offset = 1, #matches do
-                local nextIndex = ((cursor - 1 + delta * offset) % #matches) + 1
-                if matches[nextIndex].enabled ~= false then state.cursor = matches[nextIndex].id; break end
-            end
-            controller:save()
-        end
+        -- Omarchy's list stops at both ends.
+        local nextIndex = cursor + delta
+        while matches[nextIndex] and matches[nextIndex].enabled == false do nextIndex += delta end
+        if matches[nextIndex] then state.cursor = matches[nextIndex].id; controller:save() end
         return true
     end
     -- The host grants focus once per key, so each opening needs its own.
     local search = ui.input({ key = "search-" .. key .. "-" .. tostring(state.opens or 0), value = query, focus = true, height = Ui.control, fontSize = Ui.body, flexGrow = 1,
         placeholder = options.placeholder or "Search names, paths or IDs",
         onChange = function(text)
-            state.query, state.cursor = text, nil
+            -- The field already has focus, so the key the placeholder names only clears it.
+            if text == "/" then
+                text, state.opens = "", (state.opens or 0) + 1
+            end
+            state.query, state.cursor, state.searchEdited = text, nil, true
             if options.onSearch then options.onSearch(text) end
             controller:save()
         end, onSubmit = activate })

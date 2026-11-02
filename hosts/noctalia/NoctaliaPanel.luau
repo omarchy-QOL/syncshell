@@ -63,7 +63,12 @@ local function render()
             -- Omarchy marks the open tab with a quiet fill; the host's selected button is loud.
             return ui.row({ key = key, height = Ui.control, paddingH = 10, align = "center", radius = 3, border = "outline", borderWidth = 1,
                 fill = v.section == section and "on_surface/0.18" or "#00000000",
-                onClick = function() v.section = section; controller:save() end },
+                onClick = function()
+                    -- Omarchy closes open lists with the tab.
+                    v.section, v.filtersOpen = section, false
+                    for _, item in v.selectors or {} do item.open = false end
+                    controller:save()
+                end },
                 { ui.label({ text = text, fontSize = Ui.caption, fontWeight = v.section == section and "bold" or "normal", maxLines = 1 }) })
         end
         table.insert(body, ui.row({ gap = 6, justify = "start" }, {
@@ -120,9 +125,11 @@ local function render()
     end
     if v.confirm then
         Confirmation.dim(top_); Confirmation.dim(bottom_)
+        -- Omarchy's scrim cancels; the space around the dialog stands in for it.
+        local function scrim() return ui.box({ flexGrow = 1, onClick = function() controller:cancel() end }) end
         panel.render(ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
             top_,
-            ui.column({ key = "panel-dialog", flexGrow = 1, justify = "center" }, { Confirmation.render(controller) }),
+            ui.column({ key = "panel-dialog", flexGrow = 1 }, { scrim(), Confirmation.render(controller), scrim() }),
             bottom_,
         }))
         return
@@ -206,15 +213,6 @@ function onKey(chord, pressed)
     if chord == "r" then controller:rescanAll()
     elseif chord == "w" then controller:openWebUi()
     elseif chord == "s" then controller:openForm("settings")
-    elseif chord == "slash" then
-        local key = v.section == "folders" and "folder" or "device"
-        v.selectors = v.selectors or {}
-        v.selectors[key] = v.selectors[key] or { open = false, query = "" }
-        v.selectors[key].open = true
-        v.selectors[key].opens = (v.selectors[key].opens or 0) + 1
-        v.selectors[key].query, v.selectors[key].cursor = "", nil
-        if v.section == "folders" then v.search = "" end
-        controller:save()
     elseif chord == "p" then
         local lifecycle = controller.snapshot.lifecycle or {}
         if lifecycle.canControl or lifecycle.canStart then

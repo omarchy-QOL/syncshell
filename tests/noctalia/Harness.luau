@@ -128,7 +128,8 @@ end
 
 function Harness:checked(key)
     local node = assert(self:find(key), "missing checkbox: " .. key)
-    return node.children[1].children[1].props.visible
+    local mark = node.children[1].children[1]
+    return mark.props.visible and mark.props.name ~= "minus"
 end
 
 function Harness:text()

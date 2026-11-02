@@ -16,7 +16,7 @@ function Selector.render(controller)
         openable = #(snapshot.folders or {}) > 1,
         placeholder = "To search press '/'", help = "Select a configured folder,\nincluding unshared folders",
         empty = "No folders match the search and filters", query = v.search, filtered = true, onSearch = function(text) v.search = text end,
-        accessory = function() return ViewOptions.trigger(controller) end,
+        accessory = function() return ViewOptions.trigger(controller, #rows, #(snapshot.folders or {})) end,
         below = function() return ViewOptions.render(controller) end,
     })
 end

@@ -3,25 +3,31 @@ local Checkbox = require("./SharedWidgetCheckbox.luau")
 local ActionButton = require("./SharedWidgetSquareActionButton.luau")
 local Options = {}
 
-function Options.trigger(controller)
+function Options.trigger(controller, shown, total)
     local v = controller.view
-    return ActionButton.render("folder-filters", "adjustments-horizontal", function()
+    local children = { ActionButton.render("folder-filters", "adjustments-horizontal", function()
         v.filtersOpen = not v.filtersOpen; controller:save()
-    end, true, nil, "Filter and sort folders")
+    end, true, nil, "Filter and sort folders") }
+    if shown < total then
+        table.insert(children, ui.row({ key = "folder-filter-count", onClick = v.filtersOpen and function() v.filtersOpen = false; controller:save() end or nil }, {
+            SharedWidgetControls.hint("(" .. tostring(shown) .. " of " .. tostring(total) .. ")"),
+        }))
+    end
+    return ui.row({ gap = 6, align = "center" }, children)
 end
 
 function Options.render(controller)
     local v = controller.view
     if not v.filtersOpen then return nil end
     local children = { SharedWidgetControls.caption("VIEW OPTIONS") }
-    local all = true
-    for _, enabled in v.filters do all = all and enabled end
+    local all, any = true, false
+    for _, enabled in v.filters do all = all and enabled; any = any or enabled end
     local help = { ready = "Synced or newly linked", active = "Currently syncing or scanning", errors = "Needs attention",
         paused = "Syncing is paused", unknown = "Current status is unavailable" }
     local rows = { { Checkbox.render("filter-all", "All", all, function()
         for key in v.filters do v.filters[key] = not all end
         controller:save()
-    end, true, "Show every folder") } }
+    end, true, "Show every folder", nil, nil, any and not all) } }
     -- Omarchy opens with its cursor on the first choice.
     rows[1][1].props.fill = not v.actionCursor and "on_surface/0.18" or "#00000000"
     for index, key in { "ready", "active", "errors", "paused", "unknown" } do
@@ -39,11 +45,7 @@ function Options.render(controller)
     table.insert(children, ui.row({ justify = "end" }, {
         SharedWidgetControls.button("Reset defaults", function()
             for key in v.filters do v.filters[key] = true end
-            v.sort, v.search = "name", ""
-            v.filtersOpen = false
-            if v.selectors and v.selectors.folder then
-                v.selectors.folder.query, v.selectors.folder.cursor, v.selectors.folder.open = "", nil, false
-            end
+            v.sort = "name"
             controller:save()
         end, true, "outline", "Reset", "Show all folders\nand sort by name"),
     }))

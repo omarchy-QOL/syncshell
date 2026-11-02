@@ -20,7 +20,8 @@ function Navigation.decorate(controller, tree)
         -- Retained native buttons do not reset an omitted selected prop.
         if node.type == "button" then node.props.selected = false end
         if (node.type == "row" or node.type == "column") and type(node.props.onClick) == "function" and not node.props.fill then node.props.fill = "#00000000" end
-        local clickableRow = (node.type == "row" or node.type == "column") and type(node.props.onClick) == "function"
+        -- Omarchy's cursor rows leave out the header's device ID.
+        local clickableRow = (node.type == "row" or node.type == "column") and type(node.props.onClick) == "function" and node.props.key ~= "Copy ID"
         if clickableRow or (node.type == "button" and node.props.enabled ~= false and type(node.props.onClick) == "function") then
             local label = clickableRow and (caption(node) or node.props.key) or (node.props.text ~= "" and node.props.text or node.props.tooltip)
             -- A key survives the body's own key changing with the tab.
@@ -54,28 +55,31 @@ function Navigation.decorate(controller, tree)
             end
             return true
         end
-        -- Omarchy's cursor: j and k change row, h and l move inside one.
-        if chord == "cursor-down" or chord == "cursor-up" then
+        -- As Omarchy's PanelNavigation: the first press lands on the first control,
+        -- rows wrap and the column is kept as far as the new row allows.
+        local isMove = chord == "cursor-down" or chord == "cursor-up" or chord == "cursor-left" or chord == "cursor-right"
+        if isMove then
             if #actions == 0 then return true end
-            if not selected then
-                view.actionCursor = actions[chord == "cursor-down" and 1 or #actions].id; controller:save(); return true
+            if not selected then view.actionCursor = actions[1].id; controller:save(); return true end
+            local rows, rowIndex, column = {}, nil, nil
+            for index, action in actions do
+                if not rows[#rows] or rows[#rows][1].row ~= action.row then table.insert(rows, {}) end
+                table.insert(rows[#rows], action)
+                if index == selected then rowIndex, column = #rows, #rows[#rows] end
             end
-            local step, index = chord == "cursor-down" and 1 or -1, selected
-            repeat index = (index - 1 + step) % #actions + 1 until actions[index].row ~= actions[selected].row or index == selected
-            local row = actions[index].row
-            while actions[index - 1] and actions[index - 1].row == row do index -= 1 end
-            view.actionCursor = actions[index].id; controller:save()
-            return true
-        end
-        if chord == "cursor-left" or chord == "cursor-right" then
-            if not selected then return true end
-            local target = actions[selected + (chord == "cursor-right" and 1 or -1)]
-            if target and target.row == actions[selected].row then
-                view.actionCursor = target.id
-                -- Omarchy's tabs switch as the cursor reaches them.
-                if target.node.props.key == "Folders" or target.node.props.key == "Devices" then target.activate() end
-                controller:save()
+            local current, right = rows[rowIndex], chord == "cursor-right"
+            local target
+            if chord == "cursor-down" or chord == "cursor-up" then
+                local nextRow = rows[(rowIndex - 1 + (chord == "cursor-down" and 1 or -1)) % #rows + 1]
+                target = nextRow[math.min(column, #nextRow)]
+            elseif current[1].node.props.key == "Folders" then
+                -- Omarchy's tabs are one control: left is Folders, right is Devices.
+                target = current[right and 2 or 1]
+                target.activate()
+            else
+                target = current[(column - 1 + (right and 1 or -1)) % #current + 1]
             end
+            view.actionCursor = target.id; controller:save()
             return true
         end
         local delta = chord == "Alt+Down" and 1 or (chord == "Alt+Up" and -1 or 0)

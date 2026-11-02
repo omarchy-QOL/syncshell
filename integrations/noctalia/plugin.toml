@@ -122,4 +122,4 @@ height = 580
 placement = "attached"
 open_near_click = true
 keyboard_focus = "exclusive"
-capture_keys = ["r", "w", "p", "s", "q", "h", "j", "k", "l", "slash", "space", "Up", "Down", "Alt+Up", "Alt+Down", "Alt+Left", "Alt+Return"]
+capture_keys = ["r", "w", "p", "s", "q", "h", "j", "k", "l", "space", "Up", "Down", "Alt+Up", "Alt+Down", "Alt+Left", "Alt+Return"]

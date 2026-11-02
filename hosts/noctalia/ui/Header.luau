@@ -49,9 +49,14 @@ function Header.render(controller, compact)
     if canToggle then
         table.insert(title, ui.row({ tooltip = lifecycle.active and "Stop syncing" or "Start syncing" }, {
             -- Folder actions do not block the service, as in Omarchy.
-            ui.toggle({ key = "service-toggle", checked = lifecycle.active == true,
+            ui.toggle({ key = "service-toggle-" .. tostring(v.toggleRevision or 0), checked = lifecycle.active == true,
                 enabled = string.sub(controller.status.busyAction or "", 1, 10) ~= "lifecycle.",
                 onChange = function(value)
+                    -- Omarchy's switch swallows clicks during folder actions; `p` still works.
+                    local busy = controller.status.busyAction
+                    if controller:busy() and string.sub(busy or "", 1, 10) ~= "lifecycle." then
+                        v.toggleRevision = (v.toggleRevision or 0) + 1; controller:save(); return
+                    end
                     controller:send(Model.bool(value) and "lifecycle.start" or "lifecycle.stop", {})
                 end }),
         }))
