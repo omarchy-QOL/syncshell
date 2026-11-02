@@ -5,7 +5,7 @@ local FooterActions = {}
 
 local function action(key, text, glyph, callback, enabled, help)
     return ui.button({ key = key, text = text, glyph = glyph, height = Ui.control, fontSize = Ui.body, glyphSize = glyph and Ui.body or nil,
-        variant = "outline", enabled = enabled ~= false, tooltip = help, onClick = callback, flexGrow = glyph and 1 or nil })
+        variant = "outline", enabled = enabled ~= false, tooltip = help, onClick = callback })
 end
 
 function FooterActions.render(controller, enabled)

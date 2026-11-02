@@ -55,11 +55,11 @@ function Card.render(controller, folder)
             SharedWidgetControls.badge("folder-state-" .. folder.id, state, color),
         }),
         ui.row({ gap = 8, align = "end" }, {
-            ui.column({ gap = 2, flexGrow = 1, minWidth = 0 }, details),
+            ui.column({ gap = 2, flexGrow = 1, minWidth = 0, paddingH = 8, paddingV = 2 }, details),
             action,
         }),
     }
-    return SharedWidgetControls.column({ key = "folder-" .. folder.id, gap = 4, padding = 6, radius = 2,
+    return SharedWidgetControls.column({ key = "folder-" .. folder.id, gap = 2, radius = 0,
         border = scanning and Palette.roles.warning or (problem and "error" or (Model.folderSyncing(folder) and "on_surface" or "outline")), borderWidth = 1 }, children)
 end
 

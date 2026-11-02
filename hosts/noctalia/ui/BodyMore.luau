@@ -36,7 +36,7 @@ function Details.render(controller)
             local rows = {
                 ui.row({ gap = 4, align = "center" }, {
                     ui.glyph({ name = "folder", size = Ui.caption, color = "on_surface_variant" }),
-                    SharedWidgetControls.hint("affected: " .. problem.path),
+                    ui.label({ text = "affected: " .. Model.shortPath(problem.path, 44), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }),
                 }),
                 ui.label({ text = Model.errorText(problem.status), color = "error", fontSize = Ui.bodySmall, maxLines = 0 }),
             }

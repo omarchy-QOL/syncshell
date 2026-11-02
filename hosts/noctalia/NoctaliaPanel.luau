@@ -62,7 +62,7 @@ local function render()
         local function tab(key, text, section)
             -- Omarchy marks the open tab with a quiet fill; the host's selected button is loud.
             return ui.row({ key = key, height = Ui.control, paddingH = 10, align = "center", radius = 3, border = "outline", borderWidth = 1,
-                fill = v.section == section and "surface_variant" or "#00000000",
+                fill = v.section == section and "on_surface/0.18" or "#00000000",
                 onClick = function() v.section = section; controller:save() end },
                 { ui.label({ text = text, fontSize = Ui.caption, fontWeight = v.section == section and "bold" or nil, maxLines = 1 }) })
         end

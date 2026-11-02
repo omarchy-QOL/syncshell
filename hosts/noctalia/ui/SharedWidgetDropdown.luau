@@ -64,7 +64,11 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
             if options.onSearch then options.onSearch(text) end
             controller:save()
         end, onSubmit = activate })
-    local children = { ui.row({ gap = 6, align = "center" }, options.accessory and { search, options.accessory() } or { search }) }
+    -- Omarchy offers search only in the folder selector.
+    local children = {}
+    if options.searchable then
+        table.insert(children, ui.row({ gap = 6, align = "center" }, options.accessory and { search, options.accessory() } or { search }))
+    end
     if options.below then
         local extra = options.below()
         if extra then table.insert(children, extra) end

@@ -24,7 +24,7 @@ function Card.render(controller, device)
         if Model.shares(folder, device.id) then shared += 1 end
     end
     local pending = device.paused and "device.resume" or "device.pause"
-    return ui.column({ key = "device-" .. device.id, gap = 6, padding = 6, radius = 2, border = "outline", borderWidth = 1 }, {
+    return ui.column({ key = "device-" .. device.id, gap = 2, radius = 0, border = "outline", borderWidth = 1 }, {
         ui.row({ gap = 4, align = "center" }, {
             SharedWidgetControls.chip("edit-device-" .. device.id, "device-desktop", Model.deviceLabel(device), function()
                 controller:openWebUi()
@@ -35,8 +35,8 @@ function Card.render(controller, device)
                 Palette.roles[Model.deviceStateRole(device)]),
         }),
         ui.row({ gap = 8, align = "end" }, {
-            ui.column({ gap = 3, flexGrow = 1, minWidth = 0 }, {
-                detail("folder", tostring(shared) .. "/" .. tostring(total) .. " folder" .. (total == 1 and "" or "s")
+            ui.column({ gap = 3, flexGrow = 1, minWidth = 0, paddingH = 8, paddingV = 2 }, {
+                detail("folder-filled", tostring(shared) .. "/" .. tostring(total) .. " folder" .. (total == 1 and "" or "s")
                     .. " shared"),
                 ui.row({ gap = 10, align = "center" }, {
                     detail("download", Model.bytes(device.downloadBps) .. "/s"),

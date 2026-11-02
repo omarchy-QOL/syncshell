@@ -12,7 +12,7 @@ function Selector.render(controller)
         row.description = Model.folderStateHelp(row.state)
     end
     return Dropdown.render(controller, v, "folder", "Folder", rows, v.folderId, function(id) v.folderId = id end, {
-        selectedLabel = selected and Model.folderLabel(selected), detached = true,
+        selectedLabel = selected and Model.folderLabel(selected), detached = true, searchable = true,
         openable = #(snapshot.folders or {}) > 1,
         placeholder = "To search press '/'", help = "Select a configured folder,\nincluding unshared folders",
         empty = "No folders match the search and filters", query = v.search, filtered = true, onSearch = function(text) v.search = text end,

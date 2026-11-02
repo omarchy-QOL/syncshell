@@ -53,13 +53,13 @@ end
 function SharedWidgetControls.selectTrigger(key, text, callback, enabled, muted, help, trailing)
     local cells = { ui.label({ text = text, color = muted and "on_surface_variant" or "on_surface", fontSize = Ui.body, maxLines = 1, flexGrow = 1 }) }
     if trailing then table.insert(cells, ui.label({ text = trailing, color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 })) end
-    table.insert(cells, ui.glyph({ name = "chevron-down", size = 14, color = "on_surface_variant" }))
+    table.insert(cells, ui.glyph({ name = "chevron-down", size = Ui.bodySmall, color = "on_surface_variant" }))
     return ui.row({ key = key, gap = 8, align = "center", height = Ui.control, paddingH = 10, radius = 4, border = "outline",
         borderWidth = 1, flexGrow = 1, minWidth = 0, tooltip = help, onClick = enabled ~= false and callback or nil, opacity = enabled ~= false and 1 or 0.5 }, cells)
 end
 
 function SharedWidgetControls.chip(key, glyph, text, callback, enabled, help)
-    return ui.row({ key = key, gap = 6, align = "center", height = Ui.cardControl, paddingH = 6, radius = 3, border = "outline", borderWidth = 1,
+    return ui.row({ key = key, gap = 6, align = "center", height = Ui.cardControl, paddingH = 6, radius = 0, border = "outline", borderWidth = 1,
         minWidth = 0, tooltip = help, onClick = enabled ~= false and callback or nil }, {
         ui.glyph({ name = glyph, size = Ui.body, color = "on_surface" }),
         -- Leaves room for the copy button and state badge beside a long name.
@@ -73,12 +73,12 @@ function SharedWidgetControls.tinted(key, text, glyph, color, callback, enabled,
     local children = {}
     if glyph then table.insert(children, ui.glyph({ name = glyph, size = 12, color = color })) end
     table.insert(children, ui.label({ text = text, color = color, fontSize = Ui.body, maxLines = 1 }))
-    return ui.row({ key = key, gap = 4, align = "center", height = height or Ui.cardControl, paddingH = 6, radius = 3, border = color, borderWidth = 1,
+    return ui.row({ key = key, gap = 4, align = "center", height = height or Ui.cardControl, paddingH = 6, radius = 0, border = color, borderWidth = 1,
         tooltip = help, opacity = enabled and 1 or 0.5, onClick = enabled and callback or nil }, children)
 end
 
 function SharedWidgetControls.badge(key, text, color)
-    return ui.row({ key = key, align = "center", height = 18, paddingH = 4, radius = 2, border = color, borderWidth = 1 }, {
+    return ui.row({ key = key, align = "center", height = Ui.cardControl, paddingH = 6, radius = 0, border = color, borderWidth = 1 }, {
         ui.label({ text = text, color = color, fontSize = Ui.caption, fontWeight = "bold", maxLines = 1 }),
     })
 end

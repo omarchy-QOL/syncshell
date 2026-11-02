@@ -31,7 +31,7 @@ function Devices.render(controller)
     end, online and not busy))
     -- Omarchy keeps the remove button, disabled, with nothing to remove.
     if #devices > 0 then
-        table.insert(toolbar, ActionButton.render("Shared folders", "folders", function()
+        table.insert(toolbar, ActionButton.render("Shared folders", "folder-filled", function()
             controller:openForm("deviceFolders", device)
         end, device ~= nil and not busy, nil, "View folder shared\nwith selected device"))
     end

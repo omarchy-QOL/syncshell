@@ -23,7 +23,7 @@ function Help.render(controller)
         SharedWidgetControls.caption("INSTALLATION"),
         ui.row({ tooltip = summary }, { ui.glyph({ name = "info-circle", size = Ui.title, color = installation.available and Palette.roles.success or Palette.roles.warning }) }),
         ui.label({ text = Model.shortPath(installation.executablePath or "—", 36), fontSize = Ui.bodySmall, maxLines = 1, flexGrow = 1 }),
-        ActionButton.render("Installation help", "help", function() controller:openDocumentation("installation") end, true, nil,
+        ActionButton.render("Installation help", "question-mark", function() controller:openDocumentation("installation") end, true, nil,
             "Open Syncthing installation\nand removal documentation", Ui.control),
     })
     -- Omarchy's line under the row, for its own installer.
