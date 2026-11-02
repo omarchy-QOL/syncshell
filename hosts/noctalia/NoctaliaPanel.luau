@@ -196,7 +196,11 @@ function onKey(chord, pressed)
         end
         return
     end
-    if controller.navigation and controller.navigation(chord) then return end
+    if controller.navigation then
+        -- An open list owns the keyboard: its letters must never reach the panel's shortcuts.
+        controller.navigation(chord == "q" and "Alt+Left" or chord)
+        return
+    end
     if chord == "Alt+Left" then controller:cancel(); return end
     if controller.actionNavigation and controller.actionNavigation(chord) then return end
     if chord == "q" then
@@ -212,6 +216,7 @@ function onKey(chord, pressed)
         v.selectors = v.selectors or {}
         v.selectors[key] = v.selectors[key] or { open = false, query = "" }
         v.selectors[key].open = true
+        v.selectors[key].opens = (v.selectors[key].opens or 0) + 1
         controller:save()
     elseif chord == "p" then
         local lifecycle = controller.snapshot.lifecycle or {}

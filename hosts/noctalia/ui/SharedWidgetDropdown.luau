@@ -18,6 +18,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         if options.openable == false or (options.openable == nil and #rows <= 1) then return end
         state.open = not state.open
         if state.open then
+            state.opens = (state.opens or 0) + 1
             owner.disclosures = {}
             for other, item in owner.selectors do if other ~= key then item.open = false end end
         end
@@ -52,7 +53,8 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         end
         return true
     end
-    local search = ui.input({ key = "search-" .. key, value = query, focus = true, height = Ui.control, fontSize = Ui.body, flexGrow = 1,
+    -- The host grants focus once per key, so each opening needs its own.
+    local search = ui.input({ key = "search-" .. key .. "-" .. tostring(state.opens or 0), value = query, focus = true, height = Ui.control, fontSize = Ui.body, flexGrow = 1,
         placeholder = options.placeholder or "Search names, paths or IDs",
         onChange = function(text)
             state.query, state.cursor = text, nil

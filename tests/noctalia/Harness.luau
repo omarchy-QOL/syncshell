@@ -88,6 +88,14 @@ function Harness:find(value, nodeType)
     return nil
 end
 
+-- Search fields carry a counter: the host focuses a key only once.
+function Harness:search(key)
+    for _, node in self:nodes() do
+        if node.type == "input" and node.props.key and string.sub(node.props.key, 1, #key + 1) == key .. "-" then return node end
+    end
+    return nil
+end
+
 function Harness:click(value)
     local node
     for _, candidate in self:nodes() do

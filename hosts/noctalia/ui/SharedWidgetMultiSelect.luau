@@ -27,6 +27,7 @@ function MultiSelect.render(controller, form, rows, help, options)
         ui.row({ gap = 4, align = "center" }, captionRow),
         SharedWidgetControls.selectTrigger("shares-" .. key, summary, function()
             form.disclosures = { [key] = not form.disclosures[key] }
+            form.opens = (form.opens or 0) + 1
             if form.selectors then for _, item in form.selectors do item.open = false end end
             controller:save()
         end, not controller:busy(), selected == 0),
@@ -61,7 +62,7 @@ function MultiSelect.render(controller, form, rows, help, options)
         controller:save(); return true
     end
     if help then table.insert(children, SharedWidgetControls.hint(help)) end
-    table.insert(children, ui.input({ key = "share-search-" .. tostring(form.token) .. "-" .. key,
+    table.insert(children, ui.input({ key = "share-search-" .. tostring(form.token) .. "-" .. key .. "-" .. tostring(form.opens or 0),
         value = query, focus = true, height = Ui.control, fontSize = Ui.body, placeholder = options.placeholder or "Find a device...",
         onChange = function(text) form.queries[key], form.shareCursors[key] = text, nil; controller:save() end,
         onSubmit = toggle }))
