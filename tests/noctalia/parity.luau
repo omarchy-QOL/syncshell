@@ -146,7 +146,7 @@ scenario("device toolbar targets selection and pause gives bounded busy feedback
     assert(request.action == "device.remove" and request.args.deviceId == "REMOTE")
     h:settle(true)
     s.devices = {}; h:snapshot(s)
-    assert(h:find("No remote devices configured.") and not h:find("Remove"))
+    assert(h:find("No remote devices configured.") and h:find("Remove").props.onClick == nil, "Omarchy keeps remove, disabled")
     s.connection.online = false; h:snapshot(s)
     assert(h:find("Device status is unavailable."))
     assert(h:find("Add device").props.enabled == false)
