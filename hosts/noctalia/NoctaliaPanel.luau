@@ -64,7 +64,7 @@ local function render()
             return ui.row({ key = key, height = Ui.control, paddingH = 10, align = "center", radius = 3, border = "outline", borderWidth = 1,
                 fill = v.section == section and "on_surface/0.18" or "#00000000",
                 onClick = function() v.section = section; controller:save() end },
-                { ui.label({ text = text, fontSize = Ui.caption, maxLines = 1 }) })
+                { ui.label({ text = text, fontSize = Ui.caption, fontWeight = v.section == section and "bold" or "normal", maxLines = 1 }) })
         end
         table.insert(body, ui.row({ gap = 6, justify = "start" }, {
             tab("Folders", "FOLDERS (" .. tostring(#(controller.snapshot.folders or {})) .. ")", "folders"),
@@ -85,13 +85,16 @@ local function render()
     local bodyKey = v.form and ("form-" .. tostring(v.form.token)) or ("overview-" .. v.section)
     -- Omarchy's settings menu replaces the whole panel.
     local top = (v.form and v.form.kind == "settings") and {} or { Header.render(controller, v.form ~= nil) }
-    if #top > 0 then table.insert(top, ui.separator({})) end
-    -- Omarchy's forms open beside the panel; this fixed surface lends them the footer's space.
-    local bottom = v.form and {} or { ui.separator({}), FooterActions.render(controller, enabled), FooterShortcutHint.render() }
+    if #top > 0 then table.insert(top, SharedWidgetControls.separator()) end
+    -- Omarchy's forms open beside the panel and its view options over the footer;
+    -- this fixed surface lends them the footer's space.
+    local bottom = (v.form or (controller.dropdownList and v.filtersOpen)) and {}
+        or { SharedWidgetControls.separator(), FooterActions.render(controller, enabled), FooterShortcutHint.render() }
     -- Retained native nodes keep an omitted prop, so opacity is always explicit.
     local opacity = v.confirm and 0.35 or 1
-    local top_ = ui.column({ key = "panel-top", gap = 8, opacity = opacity }, top)
-    local bottom_ = ui.column({ key = "panel-bottom", gap = 8, opacity = opacity }, bottom)
+    -- The host insets a scroll's content, so the edges above and below follow it.
+    local top_ = ui.column({ key = "panel-top", gap = 8, paddingH = 4, opacity = opacity }, top)
+    local bottom_ = ui.column({ key = "panel-bottom", gap = 8, paddingH = 4, opacity = opacity }, bottom)
     local lifecycle = controller.snapshot.lifecycle or {}
     local drift = lifecycle.canControl and not v.confirm and Model.driftDecision(noctalia.getConfig("serviceState"), lifecycle)
     if drift and drift.status == "drift" then

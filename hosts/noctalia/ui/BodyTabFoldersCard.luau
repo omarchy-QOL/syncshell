@@ -14,10 +14,10 @@ function Card.render(controller, folder)
         local scanning = Model.folderRescanning(controller.snapshot, folder, rescan)
     local enabled = online and not controller:busy()
     local problem = state == "ERROR"
-    local color = Palette.roles[Model.folderStateRole(state)]
+    local color = state == "UNKNOWN" and (Palette.roles.muted .. "/0.6") or Palette.roles[Model.folderStateRole(state)]
     local action
     if folder.paused then
-        action = SharedWidgetControls.tinted("Forget", "FORGET", "circle-x", "error", function()
+        action = SharedWidgetControls.tinted("Forget", "FORGET", "circle-x-filled", "error", function()
             controller:confirm("Forget " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\n"
                 .. "This removes only its Syncthing configuration. The directory and data files will not be deleted. "
                 .. ((folder.markerName or ".stfolder") == ".stfolder" and "Syncthing will also attempt to remove its internal .stfolder marker. " or "")

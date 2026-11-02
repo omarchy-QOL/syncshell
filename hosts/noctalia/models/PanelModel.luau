@@ -195,6 +195,14 @@ function Model.shortPath(path, limit)
     return "…" .. string.sub(path, -limit)
 end
 
+-- The host only elides at the end; Omarchy keeps both ends of paths and IDs here.
+function Model.middlePath(path, limit)
+    path = tostring(path or "")
+    if #path <= limit then return path end
+    local head = math.floor((limit - 1) / 2)
+    return string.sub(path, 1, head) .. "…" .. string.sub(path, -(limit - 1 - head))
+end
+
 function Model.validDeviceId(value)
     local count = 0
     for part in string.gmatch(value, "[^-]+") do

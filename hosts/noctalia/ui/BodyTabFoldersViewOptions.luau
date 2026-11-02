@@ -22,6 +22,8 @@ function Options.render(controller)
         for key in v.filters do v.filters[key] = not all end
         controller:save()
     end, true, "Show every folder") } }
+    -- Omarchy opens with its cursor on the first choice.
+    rows[1][1].props.fill = not v.actionCursor and "on_surface/0.18" or "#00000000"
     for index, key in { "ready", "active", "errors", "paused", "unknown" } do
         local cell = Checkbox.render("filter-" .. key, string.upper(string.sub(key, 1, 1)) .. string.sub(key, 2), v.filters[key],
             function() v.filters[key] = not v.filters[key]; controller:save() end, true, help[key])

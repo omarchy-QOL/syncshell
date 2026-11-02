@@ -40,10 +40,10 @@ local function acceptForm(controller, form)
             onChange = function(value) form.name = value; controller:save() end })),
     }
     if form.address and form.address ~= "" then
-        table.insert(children, inline("Observed address", ui.label({ text = form.address, color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1, flexGrow = 1, textAlign = "end" })))
+        table.insert(children, inline("Observed address", ui.label({ text = Model.shortPath(form.address, 36), color = "on_surface", fontSize = Ui.caption, maxLines = 1, flexGrow = 1, textAlign = "end" })))
     end
     table.insert(children, inline("Device ID", ui.row({ gap = 6, align = "center", flexGrow = 1 }, {
-        ui.label({ text = form.deviceId, fontSize = Ui.caption, maxLines = 1, flexGrow = 1, textAlign = "end" }),
+        ui.label({ text = Model.middlePath(form.deviceId, 40), fontSize = Ui.caption, maxLines = 1, flexGrow = 1, textAlign = "end" }),
         IdCopyButton.render(controller, form.deviceId, "Copy device ID", "Copy device ID", "Device ID copied"),
     })))
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("device.add", "ACCEPT REMOTE DEVICE CONNECTION", "ACCEPTING..."),

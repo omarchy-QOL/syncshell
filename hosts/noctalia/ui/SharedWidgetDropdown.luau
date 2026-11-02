@@ -77,11 +77,16 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     local list = {}
     for index = first, math.min(first + pageSize - 1, #matches) do
         local row = matches[index]
-        local cells = { ui.button({ key = "option-" .. key .. "-" .. row.id, text = row.trailing and (row.label .. " " .. row.trailing) or row.label, contentAlign = "start", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
-            variant = (index == cursor or row.id == selected) and "default" or "ghost", enabled = row.enabled ~= false and not controller:busy(),
-            onClick = function() state.open = false; choose(row.id); controller:save() end }) }
+        -- Omarchy's highlight is a band across the row, status dot included.
+        local enabled = row.enabled ~= false and not controller:busy()
+        local cells = { ui.label({ text = row.trailing and (row.label .. " " .. row.trailing) or row.label, fontSize = Ui.body, maxLines = 1, flexGrow = 1 }) }
         if row.role then table.insert(cells, ui.box({ width = 8, height = 8, radius = 4, fill = Palette.roles[row.role], tooltip = row.description })) end
-        table.insert(list, ui.row({ key = row.id, gap = 8, align = "center" }, cells))
+        table.insert(list, ui.row({ key = "option-" .. key .. "-" .. row.id, gap = 8, align = "center", height = Ui.control, paddingH = 10, radius = 4,
+            fill = (index == cursor or row.id == selected) and "on_surface/0.18" or "#00000000", opacity = enabled and 1 or 0.5,
+            onClick = enabled and function() state.open = false; choose(row.id); controller:save() end or nil,
+            onHover = enabled and function(hovered)
+                if hovered and state.cursor ~= row.id then state.cursor = row.id; controller:save() end
+            end or nil }, cells))
     end
     if #matches == 0 then table.insert(list, SharedWidgetControls.hint(options.empty or (#rows == 0 and "No available items" or "No matching items"))) end
     table.insert(children, ui.column({ key = "results-" .. key, gap = 2 }, list))
@@ -95,7 +100,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
                 onClick = function() state.cursor = matches[first + pageSize].id; controller:save() end }),
         }))
     end
-    local tree = SharedWidgetControls.column({ key = "list-" .. key, gap = 6, padding = 6, radius = 6, border = "outline", borderWidth = 1 }, children)
+    local tree = SharedWidgetControls.column({ key = "list-" .. key, gap = 6, padding = 6, radius = 6, border = "primary", borderWidth = 1 }, children)
     -- Omarchy's list floats over the card. This host has no overlay, so a
     -- detached list takes the card's place instead.
     if options.detached then controller.dropdownList = tree; return trigger end

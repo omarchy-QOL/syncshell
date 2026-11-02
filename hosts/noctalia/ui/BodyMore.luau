@@ -10,7 +10,7 @@ local errorPage = 4
 function Details.render(controller)
     local v, s = controller.view, controller.snapshot
     local children = { ui.button({ key = v.more and "Less" or "More", text = v.more and "Less" or "More", glyph = v.more and "chevron-up" or "chevron-down",
-        variant = "ghost", contentAlign = "start", height = Ui.control, fontSize = Ui.body, glyphSize = Ui.body,
+        variant = "ghost", contentAlign = "start", height = Ui.control, fontSize = Ui.body, glyphSize = Ui.title,
         onClick = function()
             v.more = not v.more
             if v.more then v.scrollRevision = (v.scrollRevision or 0) + 1 end
@@ -35,8 +35,8 @@ function Details.render(controller)
             local problem = problems[index]
             local rows = {
                 ui.row({ gap = 4, align = "center" }, {
-                    ui.glyph({ name = "folder", size = Ui.caption, color = "on_surface_variant" }),
-                    ui.label({ text = "affected: " .. Model.shortPath(problem.path, 44), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }),
+                    ui.glyph({ name = "folder-filled", size = Ui.caption, color = "on_surface_variant" }),
+                    ui.label({ text = "affected: " .. Model.middlePath(problem.path, 56), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }),
                 }),
                 ui.label({ text = Model.errorText(problem.status), color = "error", fontSize = Ui.bodySmall, maxLines = 0 }),
             }
@@ -45,6 +45,7 @@ function Details.render(controller)
                     and ("Showing " .. tostring(problem.shown) .. " of " .. tostring(problem.count) .. " current errors. Open Web UI for the full list.")
                     or ("Showing " .. tostring(problem.shown) .. " current error" .. (problem.shown == 1 and "" or "s") .. ".")))
             end
+            if index < math.min(first + errorPage - 1, #problems) then table.insert(rows, SharedWidgetControls.separator()) end
             table.insert(children, ui.column({ key = "problem-" .. problem.id, gap = 4 }, rows))
         end
         if #problems > errorPage then
@@ -53,7 +54,6 @@ function Details.render(controller)
                 SharedWidgetControls.button("Next errors", function() v.problemPage += 1; controller:save() end, first + errorPage <= #problems, "outline"),
             }))
         end
-        table.insert(children, ui.separator({}))
         table.insert(children, BodyMoreInstallationHelp.render(controller))
     end
     return SharedWidgetControls.column({ gap = 8 }, children)

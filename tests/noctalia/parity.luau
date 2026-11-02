@@ -447,7 +447,7 @@ scenario("P06 in-form folder sources retain offer identity and route encryption"
     assert(string.find(h:text(), "1 encrypted folder offer requires", 1, true))
     h:click("select-folder-source")
     for _, node in h:nodes() do
-        if node.type == "button" and node.props.text == "Shared (by Laptop)" then node.props.onClick(); break end
+        if node.type == "row" and node.props.onClick and node.children[1] and node.children[1].props.text == "Shared (by Laptop)" then node.props.onClick(); break end
     end
     h:edit("path", "/local/shared")
     h:click("Add folder submit")

@@ -3,9 +3,9 @@ local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local ActionButton = require("./SharedWidgetSquareActionButton.luau")
 local FooterActions = {}
 
-local function action(key, text, glyph, callback, enabled, help)
+local function action(key, text, glyph, callback, enabled, help, grow)
     return ui.button({ key = key, text = text, glyph = glyph, height = Ui.control, fontSize = Ui.body, glyphSize = glyph and Ui.body or nil,
-        variant = "outline", enabled = enabled ~= false, tooltip = help, onClick = callback })
+        variant = "outline", enabled = enabled ~= false, tooltip = help, flexGrow = grow, onClick = callback })
 end
 
 function FooterActions.render(controller, enabled)
@@ -20,10 +20,10 @@ function FooterActions.render(controller, enabled)
         ui.row({ gap = 6 }, {
             action(controller:actionKey("rescan-all"), controller:actionLabel("folder.rescan-all", "Rescan all folders", "Rescanning..."), "rotate-clockwise",
                 function() controller:rescanAll() end, controller:canRescan(),
-                "Rescan all folders for local changes."),
+                "Rescan all folders for local changes.", 1),
             action(controller:actionKey("refresh"), controller:refreshing() and "Rechecking Syncthing" or "Refresh Sync.status",
                 "heartbeat", function() controller:refresh() end, controller:canRefresh(),
-                "Request latest Syncthing state.\nActive folders with current errors\nrescanned and errors rechecked."),
+                "Request latest Syncthing state.\nActive folders with current errors\nrescanned and errors rechecked.", 1),
             ActionButton.render("Settings", "settings-filled", function() controller:openForm("settings") end,
                 true, nil, "Settings"),
         }),

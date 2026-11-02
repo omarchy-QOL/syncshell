@@ -32,7 +32,7 @@ function Card.render(controller, device)
             IdCopyButton.render(controller, device.id, "copy-device-" .. device.id, "Copy device ID", "Remote device ID copied"),
             ui.spacer({ flexGrow = 1 }),
             SharedWidgetControls.badge("device-state-" .. device.id, state,
-                Palette.roles[Model.deviceStateRole(device)]),
+                state == "DISCONNECTED" and (Palette.roles.muted .. "/0.6") or Palette.roles[Model.deviceStateRole(device)]),
         }),
         ui.row({ gap = 8, align = "end" }, {
             ui.column({ gap = 3, flexGrow = 1, minWidth = 0, paddingH = 8, paddingV = 2 }, {

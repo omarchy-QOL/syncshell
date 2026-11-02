@@ -35,12 +35,12 @@ function Header.render(controller, compact)
         ui.column({ gap = 2, flexGrow = 1, minWidth = 0 }, {
             ui.label({ text = "Syncthing", fontSize = Ui.title, fontWeight = "bold", maxLines = 1 }),
             ui.row({ gap = 6, align = "center" }, {
-                ui.label({ text = string.upper(hostname), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }),
+                ui.label({ text = string.upper(hostname), color = "on_surface_variant", fontSize = Ui.caption, fontWeight = "bold", maxLines = 1 }),
                 -- A native button drops its glyph below the text at this size.
                 ui.row({ key = "Copy ID", gap = 3, align = "center", height = 16, paddingH = 4, radius = 2, border = "outline", borderWidth = 1,
                     visible = deviceId ~= nil, tooltip = "Copy device ID", onClick = function() controller:copy(deviceId, "Device ID copied") end }, {
-                    ui.glyph({ name = "copy", size = Ui.caption, color = "on_surface_variant" }),
-                    ui.label({ text = "device ID", color = "on_surface_variant", fontSize = Ui.caption - 1, maxLines = 1 }),
+                    ui.glyph({ name = "copy", size = Ui.caption, color = "on_surface" }),
+                    ui.label({ text = "device ID", color = "on_surface", fontSize = Ui.caption - 1, maxLines = 1 }),
                 }),
             }),
         }),
