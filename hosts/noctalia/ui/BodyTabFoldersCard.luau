@@ -41,7 +41,9 @@ function Card.render(controller, folder)
             controller:save()
         end }, { SharedWidgetControls.hint('(see "More" below)', "error") }))
     end
-    local details = { ui.row({ gap = 4, align = "center" }, metaRow) }
+    -- Omarchy reserves the activity line so the card keeps its height.
+    local details = { BodyTabFoldersCardActivity.render(controller, not folder.paused and folder.id or nil),
+        ui.row({ gap = 4, align = "center" }, metaRow) }
     table.insert(details, ui.label({ text = Model.shortPath(folder.path, 40), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }))
     local children = {
         ui.row({ gap = 4, align = "center" }, {
@@ -57,9 +59,7 @@ function Card.render(controller, folder)
             action,
         }),
     }
-    local activity = not folder.paused and BodyTabFoldersCardActivity.render(controller, folder.id)
-    if activity then table.insert(children, activity) end
-    return SharedWidgetControls.column({ key = "folder-" .. folder.id, gap = 10, padding = 6, radius = 2,
+    return SharedWidgetControls.column({ key = "folder-" .. folder.id, gap = 4, padding = 6, radius = 2,
         border = scanning and Palette.roles.warning or (problem and "error" or (Model.folderSyncing(folder) and "on_surface" or "outline")), borderWidth = 1 }, children)
 end
 

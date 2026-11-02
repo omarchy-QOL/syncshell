@@ -26,7 +26,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
             for other, item in owner.selectors do if other ~= key then item.open = false end end
         end
         controller:save()
-    end, not controller:busy(), false, options.help, chosen and chosen.trailing)
+    end, true, false, options.help, chosen and chosen.trailing)
     if not state.open then return trigger end
     local query = options.query or state.query
     local matches = {}

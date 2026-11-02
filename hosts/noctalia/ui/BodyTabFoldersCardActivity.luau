@@ -4,7 +4,9 @@ local Activity = {}
 
 function Activity.render(controller, folderId)
     local activity = (controller.snapshot.activity or {}).current
-    if not activity or (folderId and activity.folderId ~= folderId) then return nil end
+    if not activity or not folderId or activity.folderId ~= folderId then
+        return ui.label({ text = " ", fontSize = Ui.caption, maxLines = 1 })
+    end
     -- The label keeps the sync color; only the detail shows the file's direction.
     local detailColor = Palette.roles[activity.action == "removing" and "error"
         or (activity.action == "upload" and "success" or "info")]
