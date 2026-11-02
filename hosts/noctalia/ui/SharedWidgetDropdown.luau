@@ -20,7 +20,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         if state.open then
             state.opens = (state.opens or 0) + 1
             -- Omarchy clears the search with each opening.
-            state.query, state.cursor = "", nil
+            state.query, state.cursor, state.first = "", nil, nil
             if options.onSearch then options.onSearch("") end
             owner.disclosures = {}
             for other, item in owner.selectors do if other ~= key then item.open = false end end
@@ -63,7 +63,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
             if text == "/" then
                 text, state.opens = "", (state.opens or 0) + 1
             end
-            state.query, state.cursor, state.searchEdited = text, nil, true
+            state.query, state.cursor, state.first, state.searchEdited = text, nil, nil, true
             if options.onSearch then options.onSearch(text) end
             controller:save()
         end, onSubmit = activate })
@@ -76,7 +76,12 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         local extra = options.below()
         if extra then table.insert(children, extra) end
     end
-    local first = math.max(1, math.floor((cursor - 1) / pageSize) * pageSize + 1)
+    -- Moves only as far as the current row needs, as Omarchy's list scrolls; a page
+    -- tied to the cursor would jump under a hovering pointer.
+    local first = state.first or math.max(1, cursor - pageSize + 1)
+    if cursor < first then first = cursor elseif cursor >= first + pageSize then first = cursor - pageSize + 1 end
+    first = math.max(1, math.min(first, #matches - pageSize + 1))
+    state.first = first
     local list = {}
     for index = first, math.min(first + pageSize - 1, #matches) do
         local row = matches[index]
@@ -96,14 +101,18 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     if #matches > pageSize then
         table.insert(children, ui.row({ gap = 6, align = "center" }, {
             ui.button({ key = "Previous", glyph = "chevron-left", text = "", variant = "ghost", height = Ui.control, enabled = first > 1, tooltip = "Previous page",
-                onClick = function() state.cursor = matches[math.max(1, first - pageSize)].id; controller:save() end }),
+                onClick = function()
+                    state.first = math.max(1, first - pageSize); state.cursor = matches[state.first].id; controller:save()
+                end }),
             ui.label({ text = tostring(first) .. "-" .. tostring(math.min(first + pageSize - 1, #matches)) .. " of " .. tostring(#matches),
                 color = "on_surface_variant", fontSize = Ui.caption, textAlign = "center", flexGrow = 1 }),
             ui.button({ key = "Next", glyph = "chevron-right", text = "", variant = "ghost", height = Ui.control, enabled = first + pageSize <= #matches, tooltip = "Next page",
-                onClick = function() state.cursor = matches[first + pageSize].id; controller:save() end }),
+                onClick = function()
+                    state.first = first + pageSize; state.cursor = matches[state.first].id; controller:save()
+                end }),
         }))
     end
-    local tree = SharedWidgetControls.column({ key = "list-" .. key, gap = 6, padding = 6, radius = 6, border = "primary", borderWidth = 1 }, children)
+    local tree = SharedWidgetControls.column({ key = "list-" .. key, gap = 6, padding = 6, radius = 6, border = "on_surface_variant", borderWidth = 1 }, children)
     -- Omarchy's list floats over the card. This host has no overlay, so a
     -- detached list takes the card's place instead.
     if options.detached then controller.dropdownList = tree; return trigger end

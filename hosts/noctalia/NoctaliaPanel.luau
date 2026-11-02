@@ -126,7 +126,7 @@ local function render()
     if v.confirm then
         Confirmation.dim(top_); Confirmation.dim(bottom_)
         -- Omarchy's scrim cancels; the space around the dialog stands in for it.
-        local function scrim() return ui.box({ flexGrow = 1, onClick = function() controller:cancel() end }) end
+        local function scrim() return ui.box({ flexGrow = 1, fill = "#00000000", onClick = function() controller:cancel() end }) end
         panel.render(ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
             top_,
             ui.column({ key = "panel-dialog", flexGrow = 1 }, { scrim(), Confirmation.render(controller), scrim() }),

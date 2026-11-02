@@ -609,12 +609,31 @@ scenario("fresh map: list, dialog and cursor rules follow Omarchy", function()
     -- The first h lands on the first control, without switching tabs.
     h.entry.onKey("h", true)
     assert(h.host.state.get("view").actionCursor ~= nil and h.host.state.get("view").section == "folders")
+    -- A long list opens with its current row in view on a full page, and hovering stays put.
+    local many = Harness.fixture()
+    many.folders = {}
+    for index = 1, 20 do
+        table.insert(many.folders, { id = string.format("f%02d", index), path = "/f", status = { state = "idle" }, devices = {} })
+    end
+    many.counts.folders = 20
+    local long = start(many)
+    long:click("select-folder")
+    long:click("Next"); long:click("Next"); long:click("Next")
+    long:click("option-folder-f20"); long:click("select-folder")
+    assert(string.find(long:text(), "15-20 of 20", 1, true), "the current row's page is not full")
+    long:find("option-folder-f16").props.onHover(true)
+    assert(string.find(long:text(), "15-20 of 20", 1, true), "hovering moved the page")
+    noctalia, panel = h.host, h.panel
     -- Space around a dialog cancels it, as Omarchy's scrim does.
     h:click("Unlink"); h:advance(301)
     assert(h.host.state.get("view").confirm)
     local cancelled = false
     for _, node in h:nodes() do
-        if node.type == "box" and node.props.onClick then node.props.onClick(); cancelled = true; break end
+        if node.type == "box" and node.props.onClick then
+            -- A box without a fill renders black in the host.
+            assert(node.props.fill == "#00000000", "scrim must be transparent")
+            node.props.onClick(); cancelled = true; break
+        end
     end
     assert(cancelled and not h.host.state.get("view").confirm, "scrim did not cancel")
 end)
