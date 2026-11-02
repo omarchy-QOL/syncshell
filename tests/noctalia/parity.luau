@@ -688,6 +688,26 @@ scenario("settings arguments authorize the default unit and the file names every
 end)
 
 
+scenario("geometry: visual bugs found live stay fixed", function()
+    local Ui = require("../../hosts/noctalia/ui/UiConstants.luau")
+    local s = Harness.fixture()
+    s.folders = { { id = "one", path = "/one", devices = {}, status = { state = "idle" } }, { id = "two", path = "/two", devices = {}, status = { state = "idle" } } }
+    s.lifecycle = { active = true, canControl = true, canStart = true, targetMatch = true, unitFileState = "enabled", activeState = "active" }
+    local h = start(s)
+    -- A native button dropped the chip's glyph below its text.
+    local chip = assert(h:find("Copy ID"))
+    assert(chip.type == "row" and chip.props.align == "center" and chip.children[1].type == "glyph")
+    assert(h:find("service-toggle"), "a controllable service shows the switch")
+    assert(h:find("select-folder").props.height == Ui.control)
+    assert(h:find("Add folder").props.height == Ui.control and h:find("Add folder").props.width == Ui.control)
+    assert(h:find("Rescan").props.height == Ui.cardControl)
+    local hint = assert(h:find("shortcut-hint"))
+    assert(hint.props.justify == "center", "the shortcut hint is centred")
+    for _, item in hint.children do
+        assert(item.children[1].props.color == require("../../hosts/noctalia/controllers/ThemePaletteController.luau").roles.warning)
+    end
+end)
+
 -- The action map: each control sends exactly what Omarchy's does.
 local function wiringFixture()
     local s = Harness.fixture()
