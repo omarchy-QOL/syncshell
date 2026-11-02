@@ -36,7 +36,7 @@ local function acceptForm(controller, form)
     local children = {
         BodyFormHeader.render(controller, "ACCEPT REMOTE DEVICE REQUEST"),
         inline("Name", ui.input({ key = "form-" .. tostring(form.token) .. "-name-" .. tostring(form.sourceRevision or 0), value = form.name or "",
-            placeholder = "Optional name", focus = true, height = Ui.control, fontSize = Ui.body, flexGrow = 1, enabled = not controller:busy(),
+            placeholder = "Optional name", focus = true, height = Ui.field, fontSize = Ui.body, flexGrow = 1, enabled = not controller:busy(),
             onChange = function(value) form.name = value; controller:save() end })),
     }
     if form.address and form.address ~= "" then
@@ -44,7 +44,7 @@ local function acceptForm(controller, form)
     end
     table.insert(children, inline("Device ID", ui.row({ gap = 6, align = "center", flexGrow = 1 }, {
         ui.label({ text = Model.middlePath(form.deviceId, 40), fontSize = Ui.caption, maxLines = 1, flexGrow = 1, textAlign = "end" }),
-        IdCopyButton.render(controller, form.deviceId, "Copy device ID", "Copy device ID", "Device ID copied"),
+        IdCopyButton.render(controller, form.deviceId, "Copy device ID", "Copy device ID", "Device ID copied", Ui.smallControl),
     })))
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("device.add", "ACCEPT REMOTE DEVICE CONNECTION", "ACCEPTING..."),
         function() controller:submitForm() end, not controller:busy() and controller.status.ready, "outline", "submit-device"))

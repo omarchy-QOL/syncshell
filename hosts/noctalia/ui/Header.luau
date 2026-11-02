@@ -90,6 +90,8 @@ function Header.render(controller, compact)
     if v2.noticeKind == "success" and v2.message ~= "" then
         table.insert(children, SharedWidgetControls.notice(controller, v2.message, Palette.roles.success, "action details"))
     end
+    -- Omarchy sets status rows off from the counts.
+    if #children > 1 and not compact then table.insert(children, ui.spacer({ height = 2 })) end
     if not compact then
         table.insert(children, InfoPair.render("Folders", counts.folders or 0))
         table.insert(children, InfoPair.render("Devices", tostring(counts.connectedDevices or 0)

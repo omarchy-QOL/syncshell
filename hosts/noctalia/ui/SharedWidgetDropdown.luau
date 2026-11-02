@@ -73,11 +73,11 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     -- Omarchy offers search only in the folder selector.
     local children = {}
     if options.searchable then
-        table.insert(children, ui.row({ gap = 6, align = "center" }, options.accessory and { search, options.accessory() } or { search }))
+        table.insert(children, ui.row({ gap = 6, align = "center", paddingH = 6 }, options.accessory and { search, options.accessory() } or { search }))
     end
     if options.below then
         local extra = options.below()
-        if extra then table.insert(children, extra) end
+        if extra then table.insert(children, ui.column({ paddingH = 6 }, { extra })) end
     end
     -- Moves only as far as the current row needs, as Omarchy's list scrolls; a page
     -- tied to the cursor would jump under a hovering pointer.
@@ -92,17 +92,20 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         local enabled = row.enabled ~= false and not controller:busy()
         local cells = { ui.label({ text = row.trailing and (row.label .. " " .. row.trailing) or row.label, fontSize = Ui.body, maxLines = 1, flexGrow = 1 }) }
         if row.role then table.insert(cells, ui.box({ width = 8, height = 8, radius = 4, fill = Palette.roles[row.role], tooltip = row.description })) end
-        table.insert(list, ui.row({ key = "option-" .. key .. "-" .. row.id, gap = 8, align = "center", height = Ui.control, paddingH = 10, radius = 4,
+        table.insert(list, ui.row({ key = "option-" .. key .. "-" .. row.id, gap = 8, align = "center", height = Ui.control, paddingH = 12, radius = 0,
             fill = (index == cursor or row.id == selected) and "on_surface/0.18" or "#00000000", opacity = enabled and 1 or 0.5,
             onClick = enabled and function() state.open = false; choose(row.id); controller:save() end or nil,
             onHover = enabled and function(hovered)
                 if hovered and state.cursor ~= row.id then state.cursor = row.id; controller:save() end
             end or nil }, cells))
     end
-    if #matches == 0 then table.insert(list, SharedWidgetControls.hint(options.empty or (#rows == 0 and "No available items" or "No matching items"))) end
+    if #matches == 0 then
+        table.insert(list, ui.row({ paddingH = 6 }, { SharedWidgetControls.hint(options.empty or (#rows == 0 and "No available items" or "No matching items")) }))
+    end
     table.insert(children, ui.column({ key = "results-" .. key, gap = 2 }, list))
     if #matches > pageSize then
-        table.insert(children, ui.row({ gap = 6, align = "center" }, {
+        controller.dropdownLong = options.detached == true
+        table.insert(children, ui.row({ gap = 6, align = "center", paddingH = 6 }, {
             ui.button({ key = "Previous", glyph = "chevron-left", text = "", variant = "ghost", height = Ui.control, enabled = first > 1, tooltip = "Previous page",
                 onClick = function()
                     state.first = math.max(1, first - pageSize); state.cursor = matches[state.first].id; controller:save()
@@ -115,7 +118,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
                 end }),
         }))
     end
-    local tree = SharedWidgetControls.column({ key = "list-" .. key, gap = 6, padding = 6, radius = 6, border = "on_surface_variant", borderWidth = 1 }, children)
+    local tree = SharedWidgetControls.column({ key = "list-" .. key, gap = 6, paddingV = 6, radius = 6, border = "on_surface_variant", borderWidth = 1 }, children)
     -- Omarchy's list floats over the card. This host has no overlay, so a
     -- detached list takes the card's place instead.
     if options.detached then controller.dropdownList = tree; return trigger end

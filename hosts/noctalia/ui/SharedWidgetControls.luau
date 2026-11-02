@@ -58,7 +58,8 @@ end
 function SharedWidgetControls.selectTrigger(key, text, callback, enabled, muted, help, trailing)
     local cells = { ui.label({ text = text, color = muted and "on_surface_variant" or "on_surface", fontSize = Ui.body, maxLines = 1, flexGrow = 1 }) }
     if trailing then table.insert(cells, ui.label({ text = trailing, color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 })) end
-    table.insert(cells, ui.glyph({ name = "chevron-down", size = Ui.bodySmall, color = "on_surface_variant" }))
+    -- Omarchy dims a row's chevron further when it also has trailing text.
+    table.insert(cells, ui.glyph({ name = "chevron-down", size = Ui.bodySmall, color = trailing and "on_surface_variant" or "on_surface/0.8" }))
     return ui.row({ key = key, gap = 8, align = "center", height = Ui.control, paddingH = 10, radius = 4, border = "outline",
         borderWidth = 1, fill = "on_surface/0.05", flexGrow = 1, minWidth = 0, tooltip = help, onClick = enabled ~= false and callback or nil, opacity = enabled ~= false and 1 or 0.5 }, cells)
 end
@@ -78,7 +79,7 @@ function SharedWidgetControls.tinted(key, text, glyph, color, callback, enabled,
     local children = {}
     if glyph then table.insert(children, ui.glyph({ name = glyph, size = 12, color = color })) end
     table.insert(children, ui.label({ text = text, color = color, fontSize = Ui.body, maxLines = 1 }))
-    return ui.row({ key = key, gap = 4, align = "center", height = height or Ui.cardControl, paddingH = 6, radius = 6, border = "outline", borderWidth = 1,
+    return ui.row({ key = key, gap = 4, align = "center", height = height or Ui.cardControl, paddingH = glyph and 12 or 6, radius = 6, border = "outline", borderWidth = 1,
         tooltip = help, opacity = enabled and 1 or 0.5, onClick = enabled and callback or nil }, children)
 end
 
@@ -91,7 +92,7 @@ end
 function SharedWidgetControls.field(controller, form, key, label, options)
     options = options or {}
     local input = ui.input({ key = "form-" .. tostring(form.token) .. "-" .. key .. "-" .. tostring(options.revision or 0),
-        value = form[key] or "", placeholder = options.placeholder or "", focus = options.focus == true, height = Ui.control, fontSize = Ui.body,
+        value = form[key] or "", placeholder = options.placeholder or "", focus = options.focus == true, height = Ui.field, fontSize = Ui.body,
         enabled = options.enabled ~= false and not controller:busy(), flexGrow = options.trailing and 1 or nil,
         onChange = function(value)
             form[key] = value

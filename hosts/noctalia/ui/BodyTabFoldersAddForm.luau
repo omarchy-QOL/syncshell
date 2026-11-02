@@ -10,7 +10,7 @@ local Validation = require("../models/FormModel.luau")
 local Form = {}
 
 local function trailing(key, text, help, callback, enabled)
-    return ui.button({ key = key, text = text, tooltip = help, height = Ui.control, fontSize = Ui.caption, variant = "outline", enabled = enabled, onClick = callback })
+    return ui.button({ key = key, text = text, tooltip = help, height = Ui.field, fontSize = Ui.caption, variant = "outline", enabled = enabled, onClick = callback })
 end
 
 function Form.render(controller, form)

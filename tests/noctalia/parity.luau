@@ -428,7 +428,7 @@ scenario("P03 actual bar and panel distinguish scanning, activity and stopped se
     assert(string.find(h:text(), "SYNCING", 1, true))
     assert(string.find(tooltip, "Sync in progress...", 1, true) and string.find(icon, "sync.svg", 1, true))
     assert(h.seconds); h:advance(1000)
-    assert(string.find(h:text(), "File syncing.", 1, true))
+    assert(string.find(h:text(), "File syncing\n.", 1, true))
     s.lifecycle.active, s.lifecycle.canStart, s.lifecycle.targetMatch = false, true, true; h:snapshot(s); summary()
     assert(string.find(icon, "pause.svg", 1, true) and tooltip == "Syncthing: Syncing stopped")
     local serviceToggle

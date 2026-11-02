@@ -42,6 +42,7 @@ local function render()
     if not opened or not controller then return end
     local v = controller.view
     Palette.refresh(noctalia)
+    controller.dropdownLong = nil
     controller.navigation, controller.actionNavigation, controller.dropdownList = nil, nil, nil
     panel.setWantsSecondTicks(controller:needsTicks())
     if v.details then
@@ -69,7 +70,7 @@ local function render()
                     for _, item in v.selectors or {} do item.open = false end
                     controller:save()
                 end },
-                { ui.label({ text = text, fontSize = Ui.caption, fontWeight = v.section == section and "bold" or "normal", maxLines = 1 }) })
+                { ui.label({ text = text, fontSize = Ui.caption, maxLines = 1 }) })
         end
         table.insert(body, ui.row({ gap = 6, justify = "start" }, {
             tab("Folders", "FOLDERS (" .. tostring(#(controller.snapshot.folders or {})) .. ")", "folders"),
@@ -91,9 +92,9 @@ local function render()
     -- Omarchy's settings menu replaces the whole panel.
     local top = (v.form and v.form.kind == "settings") and {} or { Header.render(controller, v.form ~= nil) }
     if #top > 0 then table.insert(top, SharedWidgetControls.separator()) end
-    -- Omarchy's forms open beside the panel and its view options over the footer;
+    -- Omarchy's forms open beside the panel, its view options and long lists over the footer;
     -- this fixed surface lends them the footer's space.
-    local bottom = (v.form or (controller.dropdownList and v.filtersOpen)) and {}
+    local bottom = (v.form or (controller.dropdownList and (v.filtersOpen or controller.dropdownLong))) and {}
         or { SharedWidgetControls.separator(), FooterActions.render(controller, enabled), FooterShortcutHint.render() }
     -- Retained native nodes keep an omitted prop, so opacity is always explicit.
     local opacity = v.confirm and 0.35 or 1
@@ -118,7 +119,7 @@ local function render()
         Confirmation.dim(top_); Confirmation.dim(bottom_)
         panel.render(ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
             top_,
-            ui.column({ key = "panel-dialog", flexGrow = 1, justify = "center" }, { SharedDialogChoice.render(controller, drift) }),
+            ui.column({ key = "panel-dialog", flexGrow = 1, paddingH = 4, justify = "center" }, { SharedDialogChoice.render(controller, drift) }),
             bottom_,
         }))
         return
@@ -129,7 +130,7 @@ local function render()
         local function scrim() return ui.box({ flexGrow = 1, fill = "#00000000", onClick = function() controller:cancel() end }) end
         panel.render(ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
             top_,
-            ui.column({ key = "panel-dialog", flexGrow = 1 }, { scrim(), Confirmation.render(controller), scrim() }),
+            ui.column({ key = "panel-dialog", flexGrow = 1, paddingH = 4 }, { scrim(), Confirmation.render(controller), scrim() }),
             bottom_,
         }))
         return

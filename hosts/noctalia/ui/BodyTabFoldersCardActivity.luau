@@ -13,7 +13,9 @@ function Activity.render(controller, folderId)
     local color = Palette.roles.info
     local dots = string.rep(".", controller.activityPhase or 0)
     return ui.row({ gap = 4, align = "center" }, {
-        ui.label({ text = "File syncing" .. dots, color = color, fontSize = Ui.caption, maxLines = 1 }),
+        ui.label({ text = "File syncing", color = color, fontSize = Ui.caption, maxLines = 1 }),
+        -- Omarchy reserves the dots' width so the file name stays put.
+        ui.label({ text = dots, color = color, fontSize = Ui.caption, maxLines = 1, width = 12 }),
         ui.label({ text = activity.detail or activity.path, color = detailColor, fontSize = Ui.caption, maxLines = 1, flexGrow = 1 }),
     })
 end

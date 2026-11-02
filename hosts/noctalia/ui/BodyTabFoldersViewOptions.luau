@@ -65,6 +65,7 @@ function Options.render(controller)
         if index % 2 == 1 then table.insert(rows[#rows], cell) else table.insert(rows, { cell }) end
     end
     for _, cells in rows do table.insert(children, ui.row({ gap = 8 }, cells)) end
+    table.insert(children, SharedWidgetControls.separator())
     table.insert(children, SharedWidgetControls.caption("SORT"))
     for _, mode in { { "name", "Name A-Z", "Sort folder names alphabetically" }, { "active", "Active first", "Put syncing and scanning folders first" },
         { "errors", "Errors first", "Put folders needing attention first" } } do
