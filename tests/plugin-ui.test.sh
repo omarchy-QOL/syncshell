@@ -13,7 +13,7 @@ node --test tests/folder-creation.test.mjs tests/bar-click.test.mjs tests/device
 for name in architecture plugin-acceptance-lint \
   dropdown-search folder-overview busy-button \
   adapter-service core-process install-recovery refresh-recovery \
-  self-removal settings-migration theme-palette \
+  self-removal settings-migration theme-palette replacement-bar \
   caelestia-adapter dux-shell-adapter illogical-impulse-adapter \
   waybar-adapter; do
   printf '\n==> %s\n' "$name"

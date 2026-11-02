@@ -5,6 +5,7 @@ import "controllers"
 import "ui/UiConstants.js" as UiConstants
 import "models/FacadeModel.js" as FacadeModel
 import "../../shared/Paths.js" as Paths
+import "Bridge.js" as Bridge
 
 QtObject {
     id: root
@@ -652,4 +653,7 @@ QtObject {
         repeat: false
         onTriggered: root.recentlyLinkedFolderId = ""
     }
+
+    Component.onCompleted: Bridge.publish(root)
+    Component.onDestruction: Bridge.clear(root)
 }
