@@ -101,7 +101,7 @@ fresh; these are text updates, not a claim of identical Omarchy animation.
 
 ## Geometry and keyboard
 
-The panel is a fixed 400 by 540, clamped by the host, with Omarchy's font and
+The panel is a fixed 400 by 580, clamped by the host, with Omarchy's font and
 control sizes (`ui/UiConstants.luau`). Forms replace the body and footer.
 Selection and detail views use the same panel with
 an explicit return. Footers remain outside their scrollable content. Escape

@@ -14,17 +14,21 @@ end
 function Confirm.render(controller)
     local confirm = controller.view.confirm
     local create = confirm.action == "folder.add-existing"
-    local accept, cancel = confirm.choice == "accept", confirm.choice ~= "accept"
     local border = create and "outline" or "error"
+    -- Omarchy tints the chosen answer rather than filling it.
+    local function answer(key, text, chosen, callback)
+        local enabled = not controller:busy()
+        local color = chosen and border ~= "outline" and "error" or "on_surface"
+        return ui.row({ key = key, height = Ui.control, flexGrow = 1, align = "center", justify = "center", radius = 3, borderWidth = 1,
+            border = chosen and border or "outline", fill = chosen and (create and "surface_variant" or "error/0.15") or "#00000000",
+            opacity = enabled and 1 or 0.5, onClick = enabled and callback or nil },
+            { ui.label({ text = text, color = color, fontSize = Ui.body, maxLines = 1 }) })
+    end
     return ui.column({ key = "confirmation", gap = 12, padding = 12, radius = 4, border = border, borderWidth = 1 }, {
         ui.label({ text = confirm.message, fontSize = Ui.body, maxLines = 0 }),
         ui.row({ gap = 8 }, {
-            ui.button({ key = "confirmation-accept", text = create and "Create and add" or "Yes", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
-                variant = accept and (create and "primary" or "destructive") or "outline", enabled = not controller:busy(),
-                onClick = function() controller:acceptConfirmation() end }),
-            ui.button({ key = "confirmation-cancel", text = create and "Cancel" or "No", height = Ui.control, fontSize = Ui.body, flexGrow = 1,
-                variant = cancel and (create and "primary" or "destructive") or "outline", enabled = not controller:busy(),
-                onClick = function() controller:cancel() end }),
+            answer("confirmation-accept", create and "Create and add" or "Yes", confirm.choice == "accept", function() controller:acceptConfirmation() end),
+            answer("confirmation-cancel", create and "Cancel" or "No", confirm.choice ~= "accept", function() controller:cancel() end),
         }),
     })
 end

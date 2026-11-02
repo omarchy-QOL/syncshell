@@ -25,9 +25,9 @@ function Card.render(controller, folder)
                 "folder.forget", { folderId = folder.id })
         end, enabled, "Remove only this unlinked Syncthing configuration")
     elseif scanning then
-        action = SharedWidgetControls.tinted("Rescan", "RESCANNING", "refresh", Palette.roles.warning, nil, false, "Rescan this folder for local changes")
+        action = SharedWidgetControls.tinted("Rescan", "RESCANNING", "rotate-clockwise", Palette.roles.warning, nil, false, "Rescan this folder for local changes")
     else
-        action = ui.button({ key = "Rescan", text = "RESCAN", glyph = "refresh", fontSize = Ui.body, glyphSize = Ui.body, height = Ui.cardControl,
+        action = ui.button({ key = "Rescan", text = "RESCAN", glyph = "rotate-clockwise", fontSize = Ui.body, glyphSize = Ui.body, height = Ui.cardControl,
             variant = "outline", enabled = enabled, tooltip = "Rescan this folder for local changes",
             onClick = function() controller:send("folder.rescan", { folderId = folder.id }) end })
     end
@@ -47,7 +47,7 @@ function Card.render(controller, folder)
     table.insert(details, ui.label({ text = Model.shortPath(folder.path, 40), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }))
     local children = {
         ui.row({ gap = 4, align = "center" }, {
-            SharedWidgetControls.chip("open-folder-" .. folder.id, "folder", Model.folderLabel(folder), function()
+            SharedWidgetControls.chip("open-folder-" .. folder.id, "folder-filled", Model.folderLabel(folder), function()
                 controller:openPath(folder.path)
             end, type(folder.path) == "string" and folder.path ~= "", "Open " .. (folder.path or "folder")),
             IdCopyButton.render(controller, folder.id, "copy-folder-" .. folder.id, "Copy folder ID", "Folder ID copied"),

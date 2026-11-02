@@ -45,7 +45,7 @@ function Card.render(controller, device)
                 detail("sitemap", device.address or "Address unavailable"),
             }),
             ui.button({ key = "device-pause", text = controller:actionLabel(pending, device.paused and "RESUME" or "PAUSE", device.paused and "RESUMING" or "PAUSING"),
-                glyph = device.paused and "player-play" or "player-pause", fontSize = Ui.body, glyphSize = Ui.body, height = Ui.cardControl,
+                glyph = device.paused and "player-play-filled" or "player-pause-filled", fontSize = Ui.body, glyphSize = Ui.body, height = Ui.cardControl,
                 variant = "outline", enabled = enabled, tooltip = device.paused and "Resume synchronization with this device" or "Pause synchronization with this device",
                 onClick = function() controller:send(pending, { deviceId = device.id }) end }),
         }),

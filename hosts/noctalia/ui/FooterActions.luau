@@ -17,13 +17,13 @@ function FooterActions.render(controller, enabled)
             action("GUI", "GUI", nil, nil, false, "To be added soon."),
         }),
         ui.row({ gap = 6 }, {
-            action(controller:actionKey("rescan-all"), controller:actionLabel("folder.rescan-all", "Rescan all folders", "Rescanning..."), "refresh",
+            action(controller:actionKey("rescan-all"), controller:actionLabel("folder.rescan-all", "Rescan all folders", "Rescanning..."), "rotate-clockwise",
                 function() controller:rescanAll() end, controller:canRescan(),
                 "Rescan all folders for local changes."),
             action(controller:actionKey("refresh"), controller:refreshing() and "Rechecking Syncthing" or "Refresh Sync.status",
-                "activity-heartbeat", function() controller:refresh() end, controller:canRefresh(),
+                "heartbeat", function() controller:refresh() end, controller:canRefresh(),
                 "Request latest Syncthing state.\nActive folders with current errors\nrescanned and errors rechecked."),
-            ActionButton.render("Settings", "settings", function() controller:openForm("settings") end,
+            ActionButton.render("Settings", "settings-filled", function() controller:openForm("settings") end,
                 true, nil, "Settings"),
         }),
     })

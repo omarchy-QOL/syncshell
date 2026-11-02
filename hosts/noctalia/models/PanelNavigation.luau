@@ -41,7 +41,8 @@ function Navigation.decorate(controller, tree)
     local selected
     for index, action in actions do
         if action.id == view.actionCursor then selected = index; 
-            if action.node.type == "button" then action.node.props.selected = true else action.node.props.fill = "surface_variant" end
+            if action.node.type == "button" then action.node.props.selected = true
+            else action.node.props.border, action.node.props.borderWidth = "primary", 1 end
         end
     end
     controller.actionNavigation = function(chord)

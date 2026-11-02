@@ -622,7 +622,7 @@ scenario("plain keys drive the cursor, search and confirmation as in Omarchy", f
     assert(h.host.state.get("view").actionCursor == first, "k did not move back")
     for _ = 1, 40 do
         h.entry.onKey("j", true)
-        if h:find("Devices", "button").props.selected then break end
+        if string.find(h.host.state.get("view").actionCursor or "", "DEVICES", 1, true) then break end
     end
     h.entry.onKey("space", true); assert(h.host.state.get("view").section == "devices", "space did not activate the cursor")
     local s = Harness.fixture()

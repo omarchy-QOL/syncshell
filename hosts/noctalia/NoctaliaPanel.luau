@@ -60,11 +60,13 @@ local function render()
         table.insert(body, formTree(v.form))
     else
         local function tab(key, text, section)
-            return ui.button({ key = key, text = text, fontSize = Ui.caption, height = Ui.control,
-                variant = v.section == section and "secondary" or "outline",
-                onClick = function() v.section = section; controller:save() end })
+            -- Omarchy marks the open tab with a quiet fill; the host's selected button is loud.
+            return ui.row({ key = key, height = Ui.control, paddingH = 10, align = "center", radius = 3, border = "outline", borderWidth = 1,
+                fill = v.section == section and "surface_variant" or "#00000000",
+                onClick = function() v.section = section; controller:save() end },
+                { ui.label({ text = text, fontSize = Ui.caption, fontWeight = v.section == section and "bold" or nil, maxLines = 1 }) })
         end
-        table.insert(body, ui.row({ gap = 6 }, {
+        table.insert(body, ui.row({ gap = 6, justify = "start" }, {
             tab("Folders", "FOLDERS (" .. tostring(#(controller.snapshot.folders or {})) .. ")", "folders"),
             tab("Devices", "DEVICES (" .. tostring(#Model.remoteDevices(controller.snapshot)) .. ")", "devices"),
         }))
