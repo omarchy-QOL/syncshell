@@ -29,7 +29,7 @@ function Card.render(controller, device)
             SharedWidgetControls.chip("edit-device-" .. device.id, "device-desktop", Model.deviceLabel(device), function()
                 controller:openWebUi()
             end, online, "Open this device in the Web UI"),
-            IdCopyButton.render(controller, device.id, "copy-device-" .. device.id, "Copy device ID"),
+            IdCopyButton.render(controller, device.id, "copy-device-" .. device.id, "Copy device ID", "Remote device ID copied"),
             ui.spacer({ flexGrow = 1 }),
             SharedWidgetControls.badge("device-state-" .. device.id, state,
                 Palette.roles[Model.deviceStateRole(device)]),

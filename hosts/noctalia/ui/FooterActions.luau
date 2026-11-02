@@ -12,7 +12,7 @@ function FooterActions.render(controller, enabled)
     return ui.column({ key = "footer-actions", gap = 8 }, {
         ui.row({ gap = 6 }, {
             action(controller:actionKey("webui"), controller:actionLabel("webui.open", "Web UI"), nil, function() controller:openWebUi() end,
-                not controller:busy() and (controller.snapshot.connection or {}).online, "Open the Syncthing Web UI"),
+                (controller.snapshot.connection or {}).online == true, "Open the Syncthing Web UI"),
             action("TUI", "TUI", nil, nil, false, "To be added soon."),
             action("GUI", "GUI", nil, nil, false, "To be added soon."),
         }),
@@ -20,7 +20,7 @@ function FooterActions.render(controller, enabled)
             action(controller:actionKey("rescan-all"), controller:actionLabel("folder.rescan-all", "Rescan all folders", "Rescanning..."), "refresh",
                 function() controller:rescanAll() end, controller:canRescan(),
                 "Rescan all folders for local changes."),
-            action(controller:actionKey("refresh"), (not controller:busy() and (controller.view.refreshUntil or 0) > controller.host.nowMs() and "Rechecking Syncthing") or controller:actionLabel("folder.recheck-errors", controller:actionLabel("refresh", "Refresh Sync.status", "Rechecking Syncthing"), "Rechecking Syncthing"),
+            action(controller:actionKey("refresh"), controller:refreshing() and "Rechecking Syncthing" or "Refresh Sync.status",
                 "activity-heartbeat", function() controller:refresh() end, controller:canRefresh(),
                 "Request latest Syncthing state.\nActive folders with current errors\nrescanned and errors rechecked."),
             ActionButton.render("Settings", "settings", function() controller:openForm("settings") end,

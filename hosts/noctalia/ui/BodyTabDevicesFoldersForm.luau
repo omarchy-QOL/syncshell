@@ -11,7 +11,7 @@ function Form.render(controller, form)
     local device = Model.find(controller.snapshot.devices, form.deviceId)
     local groups = Model.deviceShares(controller.snapshot, form.deviceId)
     local children = {
-        BodyFormHeader.render(controller, "SHARED WITH " .. (device and (device.name ~= "" and device.name or device.id) or "DEVICE")),
+        BodyFormHeader.render(controller, "SHARED WITH " .. (device and Model.deviceLabel(device) or "DEVICE")),
     }
     if not device then table.insert(children, SharedWidgetControls.hint("Device is no longer configured", "error")) end
     -- Omarchy shows only the message when nothing is shared.
@@ -19,10 +19,10 @@ function Form.render(controller, form)
         table.insert(children, SharedWidgetControls.hint("No folders are currently shared with this device.", Palette.roles.warning))
         return ui.column({ gap = 8 }, children)
     end
-    table.insert(children, MultiSelect.render(controller, form, groups.confirmed, "Confirmed remote sharing, including remote-paused folders.",
+    table.insert(children, MultiSelect.render(controller, form, groups.confirmed, nil,
         { key = "confirmed", label = "Existing shares", group = true, empty = "No confirmed shares", placeholder = "Find a folder..." }))
-    table.insert(children, MultiSelect.render(controller, form, groups.unconfirmed, "A configured share is not proof of remote acceptance.",
-        { key = "unconfirmed", label = "Unconfirmed shares", note = "(acceptance pending/device offline)", group = true,
+    table.insert(children, MultiSelect.render(controller, form, groups.unconfirmed, nil,
+        { key = "unconfirmed", label = "Unconfirmed shares", note = #groups.unconfirmed > 0 and "(acceptance pending/device offline)" or nil, group = true,
             empty = "No unconfirmed shares", placeholder = "Find a folder..." }))
     table.insert(children, ui.row({ gap = 4, align = "center" }, {
         ui.glyph({ name = "alert-triangle", size = Ui.caption, color = Palette.roles.warning }),

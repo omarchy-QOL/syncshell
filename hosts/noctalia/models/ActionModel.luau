@@ -40,7 +40,7 @@ end
 
 local function folderName(snapshot, id)
     local folder = named(snapshot.folders, id)
-    return folder and Model.folderLabel(folder) or id
+    return folder and folder.label ~= nil and folder.label ~= "" and folder.label or id
 end
 
 local function deviceName(snapshot, id)

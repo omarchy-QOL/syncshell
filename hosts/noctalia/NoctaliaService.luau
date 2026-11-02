@@ -19,7 +19,7 @@ local pingAt, pingBusy, startedAt = 0, false, 0
 local configureNeeded = false
 local alive = true
 local lastPalette, themeCheckAt, currentTheme = nil, 0, nil
-local webUiCheck, webUiChanged = true, false
+local webUiCheck, webUiChanged, wasOnline = true, false, false
 local queued
 local ownedThemes = { modern = "syncshell-noctalia-modern", themed = "syncshell-noctalia-themed" }
 local cleanupReady = false
@@ -46,10 +46,11 @@ local function retire(message)
     epoch += 1
     if pending then
         result(pending.id, pending.view, false, nil,
-            "Connection interrupted; the action may have completed. Refresh before trying again.", "uncertain")
+            "Folder operation stopped because native core became unavailable", "uncertain")
         pending = nil
     end
     queued = nil
+    if status.rescan then announce("Folder operation stopped because native core became unavailable", "error") end
     status.ready, status.busy, status.busyAction, status.error, status.rescan = false, nil, nil, message, nil
     publish()
     if directory then control("stop") end
@@ -68,7 +69,7 @@ local function dispatch(intent)
     pending = intent
     pending.started = noctalia.nowMs()
     -- Background work does not lock the panel's controls.
-    if intent.view ~= "service" then status.busy, status.busyAction = intent.id, intent.request.action end
+    if intent.view ~= "service" and not intent.background then status.busy, status.busyAction = intent.id, intent.request.action end
     publish()
     if not noctalia.writeFile(directory .. "/request-slot.json", raw) then
         retire("Cannot write the private request file")
@@ -82,10 +83,11 @@ local function dispatch(intent)
 end
 
 -- Published for the panel and sent to the desktop, as Omarchy's notices are.
-local function announce(text, kind)
+local function announce(text, kind, panelOnly)
     if text == nil or text == "" then return end
     status.noticeSequence = (status.noticeSequence or 0) + 1
     status.notice = { sequence = status.noticeSequence, text = text, kind = kind }
+    if panelOnly then return end
     if kind == "error" then noctalia.notifyError("Syncthing", text) else noctalia.notify("Syncthing", text) end
 end
 
@@ -113,7 +115,10 @@ local function receive(frame)
     elseif frame.type == "hello" then
         status.build = frame.build
     elseif frame.type == "snapshot" then
-        currentTheme = frame.state.webUi and frame.state.webUi.theme
+        local theme = frame.state.webUi and frame.state.webUi.theme
+        local online = (frame.state.connection or {}).online == true
+        if theme ~= currentTheme or online ~= wasOnline then webUiCheck = true end
+        currentTheme, wasOnline = theme, online
         reconcileRescan(frame.state)
         snapshotStore.commit(frame.revision, noctalia.nowMs())
         noctalia.state.set("summary", { generation = status.generation,
@@ -126,11 +131,18 @@ local function receive(frame)
         if pending and pending.id == frame.id then
             if pending.view == "service" then
                 local operation = pending.request.action or pending.request.type
-                if not frame.ok then
-                    status.backgroundError = operation .. ": " .. ((frame.error or {}).message or "Background action failed")
+                local theme = operation == "webui.set-theme" or operation == "webui.apply-profile"
+                if not frame.ok and operation ~= "refresh" then
+                    local message = (frame.error or {}).message or "Background action failed"
+                    status.backgroundError = theme and ("Could not update Syncthing Web UI: " .. message) or (operation .. ": " .. message)
                     status.backgroundOperation = operation
-                elseif status.backgroundOperation == operation then
-                    status.backgroundError, status.backgroundOperation = nil, nil
+                elseif frame.ok then
+                    if status.backgroundOperation == operation then status.backgroundError, status.backgroundOperation = nil, nil end
+                    local profile = (pending.request.args or {}).profile
+                    if theme and not pending.silent then
+                        announce(profile == "modern" and "Modern Web UI applied"
+                            or (profile == "themed" and "Noctalia Web UI theme applied" or "Syncthing default Web UI restored"), "success", true)
+                    end
                 end
             end
             if frame.ok and pending.request.action == "webui.apply-profile"
@@ -286,15 +298,18 @@ function update()
             config = { refreshIntervalSeconds = settings.refreshSeconds,
                 probeIntervalSeconds = settings.probeSeconds, desiredServiceState = settings.serviceState } } })
     end
-    -- As in Omarchy, the saved preference selects the Web UI on a change or a
-    -- start. A start never takes over a theme another client selected.
+    -- As in Omarchy, the saved preference selects the Web UI whenever it, the
+    -- selected theme or the connection changes. Without the adapter's settings
+    -- file a start keeps a theme another client selected.
     if status.ready and not pending and webUiCheck and currentTheme then
         webUiCheck = false
         local foreign = currentTheme ~= "default" and currentTheme ~= ownedThemes.modern and currentTheme ~= ownedThemes.themed
-        if foreign and not webUiChanged then currentTheme = ownedThemes[settings.webUi] or currentTheme end
+        local keep = foreign and not webUiChanged and not noctalia.fileExists(Settings.filePath(noctalia))
         webUiChanged = false
         local id, action, args = "webui-" .. tostring(now), nil, nil
-        if settings.webUi == "default" then
+        if keep then
+            announce("Keeping Syncthing Web UI theme " .. currentTheme, "success", true)
+        elseif settings.webUi == "default" then
             if currentTheme == ownedThemes.modern or currentTheme == ownedThemes.themed then
                 action, args = "webui.set-theme", { theme = "default" }
             end
@@ -315,7 +330,7 @@ function update()
             if colors and Palette.signature(colors) ~= lastPalette then
                 themeCheckAt = now + 60000
                 local id = "palette-" .. tostring(now)
-                dispatch({ id = id, view = "service", request = { v = 2, type = "action", id = id,
+                dispatch({ id = id, view = "service", silent = true, request = { v = 2, type = "action", id = id,
                     action = "webui.apply-profile", args = { profile = "themed", palette = colors } } })
             end
         end

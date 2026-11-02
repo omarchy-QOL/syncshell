@@ -11,7 +11,11 @@ function Details.render(controller)
     local v, s = controller.view, controller.snapshot
     local children = { ui.button({ key = v.more and "Less" or "More", text = v.more and "Less" or "More", glyph = v.more and "chevron-up" or "chevron-down",
         variant = "ghost", contentAlign = "start", height = Ui.control, fontSize = Ui.body, glyphSize = Ui.body,
-        onClick = function() v.more = not v.more; controller:save() end }) }
+        onClick = function()
+            v.more = not v.more
+            if v.more then v.scrollRevision = (v.scrollRevision or 0) + 1 end
+            controller:save()
+        end }) }
     if v.more then
         local connection = s.connection or {}
         local problems = Model.problems(s)
@@ -23,7 +27,7 @@ function Details.render(controller)
         }))
         if not fresh then
             table.insert(children, SharedWidgetControls.hint(#problems > 0 and "Last reported errors; current status is unavailable."
-                or "Current Syncthing status is unavailable.", "error"))
+                or "Current Syncthing status is unavailable."))
         end
         v.problemPage = math.clamp(v.problemPage or 1, 1, math.max(1, math.ceil(#problems / errorPage)))
         local first = (v.problemPage - 1) * errorPage + 1
@@ -36,9 +40,10 @@ function Details.render(controller)
                 }),
                 ui.label({ text = Model.errorText(problem.status), color = "error", fontSize = Ui.bodySmall, maxLines = 0 }),
             }
-            if problem.shown < problem.count then
-                table.insert(rows, SharedWidgetControls.hint("Showing " .. tostring(problem.shown) .. " of " .. tostring(problem.count)
-                    .. " current errors. Open Web UI for the full list."))
+            if problem.count > 0 then
+                table.insert(rows, SharedWidgetControls.hint(problem.shown < problem.count
+                    and ("Showing " .. tostring(problem.shown) .. " of " .. tostring(problem.count) .. " current errors. Open Web UI for the full list.")
+                    or ("Showing " .. tostring(problem.shown) .. " current error" .. (problem.shown == 1 and "" or "s") .. ".")))
             end
             table.insert(children, ui.column({ key = "problem-" .. problem.id, gap = 4 }, rows))
         end

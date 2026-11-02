@@ -2,15 +2,21 @@ local Palette = require("../controllers/ThemePaletteController.luau")
 local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Checkbox = require("./SharedWidgetCheckbox.luau")
+local Model = require("../models/PanelModel.luau")
 local MultiSelect = {}
 local pageSize = 6
+
+local function rowName(row)
+    if row.label then return row.label end
+    return Model.deviceLabel(row)
+end
 
 function MultiSelect.render(controller, form, rows, help, options)
     options = options or { key = "sharing", label = "Share with devices" }
     form.disclosures, form.queries, form.shareCursors = form.disclosures or {}, form.queries or {}, form.shareCursors or {}
     local key, selected, names = options.key, 0, {}
     for _, row in rows do
-        if form.selected[row.id] then selected += 1; table.insert(names, row.name or row.label or row.id) end
+        if form.selected[row.id] then selected += 1; table.insert(names, rowName(row)) end
     end
     local summary = selected <= 3 and table.concat(names, ", ") or (tostring(selected) .. " selected")
     if summary == "" then summary = options.empty or (options.key == "sharing" and "Local only") or (#rows == 0 and "No available items" or "None selected") end
@@ -29,7 +35,7 @@ function MultiSelect.render(controller, form, rows, help, options)
     local query, available, matches, cursor = form.queries[key] or "", {}, {}, 1
     for _, row in rows do
         available[row.id] = true
-        local text = (row.name or row.label or row.id) .. "\n" .. (row.path and (row.path .. " | ") or "") .. row.id
+        local text = rowName(row) .. "\n" .. (row.path and (row.path .. " | ") or "") .. row.id
             .. "\n" .. (row.description or "")
         if string.find(string.lower(text), string.lower(query), 1, true) then
             table.insert(matches, { row = row, text = text })
@@ -54,7 +60,7 @@ function MultiSelect.render(controller, form, rows, help, options)
         end
         controller:save(); return true
     end
-    table.insert(children, SharedWidgetControls.hint(help))
+    if help then table.insert(children, SharedWidgetControls.hint(help)) end
     table.insert(children, ui.input({ key = "share-search-" .. tostring(form.token) .. "-" .. key,
         value = query, focus = true, height = Ui.control, fontSize = Ui.body, placeholder = options.placeholder or "Find a device...",
         onChange = function(text) form.queries[key], form.shareCursors[key] = text, nil; controller:save() end,
@@ -65,7 +71,7 @@ function MultiSelect.render(controller, form, rows, help, options)
         local row = matches[index].row
         local description = row.description or (row.untrusted and "Encrypted sharing requires the Web UI")
             or (not row.path and "Will receive a folder share offer") or nil
-        table.insert(list, Checkbox.render("share-" .. row.id, row.name or row.label or row.id, form.selected[row.id] == true, function()
+        table.insert(list, Checkbox.render("share-" .. row.id, rowName(row), form.selected[row.id] == true, function()
             form.selected[row.id] = not form.selected[row.id]; controller:save()
         end, not controller:busy(), row.path and (row.path .. " | " .. row.id) or row.id, false, description))
     end

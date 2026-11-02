@@ -34,7 +34,7 @@ function Devices.render(controller)
             controller:openForm("deviceFolders", device)
         end, device ~= nil and not busy, nil, "View folder shared\nwith selected device"))
         table.insert(toolbar, ActionButton.render("Remove", "x", function()
-            controller:confirm("Remove " .. (device.name ~= "" and device.name or Model.shortDeviceId(device.id)) .. " from this device?\n\n"
+            controller:confirm("Remove " .. Model.deviceLabel(device) .. " from this device?\n\n"
                 .. "Folder sharing with it will be removed locally. Local folders and files remain.\nThe other device is unchanged.",
                 "device.remove", { deviceId = device.id })
         end, device ~= nil and online and not busy, nil, "Remove selected device", nil, "error"))

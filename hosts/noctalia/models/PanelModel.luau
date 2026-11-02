@@ -257,10 +257,16 @@ function Model.problems(snapshot)
     return rows
 end
 
+-- Grouped by reason, as Omarchy lists them.
 function Model.errorText(status)
+    local order, groups = {}, {}
+    for _, err in status.errors or {} do
+        if not groups[err.error] then groups[err.error] = {}; table.insert(order, err.error) end
+        table.insert(groups[err.error], err.path)
+    end
     local detail = {}
     if status.error and status.error ~= "" then table.insert(detail, status.error) end
-    for _, err in status.errors or {} do table.insert(detail, err.error .. "\n" .. err.path) end
+    for _, reason in order do table.insert(detail, reason .. "\n\n" .. table.concat(groups[reason], "\n")) end
     return #detail > 0 and table.concat(detail, "\n\n") or "Syncthing reported no error details."
 end
 
@@ -296,7 +302,7 @@ function Model.folderMeta(snapshot, folder, scanning)
     local status = folder.status or {}
     if Model.folderProblem(folder) then
         local first = (status.errors or {})[1]
-        return (status.error ~= "" and status.error) or (first and first.error) or "Folder needs attention"
+        return ((status.error ~= nil and status.error ~= "" and status.error) or (first and first.error) or "Folder needs attention") .. folderSuffix(folder)
     end
     local suffix = folderSuffix(folder)
     if folder.paused then return "Syncing paused" .. suffix end
@@ -348,7 +354,7 @@ function Model.indicator(snapshot, status)
     local problems = counts.folderProblems or 0
     local serviceOff = Model.lifecycleAvailable(lifecycle) and lifecycle.active ~= true
     local summary = "Up to date"
-    if not status.ready then summary = "Syncthing unavailable"
+    if not status.ready then summary = status.error and "Syncthing unavailable" or "Starting Syncshell"
     elseif installation.available == false and not connection.online then summary = "Syncthing is not installed"
     elseif serviceOff then summary = "Syncing stopped"
     elseif phase == "discovering" then summary = "Finding Syncthing"

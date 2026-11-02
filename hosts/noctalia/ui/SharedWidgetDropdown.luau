@@ -14,6 +14,8 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     for _, row in rows do if row.id == selected then chosen = row end end
     local function close() state.open = false; controller:save() end
     local trigger = SharedWidgetControls.selectTrigger("select-" .. key, options.selectedLabel or (chosen and chosen.label) or "Choose", function()
+        -- Omarchy's selector only opens with something to choose.
+        if options.openable == false or (options.openable == nil and #rows <= 1) then return end
         state.open = not state.open
         if state.open then
             owner.disclosures = {}

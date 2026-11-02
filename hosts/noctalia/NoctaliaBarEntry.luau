@@ -7,7 +7,7 @@ local function render()
     local state = snapshot and snapshot.generation == status.generation and snapshot.state or {}
     local variant, label = Model.indicator(state, status)
     barWidget.setImage(Palette.statusIcon(noctalia, variant), false, 20, 20)
-    barWidget.setTooltip("Syncthing: " .. label .. (status.error and ("\n" .. status.error) or ""))
+    barWidget.setTooltip("Syncthing: " .. label)
 end
 
 noctalia.state.watch("summary", function(value) snapshot = value; render() end)
@@ -15,6 +15,5 @@ noctalia.state.watch("status", function(value) status = value or {}; render() en
 
 function onConfigChanged() render() end
 function onClick() noctalia.togglePanel("syncshell/syncshell:panel") end
-function onRightClick() noctalia.togglePanel("syncshell/syncshell:panel") end
 
 render()

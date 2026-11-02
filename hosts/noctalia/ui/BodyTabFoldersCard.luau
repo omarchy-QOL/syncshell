@@ -20,7 +20,7 @@ function Card.render(controller, folder)
         action = SharedWidgetControls.tinted("Forget", "FORGET", "circle-x", "error", function()
             controller:confirm("Forget " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\n"
                 .. "This removes only its Syncthing configuration. The directory and data files will not be deleted. "
-                .. (folder.markerName == ".stfolder" and "Syncthing will also attempt to remove its internal .stfolder marker. " or "")
+                .. ((folder.markerName or ".stfolder") == ".stfolder" and "Syncthing will also attempt to remove its internal .stfolder marker. " or "")
                 .. "Rejoining the same remote folder requires this exact Folder ID.",
                 "folder.forget", { folderId = folder.id })
         end, enabled, "Remove only this unlinked Syncthing configuration")
@@ -48,7 +48,7 @@ function Card.render(controller, folder)
             SharedWidgetControls.chip("open-folder-" .. folder.id, "folder", Model.folderLabel(folder), function()
                 controller:openPath(folder.path)
             end, type(folder.path) == "string" and folder.path ~= "", "Open " .. (folder.path or "folder")),
-            IdCopyButton.render(controller, folder.id, "copy-folder-" .. folder.id, "Copy folder ID"),
+            IdCopyButton.render(controller, folder.id, "copy-folder-" .. folder.id, "Copy folder ID", "Folder ID copied"),
             ui.spacer({ flexGrow = 1 }),
             SharedWidgetControls.badge("folder-state-" .. folder.id, state, color),
         }),

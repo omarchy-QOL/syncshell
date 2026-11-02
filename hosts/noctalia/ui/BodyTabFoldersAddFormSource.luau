@@ -18,7 +18,7 @@ function Source.render(controller, form)
             else
                 local key = controller.host.json.encode({ id, deviceId })
                 local device = Model.find(controller.snapshot.devices, deviceId)
-                offers[key] = { id = id, deviceId = deviceId, label = offer.label or id }
+                offers[key] = { id = id, deviceId = deviceId, label = offer.label ~= nil and offer.label ~= "" and offer.label or id }
                 table.insert(rows, { id = key, label = offer.label ~= "" and offer.label or id, trailing = "(by " .. (device and Model.deviceLabel(device) or "Unknown device") .. ")",
                     description = id .. " | Offered by " .. (device and device.name or deviceId) .. " | " .. deviceId })
             end
@@ -36,6 +36,7 @@ function Source.render(controller, form)
             form.folderId, form.label = offer and offer.id or "", offer and offer.label or (form.labelFromOffer and "" or form.label)
             form.labelFromOffer = offer ~= nil
             form.idRevision, form.labelRevision = (form.idRevision or 0) + 1, (form.labelRevision or 0) + 1
+            form.prepareError = nil
             if offer then form.selected[offer.deviceId] = true else controller:send("folder.suggest-id", {}) end
         end))
     end

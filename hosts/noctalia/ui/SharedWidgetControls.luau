@@ -88,8 +88,12 @@ function SharedWidgetControls.field(controller, form, key, label, options)
     local input = ui.input({ key = "form-" .. tostring(form.token) .. "-" .. key .. "-" .. tostring(options.revision or 0),
         value = form[key] or "", placeholder = options.placeholder or "", focus = options.focus == true, height = Ui.control, fontSize = Ui.body,
         enabled = options.enabled ~= false and not controller:busy(), flexGrow = options.trailing and 1 or nil,
-        onChange = function(value) form[key] = value; controller:save() end,
-        onSubmit = options.onSubmit or function() controller:submitForm() end })
+        onChange = function(value)
+            form[key] = value
+            if options.onEdited then options.onEdited() end
+            controller:save()
+        end,
+        onSubmit = options.onSubmit })
     return ui.column({ gap = 4 }, {
         SharedWidgetControls.caption(label),
         options.trailing and ui.row({ gap = 6, align = "center" }, { input, options.trailing }) or input,

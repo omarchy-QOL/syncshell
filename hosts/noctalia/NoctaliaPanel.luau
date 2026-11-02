@@ -113,6 +113,8 @@ local function render()
                 v.driftChoice = v.driftChoice == "drift-first" and "drift-second" or "drift-first"; controller:save()
             elseif chord == "Alt+Return" then
                 controller:chooseDrift(v.driftChoice == "drift-first" and drift.first or drift.second)
+            elseif chord == "q" then
+                panel.close()
             end
             return true
         end

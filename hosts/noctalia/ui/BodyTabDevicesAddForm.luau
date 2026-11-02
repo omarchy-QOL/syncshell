@@ -31,7 +31,7 @@ local function acceptForm(controller, form, problem)
     local children = {
         BodyFormHeader.render(controller, "ACCEPT REMOTE DEVICE REQUEST"),
         SharedWidgetControls.field(controller, form, "name", "Name", { focus = true, revision = form.sourceRevision,
-            placeholder = "Optional name", onSubmit = function() controller:submitForm() end }),
+            placeholder = "Optional name" }),
     }
     if form.address and form.address ~= "" then
         table.insert(children, ui.column({ gap = 2 }, { SharedWidgetControls.caption("Observed address"), SharedWidgetControls.hint(form.address) }))
@@ -40,7 +40,7 @@ local function acceptForm(controller, form, problem)
         SharedWidgetControls.caption("Device ID"),
         ui.row({ gap = 6, align = "center" }, {
             ui.label({ text = form.deviceId, fontSize = Ui.caption, maxLines = 3, flexGrow = 1 }),
-            IdCopyButton.render(controller, form.deviceId, "Copy device ID", "Copy device ID"),
+            IdCopyButton.render(controller, form.deviceId, "Copy device ID", "Copy device ID", "Device ID copied"),
         }),
     }))
     if problem then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
@@ -64,7 +64,7 @@ function Form.render(controller, form)
     end
     table.insert(children, SharedWidgetControls.field(controller, form, "name", "Remote Device Name", {
         revision = form.sourceRevision,
-        placeholder = "Optional; adopted from the remote when empty", onSubmit = function() controller:submitForm() end }))
+        placeholder = "Optional; adopted from the remote when empty" }))
     if problem and form.deviceId ~= "" then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("device.add", "ADD REMOTE DEVICE", "ADDING..."), function() controller:submitForm() end,
         problem == nil and not controller:busy() and controller.status.ready, "outline", "submit-device"))

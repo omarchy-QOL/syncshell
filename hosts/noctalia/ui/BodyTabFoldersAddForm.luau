@@ -25,18 +25,20 @@ function Form.render(controller, form)
             placeholder = "/path/to/my/folder", trailing = trailing("Browse directories", "BROWSE", "Choose an existing local directory", function()
                 Picker.open(controller, form.path ~= "" and form.path or (controller.host.getenv("HOME") or "/"))
             end, not controller:busy()) }),
-        SharedWidgetControls.field(controller, form, "label", "Label", { revision = form.labelRevision,
+        SharedWidgetControls.field(controller, form, "label", "Label", { revision = form.labelRevision, onEdited = function() form.labelFromOffer = false end,
             placeholder = "Derived from the directory name when empty" }),
         SharedWidgetControls.field(controller, form, "folderId", "Folder ID", { revision = form.idRevision,
-            placeholder = controller:actionLabel("folder.suggest-id", "") ~= "" and "Generating..." or "Required folder identity",
+            placeholder = (controller.view.pending or {}).action == "folder.suggest-id" and "Generating..." or "Required folder identity",
+            onEdited = function() form.prepareError = nil end,
             onSubmit = function() controller:submitForm() end,
             trailing = trailing(controller:actionKey("generate-id"), "NEW ID", "Generate a new Syncthing folder ID", function()
                 -- A new identity leaves any chosen offer, as in Omarchy.
                 form.pendingDeviceId, form.folderId, form.idRevision = nil, "", (form.idRevision or 0) + 1
+                form.prepareError = nil
                 controller:send("folder.suggest-id", {})
-            end, not controller:busy()) }),
-        SharedWidgetControls.hint("Reuse the exact ID to rejoin an existing remote folder. A new ID creates a different folder identity."),
-        MultiSelect.render(controller, form, devices, "Share with selected devices. No selection keeps the folder local only."),
+            end, not controller:busy() and (controller.view.pending or {}).action ~= "folder.suggest-id") }),
+        form.prepareError and SharedWidgetControls.hint(form.prepareError, "error") or SharedWidgetControls.hint("Reuse the exact ID to rejoin an existing remote folder. A new ID creates a different folder identity."),
+        MultiSelect.render(controller, form, devices),
         SharedWidgetControls.hint(selected == 0 and "Local only: not shared with other devices."
             or "Selected devices receive a share offer and may need to accept it.", selected == 0 and Palette.roles.warning or nil),
     }

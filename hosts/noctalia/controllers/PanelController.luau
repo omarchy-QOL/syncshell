@@ -38,7 +38,13 @@ function Controller:tick()
         changed = true
     end
     if v.linkedUntil and now >= v.linkedUntil then v.recentlyLinked, v.linkedUntil = nil, nil; changed = true end
-    if v.refreshUntil and now >= v.refreshUntil then v.refreshUntil = nil; changed = true end
+    if v.refreshUntil and now >= v.refreshUntil then
+        v.refreshUntil = nil; changed = true
+        if v.refreshSucceeded then
+            v.refreshSucceeded = false
+            self:notice("Syncthing status refreshed", "success")
+        end
+    end
     if (self.snapshot.activity or {}).current then
         self.activityPhase = ((self.activityPhase or 0) + 1) % 4
         changed = true
@@ -90,8 +96,13 @@ function Controller:setResults(results)
                 -- As in Omarchy, a failed bridge still opens the plain address.
                 self:openExternal((self.snapshot.webUi or {}).url or "")
             elseif pending.requestType == "refresh" or pending.action == "folder.recheck-errors" then
-                self.view.refreshUntil = self.host.nowMs() + 1500
-                if not result.ok then self:notice(result.error or "Could not recheck Syncthing errors", "error") end
+                if result.ok then self.view.refreshSucceeded = true
+                else self:notice(result.error or "Could not recheck Syncthing errors", "error") end
+            elseif pending.action == "folder.suggest-id" then
+                local form = self.view.form
+                if form and form.token == pending.formToken and not result.ok then
+                    form.prepareError = result.error or "Could not generate a folder ID"
+                end
             elseif not result.ok then
                 self:notice(result.error or "Action failed", result.code == "uncertain" and "uncertain" or "error")
             elseif pending.action ~= "folder.rescan" and pending.action ~= "folder.rescan-all" then
@@ -115,7 +126,7 @@ function Controller:setResults(results)
                 -- The dialog answers the error; Omarchy never shows it behind.
                 self.view.message, self.view.noticeKind = "", nil
                 self.view.confirm = { message = "Create " .. args.path .. " and add the folder?", action = pending.action, args = args,
-                    closeForm = true, choice = "accept", opened = self.host.nowMs() }
+                    closeForm = true, choice = "cancel", opened = self.host.nowMs() }
             elseif result.ok and pending.closeForm and sameForm then
                 self.view.form, self.view.confirm = nil, nil
                 if result.data and result.data.folderId then self.view.folderId = result.data.folderId end
@@ -125,12 +136,23 @@ function Controller:setResults(results)
     end
 end
 
+-- Only its own request and feedback time block the refresh button, as in Omarchy.
 function Controller:canRefresh()
-    return (self.snapshot.connection or {}).online == true and not self:busy() and self.status.ready == true
+    local pending = self.view.pending
+    return (self.snapshot.connection or {}).online == true and self.status.ready == true
+        and not (pending and (pending.requestType == "refresh" or pending.action == "folder.recheck-errors"))
         and (self.view.refreshUntil or 0) <= self.host.nowMs()
 end
 
+function Controller:refreshing()
+    local pending = self.view.pending
+    return (pending ~= nil and (pending.requestType == "refresh" or pending.action == "folder.recheck-errors"))
+        or (self.view.refreshUntil or 0) > self.host.nowMs()
+end
+
 function Controller:refresh()
+    self.view.refreshUntil = self.host.nowMs() + 1500
+    self.view.refreshSucceeded = false
     if ((self.snapshot.counts or {}).folderProblems or 0) > 0 then
         return self:send("folder.recheck-errors", {})
     end
@@ -197,11 +219,15 @@ function Controller:actionLabel(action, label, busyLabel)
 end
 
 function Controller:busy()
-    return self.view.pending ~= nil or self.status.busy ~= nil or self.status.rescan ~= nil
+    local pending = self.view.pending
+    if pending and pending.action == "folder.suggest-id" then pending = nil end
+    return pending ~= nil or self.status.busy ~= nil or self.status.rescan ~= nil
 end
 
+-- One request travels at a time. A running rescan blocks mutations only.
 function Controller:send(action, args, closeForm, requestType)
-    if self:busy() or not self.status.ready then return false end
+    local mutation = action and action ~= "webui.open" and action ~= "folder.suggest-id" and action ~= "folder.recheck-errors"
+    if self.view.pending or self.status.busy or (mutation and self.status.rescan) or not self.status.ready then return false end
     local problem = Form.actionProblem(self.snapshot, action, args or {})
     if problem then self:notice(problem, "error"); self:save(); return false end
     self.view.actionCursor = nil
@@ -212,13 +238,13 @@ function Controller:send(action, args, closeForm, requestType)
         action = action, requestType = requestType or "action", args = frozen, closeForm = closeForm,
         notice = action and Actions.notice(action, frozen, self.snapshot) or "",
         formToken = self.view.form and self.view.form.token }
-    -- Omarchy shows progress on the control, not as a notice.
-    self:notice("", nil)
+    -- Omarchy shows progress on the control and only folder and device changes clear the notice.
+    if mutation and string.sub(action, 1, 10) ~= "lifecycle." and string.sub(action, 1, 6) ~= "webui." then self:notice("", nil) end
     self:save()
     local request = { v = 2, type = requestType or "action", id = id }
     if request.type == "action" then request.action, request.args = action, frozen end
     self.host.state.set("intent", { id = id, generation = self.status.generation,
-        view = self.view.view, request = request, notice = self.view.pending.notice })
+        view = self.view.view, request = request, notice = self.view.pending.notice, background = action == "folder.suggest-id" })
     return true
 end
 
@@ -246,7 +272,7 @@ function Controller:cancel()
 end
 
 function Controller:openForm(kind, target)
-    if self:busy() then return end
+    if self:busy() and kind ~= "settings" then return end
     if self.view.form and self.view.form.kind == kind then return end
     self.view.actionCursor = nil
     self.view.formSequence += 1
@@ -271,11 +297,14 @@ function Controller:openForm(kind, target)
         -- Omarchy accepts through the add form with the offer already chosen.
         form.kind = "addFolder"
         form.folderId, form.pendingDeviceId, form.label = target.id, target.deviceId, target.label
+        form.labelFromOffer = true
         form.selected[target.deviceId] = true
     end
     Form.reconcile(self.snapshot, form)
-    self.view.form, self.view.confirm, self.view.message = form, nil, ""
-    self.view.noticeUntil, self.view.noticeKind = nil, nil
+    self.view.form, self.view.confirm = form, nil
+    if kind == "addFolder" or kind == "acceptFolder" then
+        self.view.message, self.view.noticeUntil, self.view.noticeKind = "", nil, nil
+    end
     self:save()
     if kind == "addFolder" then self:send("folder.suggest-id", {}) end
     if kind == "addDevice" then self:refreshInBackground() end
@@ -312,8 +341,10 @@ function Controller:chooseDrift(item)
     local function write()
         local text = self.host.readFile(path) or Settings.template(self.host)
         local updated, count = string.gsub(text, "\n#? ?serviceState = \"[a-z]*\"", "\nserviceState = \"" .. item.value .. "\"")
-        if count == 0 then self:notice("Could not update " .. path, "error"); self:save(); return end
-        if not self.host.writeFile(path, updated) then self:notice("Could not update " .. path, "error"); self:save() end
+        if count == 0 then updated = text .. "\nserviceState = \"" .. item.value .. "\"\n" end
+        if not self.host.writeFile(path, updated) then self:notice("Could not update " .. path, "error")
+        else self:notice("Syncthing service preference updated", "success", 10000) end
+        self:save()
     end
     if self.host.fileExists(path) then return write() end
     self.host.runAsync({ "mkdir", "-p", (string.gsub(path, "/[^/]*$", "")) }, function(reply)
@@ -357,7 +388,7 @@ function Controller:openDocumentation(topic)
 end
 
 function Controller:openPath(path)
-    local expanded = self.host.expandPath(path)
+    local expanded = Model.resolvePath(self.host.expandPath(path), self.host.getenv("HOME") or "")
     if string.sub(expanded, 1, 1) ~= "/" or string.find(expanded, "%z") then
         self:notice("Cannot open a non-absolute directory", "error"); self:save(); return
     end

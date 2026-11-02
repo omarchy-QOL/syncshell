@@ -16,7 +16,14 @@ function Header.render(controller, compact)
     local s = controller.snapshot
     local identity, lifecycle, counts = s.identity or {}, s.lifecycle or {}, s.counts or {}
     local localDevice = Model.find(s.devices, identity.deviceId)
-    local hostname = localDevice and localDevice.name or "This device"
+    -- Remembered, as Omarchy keeps showing the identity while offline.
+    local v = controller.view
+    if identity.deviceId then
+        v.knownDeviceId = identity.deviceId
+        if localDevice and localDevice.name ~= "" then v.knownDeviceName = localDevice.name end
+    end
+    local hostname = v.knownDeviceName or "This device"
+    local deviceId = v.knownDeviceId
     local connection = s.connection or {}
     local total = Model.totals(s)
     local variant = Model.indicator(s, controller.status)
@@ -31,7 +38,7 @@ function Header.render(controller, compact)
                 ui.label({ text = string.upper(hostname), color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 }),
                 -- A native button drops its glyph below the text at this size.
                 ui.row({ key = "Copy ID", gap = 3, align = "center", height = 16, paddingH = 4, radius = 2, border = "outline", borderWidth = 1,
-                    tooltip = "Copy device ID", onClick = identity.deviceId and function() controller:copy(identity.deviceId, "ID copied") end or nil }, {
+                    visible = deviceId ~= nil, tooltip = "Copy device ID", onClick = function() controller:copy(deviceId, "Device ID copied") end }, {
                     ui.glyph({ name = "copy", size = Ui.caption, color = "on_surface_variant" }),
                     ui.label({ text = "device ID", color = "on_surface_variant", fontSize = Ui.caption - 1, maxLines = 1 }),
                 }),
@@ -62,7 +69,8 @@ function Header.render(controller, compact)
     -- Omarchy's warning and error rows; a deliberate stop reports no connection problem.
     local missing = (s.installation or {}).available == false and not connection.online
     local warning
-    if missing then warning = "Syncthing is not installed. Open More for installation help."
+    if not controller.status.ready and not controller.status.error then warning = "Starting native core"
+    elseif missing then warning = "Syncthing is not installed. Open More for installation help."
     elseif managedStop then warning = "Syncing stopped"
     elseif truncated(s.truncation) then warning = "Some Syncthing items exceed panel limits; use the Web UI for the hidden entries"
     elseif lifecycle.canControl then
@@ -70,7 +78,8 @@ function Header.render(controller, compact)
         if decision.status == "unsupported" and lifecycle.unitFileState ~= "not-found" then warning = decision.reason end
     end
     if warning then table.insert(children, SharedWidgetControls.hint(warning, Palette.roles.warning)) end
-    local failure = controller.status.error or (not managedStop and not missing and connection.error and connection.error.message) or lifecycle.error
+    local actionRunning = string.sub(controller.status.busyAction or "", 1, 10) == "lifecycle."
+    local failure = controller.status.error or (not managedStop and not missing and not actionRunning and connection.error and connection.error.message)
     if failure then table.insert(children, SharedWidgetControls.notice(controller, failure, "error", "connection details")) end
     return ui.column({ gap = 4 }, children)
 end

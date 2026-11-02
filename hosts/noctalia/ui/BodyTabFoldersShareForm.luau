@@ -12,7 +12,7 @@ function Form.render(controller, form)
     local devices = Model.remoteDevices(controller.snapshot)
     local children = {
         BodyFormHeader.render(controller, "SHARE " .. (folder and Model.folderLabel(folder) or "FOLDER")),
-        MultiSelect.render(controller, form, devices, "Save applies the entire selection. Clearing all keeps this folder local only."),
+        MultiSelect.render(controller, form, devices),
     }
     if not folder then table.insert(children, SharedWidgetControls.hint("Folder is no longer configured", "error"))
     elseif problem then table.insert(children, SharedWidgetControls.hint(problem, "error")) end

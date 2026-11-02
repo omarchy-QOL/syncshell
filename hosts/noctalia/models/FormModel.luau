@@ -96,7 +96,7 @@ function Form.actionProblem(snapshot, action, args)
     end
     if args.folderId and action ~= "folder.dismiss-pending" then
         local folder = Model.find(snapshot.folders, args.folderId)
-        if not folder then return "This folder is no longer configured" end
+        if not folder then return "The selected folder is no longer configured" end
         if action == "folder.forget" and not folder.paused then return "Unlink this folder before forgetting its configuration" end
     end
     if args.deviceId and action ~= "device.add" and action ~= "device.dismiss-pending"
