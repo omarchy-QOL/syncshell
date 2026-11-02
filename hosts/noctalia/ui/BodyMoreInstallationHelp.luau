@@ -21,7 +21,7 @@ function Help.render(controller)
     end
     local row = ui.row({ gap = 8, align = "center" }, {
         SharedWidgetControls.caption("INSTALLATION"),
-        ui.row({ tooltip = summary }, { ui.glyph({ name = "info-circle", size = Ui.title, color = installation.available and Palette.roles.success or Palette.roles.warning }) }),
+        ui.row({ tooltip = summary }, { ui.glyph({ name = "info-circle", size = Ui.title, color = (installation.available or connection.online) and Palette.roles.success or Palette.roles.warning }) }),
         ui.label({ text = Model.shortPath(installation.executablePath or "—", 36), fontSize = Ui.bodySmall, maxLines = 1, flexGrow = 1 }),
         ActionButton.render("Installation help", "question-mark", function() controller:openDocumentation("installation") end, true, nil,
             "Open Syncthing installation\nand removal documentation", Ui.control),

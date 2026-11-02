@@ -78,7 +78,7 @@ function SharedWidgetControls.tinted(key, text, glyph, color, callback, enabled,
 end
 
 function SharedWidgetControls.badge(key, text, color)
-    return ui.row({ key = key, align = "center", height = Ui.cardControl, paddingH = 6, radius = 0, border = color, borderWidth = 1 }, {
+    return ui.row({ key = key, align = "center", height = Ui.cardControl, paddingH = 6, radius = 0, border = "outline", borderWidth = 1 }, {
         ui.label({ text = text, color = color, fontSize = Ui.caption, fontWeight = "bold", maxLines = 1 }),
     })
 end

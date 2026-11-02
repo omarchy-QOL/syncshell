@@ -194,17 +194,17 @@ scenario("status roles distinguish activity, pause, health and stale devices", f
     local s = Harness.fixture()
     s.folders = { { id = "one", path = "/one", devices = {}, status = { state = "scanning", needTotalItems = 2 } } }
     local h = start(s)
-    assert(h:find("folder-state-one").props.border == Palette.roles.warning,
+    assert(h:find("folder-state-one").children[1].props.color == Palette.roles.warning,
         "combined scan and sync must use warning semantics")
     s.folders[1].status = { state = "idle" }; h:snapshot(s)
-    assert(h:find("folder-state-one").props.border == Palette.roles.success)
+    assert(h:find("folder-state-one").children[1].props.color == Palette.roles.success)
     s.folders[1].paused = true; h:snapshot(s)
-    assert(h:find("folder-state-one").props.border == Palette.roles.warning)
+    assert(h:find("folder-state-one").children[1].props.color == Palette.roles.warning)
     s.devices[1].paused = true; h:snapshot(s); h:click("Devices")
     assert(h:find("PAUSED").props.color == Palette.roles.warning,
         "connected flag must not override pause")
     s.connection.fresh = false; h:snapshot(s)
-    assert(h:find("device-state-REMOTE").props.border == Palette.roles.warning, "Omarchy keeps the reported device state")
+    assert(h:find("device-state-REMOTE").children[1].props.color == Palette.roles.warning, "Omarchy keeps the reported device state")
 end)
 
 scenario("card identity controls preserve exact paths, IDs and Web UI targets", function()

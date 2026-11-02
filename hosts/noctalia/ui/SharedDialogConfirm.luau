@@ -22,7 +22,7 @@ function Confirm.render(controller)
         return ui.row({ key = key, height = Ui.control, flexGrow = 1, align = "center", justify = "center", radius = 3, borderWidth = 1,
             border = chosen and border or "outline", fill = chosen and (create and "surface_variant" or "error/0.15") or "#00000000",
             opacity = enabled and 1 or 0.5, onClick = enabled and callback or nil },
-            { ui.label({ text = text, color = color, fontSize = Ui.body, maxLines = 1 }) })
+            { ui.label({ text = text, color = color, fontSize = Ui.caption, maxLines = 1 }) })
     end
     return ui.column({ key = "confirmation", gap = 12, padding = 12, radius = 4, border = border, borderWidth = 1 }, {
         ui.label({ text = confirm.message, fontSize = Ui.body, maxLines = 0 }),
