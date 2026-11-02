@@ -165,7 +165,10 @@ end
 -- Omarchy's plain keys. Left and Right stay with text fields and Enter with
 -- the focused control, as a captured chord is always consumed: Space activates
 -- the cursor instead. Printable keys go to a focused field first.
-local chords = { Up = "Alt+Up", Down = "Alt+Down", k = "Alt+Up", j = "Alt+Down", h = "Alt+Up", l = "Alt+Down", space = "Alt+Return" }
+local chords = { Up = "cursor-up", k = "cursor-up", Down = "cursor-down", j = "cursor-down",
+    h = "cursor-left", l = "cursor-right", space = "Alt+Return" }
+-- Lists and dialogs have one axis, so any direction steps through them.
+local oneAxis = { ["cursor-up"] = "Alt+Up", ["cursor-left"] = "Alt+Up", ["cursor-down"] = "Alt+Down", ["cursor-right"] = "Alt+Down" }
 
 function onKey(chord, pressed)
     if not pressed then return end
@@ -176,6 +179,7 @@ function onKey(chord, pressed)
         return
     end
     if v.confirm then
+        chord = oneAxis[chord] or chord
         if chord == "Alt+Left" then controller:cancel()
         elseif chord == "Alt+Up" or chord == "Alt+Down" then
             v.confirm.choice = v.confirm.choice == "accept" and "cancel" or "accept"; controller:save()
@@ -186,7 +190,7 @@ function onKey(chord, pressed)
     end
     if controller.navigation then
         -- An open list owns the keyboard: its letters must never reach the panel's shortcuts.
-        controller.navigation(chord == "q" and "Alt+Left" or chord)
+        controller.navigation(chord == "q" and "Alt+Left" or (oneAxis[chord] or chord))
         return
     end
     if chord == "Alt+Left" then controller:cancel(); return end

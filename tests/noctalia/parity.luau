@@ -622,11 +622,15 @@ scenario("plain keys drive the cursor, search and confirmation as in Omarchy", f
     assert(h.host.state.get("view").actionCursor ~= first, "Down did not move the cursor")
     h.entry.onKey("k", true)
     assert(h.host.state.get("view").actionCursor == first, "k did not move back")
+    h.entry.onKey("k", true); h.entry.onKey("k", true)
     for _ = 1, 40 do
+        if string.find(h.host.state.get("view").actionCursor or "", "Folders", 1, true) then break end
         h.entry.onKey("j", true)
-        if string.find(h.host.state.get("view").actionCursor or "", "DEVICES", 1, true) then break end
     end
-    h.entry.onKey("space", true); assert(h.host.state.get("view").section == "devices", "space did not activate the cursor")
+    h.entry.onKey("l", true)
+    assert(h.host.state.get("view").section == "devices", "l on the tabs switches, as in Omarchy")
+    h.entry.onKey("h", true)
+    assert(h.host.state.get("view").section == "folders", "h on the tabs switches back")
     local s = Harness.fixture()
     s.folders = { { id = "one", path = "/one", paused = false, devices = {}, status = { state = "idle" } } }
     h = start(s)
@@ -721,6 +725,18 @@ scenario("geometry: a body scroll area never nests another", function()
         for _, child in node.children do check(child, inside or node.type == "scroll") end
     end
     check(h.tree, false)
+end)
+
+scenario("the settings file opens in a terminal editor, as in Omarchy", function()
+    local s = Harness.fixture()
+    local h = start(s)
+    local notified
+    h.host.notify = function(title, body) notified = title .. "|" .. body end
+    h.host.fileExists = function() return true end
+    h:click("Settings"); h:click("settings-open")
+    local args = h.commands[#h.commands].args
+    assert(args[1] == "xdg-terminal-exec" and args[2] == "-e" and args[4] == "--" and args[5] == "fixture/noctalia/syncshell.toml", table.concat(args, " "))
+    assert(notified == "Editing config file|fixture/noctalia/syncshell.toml")
 end)
 
 -- The action map: each control sends exactly what Omarchy's does.

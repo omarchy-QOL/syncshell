@@ -370,12 +370,28 @@ function Controller:openExternal(target)
     if not launched then self:notice("Could not launch the desktop opener", "error"); self:save() end
 end
 
+-- As Omarchy opens its settings: the editor in a terminal, with a toast. The
+-- desktop's file handler is only the fallback, as its default may be unusable.
+function Controller:openInEditor(path)
+    local host = self.host
+    local editor = host.getenv("VISUAL") or host.getenv("EDITOR")
+    if not editor or editor == "" then editor = "nvim" end
+    editor = string.match(editor, "^%S+")
+    local terminal
+    for _, candidate in { "xdg-terminal-exec", host.getenv("TERMINAL") or "", "foot", "kitty", "alacritty", "ghostty" } do
+        if candidate ~= "" and host.commandExists(candidate) then terminal = candidate; break end
+    end
+    host.notify("Editing config file", path)
+    if not terminal or not host.commandExists(editor) then return self:openExternal(path) end
+    if not host.runAsync({ terminal, "-e", editor, "--", path }) then self:openExternal(path) end
+end
+
 function Controller:openSettingsFile()
     local path = Settings.filePath(self.host)
-    if self.host.fileExists(path) then return self:openExternal(path) end
+    if self.host.fileExists(path) then return self:openInEditor(path) end
     local launched = self.host.runAsync({ "mkdir", "-p", (string.gsub(path, "/[^/]*$", "")) }, function(reply)
         if reply.exitCode == 0 and self.host.writeFile(path, Settings.template(self.host)) then
-            self:openExternal(path)
+            self:openInEditor(path)
         else
             self:notice("Could not create " .. path, "error"); self:save()
         end
