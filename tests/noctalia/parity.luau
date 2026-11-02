@@ -653,11 +653,11 @@ scenario("action errors sit above the counts and folder errors stay in More", fu
         for index, node in h:nodes() do if node.props.text == text then return index end end
         return nil
     end
-    assert(not string.find(h:text(), "Access denied", 1, true), "folder error details belong in More")
+    assert(not string.find(h:text(), "affected: /bad", 1, true), "folder error details belong in More")
     h:click("Rescan all folders"); h:settle(false, "Syncthing returned HTTP 500", "http")
     assert(position("Syncthing returned HTTP 500") < position("Folders"), "action errors sit above the counts")
     h:click("More")
-    assert(string.find(h:text(), "Access denied", 1, true))
+    assert(string.find(h:text(), "affected: /bad", 1, true))
 end)
 
 scenario("a deliberate stop stays quiet and the switch acts directly", function()
