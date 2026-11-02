@@ -1,3 +1,4 @@
+local Ui = require("./UiConstants.luau")
 local Selector = require("./BodyTabFoldersSelector.luau")
 local Card = require("./BodyTabFoldersCard.luau")
 local Model = require("../models/PanelModel.luau")
@@ -15,7 +16,7 @@ function BodyTabFolders.render(controller)
         table.insert(toolbar, Selector.render(controller))
     else
         table.insert(toolbar, ui.label({ text = online and "No folders configured."
-            or "Folder status is unavailable.", color = "on_surface_variant", flexGrow = 1 }))
+            or "Folder status is unavailable.", color = "on_surface_variant", fontSize = Ui.bodySmall, flexGrow = 1 }))
     end
     table.insert(toolbar, ActionButton.render("Add folder", "plus", function()
         controller:openForm("addFolder")

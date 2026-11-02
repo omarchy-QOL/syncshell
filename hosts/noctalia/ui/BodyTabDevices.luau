@@ -24,21 +24,22 @@ function Devices.render(controller)
             function(id) view.deviceId = id end, { detached = true, placeholder = "To search press '/'" }))
     else
         table.insert(toolbar, ui.label({ text = connection.online and "No remote devices configured."
-            or "Device status is unavailable.", color = "on_surface_variant", flexGrow = 1 }))
+            or "Device status is unavailable.", color = "on_surface_variant", fontSize = Ui.bodySmall, flexGrow = 1 }))
     end
     table.insert(toolbar, ActionButton.render("Add device", "plus", function()
         controller:openForm("addDevice")
     end, online and not busy))
+    -- Omarchy keeps the remove button, disabled, with nothing to remove.
     if #devices > 0 then
         table.insert(toolbar, ActionButton.render("Shared folders", "folders", function()
             controller:openForm("deviceFolders", device)
         end, device ~= nil and not busy, nil, "View folder shared\nwith selected device"))
-        table.insert(toolbar, ActionButton.render("Remove", "x", function()
-            controller:confirm("Remove " .. Model.deviceLabel(device) .. " from this device?\n\n"
-                .. "Folder sharing with it will be removed locally. Local folders and files remain.\nThe other device is unchanged.",
-                "device.remove", { deviceId = device.id })
-        end, device ~= nil and online and not busy, nil, "Remove selected device", nil, "error"))
     end
+    table.insert(toolbar, ActionButton.render("Remove", "x", function()
+        controller:confirm("Remove " .. Model.deviceLabel(device) .. " from this device?\n\n"
+            .. "Folder sharing with it will be removed locally. Local folders and files remain.\nThe other device is unchanged.",
+            "device.remove", { deviceId = device.id })
+    end, device ~= nil and online and not busy, nil, "Remove selected device", nil, "error"))
     local children = { ui.row({ key = "device-toolbar", gap = 6, align = "center" }, toolbar) }
     if controller.dropdownList then table.insert(children, controller.dropdownList)
     elseif device then
