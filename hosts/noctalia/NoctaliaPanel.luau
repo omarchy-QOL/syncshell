@@ -42,7 +42,7 @@ local function render()
     if not opened or not controller then return end
     local v = controller.view
     Palette.refresh(noctalia)
-    controller.navigation, controller.actionNavigation, controller.selectionView, controller.dropdownList = nil, nil, nil, nil
+    controller.navigation, controller.actionNavigation, controller.dropdownList = nil, nil, nil
     panel.setWantsSecondTicks(controller:needsTicks())
     if v.details then
         panel.render(ui.column({ key = "details", flexGrow = 1, padding = 12, gap = 8 }, {
@@ -78,16 +78,6 @@ local function render()
             if invitations then table.insert(body, invitations) end
             table.insert(body, BodyMore.render(controller))
         end
-    end
-    if controller.selectionView then
-        local selection = controller.selectionView
-        panel.render(ui.column({ key = "selection", flexGrow = 1, padding = 12, gap = 8 }, {
-            SharedWidgetControls.label(selection.title),
-            SharedWidgetControls.notice(controller, controller.status.error or v.message, "on_surface_variant", "action details"),
-            ui.scroll({ key = "selection-body", flexGrow = 1 }, { selection.tree }),
-            SharedWidgetControls.button("Back to " .. (v.form and "form" or "overview"), selection.close),
-        }))
-        return
     end
     local enabled = controller.status.ready and not controller:busy()
     local bodyKey = v.form and ("form-" .. tostring(v.form.token)) or ("overview-" .. v.section)

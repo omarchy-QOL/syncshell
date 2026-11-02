@@ -19,13 +19,18 @@ function Help.render(controller)
     if not lifecycle.canControl and not lifecycle.canStart and not lifecycle.error then
         summary ..= "\nExternal instance: service control requires an explicitly authorized matching local instance. Configure the exact unit and config path in Settings."
     end
-    return ui.row({ gap = 8, align = "center" }, {
+    local row = ui.row({ gap = 8, align = "center" }, {
         SharedWidgetControls.caption("INSTALLATION"),
         ui.row({ tooltip = summary }, { ui.glyph({ name = "info-circle", size = Ui.title, color = installation.available and Palette.roles.success or Palette.roles.warning }) }),
         ui.label({ text = Model.shortPath(installation.executablePath or "—", 36), fontSize = Ui.bodySmall, maxLines = 1, flexGrow = 1 }),
         ActionButton.render("Installation help", "help", function() controller:openDocumentation("installation") end, true, nil,
             "Open Syncthing installation\nand removal documentation", Ui.control),
     })
+    -- Omarchy's line under the row, for its own installer.
+    if installation.available == false and not connection.online then
+        return ui.column({ gap = 4 }, { row, SharedWidgetControls.hint("Install Syncthing with your package manager. Removal is manual.") })
+    end
+    return row
 end
 
 return Help

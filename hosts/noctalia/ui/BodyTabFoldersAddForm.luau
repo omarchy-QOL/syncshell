@@ -15,7 +15,6 @@ end
 
 function Form.render(controller, form)
     if form.picker then return Picker.render(controller, form) end
-    local problem = Validation.problem(controller.snapshot, form)
     local devices = Model.remoteDevices(controller.snapshot)
     local selected = #Model.selected(form.selected)
     local children = {
@@ -42,10 +41,9 @@ function Form.render(controller, form)
         SharedWidgetControls.hint(selected == 0 and "Local only: not shared with other devices."
             or "Selected devices receive a share offer and may need to accept it.", selected == 0 and Palette.roles.warning or nil),
     }
-    -- Omarchy stays quiet until there is an entry to judge.
-    if problem and form.path ~= "" then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("folder.add-existing", "ADD FOLDER", "ADDING..."), function() controller:submitForm() end,
-        problem == nil and not controller:busy() and controller.status.ready, "outline", "Add folder submit"))
+        Validation.trim(form.path) ~= "" and Validation.trim(form.folderId) ~= "" and (controller.snapshot.connection or {}).online == true
+            and not controller:busy() and controller.status.ready, "outline", "Add folder submit"))
     return ui.column({ gap = 8 }, children)
 end
 

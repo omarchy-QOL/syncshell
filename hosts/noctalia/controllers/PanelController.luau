@@ -153,6 +153,8 @@ end
 function Controller:refresh()
     self.view.refreshUntil = self.host.nowMs() + 1500
     self.view.refreshSucceeded = false
+    -- Pressing refresh clears a shown error, as in Omarchy.
+    if self.view.noticeKind == "error" or self.view.noticeKind == "uncertain" then self:notice("", nil) end
     if ((self.snapshot.counts or {}).folderProblems or 0) > 0 then
         return self:send("folder.recheck-errors", {})
     end

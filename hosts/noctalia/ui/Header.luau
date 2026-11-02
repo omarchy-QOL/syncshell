@@ -57,9 +57,6 @@ function Header.render(controller, compact)
     local children = { ui.row({ gap = 10, align = "center" }, title) }
     -- Omarchy keeps warnings, errors and notices directly under the name, above
     -- the counts; folder error details live in More.
-    if controller.status.backgroundError then
-        table.insert(children, SharedWidgetControls.notice(controller, controller.status.backgroundError, "error", "background action details"))
-    end
     -- A deliberate stop reports no connection problem.
     local missing = (s.installation or {}).available == false and not connection.online
     local warning
@@ -76,7 +73,8 @@ function Header.render(controller, compact)
     local connectionFailure = not managedStop and not missing and not actionRunning and connection.error and connection.error.message
     local v2 = controller.view
     local actionFailure = (v2.noticeKind == "error" or v2.noticeKind == "uncertain") and v2.message ~= "" and v2.message or nil
-    local failure = controller.status.error or actionFailure or connectionFailure
+    -- One row, in Omarchy's priority: actions, settings, then the connection.
+    local failure = actionFailure or controller.status.backgroundError or controller.status.error or connectionFailure
     if failure then table.insert(children, SharedWidgetControls.notice(controller, failure, "error", "action details")) end
     if v2.noticeKind == "success" and v2.message ~= "" then
         table.insert(children, SharedWidgetControls.notice(controller, v2.message, Palette.roles.success, "action details"))

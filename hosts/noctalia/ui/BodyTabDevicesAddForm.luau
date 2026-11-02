@@ -27,7 +27,7 @@ local function sourceSelector(controller, form)
     })
 end
 
-local function acceptForm(controller, form, problem)
+local function acceptForm(controller, form)
     local children = {
         BodyFormHeader.render(controller, "ACCEPT REMOTE DEVICE REQUEST"),
         SharedWidgetControls.field(controller, form, "name", "Name", { focus = true, revision = form.sourceRevision,
@@ -43,15 +43,13 @@ local function acceptForm(controller, form, problem)
             IdCopyButton.render(controller, form.deviceId, "Copy device ID", "Copy device ID", "Device ID copied"),
         }),
     }))
-    if problem then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("device.add", "ACCEPT REMOTE DEVICE CONNECTION", "ACCEPTING..."),
-        function() controller:submitForm() end, problem == nil and not controller:busy() and controller.status.ready, "outline", "submit-device"))
+        function() controller:submitForm() end, not controller:busy() and controller.status.ready, "outline", "submit-device"))
     return ui.column({ gap = 8 }, children)
 end
 
 function Form.render(controller, form)
-    local problem = Validation.problem(controller.snapshot, form)
-    if form.kind == "acceptDevice" then return acceptForm(controller, form, problem) end
+    if form.kind == "acceptDevice" then return acceptForm(controller, form) end
     local children = { BodyFormHeader.render(controller, "ADD REMOTE DEVICE"), sourceSelector(controller, form) }
     table.insert(children, SharedWidgetControls.field(controller, form, "deviceId", "Device ID", {
         focus = true, enabled = not form.sourceId or form.sourceId == "",
@@ -65,9 +63,8 @@ function Form.render(controller, form)
     table.insert(children, SharedWidgetControls.field(controller, form, "name", "Remote Device Name", {
         revision = form.sourceRevision,
         placeholder = "Optional; adopted from the remote when empty" }))
-    if problem and form.deviceId ~= "" then table.insert(children, SharedWidgetControls.hint(problem, "error")) end
     table.insert(children, SharedWidgetControls.button(controller:actionLabel("device.add", "ADD REMOTE DEVICE", "ADDING..."), function() controller:submitForm() end,
-        problem == nil and not controller:busy() and controller.status.ready, "outline", "submit-device"))
+        Model.validDeviceId(Validation.deviceId(form.deviceId)) and not controller:busy() and controller.status.ready, "outline", "submit-device"))
     return ui.column({ gap = 8 }, children)
 end
 

@@ -33,9 +33,8 @@ function MultiSelect.render(controller, form, rows, help, options)
         end, not controller:busy(), selected == 0),
     }
     if not form.disclosures[key] then return ui.column({ gap = 4 }, children) end
-    local query, available, matches, cursor = form.queries[key] or "", {}, {}, 1
+    local query, matches, cursor = form.queries[key] or "", {}, 1
     for _, row in rows do
-        available[row.id] = true
         local text = rowName(row) .. "\n" .. (row.path and (row.path .. " | ") or "") .. row.id
             .. "\n" .. (row.description or "")
         if string.find(string.lower(text), string.lower(query), 1, true) then
@@ -87,16 +86,6 @@ function MultiSelect.render(controller, form, rows, help, options)
             ui.button({ key = "Next", glyph = "chevron-right", text = "", variant = "ghost", height = Ui.control, enabled = first + pageSize <= #matches, tooltip = "Next page",
                 onClick = function() form.shareCursors[key] = matches[first + pageSize].row.id; controller:save() end }),
         }))
-    end
-    if not options.group then
-        for id, checked in form.selected do
-            if checked and not available[id] then
-                table.insert(children, SharedWidgetControls.label("Selected item is no longer available: " .. id, "error"))
-                table.insert(children, SharedWidgetControls.button("Clear unavailable selection", function()
-                    form.selected[id] = nil; controller:save()
-                end, not controller:busy(), "ghost", "clear-share-" .. id))
-            end
-        end
     end
     return SharedWidgetControls.column({ gap = 4 }, children)
 end
