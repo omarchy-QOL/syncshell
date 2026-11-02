@@ -25,7 +25,7 @@ function Card.render(controller, folder)
                 "folder.forget", { folderId = folder.id })
         end, enabled, "Remove only this unlinked Syncthing configuration")
     elseif scanning then
-        action = SharedWidgetControls.tinted("Rescan", "RESCANNING", "rotate-clockwise", Palette.roles.warning, nil, false, "Rescan this folder for local changes")
+        action = SharedWidgetControls.tinted("Rescan", "RESCANNING", "rotate-clockwise", Palette.roles.warning, nil, true, "Rescan this folder for local changes")
     else
         action = ui.button({ key = "Rescan", text = "RESCAN", glyph = "rotate-clockwise", fontSize = Ui.body, glyphSize = Ui.body, height = Ui.cardControl,
             variant = "outline", enabled = enabled, tooltip = "Rescan this folder for local changes",

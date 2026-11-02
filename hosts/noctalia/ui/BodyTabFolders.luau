@@ -33,7 +33,7 @@ function BodyTabFolders.render(controller)
                     folder.paused and "folder.resume" or "folder.pause", { folderId = folder.id })
             end, enabled and folder ~= nil, nil,
             folder and (folder.paused and "Link folder" or "Unlink folder (locally)") or "Select a folder", nil,
-            folder and folder.paused and Palette.roles.success or "error"))
+            folder and folder.paused and Palette.roles.success or "error", Palette.roles.muted))
     end
     local children = { ui.row({ key = "folder-toolbar", gap = 6, align = "center" }, toolbar) }
     if controller.dropdownList then table.insert(children, controller.dropdownList)
