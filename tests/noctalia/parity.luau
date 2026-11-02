@@ -739,6 +739,15 @@ scenario("the settings file opens in a terminal editor, as in Omarchy", function
     assert(notified == "Editing config file|fixture/noctalia/syncshell.toml")
 end)
 
+scenario("a missing syncthing says so instead of a worker error", function()
+    local h = Harness.new()
+    noctalia, panel = h.host, h.panel
+    h.host.state.set("status", { generation = "test-generation", ready = false, error = "Syncthing configuration was not found", syncthingMissing = true })
+    h:load()
+    assert(string.find(h:text(), "Syncthing is not installed", 1, true), "warning missing")
+    assert(not string.find(h:text(), "configuration was not found", 1, true), "Omarchy hides the core error when not installed")
+end)
+
 -- The action map: each control sends exactly what Omarchy's does.
 local function wiringFixture()
     local s = Harness.fixture()

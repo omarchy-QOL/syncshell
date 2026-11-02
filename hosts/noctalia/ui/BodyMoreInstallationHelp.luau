@@ -21,13 +21,13 @@ function Help.render(controller)
     end
     local row = ui.row({ gap = 8, align = "center" }, {
         SharedWidgetControls.caption("INSTALLATION"),
-        ui.row({ tooltip = summary }, { ui.glyph({ name = "info-circle", size = Ui.title, color = (installation.available or connection.online) and Palette.roles.success or Palette.roles.warning }) }),
+        ui.row({ tooltip = summary }, { ui.glyph({ name = "info-circle", size = Ui.title, color = (installation.available or connection.online or (not controller.status.syncthingMissing and installation.available == nil)) and Palette.roles.success or Palette.roles.warning }) }),
         ui.label({ text = Model.shortPath(installation.executablePath or "—", 36), fontSize = Ui.bodySmall, maxLines = 1, flexGrow = 1 }),
         ActionButton.render("Installation help", "question-mark", function() controller:openDocumentation("installation") end, true, nil,
             "Open Syncthing installation\nand removal documentation", Ui.control),
     })
     -- Omarchy's line under the row, for its own installer.
-    if installation.available == false and not connection.online then
+    if (controller.status.syncthingMissing or installation.available == false) and not connection.online then
         return ui.column({ gap = 4 }, { row, SharedWidgetControls.hint("Install Syncthing with your package manager. Removal is manual.") })
     end
     return row

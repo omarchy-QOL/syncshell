@@ -28,6 +28,7 @@ noctalia = {
     },
     writeFile = function(path, data) writes[path] = data; return true end,
     runAsync = function(args, callback) table.insert(commands, { args = args, callback = callback }); return true end,
+    commandExists = function() return true end,
     runStream = function(command, callback)
         assert(string.find(command, "exec '", 1, true) == 1)
         assert(string.find(command, "package'\\''quote", 1, true))

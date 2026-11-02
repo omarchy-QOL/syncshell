@@ -354,7 +354,8 @@ function Model.indicator(snapshot, status)
     local problems = counts.folderProblems or 0
     local serviceOff = Model.lifecycleAvailable(lifecycle) and lifecycle.active ~= true
     local summary = "Up to date"
-    if not status.ready then summary = status.error and "Syncthing unavailable" or "Starting Syncshell"
+    if status.syncthingMissing and not connection.online then summary = "Syncthing is not installed"
+    elseif not status.ready then summary = status.error and "Syncthing unavailable" or "Starting Syncshell"
     elseif installation.available == false and not connection.online then summary = "Syncthing is not installed"
     elseif serviceOff then summary = "Syncing stopped"
     elseif phase == "discovering" then summary = "Finding Syncthing"

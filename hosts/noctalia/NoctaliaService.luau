@@ -207,11 +207,17 @@ local function start()
             end)
         end
     end
+    -- Without a config the core exits before its first frame; only its stderr says why.
+    status.syncthingMissing = not noctalia.commandExists("syncthing") or nil
     local args = { binary, "native-stream", root .. "/syncshell-noctalia" }
     for _, arg in Settings.arguments(settings, noctalia.pluginDir()) do table.insert(args, arg) end
     for i, arg in args do args[i] = Requests.quote(arg) end
-    local launched = noctalia.runStream("exec " .. table.concat(args, " "), function(line)
+    local launched = noctalia.runStream("exec " .. table.concat(args, " ") .. " 2>&1", function(line)
         if ownEpoch ~= epoch or not alive then return end
+        if string.sub(line, 1, 16) == "syncshell-core: " then
+            retire(string.sub(line, 17))
+            return
+        end
         local part = noctalia.json.decode(line)
         if type(part) == "table" and part.type == "ready" and part.transport == 1 then
             if directory or type(part.directory) ~= "string"

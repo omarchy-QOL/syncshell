@@ -58,10 +58,10 @@ function Header.render(controller, compact)
     -- Omarchy keeps warnings, errors and notices directly under the name, above
     -- the counts; folder error details live in More.
     -- A deliberate stop reports no connection problem.
-    local missing = (s.installation or {}).available == false and not connection.online
+    local missing = not connection.online and (controller.status.syncthingMissing or (s.installation or {}).available == false)
     local warning
-    if not controller.status.ready and not controller.status.error then warning = "Starting native core"
-    elseif missing then warning = "Syncthing is not installed. Open More for installation help."
+    if missing then warning = "Syncthing is not installed. Open More for installation help."
+    elseif not controller.status.ready and not controller.status.error then warning = "Starting native core"
     elseif managedStop then warning = "Syncing stopped"
     elseif truncated(s.truncation) then warning = "Some Syncthing items exceed panel limits; use the Web UI for the hidden entries"
     elseif lifecycle.canControl then
@@ -74,7 +74,7 @@ function Header.render(controller, compact)
     local v2 = controller.view
     local actionFailure = (v2.noticeKind == "error" or v2.noticeKind == "uncertain") and v2.message ~= "" and v2.message or nil
     -- One row, in Omarchy's priority: actions, settings, then the connection.
-    local failure = actionFailure or controller.status.backgroundError or controller.status.error or connectionFailure
+    local failure = actionFailure or controller.status.backgroundError or (not missing and controller.status.error) or connectionFailure
     if failure then table.insert(children, SharedWidgetControls.notice(controller, failure, "error", "action details")) end
     if v2.noticeKind == "success" and v2.message ~= "" then
         table.insert(children, SharedWidgetControls.notice(controller, v2.message, Palette.roles.success, "action details"))
