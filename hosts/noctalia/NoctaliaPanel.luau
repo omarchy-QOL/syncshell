@@ -90,13 +90,9 @@ local function render()
         return
     end
     local enabled = controller.status.ready and not controller:busy()
-    local message = controller.status.error or v.message
     local bodyKey = v.form and ("form-" .. tostring(v.form.token)) or ("overview-" .. v.section)
-    local noticeColor = (controller.status.error or v.noticeKind == "error" or v.noticeKind == "uncertain") and "error"
-        or (v.noticeKind == "success" and Palette.roles.success or "on_surface_variant")
     -- Omarchy's settings menu replaces the whole panel.
     local top = (v.form and v.form.kind == "settings") and {} or { Header.render(controller, v.form ~= nil) }
-    if message ~= "" then table.insert(top, SharedWidgetControls.notice(controller, message, noticeColor, "action details")) end
     if #top > 0 then table.insert(top, ui.separator({})) end
     -- Omarchy's forms open beside the panel; this fixed surface lends them the footer's space.
     local bottom = v.form and {} or { ui.separator({}), FooterActions.render(controller, enabled), FooterShortcutHint.render() }
@@ -217,6 +213,8 @@ function onKey(chord, pressed)
         v.selectors[key] = v.selectors[key] or { open = false, query = "" }
         v.selectors[key].open = true
         v.selectors[key].opens = (v.selectors[key].opens or 0) + 1
+        v.selectors[key].query, v.selectors[key].cursor = "", nil
+        if v.section == "folders" then v.search = "" end
         controller:save()
     elseif chord == "p" then
         local lifecycle = controller.snapshot.lifecycle or {}

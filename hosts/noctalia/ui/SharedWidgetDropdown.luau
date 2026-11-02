@@ -19,6 +19,9 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
         state.open = not state.open
         if state.open then
             state.opens = (state.opens or 0) + 1
+            -- Omarchy clears the search with each opening.
+            state.query, state.cursor = "", nil
+            if options.onSearch then options.onSearch("") end
             owner.disclosures = {}
             for other, item in owner.selectors do if other ~= key then item.open = false end end
         end

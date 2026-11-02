@@ -54,19 +54,13 @@ function Header.render(controller, compact)
                 end }),
         }))
     end
-    local children = {
-        ui.row({ gap = 10, align = "center" }, title),
-    }
-    if not compact then
-        table.insert(children, InfoPair.render("Folders", counts.folders or 0))
-        table.insert(children, InfoPair.render("Devices", tostring(counts.connectedDevices or 0)
-            .. " of " .. tostring(counts.devices or 0) .. " connected"))
-        table.insert(children, InfoPair.render("Tracked", Model.count(total.files) .. " files · " .. Model.bytes(total.bytes)))
-    end
+    local children = { ui.row({ gap = 10, align = "center" }, title) }
+    -- Omarchy keeps warnings, errors and notices directly under the name, above
+    -- the counts; folder error details live in More.
     if controller.status.backgroundError then
         table.insert(children, SharedWidgetControls.notice(controller, controller.status.backgroundError, "error", "background action details"))
     end
-    -- Omarchy's warning and error rows; a deliberate stop reports no connection problem.
+    -- A deliberate stop reports no connection problem.
     local missing = (s.installation or {}).available == false and not connection.online
     local warning
     if not controller.status.ready and not controller.status.error then warning = "Starting native core"
@@ -79,8 +73,20 @@ function Header.render(controller, compact)
     end
     if warning then table.insert(children, SharedWidgetControls.hint(warning, Palette.roles.warning)) end
     local actionRunning = string.sub(controller.status.busyAction or "", 1, 10) == "lifecycle."
-    local failure = controller.status.error or (not managedStop and not missing and not actionRunning and connection.error and connection.error.message)
-    if failure then table.insert(children, SharedWidgetControls.notice(controller, failure, "error", "connection details")) end
+    local connectionFailure = not managedStop and not missing and not actionRunning and connection.error and connection.error.message
+    local v2 = controller.view
+    local actionFailure = (v2.noticeKind == "error" or v2.noticeKind == "uncertain") and v2.message ~= "" and v2.message or nil
+    local failure = controller.status.error or actionFailure or connectionFailure
+    if failure then table.insert(children, SharedWidgetControls.notice(controller, failure, "error", "action details")) end
+    if v2.noticeKind == "success" and v2.message ~= "" then
+        table.insert(children, SharedWidgetControls.notice(controller, v2.message, Palette.roles.success, "action details"))
+    end
+    if not compact then
+        table.insert(children, InfoPair.render("Folders", counts.folders or 0))
+        table.insert(children, InfoPair.render("Devices", tostring(counts.connectedDevices or 0)
+            .. " of " .. tostring(counts.devices or 0) .. " connected"))
+        table.insert(children, InfoPair.render("Tracked", Model.count(total.files) .. " files · " .. Model.bytes(total.bytes)))
+    end
     return ui.column({ gap = 4 }, children)
 end
 

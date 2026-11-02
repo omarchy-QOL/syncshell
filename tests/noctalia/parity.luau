@@ -644,6 +644,22 @@ scenario("an open list keeps letters away from the panel's shortcuts", function(
     assert(first ~= nil)
 end)
 
+scenario("action errors sit above the counts and folder errors stay in More", function()
+    local s = Harness.fixture()
+    s.folders = { { id = "bad", path = "/bad", devices = {}, status = { state = "error", error = "Access denied" } } }
+    s.counts.folderProblems = 1
+    local h = start(s)
+    local function position(text)
+        for index, node in h:nodes() do if node.props.text == text then return index end end
+        return nil
+    end
+    assert(not string.find(h:text(), "Access denied", 1, true), "folder error details belong in More")
+    h:click("Rescan all folders"); h:settle(false, "Syncthing returned HTTP 500", "http")
+    assert(position("Syncthing returned HTTP 500") < position("Folders"), "action errors sit above the counts")
+    h:click("More")
+    assert(string.find(h:text(), "Access denied", 1, true))
+end)
+
 scenario("a deliberate stop stays quiet and the switch acts directly", function()
     local s = Harness.fixture()
     s.lifecycle = { active = false, canControl = true, canStart = true, targetMatch = true, unit = "syncthing.service" }
