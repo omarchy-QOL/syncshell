@@ -85,7 +85,8 @@ function Picker.render(controller, form)
             variant = index == p.cursor and "default" or "ghost", enabled = not p.loading, onClick = function() Picker.open(controller, entry.path) end }))
     end
     if not p.loading and not p.error and #p.entries == 0 then table.insert(list, SharedWidgetControls.label("No subdirectories")) end
-    table.insert(children, ui.scroll({ key = "directories-" .. tostring(p.cursor), height = 220, gap = 4 }, list))
+    -- Paged, not scrolled: a scroll area inside the form's own collapses to nothing.
+    table.insert(children, ui.column({ key = "directories-" .. tostring(p.cursor), gap = 2 }, list))
     table.insert(children, ui.row({ gap = 6 }, {
         SharedWidgetControls.button("Previous rows", function() p.cursor = math.max(1, first - pageSize); controller:save() end, first > 1),
         SharedWidgetControls.button("Next rows", function() p.cursor = first + pageSize; controller:save() end, first + pageSize <= #p.entries),

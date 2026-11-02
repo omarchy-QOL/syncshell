@@ -710,6 +710,19 @@ scenario("geometry: visual bugs found live stay fixed", function()
     end
 end)
 
+scenario("geometry: a body scroll area never nests another", function()
+    local s = Harness.fixture()
+    s.folders = { { id = "one", path = "/one", devices = {}, status = { state = "idle" } } }
+    local h = start(s)
+    h:click("Add folder"); h:settle(true, nil, nil, { folderId = "x" })
+    h:click("Browse directories")
+    local function check(node, inside)
+        assert(not (inside and node.type == "scroll"), "nested scroll areas collapse in the host")
+        for _, child in node.children do check(child, inside or node.type == "scroll") end
+    end
+    check(h.tree, false)
+end)
+
 -- The action map: each control sends exactly what Omarchy's does.
 local function wiringFixture()
     local s = Harness.fixture()
