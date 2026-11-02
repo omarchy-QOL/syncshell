@@ -229,6 +229,7 @@ end
 -- One request travels at a time. A running rescan blocks mutations only.
 function Controller:send(action, args, closeForm, requestType)
     local mutation = action and action ~= "webui.open" and action ~= "folder.suggest-id" and action ~= "folder.recheck-errors"
+        and string.sub(action, 1, 10) ~= "lifecycle."
     if self.view.pending or self.status.busy or (mutation and self.status.rescan) or not self.status.ready then return false end
     local problem = Form.actionProblem(self.snapshot, action, args or {})
     if problem then self:notice(problem, "error"); self:save(); return false end
@@ -241,7 +242,7 @@ function Controller:send(action, args, closeForm, requestType)
         notice = action and Actions.notice(action, frozen, self.snapshot) or "",
         formToken = self.view.form and self.view.form.token }
     -- Omarchy shows progress on the control and only folder and device changes clear the notice.
-    if mutation and string.sub(action, 1, 10) ~= "lifecycle." and string.sub(action, 1, 6) ~= "webui." then self:notice("", nil) end
+    if mutation and string.sub(action, 1, 6) ~= "webui." then self:notice("", nil) end
     self:save()
     local request = { v = 2, type = requestType or "action", id = id }
     if request.type == "action" then request.action, request.args = action, frozen end

@@ -12,7 +12,8 @@ function FooterActions.render(controller, enabled)
     return ui.column({ key = "footer-actions", gap = 8 }, {
         ui.row({ gap = 6 }, {
             action(controller:actionKey("webui"), controller:actionLabel("webui.open", "Web UI"), nil, function() controller:openWebUi() end,
-                (controller.snapshot.connection or {}).online == true, "Open the Syncthing Web UI"),
+                -- Omarchy's stays bright while offline; openWebUi ignores the click.
+                true, "Open the Syncthing Web UI"),
             action("TUI", "TUI", nil, nil, false, "To be added soon."),
             action("GUI", "GUI", nil, nil, false, "To be added soon."),
         }),

@@ -60,7 +60,7 @@ function Card.render(controller, folder)
         }),
     }
     return SharedWidgetControls.column({ key = "folder-" .. folder.id, gap = 2, radius = 0,
-        border = scanning and Palette.roles.warning or (problem and "error" or (Model.folderSyncing(folder) and "on_surface" or "outline")), borderWidth = 1 }, children)
+        border = "outline", borderWidth = 1 }, children)
 end
 
 return Card

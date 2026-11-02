@@ -48,7 +48,9 @@ function Header.render(controller, compact)
     -- Omarchy hides the switch when the instance is not ours to control.
     if canToggle then
         table.insert(title, ui.row({ tooltip = lifecycle.active and "Stop syncing" or "Start syncing" }, {
-            ui.toggle({ key = "service-toggle", checked = lifecycle.active == true, enabled = not controller:busy(),
+            -- Folder actions do not block the service, as in Omarchy.
+            ui.toggle({ key = "service-toggle", checked = lifecycle.active == true,
+                enabled = string.sub(controller.status.busyAction or "", 1, 10) ~= "lifecycle.",
                 onChange = function(value)
                     controller:send(Model.bool(value) and "lifecycle.start" or "lifecycle.stop", {})
                 end }),
@@ -68,7 +70,11 @@ function Header.render(controller, compact)
         local decision = Model.driftDecision(controller.host.getConfig("serviceState"), lifecycle)
         if decision.status == "unsupported" and lifecycle.unitFileState ~= "not-found" then warning = decision.reason end
     end
-    if warning then table.insert(children, SharedWidgetControls.hint(warning, Palette.roles.warning)) end
+    if warning then
+        -- Omarchy dims the expected states and keeps warning color for real ones.
+        local quiet = managedStop or warning == "Starting native core"
+        table.insert(children, ui.label({ text = warning, color = quiet and "on_surface_variant" or Palette.roles.warning, fontSize = Ui.bodySmall, maxLines = 0 }))
+    end
     local actionRunning = string.sub(controller.status.busyAction or "", 1, 10) == "lifecycle."
     local connectionFailure = not managedStop and not missing and not actionRunning and connection.error and connection.error.message
     local v2 = controller.view

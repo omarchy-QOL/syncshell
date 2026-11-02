@@ -73,7 +73,7 @@ function SharedWidgetControls.tinted(key, text, glyph, color, callback, enabled,
     local children = {}
     if glyph then table.insert(children, ui.glyph({ name = glyph, size = 12, color = color })) end
     table.insert(children, ui.label({ text = text, color = color, fontSize = Ui.body, maxLines = 1 }))
-    return ui.row({ key = key, gap = 4, align = "center", height = height or Ui.cardControl, paddingH = 6, radius = 0, border = color, borderWidth = 1,
+    return ui.row({ key = key, gap = 4, align = "center", height = height or Ui.cardControl, paddingH = 6, radius = 0, border = "outline", borderWidth = 1,
         tooltip = help, opacity = enabled and 1 or 0.5, onClick = enabled and callback or nil }, children)
 end
 
