@@ -71,7 +71,13 @@ function Harness:snapshot(state)
             data = string.sub(data, (index - 1) * 4096 + 1, index * 4096) }, "test-generation")
     end
     self.writer.commit(self.frame, self.now)
-    if self.entry then while self.ticks do withBudget(self.entry.onFrameTick, 25) end end
+    -- A busy animation keeps frames coming, so only the snapshot bank is waited for.
+    if self.entry then
+        for _ = 1, 4096 do
+            if not self.ticks then break end
+            withBudget(self.entry.onFrameTick, 25)
+        end
+    end
 end
 
 function Harness:nodes()

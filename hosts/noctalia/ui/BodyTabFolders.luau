@@ -4,6 +4,7 @@ local Card = require("./BodyTabFoldersCard.luau")
 local Model = require("../models/PanelModel.luau")
 local ActionButton = require("./SharedWidgetSquareActionButton.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
+local BusyIcon = require("./SharedWidgetBusyIcon.luau")
 local BodyTabFolders = {}
 
 function BodyTabFolders.render(controller)
@@ -25,15 +26,20 @@ function BodyTabFolders.render(controller)
         table.insert(toolbar, ActionButton.render("Sharing", "share", function()
             controller:openForm("sharing", folder)
         end, enabled and folder ~= nil, nil, "Share folder\n(other device)"))
+        -- Omarchy swaps this icon for a spinner while its own action runs.
+        local pending = controller.view.pending
+        local linking = folder and pending and (pending.action == "folder.pause" or pending.action == "folder.resume")
+            and (pending.args or {}).folderId == folder.id
+        local linkRole = folder and folder.paused and Palette.roles.success or "error"
         table.insert(toolbar, ActionButton.render(folder and folder.paused and "Link" or "Unlink",
-            folder and folder.paused and "link" or "x", function()
+            linking and BusyIcon.spin(controller, "loader", linkRole, "loader-2", Ui.title) or (folder and folder.paused and "link" or "x"), function()
                 controller:confirm(folder.paused
                     and ("Link " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\nSyncthing will resume synchronization for this folder.")
                     or ("Unlink " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\nSyncthing will pause synchronization. Its configuration and local files remain."),
                     folder.paused and "folder.resume" or "folder.pause", { folderId = folder.id })
             end, enabled and folder ~= nil, nil,
             folder and (folder.paused and "Link folder" or "Unlink folder (locally)") or "Select a folder", nil,
-            folder and folder.paused and Palette.roles.success or "error", "on_surface/0.5"))
+            linkRole, "on_surface/0.5"))
     end
     local children = { ui.row({ key = "folder-toolbar", gap = 6, align = "center" }, toolbar) }
     if controller.dropdownList then table.insert(children, controller.dropdownList)

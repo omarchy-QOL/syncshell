@@ -217,6 +217,14 @@ function Controller:rescanAll()
     return false
 end
 
+-- Whatever is on screen with Omarchy's spinning or pulsing busy icon.
+local animatedActions = { ["folder.pause"] = true, ["folder.resume"] = true, ["device.pause"] = true, ["device.resume"] = true }
+
+function Controller:animating()
+    local pending = self.view.pending
+    return self:rescanState() ~= nil or self:refreshing() or (pending ~= nil and animatedActions[pending.action] == true)
+end
+
 function Controller:actionKey(action)
     return action .. "-" .. tostring(self.view.sequence)
 end

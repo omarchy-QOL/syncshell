@@ -38,6 +38,8 @@ local function formTree(form)
     error("unknown form " .. tostring(form.kind))
 end
 
+local snapshotsStepping = false
+
 local function render()
     if not opened or not controller then return end
     local v = controller.view
@@ -45,6 +47,7 @@ local function render()
     controller.dropdownLong = nil
     controller.navigation, controller.actionNavigation, controller.dropdownList = nil, nil, nil
     panel.setWantsSecondTicks(controller:needsTicks())
+    panel.setNeedsFrameTick(snapshotsStepping or controller:animating())
     if v.details then
         panel.render(ui.column({ key = "details", flexGrow = 1, padding = 12, gap = 8 }, {
             SharedWidgetControls.label(v.details.title),
@@ -149,11 +152,17 @@ controller = Controller.new(noctalia, render)
 local snapshots = SnapshotStore.reader(noctalia, function(value)
     controller:setSnapshot(value)
     controller:save()
-end, function(active) panel.setNeedsFrameTick(active and opened) end)
+end, function(active)
+    snapshotsStepping = active
+    panel.setNeedsFrameTick(opened and (active or controller:animating()))
+end)
 noctalia.state.watch("snapshot", function(value) snapshots.select(value) end)
 
 function onConfigChanged() render() end
-function onFrameTick() snapshots.step() end
+function onFrameTick()
+    snapshots.step()
+    if controller:animating() then render() else panel.setNeedsFrameTick(snapshotsStepping) end
+end
 function update() controller:tick() end
 
 function onOpen()

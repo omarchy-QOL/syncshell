@@ -73,6 +73,23 @@ function Palette.statusIcon(host, variant)
     return path
 end
 
+local spinShapes = {
+    rescan = 'fill="none" stroke="%s" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(%s 12 12)"><path d="M4.05 11a8 8 0 1 1 .5 4m-.5 5v-5h5"/></g>',
+    loader = 'fill="none" stroke="%s" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(%s 12 12)"><path d="M12 3a9 9 0 1 0 9 9"/></g>',
+    pause = 'fill="%s"><g transform="rotate(%s 12 12)"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></g>',
+    play = 'fill="%s"><g transform="rotate(%s 12 12)"><path d="M7 4v16l13-8z"/></g>',
+}
+
+function Palette.spinFrame(host, shape, role, index, frames)
+    local color, directory = host.getColor(string.match(role, "^[^/]+")), host.pluginDataDir and host.pluginDataDir()
+    if type(color) ~= "string" or not directory or not host.writeFile then return nil end
+    local path = directory .. "/busy-" .. shape .. "-" .. string.sub(color, 2) .. "-" .. tostring(index) .. ".svg"
+    if host.fileExists(path) then return path end
+    local body = string.format(spinShapes[shape], color, tostring(index * 360 / frames))
+    if not host.writeFile(path, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" ' .. body .. "</svg>") then return nil end
+    return path
+end
+
 function Palette.signature(colors)
     local parts = {}
     for _, key in { "mode", "background", "surface", "surfaceVariant", "foreground", "muted",

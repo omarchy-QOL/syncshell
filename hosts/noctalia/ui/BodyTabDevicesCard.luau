@@ -2,6 +2,7 @@ local Ui = require("./UiConstants.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local Model = require("../models/PanelModel.luau")
 local Palette = require("../controllers/ThemePaletteController.luau")
+local BusyIcon = require("./SharedWidgetBusyIcon.luau")
 local IdCopyButton = require("./SharedWidgetIdCopyButton.luau")
 local Card = {}
 
@@ -44,7 +45,12 @@ function Card.render(controller, device)
                 }),
                 detail("sitemap", device.address or "Address unavailable"),
             }),
-            ui.button({ key = "device-pause", text = controller:actionLabel(pending, device.paused and "RESUME" or "PAUSE", device.paused and "RESUMING" or "PAUSING"),
+            (controller.view.pending or {}).action == pending
+                and SharedWidgetControls.tinted("device-pause", device.paused and "RESUMING" or "PAUSING",
+                    -- Omarchy spins the action's own icon.
+                    BusyIcon.spin(controller, device.paused and "play" or "pause", Palette.roles.warning, device.paused and "player-play-filled" or "player-pause-filled"),
+                    Palette.roles.warning, nil, true, device.paused and "Resume synchronization with this device" or "Pause synchronization with this device")
+                or ui.button({ key = "device-pause", text = controller:actionLabel(pending, device.paused and "RESUME" or "PAUSE", device.paused and "RESUMING" or "PAUSING"),
                 glyph = device.paused and "player-play-filled" or "player-pause-filled", fontSize = Ui.body, glyphSize = Ui.body, height = Ui.cardControl,
                 variant = "outline", enabled = enabled, tooltip = device.paused and "Resume synchronization with this device" or "Pause synchronization with this device",
                 onClick = function() controller:send(pending, { deviceId = device.id }) end }),

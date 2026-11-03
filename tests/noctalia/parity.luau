@@ -138,7 +138,7 @@ scenario("device toolbar targets selection and pause gives bounded busy feedback
     h:click("device-pause")
     local request = h.host.state.get("intent").request
     assert(request.action == "device.pause" and request.args.deviceId == "REMOTE")
-    assert(h:find("PAUSING", "button").props.enabled == false)
+    assert(h:find("PAUSING") and h:find("device-pause").props.onClick == nil)
     assert(h:find("Remove").props.onClick == nil)
     h:settle(true)
     h:click("Remove"); h:advance(301); h:click("confirmation-accept")
@@ -174,16 +174,16 @@ scenario("footer identifies the active operation and disables repeated activatio
     s.folders = { { id = "one", path = "/one", devices = {}, status = { state = "idle" } } }
     local h = start(s)
     h:click("Rescan all folders")
-    assert(h:find("Rescanning...", "button").props.enabled == false)
+    assert(h:find("Rescanning...") and not h:find("Rescan all folders"))
     assert(h.host.state.get("intent").request.action == "folder.rescan-all")
     h:settle(true)
     h:click("Refresh Sync.status")
-    assert(h:find("Rechecking Syncthing", "button").props.enabled == false)
+    assert(h:find("Rechecking Syncthing") and not h:find("Refresh Sync.status"))
     assert(h.host.state.get("intent").request.type == "refresh")
     h:settle(true); h:advance(1501)
     s.folders[1].status = { state = "error", pullErrors = 1 }; s.counts.folderProblems = 1; h:snapshot(s)
     h:click("Refresh Sync.status")
-    assert(h:find("Rechecking Syncthing", "button").props.enabled == false)
+    assert(h:find("Rechecking Syncthing") and not h:find("Refresh Sync.status"))
     assert(h.host.state.get("intent").request.action == "folder.recheck-errors")
     h:settle(false, "Recheck failed", "unavailable"); h:advance(1501)
     assert(h:find("Refresh Sync.status").props.enabled and string.find(h:text(), "Recheck failed", 1, true))
@@ -672,6 +672,42 @@ scenario("fresh map: list, dialog and cursor rules follow Omarchy", function()
         end
     end
     assert(cancelled and not h.host.state.get("view").confirm, "scrim did not cancel")
+end)
+
+scenario("busy buttons animate as in Omarchy", function()
+    local s = Harness.fixture()
+    s.folders = { { id = "a", path = "/a", status = { state = "idle" }, devices = {} } }
+    s.counts.folders = 1
+    local h = start(s)
+    local function imagePath()
+        for _, node in h:nodes() do
+            if node.type == "image" and string.find(node.props.path, "busy-", 1, true) then return node.props.path end
+        end
+    end
+    -- A rescan spins its icon through rotated frames and asks for frame ticks.
+    assert(not h.ticks, "idle panel keeps ticking")
+    h:click("Rescan")
+    assert(h:find("RESCANNING") and h.ticks, "the rescan does not animate")
+    local first = imagePath()
+    assert(first and string.find(first, "busy-rescan-", 1, true), "no spinning frame")
+    h.now += 450; h.entry.onFrameTick()
+    assert(imagePath() ~= first, "the icon did not turn")
+    -- Refresh pulses the heart, between its size and 118%.
+    local p = start(s)
+    p:click("Refresh Sync.status")
+    local function heart()
+        for _, node in p:nodes() do
+            if node.type == "glyph" and node.props.name == "heartbeat" then return node.props.size end
+        end
+    end
+    assert(p:find("Rechecking Syncthing") and p.ticks, "the refresh does not animate")
+    p.now += 750 - p.now % 750; p.entry.onFrameTick()
+    local low = heart()
+    p.now += 375; p.entry.onFrameTick()
+    assert(heart() > low, "the heart did not grow")
+    p.now += 375; p.entry.onFrameTick()
+    assert(math.abs(heart() - low) < 0.5, "the heart did not shrink back")
+    noctalia, panel = h.host, h.panel
 end)
 
 scenario("P06 pending device acceptance copies its ID and retains edited name", function()

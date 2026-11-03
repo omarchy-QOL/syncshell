@@ -77,7 +77,9 @@ end
 function SharedWidgetControls.tinted(key, text, glyph, color, callback, enabled, help, height)
     enabled = enabled ~= false
     local children = {}
-    if glyph then table.insert(children, ui.glyph({ name = glyph, size = 12, color = color })) end
+    -- A busy button passes its animated icon as a node.
+    if type(glyph) == "table" then table.insert(children, glyph)
+    elseif glyph then table.insert(children, ui.glyph({ name = glyph, size = 12, color = color })) end
     table.insert(children, ui.label({ text = text, color = color, fontSize = Ui.body, maxLines = 1 }))
     return ui.row({ key = key, gap = 4, align = "center", height = height or Ui.cardControl, paddingH = glyph and 12 or 6, radius = 6, border = "outline", borderWidth = 1,
         tooltip = help, opacity = enabled and 1 or 0.5, onClick = enabled and callback or nil }, children)

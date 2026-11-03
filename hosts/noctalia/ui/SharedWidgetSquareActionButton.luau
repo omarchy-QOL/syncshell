@@ -10,7 +10,7 @@ function SquareActionButton.render(label, glyph, callback, enabled, variant, hel
             border = enabled and "outline" or "outline/0.5", borderWidth = 1, tooltip = help or label,
             onClick = enabled and callback or nil },
             -- Omarchy darkens a disabled tint by 1.6 unless the button names its own color.
-            { ui.glyph({ name = glyph, size = Ui.title, color = enabled and tint or disabledTint or (tint .. "/0.62") }) })
+            { type(glyph) == "table" and glyph or ui.glyph({ name = glyph, size = Ui.title, color = enabled and tint or disabledTint or (tint .. "/0.62") }) })
     end
     return ui.button({ key = label, text = "", glyph = glyph, tooltip = help or label,
         width = side, height = side, glyphSize = size == Ui.smallControl and Ui.caption or (size and Ui.body or Ui.title),
