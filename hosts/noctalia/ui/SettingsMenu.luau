@@ -3,7 +3,7 @@ local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local SettingsMenu = {}
 
 local function row(key, title, description, callback, color, fill)
-    return ui.column({ key = key, gap = 2, padding = 8, radius = 4, fill = fill or "#00000000", onClick = callback }, {
+    return ui.column({ key = key, gap = 2, padding = 8, radius = 0, fill = fill or "#00000000", onClick = callback }, {
         ui.label({ text = title, fontSize = Ui.title, fontWeight = "bold", color = color or "on_surface", maxLines = 1 }),
         ui.label({ text = description, fontSize = Ui.body, color = "on_surface_variant", maxLines = 1 }),
     })

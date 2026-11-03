@@ -627,6 +627,13 @@ scenario("fresh map: list, dialog and cursor rules follow Omarchy", function()
     -- The first h lands on the first control, without switching tabs.
     h.entry.onKey("h", true)
     assert(h.host.state.get("view").actionCursor ~= nil and h.host.state.get("view").section == "folders")
+    -- Device forms open without a focused field, and the source stays active with one row.
+    h:click("Devices"); h:click("Add device")
+    for _, node in h:nodes() do
+        assert(node.type ~= "input" or node.props.focus ~= true, "Omarchy focuses no field in the device form")
+    end
+    h:click("select-device-source"); assert(h:find("option-device-source-"), "the device source did not open")
+    h:click("Cancel"); h:click("Folders")
     -- A long list opens with its current row in view on a full page, and hovering stays put.
     local many = Harness.fixture()
     many.folders = {}

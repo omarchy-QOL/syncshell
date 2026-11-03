@@ -73,7 +73,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
     -- Omarchy offers search only in the folder selector.
     local children = {}
     if options.searchable then
-        table.insert(children, ui.row({ gap = 6, align = "center", paddingH = 6 }, options.accessory and { search, options.accessory() } or { search }))
+        table.insert(children, ui.row({ gap = 6, align = "center", paddingH = 6, paddingV = 6 }, options.accessory and { search, options.accessory() } or { search }))
     end
     if options.below then
         local extra = options.below()
@@ -118,7 +118,7 @@ function Dropdown.render(controller, owner, key, label, rows, selected, choose, 
                 end }),
         }))
     end
-    local tree = SharedWidgetControls.column({ key = "list-" .. key, gap = 6, paddingV = 6, radius = 6, border = "on_surface_variant", borderWidth = 1 }, children)
+    local tree = SharedWidgetControls.column({ key = "list-" .. key, gap = 6, radius = 0, border = "on_surface_variant", borderWidth = 1 }, children)
     -- Omarchy's list floats over the card. This host has no overlay, so a
     -- detached list takes the card's place instead.
     if options.detached then controller.dropdownList = tree; return trigger end

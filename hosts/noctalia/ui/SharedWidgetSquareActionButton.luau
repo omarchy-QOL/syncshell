@@ -13,7 +13,7 @@ function SquareActionButton.render(label, glyph, callback, enabled, variant, hel
             { ui.glyph({ name = glyph, size = Ui.title, color = enabled and tint or disabledTint or (tint .. "/0.62") }) })
     end
     return ui.button({ key = label, text = "", glyph = glyph, tooltip = help or label,
-        width = side, height = side, glyphSize = size and Ui.body or Ui.title,
+        width = side, height = side, glyphSize = size == Ui.smallControl and Ui.caption or (size and Ui.body or Ui.title),
         controlSize = "sm", variant = variant or "outline", enabled = enabled ~= false,
         onClick = callback })
 end

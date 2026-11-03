@@ -23,7 +23,8 @@ local function sourceSelector(controller, form)
             local source = sources[id]
             form.sourceId, form.deviceId, form.address = id, id, source.address or ""
             form.sourceRevision = (form.sourceRevision or 0) + 1
-        end),
+            -- As Omarchy, this selector stays active with only its custom row.
+        end, { openable = true }),
     })
 end
 
@@ -36,7 +37,7 @@ local function acceptForm(controller, form)
     local children = {
         BodyFormHeader.render(controller, "ACCEPT REMOTE DEVICE REQUEST"),
         inline("Name", ui.input({ key = "form-" .. tostring(form.token) .. "-name-" .. tostring(form.sourceRevision or 0), value = form.name or "",
-            placeholder = "Optional name", focus = true, height = Ui.field, fontSize = Ui.body, flexGrow = 1, enabled = not controller:busy(),
+            placeholder = "Optional name", height = Ui.field, fontSize = Ui.body, flexGrow = 1, enabled = not controller:busy(),
             onChange = function(value) form.name = value; controller:save() end })),
     }
     if form.address and form.address ~= "" then
@@ -55,7 +56,7 @@ function Form.render(controller, form)
     if form.kind == "acceptDevice" then return acceptForm(controller, form) end
     local children = { BodyFormHeader.render(controller, "ADD REMOTE DEVICE"), sourceSelector(controller, form) }
     table.insert(children, SharedWidgetControls.field(controller, form, "deviceId", "Device ID", {
-        focus = true, enabled = not form.sourceId or form.sourceId == "",
+        enabled = not form.sourceId or form.sourceId == "",
         revision = form.sourceRevision, placeholder = "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-..." }))
     if form.nearbyEmpty then
         table.insert(children, ui.row({ gap = 4, align = "center" }, {
