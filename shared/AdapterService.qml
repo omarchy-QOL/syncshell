@@ -403,7 +403,7 @@ QtObject {
     }
 
     function removeWebProfile() {
-        return runAction("webui.remove-profile", {}, "Default Web UI restored; this adapter's profiles removed", "");
+        return runAction("webui.remove-profile", {}, "This adapter's Web UI profiles removed", "");
     }
 
     function setServiceEnabled(enabled) {
