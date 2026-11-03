@@ -78,6 +78,7 @@ function Options.render(controller)
         controller:save()
     end
     table.insert(actions, reset)
+    table.insert(children, SharedWidgetControls.separator())
     table.insert(children, ui.row({ justify = "end" }, {
         SharedWidgetControls.button("Reset defaults", reset, true, cursor == 10 and "default" or "outline", "Reset", "Show all folders\nand sort by name"),
     }))

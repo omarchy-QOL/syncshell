@@ -602,6 +602,11 @@ scenario("fresh map: list, dialog and cursor rules follow Omarchy", function()
     assert(h:find("filter-all").children[1].children[1].props.name == "minus")
     h:click("filter-all"); h:click("Reset")
     assert(h.host.state.get("view").filtersOpen, "reset closed the view options")
+    local separators = 0
+    for _, node in h:find("view-options").children do
+        if node.props.height == 1 and node.props.fill == "outline" then separators += 1 end
+    end
+    assert(separators == 2, "Omarchy divides the sort from the filters and from Reset")
     -- The popup takes j, k, h, l, space and q, as in Omarchy, while the search steps aside.
     local function chosen() return h.host.state.get("view").optionsCursor end
     assert(h:search("search-folder").props.focus == false, "the search kept the popup's keys")

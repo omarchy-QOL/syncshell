@@ -55,11 +55,11 @@ function SharedWidgetControls.hint(text, color)
 end
 
 -- A native button has one glyph on its left; Omarchy's selector chevron sits right.
-function SharedWidgetControls.selectTrigger(key, text, callback, enabled, muted, help, trailing)
+function SharedWidgetControls.selectTrigger(key, text, callback, enabled, muted, help, trailing, inert)
     local cells = { ui.label({ text = text, color = muted and "on_surface_variant" or "on_surface", fontSize = Ui.body, maxLines = 1, flexGrow = 1 }) }
     if trailing then table.insert(cells, ui.label({ text = trailing, color = "on_surface_variant", fontSize = Ui.caption, maxLines = 1 })) end
-    -- Omarchy dims a row's chevron further when it also has trailing text.
-    table.insert(cells, ui.glyph({ name = "chevron-down", size = Ui.bodySmall, color = trailing and "on_surface_variant/0.7" or "on_surface/0.8" }))
+    -- Omarchy dims the chevron of a selector with nothing else to choose.
+    table.insert(cells, ui.glyph({ name = "chevron-down", size = Ui.bodySmall, color = inert and "on_surface/0.32" or "on_surface/0.8" }))
     return ui.row({ key = key, gap = 8, align = "center", height = Ui.control, paddingH = 10, radius = 4, border = "outline",
         borderWidth = 1, fill = "on_surface/0.05", flexGrow = 1, minWidth = 0, tooltip = help, onClick = enabled ~= false and callback or nil, opacity = enabled ~= false and 1 or 0.5 }, cells)
 end
