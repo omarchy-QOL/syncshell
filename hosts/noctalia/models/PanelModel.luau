@@ -203,6 +203,11 @@ function Model.middlePath(path, limit)
     return string.sub(path, 1, head) .. "…" .. string.sub(path, -(limit - 1 - head))
 end
 
+-- Removal only owns these two; any other theme is the user's or another adapter's.
+function Model.ownsWebUiTheme(theme)
+    return theme == "syncshell-noctalia-modern" or theme == "syncshell-noctalia-themed"
+end
+
 function Model.validDeviceId(value)
     local count = 0
     for part in string.gmatch(value, "[^-]+") do

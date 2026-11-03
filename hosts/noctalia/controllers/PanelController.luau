@@ -173,7 +173,7 @@ end
 function Controller:openWebUi()
     local connection, webUi = self.snapshot.connection or {}, self.snapshot.webUi or {}
     if not connection.online then return end
-    if webUi.theme == "syncshell-noctalia-modern" or webUi.theme == "syncshell-noctalia-themed" then
+    if Model.ownsWebUiTheme(webUi.theme) then
         return self:send("webui.open", {})
     end
     self:openExternal(webUi.url or "")

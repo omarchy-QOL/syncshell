@@ -1,28 +1,40 @@
 local Palette = require("../controllers/ThemePaletteController.luau")
 local SharedWidgetControls = require("./SharedWidgetControls.luau")
 local BodyFormHeader = require("./BodyFormHeader.luau")
+local Model = require("../models/PanelModel.luau")
 local Removal = {}
 
 function Removal.render(controller)
     local cleanup = controller.host.state.get("cleanup")
     local children = {
         BodyFormHeader.render(controller, "REMOVE SYNCTHING PLUGIN"),
-        SharedWidgetControls.label("1. Restore the default Web UI and remove Noctalia's owned profiles. Synchronized files and other adapters' profiles remain."),
-        SharedWidgetControls.button("Restore default and remove Noctalia profiles", function()
+    }
+    -- Only a selected Noctalia theme needs restoring. Anything else is left alone
+    -- and never stands in the way of removing the plugin.
+    local theme = (controller.snapshot.webUi or {}).theme
+    if (controller.snapshot.connection or {}).online ~= true then
+        table.insert(children, SharedWidgetControls.label("1. Syncthing is not running, so its Web UI is left as it is. You can still remove the plugin."))
+    elseif theme and theme ~= "default" and not Model.ownsWebUiTheme(theme) then
+        table.insert(children, SharedWidgetControls.label("1. Syncthing uses a Web UI theme this plugin does not own, so it stays selected. You can remove the plugin; Noctalia's unused Web UI files stay in Syncthing's folder."))
+    else
+        table.insert(children, SharedWidgetControls.label("1. Restore the default Web UI and remove Noctalia's owned profiles. Synchronized files and other adapters' profiles remain."))
+        table.insert(children, SharedWidgetControls.button("Restore default and remove Noctalia profiles", function()
             controller:confirm("Restore Syncthing's default Web UI and remove only Syncshell Noctalia's profiles? Your synchronized files remain unchanged.",
                 "webui.remove-profile", {})
-        end, not controller:busy() and controller.status.ready, "destructive", "cleanup-profiles"),
-        SharedWidgetControls.label(controller.view.profilesRemoved and "Profile cleanup completed. You can now remove the plugin."
-            or "Complete cleanup before deleting or disabling this plugin; if it fails, correct the reported problem and retry.",
-            controller.view.profilesRemoved and Palette.roles.success or "on_surface_variant"),
+        end, not controller:busy() and controller.status.ready, "destructive", "cleanup-profiles"))
+        if controller.view.profilesRemoved then
+            table.insert(children, SharedWidgetControls.label("Profile cleanup completed.", Palette.roles.success))
+        end
+    end
+    for _, step in {
         SharedWidgetControls.label("2. Open Noctalia Settings, return to Plugins, and disable syncshell/syncshell. For a Git-source installation, use its Remove button. For a local copy or path source, remove only the package copy or link shown below after disabling it."),
         SharedWidgetControls.label(controller.host.pluginDir()),
         SharedWidgetControls.button("Copy package path", function() controller:copy(controller.host.pluginDir()) end),
         SharedWidgetControls.button("Open Noctalia for removal", function() controller.host.openSettings() end,
-            controller.view.profilesRemoved == true and not controller:busy(), "default", "remove-in-host"),
+            not controller:busy(), "default", "remove-in-host"),
         SharedWidgetControls.label("3. Noctalia retains plugin settings. Keep them to reuse later, or remove only [plugin_settings.\"syncshell/syncshell\"] from your declarative config and resolved settings.toml overrides. Remove this plugin's bar placements through Noctalia's bar settings."),
         SharedWidgetControls.label("Settings overrides are in $NOCTALIA_STATE_HOME/noctalia/settings.toml, otherwise $XDG_STATE_HOME/noctalia/settings.toml, otherwise ~/.local/state/noctalia/settings.toml. Keep other plugins' settings and your Syncthing configuration."),
-    }
+    } do table.insert(children, step) end
     if cleanup and cleanup.ready then
         table.insert(children, SharedWidgetControls.label("If the package was already removed, run the saved recovery command, then repeat the removal steps:\n" .. cleanup.path))
         table.insert(children, SharedWidgetControls.button("Copy cleanup path", function() controller:copy(cleanup.path) end))
