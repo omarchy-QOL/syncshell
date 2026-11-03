@@ -62,7 +62,7 @@ function Header.render(controller, compact)
         }))
     end
     -- Omarchy sets the counts further from the name than from each other.
-    local children = { ui.column({ gap = 0 }, { ui.row({ gap = 10, align = "center" }, title), ui.spacer({ height = 4 }) }) }
+    local children = { ui.column({ gap = 0 }, { ui.row({ gap = 10, align = "center" }, title), ui.box({ height = 4, fill = "#00000000" }) }) }
     -- Omarchy keeps warnings, errors and notices directly under the name, above
     -- the counts; folder error details live in More.
     -- A deliberate stop reports no connection problem.
@@ -92,7 +92,7 @@ function Header.render(controller, compact)
         table.insert(children, SharedWidgetControls.notice(controller, v2.message, Palette.roles.success, "action details"))
     end
     -- Omarchy sets status rows off from the counts.
-    if #children > 1 and not compact then table.insert(children, ui.spacer({ height = 2 })) end
+    if #children > 1 and not compact then table.insert(children, ui.box({ height = 2, fill = "#00000000" })) end
     if not compact then
         table.insert(children, InfoPair.render("Folders", counts.folders or 0))
         table.insert(children, InfoPair.render("Devices", tostring(counts.connectedDevices or 0)

@@ -49,7 +49,7 @@ function Devices.render(controller)
         if not shared then
             table.insert(children, ui.row({ align = "center" }, {
                 SharedWidgetControls.hint("No folders are shared. Use the", Palette.roles.warning),
-                ui.spacer({ width = 3 }),
+                ui.box({ width = 3, height = 1, fill = "#00000000" }),
                 ui.glyph({ name = "share", size = Ui.caption, color = Palette.roles.warning }),
                 SharedWidgetControls.hint("button to share a folder.", Palette.roles.warning),
             }))

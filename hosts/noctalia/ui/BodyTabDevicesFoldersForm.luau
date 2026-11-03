@@ -24,9 +24,9 @@ function Form.render(controller, form)
             empty = "No unconfirmed shares", placeholder = "Find a folder..." }))
     table.insert(children, ui.row({ align = "center" }, {
         ui.glyph({ name = "alert-triangle", size = Ui.caption, color = Palette.roles.warning }),
-        ui.spacer({ width = 4 }),
+        ui.box({ width = 4, height = 1, fill = "#00000000" }),
         SharedWidgetControls.hint("Use", Palette.roles.warning),
-        ui.spacer({ width = 3 }),
+        ui.box({ width = 3, height = 1, fill = "#00000000" }),
         ui.glyph({ name = "share", size = Ui.caption, color = Palette.roles.warning }),
         SharedWidgetControls.hint("button (share folder) to restore a folder.", Palette.roles.warning),
     }))

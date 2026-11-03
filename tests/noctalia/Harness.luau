@@ -38,6 +38,10 @@ function Harness.new()
             assert(tree.props.flexGrow == 1, "panel root must fill the native host viewport")
             local function validate(node, depth)
                 assert(depth <= 32 and #node.children <= 256, "native tree limit exceeded")
+                -- Both rendered wrongly on screen: a spacer stretches whatever its size,
+                -- and a box without a fill is black.
+                assert(node.type ~= "spacer" or (node.props.width == nil and node.props.height == nil), "a spacer ignores its size")
+                assert(node.type ~= "box" or node.props.fill ~= nil, "a box needs a fill")
                 for _, child in node.children do validate(child, depth + 1) end
             end
             validate(tree, 1)
