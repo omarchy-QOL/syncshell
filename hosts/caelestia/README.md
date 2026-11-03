@@ -126,7 +126,7 @@ Web UI selection is explicit. Palette changes update only the currently
 selected `syncshell-caelestia-themed` profile; another adapter's selection is
 left alone. Profiles use the `caelestia` ownership marker. Use Settings,
 **Restore default UI and clean owned profiles**, before disabling/removing
-Syncshell. If another profile is selected, explicitly apply Default first.
+Syncshell. Any other selected theme stays selected.
 
 For direct removal without a manager hook, run the same core action before
 deleting the installed package (set `config` to the selected configuration):
