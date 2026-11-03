@@ -55,6 +55,36 @@ func TestProfileActionVerifiesThemeAndOwnedFileOutcomes(t *testing.T) {
 	}
 }
 
+func TestProfileCleanupLeavesAThemeItDoesNotOwn(t *testing.T) {
+	s, api := profileSession(t)
+	result := s.Act(context.Background(), "webui.apply-profile", ActionArguments{Profile: "modern"})
+	if !result.OK {
+		t.Fatalf("profile was not applied: %#v", result)
+	}
+	profile := filepath.Join(api.guiAssets, "syncshell-test-modern")
+	other := filepath.Join(api.guiAssets, "another-adapter")
+	if err := os.Mkdir(other, 0700); err != nil {
+		t.Fatal(err)
+	}
+	for _, theme := range []string{"dark", "another-adapter"} {
+		api.mu.Lock()
+		api.theme = theme
+		api.mu.Unlock()
+		if result := s.Act(context.Background(), "webui.remove-profile", ActionArguments{}); !result.OK {
+			t.Fatalf("cleanup refused %s: %#v", theme, result)
+		}
+		if api.currentTheme() != theme {
+			t.Fatalf("cleanup changed %s to %s", theme, api.currentTheme())
+		}
+		if _, err := os.Stat(profile); !os.IsNotExist(err) {
+			t.Fatalf("owned profile remains under %s: %v", theme, err)
+		}
+		if _, err := os.Stat(other); err != nil {
+			t.Fatal("another adapter's directory was changed", err)
+		}
+	}
+}
+
 func TestProfileActionRejectsChangedAssetDirectory(t *testing.T) {
 	s, api := profileSession(t)
 	changed := t.TempDir()
