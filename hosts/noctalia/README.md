@@ -172,11 +172,10 @@ connections and externally managed instances have different guidance.
 
 ## Removal and recovery
 
-Open Settings, then **Removal and recovery**. Restore default and remove
-Noctalia profiles first. If Syncthing is stopped or uses a theme this plugin does
-not own, cleanup is skipped and that theme stays selected; Noctalia's unused Web
-UI files then stay in Syncthing's folder. Cleanup never blocks the native removal
-route, and a failed one can be retried.
+Open Settings, then **Removal and recovery**. Remove Noctalia's profiles first.
+If one is selected, Syncthing returns to its default Web UI; any other theme
+stays. If Syncthing is stopped, the cleanup is skipped and its files stay.
+Cleanup never blocks the native removal route, and a failed one can be retried.
 
 The service saves a private executable and `cleanup.sh` underneath
 `pluginDataDir()/syncshell-noctalia-cleanup/`. The removal view displays and

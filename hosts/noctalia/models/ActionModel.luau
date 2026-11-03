@@ -93,7 +93,7 @@ function Actions.notice(action, args, snapshot)
         return "Selected folder shares removed from " .. deviceName(snapshot, device) .. "."
     elseif action == "folder.rescan" then return "Rescan complete for " .. folderName(snapshot, folder)
     elseif action == "folder.rescan-all" then return "Rescan complete for all folders"
-    elseif action == "webui.remove-profile" then return "Default Web UI restored; this adapter's profiles removed"
+    elseif action == "webui.remove-profile" then return "This adapter's Web UI profiles removed"
     end
     -- Refreshes, service and Web UI actions report through state, not a sentence.
     return ""

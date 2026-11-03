@@ -20,7 +20,7 @@ function SettingsMenu.render(controller)
         row("settings-webui", "Web UI and service", "Review the Web UI and login state", function()
             form.page = "webui"; controller:save()
         end),
-        row("settings-removal", "Cleanly remove Syncthing plugin", "Restore the default Web UI and remove owned profiles", function()
+        row("settings-removal", "Cleanly remove Syncthing plugin", "Remove owned Web UI profiles and leave other themes", function()
             form.page = "removal"; controller:save()
         end, "error"),
         SharedWidgetControls.separator(),

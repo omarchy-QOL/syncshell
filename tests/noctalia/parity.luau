@@ -478,12 +478,11 @@ scenario("P08 service reconciliation is explicit and cleanup gates removal", fun
     h:click("cleanup-profiles"); h:advance(301); h:click("confirmation-accept"); h:settle(true)
     assert(h:find("remove-in-host").props.enabled)
     assert(string.find(h:text(), "Profile cleanup completed.", 1, true))
-    -- Our own theme is offered cleanup; any other theme or a stopped Syncthing is left alone.
-    s.webUi.theme = "syncshell-noctalia-modern"; h:snapshot(s)
-    assert(h:find("cleanup-profiles"), "our own theme must be restorable")
-    s.webUi.theme = "dark"; h:snapshot(s)
-    assert(not h:find("cleanup-profiles") and h:find("remove-in-host").props.enabled, "another theme must not be cleaned up")
-    assert(string.find(h:text(), "does not own", 1, true))
+    -- Any theme is offered cleanup, since the core leaves other themes alone; a stopped Syncthing is not.
+    for _, theme in { "syncshell-noctalia-modern", "dark" } do
+        s.webUi.theme = theme; h:snapshot(s)
+        assert(h:find("cleanup-profiles") and h:find("remove-in-host").props.enabled, "cleanup must stay available with " .. theme)
+    end
     s.webUi.theme = "default"; s.connection.online = false; h:snapshot(s)
     assert(not h:find("cleanup-profiles") and h:find("remove-in-host").props.enabled, "a stopped Syncthing must not block removal")
     assert(string.find(h:text(), "not running", 1, true))
