@@ -8,7 +8,8 @@ local FooterActions = {}
 -- Omarchy's busy footer buttons turn warning-colored around an animated icon.
 local function busy(key, text, icon, help)
     local node = SharedWidgetControls.tinted(key, text, icon, Palette.roles.warning, nil, true, help, Ui.control)
-    node.props.flexGrow, node.props.justify = 1, "center"
+    -- The longer busy label needs the room a native button would not take.
+    node.props.flexGrow, node.props.justify, node.props.paddingH = 1, "center", 4
     return node
 end
 
