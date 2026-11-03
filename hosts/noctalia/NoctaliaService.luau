@@ -150,6 +150,7 @@ local function receive(frame)
                 lastPalette = Palette.signature(pending.request.args.palette)
             end
             local action = pending.request.action
+            if frame.ok and action == "webui.remove-profile" then noctalia.state.set("profilesRemovedFor", settings.webUi) end
             if action == "folder.rescan" or action == "folder.rescan-all" then
                 local data = frame.data or {}
                 if not frame.ok then
@@ -312,9 +313,13 @@ function update()
         local foreign = currentTheme ~= "default" and currentTheme ~= ownedThemes.modern and currentTheme ~= ownedThemes.themed
         local keep = foreign and not webUiChanged and not noctalia.fileExists(Settings.filePath(noctalia))
         webUiChanged = false
+        -- Cleanup must stick: the same saved preference would put the profile straight back.
+        local removed = noctalia.state.get("profilesRemovedFor") == settings.webUi
         local id, action, args = "webui-" .. tostring(now), nil, nil
         if keep then
             announce("Keeping Syncthing Web UI theme " .. currentTheme, "success", true)
+        elseif removed then
+            action = nil
         elseif settings.webUi == "default" then
             if currentTheme == ownedThemes.modern or currentTheme == ownedThemes.themed then
                 action, args = "webui.set-theme", { theme = "default" }

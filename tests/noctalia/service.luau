@@ -132,6 +132,41 @@ assert(streamCallback ~= oldCallback, "restart did not install a fresh generatio
 assert(writes[slot] == saved, "uncertain request was replayed on restart")
 oldCallback(encode({ transport = 1, type = "ready", directory = directory }))
 assert(values.status.generation ~= directory, "late readiness revived retired generation")
+
+-- Cleanup stays done although the saved preference still selects the profile.
+local function requests() local found = {}; for _, data in writes do table.insert(found, data) end; return found end
+local function appliedProfile()
+    for _, data in requests() do
+        if string.find(data, "webui.apply-profile", 1, true) then return true end
+    end
+    return false
+end
+defaults.webUi = "themed"
+service.onConfigChanged()
+local cleanupDirectory = "/run/user/1000/syncshell-noctalia/generation-456"
+streamCallback(encode({ transport = 1, type = "ready", directory = cleanupDirectory }))
+sequence = 0
+receive({ v = 2, type = "hello", build = { version = "test" } })
+receive({ v = 2, type = "snapshot", revision = 1, state = { webUi = { theme = "syncshell-noctalia-themed" } } })
+service.update()
+slot = cleanupDirectory .. "/request-slot.json"
+if writes[slot] then
+    local configure = decode(writes[slot])
+    receive({ v = 2, type = "result", id = configure.id, ok = true })
+end
+watches.intent({ id = "cleanup-1", generation = values.status.generation, view = "panel-1",
+    request = { v = 2, type = "action", id = "cleanup-1", action = "webui.remove-profile", args = {} } })
+assert(values.status.busy == "cleanup-1", "cleanup did not start")
+receive({ v = 2, type = "result", id = "cleanup-1", ok = true })
+receive({ v = 2, type = "snapshot", revision = 2, state = { webUi = { theme = "default" } } })
+for key in writes do writes[key] = nil end
+service.update()
+assert(not appliedProfile(), "cleanup was undone by the saved preference")
+defaults.webUi = "modern"
+service.onConfigChanged()
+service.update()
+assert(appliedProfile(), "choosing another Web UI must work again after cleanup")
+
 service.onExit()
 assert(values.status.ready == false)
 print("Noctalia service generation, delivery, settlement and recovery checks passed")

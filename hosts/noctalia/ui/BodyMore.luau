@@ -13,7 +13,7 @@ function Details.render(controller)
         variant = "ghost", contentAlign = "start", height = Ui.control, fontSize = Ui.body, glyphSize = Ui.title,
         onClick = function()
             v.more = not v.more
-            if v.more then v.scrollRevision = (v.scrollRevision or 0) + 1 end
+            if v.more then v.scrollRevision, v.scrollPending = (v.scrollRevision or 0) + 1, true end
             controller:save()
         end }) }
     if v.more then

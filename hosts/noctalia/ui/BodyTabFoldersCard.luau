@@ -38,7 +38,7 @@ function Card.render(controller, folder)
         table.insert(metaRow, ui.row({ key = "see-more", onClick = function()
             local v = controller.view
             v.folderId, v.more = folder.id, not v.more
-            if v.more then v.scrollRevision = (v.scrollRevision or 0) + 1 end
+            if v.more then v.scrollRevision, v.scrollPending = (v.scrollRevision or 0) + 1, true end
             controller:save()
         end }, { SharedWidgetControls.hint('(see "More" below)', "error") }))
     end

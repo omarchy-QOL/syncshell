@@ -11,8 +11,8 @@ function Controller.new(host, changed)
     self.view = host.state.get("view") or Model.newView(host.nowMs())
     self.status = host.state.get("status") or {}
     self.snapshot = {}
-    host.state.watch("status", function(value) self:setStatus(value); self:save() end)
-    host.state.watch("results", function(value) self:setResults(value); self:save() end)
+    host.state.watch("status", function(value) self:setStatus(value); self:sendNext(); self:save() end)
+    host.state.watch("results", function(value) self:setResults(value); self:sendNext(); self:save() end)
     self:setResults(host.state.get("results"))
     return self
 end
@@ -68,7 +68,7 @@ function Controller:setStatus(status)
         self:notice(notice.text, notice.kind, 10000)
     end
     if self.view.pending and self.view.pending.generation ~= self.status.generation then
-        self.view.pending = nil
+        self.view.pending, self.view.nextAction = nil, nil
         self:notice("Worker restarted. The previous action may have completed; refresh before retrying.", "uncertain")
     end
 end
@@ -263,6 +263,29 @@ function Controller:send(action, args, closeForm, requestType)
     self.host.state.set("intent", { id = id, generation = self.status.generation,
         view = self.view.view, request = request, notice = self.view.pending.notice, background = action == "folder.suggest-id" })
     return true
+end
+
+-- Omarchy hands `p` to the core, which runs it after the current action. This
+-- host has one request slot, so the panel holds it until the slot is free.
+function Controller:toggleService()
+    local lifecycle, pending = self.snapshot.lifecycle or {}, self.view.pending
+    if not (lifecycle.canControl or lifecycle.canStart) then return end
+    if pending and string.sub(pending.action or "", 1, 10) == "lifecycle." then return end
+    local action = lifecycle.active and "lifecycle.stop" or "lifecycle.start"
+    if pending then
+        self.view.nextAction = action
+        self:save()
+    else
+        self:send(action, {})
+    end
+end
+
+function Controller:sendNext()
+    local action = self.view.nextAction
+    if action and not self.view.pending and not self.status.busy then
+        self.view.nextAction = nil
+        self:send(action, {})
+    end
 end
 
 function Controller:confirm(message, action, args, closeForm)

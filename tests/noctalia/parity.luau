@@ -1056,4 +1056,46 @@ scenario("wiring: service, Web UI and refresh controls follow Omarchy", function
     assert(h.host.state.get("intent").request.type == "refresh")
 end)
 
+scenario("p waits for an action in flight, as the core would make it", function()
+    local s = Harness.fixture()
+    s.lifecycle = { active = true, canControl = true }
+    local h = start(s)
+    h:click("Devices")
+    h:click("device-pause")
+    local running = h.host.state.get("intent")
+    assert(running.request.action == "device.pause")
+    h.entry.onKey("p", true)
+    assert(h.host.state.get("intent").id == running.id, "p must not take the request slot")
+    h:settle(true)
+    assert(h.host.state.get("intent").request.action == "lifecycle.stop", "p was dropped")
+end)
+
+scenario("p does not queue while its own action runs", function()
+    local s = Harness.fixture()
+    s.lifecycle = { active = true, canControl = true }
+    local h = start(s)
+    h.entry.onKey("p", true)
+    local stop = h.host.state.get("intent")
+    assert(stop.request.action == "lifecycle.stop")
+    h.entry.onKey("p", true)
+    h:settle(true)
+    assert(h.host.state.get("intent").id == stop.id, "a second p started another action")
+end)
+
+scenario("only opening More scrolls the page to the bottom", function()
+    local s = Harness.fixture()
+    local h = start(s)
+    local function revision()
+        for _, node in h:nodes() do
+            if node.type == "scroll" and node.props.scrollToBottomRev then return node.props.scrollToBottomRev end
+        end
+        return nil
+    end
+    assert(revision() == nil)
+    h:click("More")
+    assert(revision(), "opening More must scroll to it")
+    h:click("Settings")
+    assert(revision() == nil, "a new page would jump to its end")
+end)
+
 assert(failures == 0, tostring(failures) .. " parity regressions failed")

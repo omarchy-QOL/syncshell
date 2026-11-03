@@ -139,9 +139,12 @@ local function render()
         }))
         return
     end
+    -- The host scrolls any new scroll area given a revision, so only opening More passes one.
+    local scrollRevision = v.scrollPending and v.scrollRevision or nil
+    v.scrollPending = nil
     local tree = ui.column({ flexGrow = 1, padding = 12, gap = 8 }, {
         top_,
-        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8, padding = 0, scrollToBottomRev = v.scrollRevision }, body),
+        ui.scroll({ key = bodyKey, flexGrow = 1, gap = 8, padding = 0, scrollToBottomRev = scrollRevision }, body),
         bottom_,
     })
     Navigation.decorate(controller, tree)
@@ -224,10 +227,6 @@ function onKey(chord, pressed)
     if chord == "r" then controller:rescanAll()
     elseif chord == "w" then controller:openWebUi()
     elseif chord == "s" then controller:openForm("settings")
-    elseif chord == "p" then
-        local lifecycle = controller.snapshot.lifecycle or {}
-        if lifecycle.canControl or lifecycle.canStart then
-            controller:send(lifecycle.active and "lifecycle.stop" or "lifecycle.start", {})
-        end
+    elseif chord == "p" then controller:toggleService()
     end
 end
