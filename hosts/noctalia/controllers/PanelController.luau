@@ -190,6 +190,12 @@ end
 
 -- Omarchy closes these on close; only the folder picker survives there, and
 -- this adapter's picker cannot outlive the panel.
+-- A press outside Omarchy's list closes it, and the rows beside this one stay usable.
+function Controller:closeLists()
+    self.view.filtersOpen = false
+    for _, item in self.view.selectors or {} do item.open = false end
+end
+
 function Controller:resetTransient()
     local v = self.view
     v.more, v.form, v.confirm, v.details, v.filtersOpen, v.actionCursor = false, nil, nil, nil, false, nil
@@ -252,6 +258,7 @@ function Controller:send(action, args, closeForm, requestType)
 end
 
 function Controller:confirm(message, action, args, closeForm)
+    self:closeLists()
     if self:busy() then return end
     self.view.confirm = { message = message, action = action, args = Model.copy(args),
         closeForm = closeForm, choice = "cancel", opened = self.host.nowMs() }
@@ -277,6 +284,7 @@ end
 function Controller:openForm(kind, target)
     if self:busy() and kind ~= "settings" then return end
     if self.view.form and self.view.form.kind == kind then return end
+    self:closeLists()
     self.view.actionCursor = nil
     self.view.formSequence += 1
     local form = { kind = kind, token = self.view.formSequence, search = "", selected = {},

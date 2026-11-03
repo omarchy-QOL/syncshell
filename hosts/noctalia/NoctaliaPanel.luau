@@ -81,7 +81,8 @@ local function render()
         else
             table.insert(body, BodyTabDevices.render(controller))
         end
-        if not controller.dropdownList then
+        -- Omarchy's list floats over the card and leaves these in view.
+        if not (controller.dropdownList and (v.filtersOpen or controller.dropdownLong)) then
             local invitations = BodyInvitations.render(controller)
             if invitations then table.insert(body, invitations) end
             table.insert(body, BodyMore.render(controller))

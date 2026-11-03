@@ -44,6 +44,8 @@ function Devices.render(controller)
     if controller.dropdownList then table.insert(children, controller.dropdownList)
     elseif device then
         table.insert(children, BodyTabDevicesCard.render(controller, device))
+    end
+    if device and not controller.dropdownLong then
         local shared = false
         for _, folder in controller.snapshot.folders or {} do shared = shared or Model.shares(folder, device.id) end
         if not shared then

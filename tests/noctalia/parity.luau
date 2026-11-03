@@ -627,6 +627,17 @@ scenario("fresh map: list, dialog and cursor rules follow Omarchy", function()
     -- The first h lands on the first control, without switching tabs.
     h.entry.onKey("h", true)
     assert(h.host.state.get("view").actionCursor ~= nil and h.host.state.get("view").section == "folders")
+    -- A short list leaves the rows below it usable, and using one closes the list.
+    local beside = Harness.fixture()
+    beside.folders = s.folders
+    beside.pendingFolders = { { id = "offer", label = "Offer", devices = { { deviceId = "REMOTE", name = "Laptop" } } } }
+    local near = start(beside)
+    near:click("select-folder")
+    assert(near:find("More"), "More left with the list")
+    near:click("More")
+    near:click("select-folder"); near:click("Add folder")
+    assert(not near:search("search-folder"), "the form left the list open")
+    noctalia, panel = h.host, h.panel
     -- Device forms open without a focused field, and the source stays active with one row.
     h:click("Devices"); h:click("Add device")
     for _, node in h:nodes() do

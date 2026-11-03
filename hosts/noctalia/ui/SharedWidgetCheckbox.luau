@@ -12,7 +12,7 @@ function Checkbox.render(key, label, checked, toggle, enabled, help, radio, deta
     return ui.row({ key = key, gap = 8, align = "center", minHeight = 24, paddingH = 4, radius = 0, flexGrow = 1, tooltip = help,
         opacity = enabled and 1 or 0.5, onClick = enabled and toggle or nil }, {
         ui.row({ width = 16, height = 16, align = "center", justify = "center", radius = radio and 8 or 3, borderWidth = 1,
-            border = "outline", fill = ((checked or mixed) and not radio) and "on_surface/0.18" or "#00000000" }, { mark }),
+            border = "outline", fill = ((checked or mixed) and not radio) and "on_surface/0.28" or "#00000000" }, { mark }),
         ui.column({ flexGrow = 1, minWidth = 0 }, text),
     })
 end
