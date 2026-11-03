@@ -7,7 +7,7 @@ function SquareActionButton.render(label, glyph, callback, enabled, variant, hel
         -- Native buttons fix their glyph color; Omarchy tints these outlined icons.
         enabled = enabled ~= false
         return ui.row({ key = label, width = side, height = side, align = "center", justify = "center", radius = 6,
-            border = "outline", borderWidth = 1, tooltip = help or label,
+            border = enabled and "outline" or "outline/0.5", borderWidth = 1, tooltip = help or label,
             onClick = enabled and callback or nil },
             -- Omarchy darkens a disabled tint by 1.6 unless the button names its own color.
             { ui.glyph({ name = glyph, size = Ui.title, color = enabled and tint or disabledTint or (tint .. "/0.62") }) })

@@ -61,7 +61,8 @@ function Header.render(controller, compact)
                 end }),
         }))
     end
-    local children = { ui.row({ gap = 10, align = "center" }, title) }
+    -- Omarchy sets the counts further from the name than from each other.
+    local children = { ui.column({ gap = 0 }, { ui.row({ gap = 10, align = "center" }, title), ui.spacer({ height = 4 }) }) }
     -- Omarchy keeps warnings, errors and notices directly under the name, above
     -- the counts; folder error details live in More.
     -- A deliberate stop reports no connection problem.

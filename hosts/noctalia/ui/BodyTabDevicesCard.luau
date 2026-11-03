@@ -35,7 +35,7 @@ function Card.render(controller, device)
                 state == "DISCONNECTED" and (Palette.roles.muted .. "/0.6") or Palette.roles[Model.deviceStateRole(device)]),
         }),
         ui.row({ gap = 8, align = "end" }, {
-            ui.column({ gap = 3, flexGrow = 1, minWidth = 0, paddingH = 8, paddingV = 2 }, {
+            ui.column({ gap = 3, flexGrow = 1, minWidth = 0, paddingH = 8, paddingV = 4 }, {
                 detail("folder-filled", tostring(shared) .. "/" .. tostring(total) .. " folder" .. (total == 1 and "" or "s")
                     .. " shared"),
                 ui.row({ gap = 10, align = "center" }, {

@@ -22,9 +22,11 @@ function Form.render(controller, form)
     table.insert(children, MultiSelect.render(controller, form, groups.unconfirmed, nil,
         { key = "unconfirmed", label = "Unconfirmed shares", note = #groups.unconfirmed > 0 and "(acceptance pending/device offline)" or nil, group = true,
             empty = "No unconfirmed shares", placeholder = "Find a folder..." }))
-    table.insert(children, ui.row({ gap = 4, align = "center" }, {
+    table.insert(children, ui.row({ align = "center" }, {
         ui.glyph({ name = "alert-triangle", size = Ui.caption, color = Palette.roles.warning }),
+        ui.spacer({ width = 4 }),
         SharedWidgetControls.hint("Use", Palette.roles.warning),
+        ui.spacer({ width = 3 }),
         ui.glyph({ name = "share", size = Ui.caption, color = Palette.roles.warning }),
         SharedWidgetControls.hint("button (share folder) to restore a folder.", Palette.roles.warning),
     }))

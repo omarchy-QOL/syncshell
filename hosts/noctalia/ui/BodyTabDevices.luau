@@ -47,8 +47,9 @@ function Devices.render(controller)
         local shared = false
         for _, folder in controller.snapshot.folders or {} do shared = shared or Model.shares(folder, device.id) end
         if not shared then
-            table.insert(children, ui.row({ gap = 2, align = "center" }, {
+            table.insert(children, ui.row({ align = "center" }, {
                 SharedWidgetControls.hint("No folders are shared. Use the", Palette.roles.warning),
+                ui.spacer({ width = 3 }),
                 ui.glyph({ name = "share", size = Ui.caption, color = Palette.roles.warning }),
                 SharedWidgetControls.hint("button to share a folder.", Palette.roles.warning),
             }))

@@ -55,7 +55,7 @@ function Card.render(controller, folder)
             SharedWidgetControls.badge("folder-state-" .. folder.id, state, color),
         }),
         ui.row({ gap = 8, align = "end" }, {
-            ui.column({ gap = 2, flexGrow = 1, minWidth = 0, paddingH = 8, paddingV = 2 }, details),
+            ui.column({ gap = 2, flexGrow = 1, minWidth = 0, paddingH = 8, paddingV = 4 }, details),
             action,
         }),
     }
