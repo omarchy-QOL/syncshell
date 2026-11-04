@@ -42,6 +42,7 @@ StyledRect {
                 caption: ""
                 value: root.folder ? root.folder.id : ""
                 helpText: "Copy folder ID"
+                onCopySucceeded: root.controller.showNotice("Folder ID copied", 5000)
             }
             Item {
                 Layout.fillWidth: true

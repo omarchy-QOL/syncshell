@@ -45,6 +45,7 @@ ColumnLayout {
                     value: root.service ? root.service.localDeviceId : ""
                     caption: "device ID"
                     helpText: "Copy device ID"
+                    onCopySucceeded: root.controller.showNotice("Device ID copied", 5000)
                 }
             }
         }
@@ -76,15 +77,27 @@ ColumnLayout {
     // instead of keeping it in the header.
     property string shownNotice: ""
     property bool noticeShown: false
+    property bool localNotice: false
+    function showNotice(text, duration, local) {
+        shownNotice = text;
+        localNotice = local;
+        noticeShown = true;
+        noticeFade.stop();
+        noticeDisplay.interval = duration;
+        noticeDisplay.restart();
+    }
     Connections {
         target: root.service
         function onActionNoticeChanged() {
             if (!root.service.actionNotice)
                 return;
-            root.shownNotice = root.service.actionNotice;
-            root.noticeShown = true;
-            noticeFade.stop();
-            noticeDisplay.restart();
+            root.showNotice(root.service.actionNotice, UiConstants.NOTICE_VISIBLE_MS, false);
+        }
+    }
+    Connections {
+        target: root.controller
+        function onNoticeRequested(text, duration) {
+            root.showNotice(text, duration, true);
         }
     }
     Timer {
@@ -103,7 +116,7 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        visible: root.shownNotice !== "" && !root.serviceStopped
+        visible: root.shownNotice !== "" && (!root.serviceStopped || root.localNotice)
         text: root.shownNotice
         textFormat: Text.PlainText
         color: Theme.success

@@ -12,6 +12,7 @@ SharedWidgetTooltipButton {
     property string helpText: "Copy ID"
     property bool copied: false
     property string error: ""
+    signal copySucceeded
     controlHeight: UiConstants.SMALL_CONTROL_HEIGHT
     flat: caption !== ""
     iconName: copied ? "check" : "content_copy"
@@ -40,6 +41,8 @@ SharedWidgetTooltipButton {
         onExited: function (code) {
             root.copied = code === 0;
             root.error = code === 0 ? "" : "Could not copy the ID";
+            if (code === 0)
+                root.copySucceeded();
             reset.restart();
         }
     }

@@ -23,6 +23,11 @@ QtObject {
     property string error: ""
     property bool idSuggestionPending: false
     property var returnFocus: null
+    signal noticeRequested(string text, int duration)
+
+    function showNotice(text, duration) {
+        noticeRequested(String(text || ""), duration || 5000);
+    }
 
     readonly property var folder: service ? service.folder(selectedFolderId) : null
     readonly property var device: service ? service.device(selectedDeviceId) : null
