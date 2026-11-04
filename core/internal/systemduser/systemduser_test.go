@@ -7,7 +7,41 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestApplyHonorsCancellationDuringAServiceJob(t *testing.T) {
+	directory := t.TempDir()
+	started := filepath.Join(directory, "started")
+	command := filepath.Join(directory, "systemctl")
+	script := "#!/bin/sh\ntouch '" + started + "'\nexec sleep 60\n"
+	if err := os.WriteFile(command, []byte(script), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := make(chan error, 1)
+	go func() { done <- (Controller{Command: command}).Apply(ctx, "syncthing.service", ActionStop) }()
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		if _, err := os.Stat(started); err == nil {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("service command did not begin")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	cancel()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("canceled service job reported success")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("service job did not honor cancellation")
+	}
+}
 
 func TestApplyUsesExactAuthorizedUnit(t *testing.T) {
 	directory := t.TempDir()
