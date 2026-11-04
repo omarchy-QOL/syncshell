@@ -41,11 +41,12 @@ func (s *Session) removeWebProfile(ctx context.Context) ActionResult {
 	}
 	modern, _ := s.webProfile.Name("modern")
 	themed, _ := s.webProfile.Name("themed")
-	if current.Theme != "default" && current.Theme != modern && current.Theme != themed {
-		return rejected("profile_not_selected", "Another Web UI profile is selected; switch to default before removing this adapter's profiles")
-	}
-	if result := s.setWebUITheme(ctx, "default"); !result.OK {
-		return result
+	// Only a theme this adapter owns would be left pointing at deleted files;
+	// any other selection is the user's or another adapter's and stays.
+	if current.Theme == modern || current.Theme == themed {
+		if result := s.setWebUITheme(ctx, "default"); !result.OK {
+			return result
+		}
 	}
 	if err := s.webProfile.Remove(assets); err != nil {
 		return rejected("profile_cleanup", err.Error())
