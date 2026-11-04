@@ -269,7 +269,8 @@ QtObject {
     function requestServiceToggle(trigger) {
         if (!service || !service.canControlService || busy || form || confirmation)
             return false;
-        return requestConfirmation(service.lifecycle.active ? "lifecycle.stop" : "lifecycle.start", {}, trigger);
+        var action = service.lifecycle.active ? "lifecycle.stop" : "lifecycle.start";
+        return service.runAction(action, {}, service.lifecycle.active ? "Syncthing stopped" : "Syncthing started", "");
     }
 
     function confirm() {
