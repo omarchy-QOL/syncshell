@@ -200,3 +200,22 @@ test("status colours keep Omarchy's meanings with Caelestia's palette", () => {
     ["S", model.WARNING, "M", "M"]);
   assert.deepEqual(["removing", "upload", "sync"].map(a => model.statusColour(palette, model.activityRole(a))), ["E", "S", model.INFO]);
 });
+
+
+test("stopped service stays quiet without hiding real failures", () => {
+  const stopped = { core: { protocolReady: true }, canControlService: true,
+    lifecycle: { active: false }, online: false, lastError: "HTTP 502", actionError: "" };
+  assert.equal(model.serviceStopped(stopped), true);
+  assert.equal(model.serviceError(stopped), "");
+  assert.equal(model.connectionMessage(stopped), "Syncing stopped");
+  for (const service of [
+    { ...stopped, lifecycle: { active: true } },
+    { ...stopped, canControlService: false },
+    { ...stopped, core: { protocolReady: false } },
+  ]) {
+    assert.equal(model.serviceStopped(service), false);
+    assert.equal(model.serviceError(service), "HTTP 502");
+  }
+  assert.equal(model.serviceError({ ...stopped, actionError: "permission denied" }), "permission denied");
+  assert.equal(model.connectionMessage({ ...stopped, online: true }), "");
+});

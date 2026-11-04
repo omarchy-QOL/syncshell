@@ -16,6 +16,8 @@ ColumnLayout {
     readonly property var service: controller.service
     readonly property var totals: Model.totals(service.folders)
     readonly property string iconVariant: Model.statusVariant(service)
+    readonly property bool serviceStopped: Model.serviceStopped(service)
+    readonly property string statusError: Model.serviceError(service)
     RowLayout {
         spacing: Tokens.spacing.medium
         Item {
@@ -76,20 +78,13 @@ ColumnLayout {
             }
         }
     }
-    SharedWidgetInfoPair {
+    StyledText {
         Layout.fillWidth: true
-        label: "Folders"
-        value: String(root.service.folderCount)
-    }
-    SharedWidgetInfoPair {
-        Layout.fillWidth: true
-        label: "Devices"
-        value: root.service.connectedDeviceCount + " of " + root.service.deviceCount + " connected"
-    }
-    SharedWidgetInfoPair {
-        Layout.fillWidth: true
-        label: "Tracked"
-        value: Model.formatCount(root.totals.files) + " files · " + Model.bytes(root.totals.bytes)
+        text: root.statusError || Model.connectionMessage(root.service)
+        textFormat: Text.PlainText
+        wrapMode: Text.WordWrap
+        visible: text !== ""
+        color: root.statusError ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
     }
     // Omarchy shows an action notice in green for 10 s, then fades it out.
     property string shownNotice: ""
@@ -121,7 +116,7 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        visible: root.shownNotice !== ""
+        visible: root.shownNotice !== "" && !root.serviceStopped
         text: root.shownNotice
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
@@ -135,4 +130,20 @@ ColumnLayout {
             }
         }
     }
+    SharedWidgetInfoPair {
+        Layout.fillWidth: true
+        label: "Folders"
+        value: String(root.service.folderCount)
+    }
+    SharedWidgetInfoPair {
+        Layout.fillWidth: true
+        label: "Devices"
+        value: root.service.connectedDeviceCount + " of " + root.service.deviceCount + " connected"
+    }
+    SharedWidgetInfoPair {
+        Layout.fillWidth: true
+        label: "Tracked"
+        value: Model.formatCount(root.totals.files) + " files · " + Model.bytes(root.totals.bytes)
+    }
+
 }

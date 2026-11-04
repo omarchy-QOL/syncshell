@@ -326,8 +326,8 @@ FocusScope {
                 Layout.fillWidth: true
                 StyledText {
                     Layout.fillWidth: true
-                    // Notices show in the header, as in Omarchy; errors stay here.
-                    text: root.controller.error || root.owner.preferences.error || root.controller.service.lastError
+                    // Keep form validation here; action errors are in the header.
+                    text: root.owner.preferences.error || (root.controller.error !== root.controller.service.actionError ? root.controller.error : "")
                     textFormat: Text.PlainText
                     color: Colours.palette.m3error
                     visible: !!text

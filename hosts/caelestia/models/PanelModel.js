@@ -214,3 +214,24 @@ function errorDetails(folder) {
     if (errors.length < count) summary += " Open Web UI for the full list.";
     return (details.join("\n\n") || "Syncthing reported no error details.") + (summary ? "\n\n" + summary : "");
 }
+
+// A verified stopped unit is a status, not a failed API connection.
+function serviceStopped(service) {
+    return !!service && !!service.core && service.core.protocolReady === true
+        && service.canControlService === true && !service.online
+        && !!service.lifecycle && service.lifecycle.active === false;
+}
+
+function serviceError(service) {
+    if (!service)
+        return "";
+    return String(service.actionError || (!serviceStopped(service) ? service.lastError : "") || "");
+}
+
+function connectionMessage(service) {
+    if (!service)
+        return "Starting Syncshell";
+    if (serviceStopped(service))
+        return "Syncing stopped";
+    return service.online ? "" : String(service.summaryText || "Syncthing unavailable");
+}
