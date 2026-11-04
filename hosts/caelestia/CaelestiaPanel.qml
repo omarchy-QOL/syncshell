@@ -26,6 +26,15 @@ FocusScope {
     implicitWidth: content?.implicitWidth || 0
     implicitHeight: content?.implicitHeight || 0
     focus: true
+    readonly property bool readyForFocus: active && !!content && (host?.panels?.popoutsWrapper?.offsetScale ?? 1) <= 0.001
+
+    function focusOverview() {
+        // The host wrapper can take focus after the panel finishes loading.
+        if (active && content && controller && !activeFocus)
+            content.restore(controller.view.form ? "form" : "main");
+    }
+    onReadyForFocusChanged: if (readyForFocus)
+        Qt.callLater(focusOverview)
 
     Binding {
         target: root.window

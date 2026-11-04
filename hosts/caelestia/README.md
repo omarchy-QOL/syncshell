@@ -97,8 +97,9 @@ Escape, `q`, the icon or an outside click closes it: moving the pointer away
 does not close it, and a hovered host popout hands it back when it closes.
 Search supports the Omarchy fuzzy matcher;
 folder filters can combine states. Tab and arrow keys navigate controls.
-Outside editors: `r` rescans, `w` opens Web UI, `p` links/unlinks the folder,
-`s` opens settings and `q` closes. Escape dismisses the innermost menu,
+Outside editors: `r` rescans, `w` opens Web UI, `p` starts or stops the
+authorized Syncthing service without changing autostart, `s` opens settings
+and `q` closes. Escape dismisses the innermost menu,
 confirmation, picker, form, then panel. Closing the panel retains drafts;
 Cancel discards the current form. Confirmations reopen with Cancel focused.
 

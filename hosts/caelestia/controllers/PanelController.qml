@@ -157,9 +157,8 @@ QtObject {
     }
     function requestServiceToggle() {
         if (busy || submittedAction || view.form || view.confirmation || !service.canControlService)
-            return;
-        var start = !service.lifecycle.active;
-        confirm(start ? "lifecycle.start" : "lifecycle.stop", {}, start ? "Start Syncthing?" : "Stop Syncthing?", "Change the running state of the verified systemd user service. Autostart is unchanged.");
+            return false;
+        return send(service.lifecycle.active ? "lifecycle.stop" : "lifecycle.start", {});
     }
     function cancelForm() {
         if (!acceptingResults || submittedAction)

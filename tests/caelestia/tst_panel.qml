@@ -498,8 +498,7 @@ TestCase {
                     enabled: enabled
                 };
                 controller.requestServiceToggle();
-                compare(controller.view.confirmation.action, active ? "lifecycle.stop" : "lifecycle.start");
-                controller.acceptConfirmation();
+                compare(controller.view.confirmation, null);
                 compare(backend.sent.action, active ? "lifecycle.stop" : "lifecycle.start");
                 compare(backend.lifecycle.enabled, enabled);
                 backend.busy = false;
