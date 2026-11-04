@@ -290,7 +290,7 @@ FocusScope {
             }
             StyledText {
                 Layout.fillWidth: true
-                text: root.controller.error
+                text: root.controller.error !== root.controller.service?.actionError ? root.controller.error : ""
                 textFormat: Text.PlainText
                 color: Theme.error
                 visible: text !== ""

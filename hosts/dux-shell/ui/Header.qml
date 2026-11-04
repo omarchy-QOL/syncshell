@@ -11,6 +11,8 @@ ColumnLayout {
     property string iconStyle: "themed"
     readonly property var service: controller.service
     readonly property var totals: Model.totals(service ? service.folders : [])
+    readonly property bool serviceStopped: Model.serviceStopped(service)
+    readonly property string statusError: Model.serviceError(service)
     RowLayout {
         Layout.fillWidth: true
         SharedWidgetMonoIcon {
@@ -62,29 +64,13 @@ ColumnLayout {
             }
         }
     }
-    SharedWidgetInfoPair {
-        Layout.fillWidth: true
-        label: "Folders"
-        value: root.service ? String(root.service.folderCount) : "-"
-    }
-    SharedWidgetInfoPair {
-        Layout.fillWidth: true
-        label: "Devices"
-        value: root.controller.fresh ? root.service.connectedDeviceCount + " of " + root.service.deviceCount + " connected" : "Connection unknown"
-    }
-    SharedWidgetInfoPair {
-        Layout.fillWidth: true
-        label: "Tracked"
-        value: Model.formatCount(root.totals.files) + " files · " + Model.bytes(root.totals.bytes)
-    }
     StyledText {
         Layout.fillWidth: true
-        text: root.service ? root.service.lastError || (!root.service.online ? root.service.summaryText : "") : "Starting Syncshell"
+        text: root.statusError || Model.connectionMessage(root.service)
         textFormat: Text.PlainText
         wrapMode: Text.WordWrap
-        elide: Text.ElideNone
         visible: text !== ""
-        color: root.service && root.service.lastError ? Theme.error : Theme.onSurfaceVariant
+        color: root.statusError ? Theme.error : Theme.onSurfaceVariant
     }
     // Omarchy shows an action notice in green for a while, then fades it out
     // instead of keeping it in the header.
@@ -117,7 +103,7 @@ ColumnLayout {
     }
     StyledText {
         Layout.fillWidth: true
-        visible: root.shownNotice !== ""
+        visible: root.shownNotice !== "" && !root.serviceStopped
         text: root.shownNotice
         textFormat: Text.PlainText
         color: Theme.success
@@ -129,4 +115,20 @@ ColumnLayout {
             }
         }
     }
+    SharedWidgetInfoPair {
+        Layout.fillWidth: true
+        label: "Folders"
+        value: root.service ? String(root.service.folderCount) : "-"
+    }
+    SharedWidgetInfoPair {
+        Layout.fillWidth: true
+        label: "Devices"
+        value: root.controller.fresh ? root.service.connectedDeviceCount + " of " + root.service.deviceCount + " connected" : "Connection unknown"
+    }
+    SharedWidgetInfoPair {
+        Layout.fillWidth: true
+        label: "Tracked"
+        value: Model.formatCount(root.totals.files) + " files · " + Model.bytes(root.totals.bytes)
+    }
+
 }

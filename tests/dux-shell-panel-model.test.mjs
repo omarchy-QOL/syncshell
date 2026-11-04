@@ -366,3 +366,22 @@ test("state colours follow Omarchy's green, yellow, red and muted rules", () => 
   assert.deepEqual(["removing", "upload", "sync", ""].map(model.activityRole),
     ["error", "success", "info", "info"]);
 });
+
+
+test("stopped service stays quiet without hiding real failures", () => {
+  const stopped = { core: { protocolReady: true }, canControlService: true,
+    lifecycle: { active: false }, online: false, lastError: "HTTP 502", actionError: "" };
+  assert.equal(model.serviceStopped(stopped), true);
+  assert.equal(model.serviceError(stopped), "");
+  assert.equal(model.connectionMessage(stopped), "Syncing stopped");
+  for (const service of [
+    { ...stopped, lifecycle: { active: true } },
+    { ...stopped, canControlService: false },
+    { ...stopped, core: { protocolReady: false } },
+  ]) {
+    assert.equal(model.serviceStopped(service), false);
+    assert.equal(model.serviceError(service), "HTTP 502");
+  }
+  assert.equal(model.serviceError({ ...stopped, actionError: "permission denied" }), "permission denied");
+  assert.equal(model.connectionMessage({ ...stopped, online: true }), "");
+});
