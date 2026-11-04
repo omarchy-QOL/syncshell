@@ -342,7 +342,7 @@ scenario("P04 search, directional choice and filter disclosure preserve identity
     local moved = h.host.state.get("view").folderId
     assert(moved ~= "f19", "directional choice did not move")
     h:click("select-folder"); h:edit("search-folder", "not present")
-    assert(h:find("No folders match the search and filters"))
+    assert(h:find("No matches"))
     assert(h.host.state.get("view").folderId == moved, "search erased hidden selection")
 end)
 
@@ -587,7 +587,7 @@ scenario("P04 mixed filters, all, sorting and reset affect visible results", fun
     end
     assert(first.props.key == "option-folder-z-error")
     h:click("filter-all"); h:click("filter-all")
-    assert(h:find("No folders match the search and filters"))
+    assert(h:find("No matches"))
     h:click("Reset")
     local v = h.host.state.get("view")
     assert(v.sort == "name" and v.filters.paused and v.filters.ready and v.filters.errors)

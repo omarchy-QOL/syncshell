@@ -15,7 +15,7 @@ function Selector.render(controller)
         selectedLabel = selected and Model.folderLabel(selected), detached = true, searchable = true,
         openable = #(snapshot.folders or {}) > 1,
         placeholder = "To search press '/'", help = "Select a configured folder,\nincluding unshared folders",
-        empty = "No folders match the search and filters", query = v.search, filtered = true, onSearch = function(text) v.search = text end,
+        empty = "No matches", query = v.search, filtered = true, onSearch = function(text) v.search = text end,
         accessory = function() return ViewOptions.trigger(controller, #rows, #(snapshot.folders or {})) end,
         below = function() return ViewOptions.render(controller) end,
         holdsKeys = function() return v.filtersOpen end,
