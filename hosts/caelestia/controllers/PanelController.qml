@@ -15,6 +15,11 @@ QtObject {
     property string error: view.interrupted ? "An operation was interrupted by reload. Refresh and review before retrying." : ""
     property bool acceptingResults: true
     property bool idSuggestionPending: false
+    signal noticeRequested(string text, int duration)
+
+    function showNotice(text, duration) {
+        noticeRequested(String(text || ""), duration || 5000);
+    }
     readonly property var folder: service.folder(view.folderId)
     readonly property var device: service.device(view.deviceId)
     readonly property bool fresh: service.online && service.connection.fresh === true

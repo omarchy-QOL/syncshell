@@ -67,6 +67,7 @@ StyledRect {
                 value: root.device ? root.device.id : ""
                 caption: ""
                 help: "Copy device ID"
+                onCopySucceeded: root.controller.showNotice("Remote device ID copied", 5000)
             }
             Item {
                 Layout.fillWidth: true

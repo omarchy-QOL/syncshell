@@ -16,6 +16,7 @@ IconTextButton {
     property string caption: "ID"
     property string help: "Copy ID"
     property bool copied: false
+    signal copySucceeded
     type: TextButton.Text
     horizontalPadding: Tokens.padding.small
     verticalPadding: 0
@@ -57,6 +58,7 @@ IconTextButton {
     onClicked: {
         Quickshell.clipboardText = value;
         copied = true;
+        copySucceeded();
         reset.restart();
     }
     Keys.onPressed: event => {
