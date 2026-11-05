@@ -6,21 +6,24 @@ import qs.DCommon.Widgets
 ColumnLayout {
     id: root
     required property var controller
+    // Buttons like the sort row below: DToggle's labels fell outside this list.
     GridLayout {
-        columns: 2
+        columns: 3
         Layout.fillWidth: true
-        DToggle {
+        SharedWidgetTooltipButton {
+            Layout.fillWidth: true
             text: root.controller.groups.length > 0 && root.controller.groups.length < 5 ? "All (mixed)" : "All"
             checked: root.controller.groups.length === 5
-            onToggled: checked => root.controller.groups = checked ? ["ready", "active", "errors", "paused", "unknown"] : []
+            onClicked: root.controller.groups = checked ? [] : ["ready", "active", "errors", "paused", "unknown"]
         }
         Repeater {
             model: ["ready", "active", "errors", "paused", "unknown"]
-            DToggle {
+            SharedWidgetTooltipButton {
                 required property string modelData
+                Layout.fillWidth: true
                 text: modelData.charAt(0).toUpperCase() + modelData.slice(1)
                 checked: root.controller.groups.indexOf(modelData) >= 0
-                onToggled: root.controller.toggleGroup(modelData)
+                onClicked: root.controller.toggleGroup(modelData)
             }
         }
     }

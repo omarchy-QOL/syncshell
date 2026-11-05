@@ -76,6 +76,7 @@ ColumnLayout {
             text: root.controller.draft.folderId || ""
             enabled: !root.controller.busy && !root.controller.draft.pendingDeviceId
             onTextEdited: root.controller.setDraft("folderId", text)
+            onAccepted: root.controller.submit()
         }
         SharedWidgetSquareActionButton {
             iconName: "refresh"

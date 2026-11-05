@@ -200,6 +200,8 @@ Item {
                         list.currentIndex = 0;
                         list.forceActiveFocus();
                     }
+                    // Enter takes the highlighted match, as in Omarchy's search.
+                    onAccepted: root.choose(Math.max(0, Math.min(list.currentIndex, root.filteredOptions.length - 1)))
                 }
                 StyledText {
                     Layout.fillWidth: true

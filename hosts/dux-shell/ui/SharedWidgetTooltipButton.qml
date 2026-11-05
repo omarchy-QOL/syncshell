@@ -21,6 +21,8 @@ FocusScope {
     property bool canActivate: true
     // Wrappers with their own busy rules handle keys themselves.
     property bool handlesKeys: true
+    // Busy buttons animate this icon.
+    readonly property alias iconItem: icon
     readonly property color foreground: !enabled || !canActivate ? Theme.onSurface_38 : primary || checked ? Theme.onPrimary : Theme.onSurface
     signal clicked
 
@@ -68,7 +70,7 @@ FocusScope {
                 id: label
                 anchors.verticalCenter: parent.verticalCenter
                 visible: root.text !== ""
-                width: Math.min(implicitWidth, Math.max(0, surface.width - Theme.spacingM * 2 - root.iconRoom))
+                width: Math.min(implicitWidth, Math.max(0, surface.width - Theme.spacingS * 2 - root.iconRoom))
                 // StyledText wraps by default; a label must elide on one line.
                 wrapMode: Text.NoWrap
                 elide: Text.ElideRight

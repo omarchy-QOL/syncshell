@@ -27,6 +27,8 @@ QtObject {
     property bool dirty: false
     property bool paletteOnly: false
     property bool initialized: false
+    // Cleanup has already restored the default theme, so nothing is left to apply.
+    property bool cleaned: false
     readonly property bool busy: pendingKey !== ""
 
     function rgb(color) {
@@ -79,8 +81,12 @@ QtObject {
         if (selection !== "default")
             schedule();
     }
-    onSelectionChanged: if (initialized)
-        schedule()
+    onSelectionChanged: {
+        if (cleaned)
+            cleaned = false;
+        else if (initialized)
+            schedule();
+    }
     onServiceChanged: {
         if (busy) {
             pendingKey = "";
@@ -122,6 +128,7 @@ QtObject {
                 return;
             }
             if (completed === "remove") {
+                root.cleaned = root.selection !== "default";
                 root.settings.save("webUiTheme", "default");
             } else if (root.key !== completed) {
                 root.schedule(root.selection === completedSelection);

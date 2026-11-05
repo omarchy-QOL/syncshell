@@ -27,6 +27,7 @@ hosts/dux-shell/ui/FooterActions.qml
 hosts/dux-shell/ui/FooterShortcutHint.qml
 hosts/dux-shell/ui/Header.qml
 hosts/dux-shell/ui/SettingsMenu.qml
+hosts/dux-shell/ui/SharedDialogChoice.qml
 hosts/dux-shell/ui/SharedDialogConfirm.qml
 hosts/dux-shell/ui/SharedWidgetBusyButton.qml
 hosts/dux-shell/ui/SharedWidgetDropdown.qml

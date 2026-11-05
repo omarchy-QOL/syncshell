@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import "UiConstants.js" as UiConstants
 
 // Toolbar square action (add, share, link) with a busy state.
@@ -28,7 +27,7 @@ FocusScope {
         focus: true
         anchors.fill: parent
         size: root.size
-        iconName: root.busy ? "" : root.iconName
+        iconName: root.busy ? "sync" : root.iconName
         help: root.help
         danger: root.danger
         success: root.success
@@ -36,11 +35,14 @@ FocusScope {
         enabled: root.enabled && !root.busy
         onClicked: root.clicked()
     }
-    BusyIndicator {
-        anchors.centerIn: parent
-        width: root.size * 0.7
-        height: width
+    RotationAnimator {
+        target: button.iconItem
+        from: 0
+        to: 360
+        duration: 1000
+        loops: Animation.Infinite
         running: root.busy
-        visible: root.busy
+        onRunningChanged: if (!running)
+            button.iconItem.rotation = 0
     }
 }

@@ -78,6 +78,8 @@ FocusScope {
             return;
         if (confirming && confirmLoader.item)
             confirmLoader.item.selectCancel();
+        else if (driftLoader.item)
+            driftLoader.item.selectFirst();
         else if (!sideOpen || !sidePane.focusContent())
             focusSelector();
     }
@@ -103,6 +105,11 @@ FocusScope {
                 return;
             item = item.parent;
         }
+        if (!event.isAutoRepeat && event.key === Qt.Key_P && !controller.confirmation && !controller.form) {
+            controller.requestServiceKey();
+            event.accepted = true;
+            return;
+        }
         if (event.isAutoRepeat || controller.busy || controller.confirmation || controller.form)
             return;
         var service = controller.service;
@@ -114,9 +121,6 @@ FocusScope {
         case Qt.Key_W:
             if (service)
                 service.openWebUi();
-            break;
-        case Qt.Key_P:
-            controller.requestServiceToggle(null);
             break;
         case Qt.Key_S:
             footerActions.openSettings();
@@ -304,10 +308,12 @@ FocusScope {
         visible: root.confirming
         radius: Theme.windowRadius
         color: Qt.rgba(0, 0, 0, Theme.scrimAlpha)
+        // Omarchy's dim answers no.
         MouseArea {
             anchors.fill: parent
             hoverEnabled: true
             acceptedButtons: Qt.AllButtons
+            onClicked: root.controller.cancelConfirmation()
         }
         StyledRect {
             anchors.centerIn: parent
@@ -315,6 +321,10 @@ FocusScope {
             height: confirmLoader.implicitHeight + Theme.spacingL * 2
             radius: Theme.cornerRadiusL
             color: Theme.floatingSurfaceHigh
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.AllButtons
+            }
             Loader {
                 id: confirmLoader
                 active: root.confirming
@@ -324,6 +334,36 @@ FocusScope {
                 onLoaded: Qt.callLater(root.restoreFocus)
                 sourceComponent: SharedDialogConfirm {
                     controller: root.controller
+                }
+            }
+        }
+    }
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: -PopoutMetrics.contentPadding
+        visible: !!root.controller.drift
+        radius: Theme.windowRadius
+        color: Qt.rgba(0, 0, 0, Theme.scrimAlpha)
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.AllButtons
+        }
+        StyledRect {
+            anchors.centerIn: parent
+            width: root.width - Theme.spacingL * 2
+            height: driftLoader.implicitHeight + Theme.spacingL * 2
+            radius: Theme.cornerRadiusL
+            color: Theme.floatingSurfaceHigh
+            Loader {
+                id: driftLoader
+                active: !!root.controller.drift
+                x: Theme.spacingL
+                y: Theme.spacingL
+                width: parent.width - Theme.spacingL * 2
+                sourceComponent: SharedDialogChoice {
+                    controller: root.controller
+                    onDismissed: root.closeInner()
                 }
             }
         }

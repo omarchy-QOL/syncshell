@@ -385,3 +385,19 @@ test("stopped service stays quiet without hiding real failures", () => {
   assert.equal(model.serviceError({ ...stopped, actionError: "permission denied" }), "permission denied");
   assert.equal(model.connectionMessage({ ...stopped, online: true }), "");
 });
+
+test("drift offers both sides and prefers the running state", () => {
+  let decision = model.driftDecision("enabled", { unitFileState: "disabled", activeState: "active" });
+  assert.equal(decision.first.label, "Enable systemd autostart (preferred)");
+  assert.equal(decision.second.label, "Set Syncthing config to disabled");
+  decision = model.driftDecision("enabled", { unitFileState: "disabled", activeState: "inactive" });
+  assert.equal(decision.first.label, "Set Syncthing config to disabled (preferred)");
+  assert.equal(decision.second.label, "Enable systemd autostart");
+  assert.equal(model.driftDecision("enabled", { unitFileState: "enabled", activeState: "active" }), null);
+  assert.equal(model.driftDecision("enabled", { unitFileState: "masked", activeState: "active" }), null);
+});
+
+test("an empty label comes from the directory name", () => {
+  assert.equal(model.pathLabel("/home/test/docs/"), "docs");
+  assert.equal(model.pathLabel("/"), "/");
+});

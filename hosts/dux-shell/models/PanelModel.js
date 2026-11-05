@@ -1,6 +1,34 @@
 .pragma library
 
 // Omarchy names folders by their directory; the configured label follows in the meta line.
+function pathLabel(path) {
+    var value = String(path || "").replace(/\/+$/, "");
+    if (String(path || "").charAt(0) === "/" && value === "")
+        return "/";
+    var parts = value.split("/");
+    return parts.length > 0 && parts[parts.length - 1] ? parts[parts.length - 1] : "Folder";
+}
+
+// Omarchy's choice between the saved preference and systemd's autostart state.
+function driftDecision(config, lifecycle) {
+    var unit = String(lifecycle && lifecycle.unitFileState || "");
+    var active = String(lifecycle && lifecycle.activeState || "");
+    if (config === unit || (unit !== "enabled" && unit !== "disabled") || (active !== "active" && active !== "inactive"))
+        return null;
+    var preferred = active === "active" ? "enabled" : "disabled";
+    var system = { side: "system", value: config, label: (config === "enabled" ? "Enable" : "Disable") + " systemd autostart" };
+    var host = { side: "config", value: unit, label: "Set Syncthing config to " + unit };
+    if (system.value === preferred)
+        system.label += " (preferred)";
+    else
+        host.label += " (preferred)";
+    return {
+        first: system.value === preferred ? system : host,
+        second: system.value === preferred ? host : system,
+        message: "Syncthing config (" + config + ") differs from its systemd autostart setting (" + unit + ").\n\nPlease choose:"
+    };
+}
+
 function folderName(folder) {
     var path = String(folder.path || "");
     var trimmed = path.replace(/\/+$/, "");

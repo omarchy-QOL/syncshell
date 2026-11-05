@@ -245,6 +245,7 @@ QtObject {
             submittedDraft.folderId = String(draft.folderId || "").trim();
             if (!submittedDraft.path || !submittedDraft.folderId)
                 return reject("Directory and Folder ID are required");
+            submittedDraft.label = String(draft.label || "").trim() || Model.pathLabel(submittedDraft.path);
             pendingAction = "folder.add-existing";
             accepted = service.addFolder(Object.assign({}, submittedDraft, {
                 deviceIds: draft.ids.slice()
@@ -276,6 +277,23 @@ QtObject {
             return false;
         var action = service.lifecycle.active ? "lifecycle.stop" : "lifecycle.start";
         return service.runAction(action, {}, service.lifecycle.active ? "Syncthing stopped" : "Syncthing started", "");
+    }
+
+    // Omarchy's switch waits for a folder action; its p key does not.
+    function requestServiceKey() {
+        if (!service || !service.busy || service.lifecycleRunning())
+            return requestServiceToggle(null);
+        return !form && !confirmation && service.canControlService ? service.queueServiceToggle() : false;
+    }
+
+    readonly property var drift: !!service && !form && !confirmation && service.canControlService ? Model.driftDecision(service.desiredServiceState, service.lifecycle) : null
+    function chooseDrift(item) {
+        if (busy)
+            return false;
+        if (item.side === "system")
+            return service.setServiceEnabled(item.value === "enabled");
+        service.desiredStateChosen(item.value);
+        return true;
     }
 
     function confirm() {
@@ -351,7 +369,12 @@ QtObject {
                 }), returnFocus);
                 return;
             }
+            // Omarchy's dialog closes on an answer; the error shows in the header.
             error = String(failure && failure.message || "Action failed; your draft has been kept");
+            if (confirmation) {
+                confirmation = null;
+                focusRequested(returnFocus);
+            }
             return;
         }
         confirmation = null;

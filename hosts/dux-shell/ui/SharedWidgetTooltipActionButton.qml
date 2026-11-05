@@ -14,6 +14,8 @@ FocusScope {
     property real size: UiConstants.CONTROL_HEIGHT
     property bool handlesKeys: true
     property string tooltipSide: "bottom"
+    // Busy buttons animate this icon.
+    readonly property alias iconItem: icon
     signal clicked
 
     // DMS clamps tooltips to the popout surface, whose shadow margin runs past
@@ -55,6 +57,7 @@ FocusScope {
             visible: root.activeFocus
         }
         DIcon {
+            id: icon
             anchors.centerIn: parent
             name: root.iconName
             size: Math.round(root.size * 0.6)

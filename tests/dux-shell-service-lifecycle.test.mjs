@@ -101,6 +101,7 @@ test("returning to a retained confirmation restores Cancel selection", () => {
     parentPopout: { shouldBeVisible: true },
     confirming: true, sideOpen: true,
     confirmLoader: { item: { selectCancel() { cancelled++; } } },
+    driftLoader: { item: null },
     sidePane: { focusContent() { formFocused++; return true; } },
     focusSelector() { panelFocused++; },
   });

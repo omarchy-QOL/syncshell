@@ -127,6 +127,13 @@ TestCase {
     function cleanup() {
         controller.destroy();
     }
+    function test_empty_label_comes_from_the_directory() {
+        controller.begin("add-folder", null, null);
+        controller.setDraft("folderId", "new");
+        controller.setDraft("path", "/home/test/docs/");
+        verify(controller.submit());
+        compare(backend.sent.args.label, "docs");
+    }
     function test_vanished_device_invitation_preserves_accept_draft() {
         backend.pendingDevices = [
             {

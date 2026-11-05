@@ -80,6 +80,7 @@ PluginComponent {
             tlsCertificate: settingsController.values.tlsCertificate
             expectedDeviceId: settingsController.values.expectedDeviceId
 
+            onDesiredStateChosen: value => settingsController.save("desiredServiceState", value)
             onActionFinished: function (action, ok, data, failure) {
                 if (ok && (action === "lifecycle.enable" || action === "lifecycle.disable"))
                     settingsController.save("desiredServiceState", action === "lifecycle.enable" ? "enabled" : "disabled");

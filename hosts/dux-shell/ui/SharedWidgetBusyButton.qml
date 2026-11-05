@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import qs.Common
 import "UiConstants.js" as UiConstants
 
@@ -23,7 +22,7 @@ FocusScope {
             clicked();
     }
     Keys.onPressed: event => activateKey(event)
-    implicitWidth: Math.max(button.implicitWidth, busyMetrics.advanceWidth + Theme.spacingM * 2 + (iconName ? Theme.fontSizeSmall + 4 + Theme.spacingXS : 0))
+    implicitWidth: Math.max(button.implicitWidth, busyMetrics.advanceWidth + Theme.spacingM * 2 + Theme.fontSizeSmall + 4 + Theme.spacingXS)
     implicitHeight: controlHeight
     TextMetrics {
         id: busyMetrics
@@ -36,7 +35,7 @@ FocusScope {
         anchors.fill: parent
         controlHeight: root.controlHeight
         text: root.busy ? root.busyText : root.text
-        iconName: root.busy ? "" : root.iconName
+        iconName: root.busy && !root.iconName ? "sync" : root.iconName
         help: root.help
         primary: root.primary
         handlesKeys: false
@@ -44,13 +43,33 @@ FocusScope {
         onClicked: if (!root.busy)
             root.clicked()
     }
-    BusyIndicator {
-        anchors.right: parent.right
-        anchors.rightMargin: Theme.spacingXS
-        anchors.verticalCenter: parent.verticalCenter
-        width: root.controlHeight * 0.6
-        height: width
-        visible: root.busy
-        running: root.busy
+    // Omarchy keeps a busy button's icon moving: refresh spins, the others pulse.
+    RotationAnimator {
+        target: button.iconItem
+        from: 0
+        to: 360
+        duration: 1000
+        loops: Animation.Infinite
+        running: root.busy && button.iconName !== "monitor_heart"
+        onRunningChanged: if (!running)
+            button.iconItem.rotation = 0
+    }
+    SequentialAnimation {
+        running: root.busy && button.iconName === "monitor_heart"
+        loops: Animation.Infinite
+        onRunningChanged: if (!running)
+            button.iconItem.opacity = 1
+        OpacityAnimator {
+            target: button.iconItem
+            from: 1
+            to: 0.35
+            duration: 500
+        }
+        OpacityAnimator {
+            target: button.iconItem
+            from: 0.35
+            to: 1
+            duration: 500
+        }
     }
 }

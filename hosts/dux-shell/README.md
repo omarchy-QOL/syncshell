@@ -72,6 +72,7 @@ responsibilities use the same filenames; native APIs are not interchangeable.
 | Selection and filters      | `ui/SharedWidgetDropdown.qml`, `ui/SharedWidgetMultiSelect.qml`      |
 | View options               | `ui/BodyTabFoldersViewOptions.qml`                                   |
 | Side forms/confirmations   | `ui/BodyFormSideCard.qml`, `ui/SharedDialogConfirm.qml`              |
+| Autostart drift choice     | `ui/SharedDialogChoice.qml`                                          |
 | Settings presentation      | `ui/SettingsMenu.qml`, gear in `ui/FooterActions.qml`                |
 
 `SharedWidgetMultiSelect.qml` is `SharedWidgetDropdown.qml` in its `multiple`
