@@ -21,6 +21,8 @@ QtObject {
             return "Refresh interval must be 60 to 3600 seconds";
         if (!["default", "modern", "themed"].includes(s.webUiStyle))
             return "Unsupported Web UI selection";
+        if (s.desiredServiceState !== undefined && !["enabled", "disabled"].includes(s.desiredServiceState))
+            return "Unsupported service state";
         if (s.lifecycleAuthorized && (!/^[A-Za-z0-9_.@:-]+\.service$/.test(s.lifecycleUnit) || !s.lifecycleConfig.startsWith("/")))
             return "Service control requires an exact unit and absolute configuration path";
         return "";
@@ -35,7 +37,8 @@ QtObject {
         var failure = validate(draft);
         if (failure)
             return failure;
-        Object.keys(draft).forEach(key => settings[key] = draft[key]);
+        // The saved service state follows its own decisions, not a settings draft.
+        Object.keys(draft).filter(key => key !== "desiredServiceState").forEach(key => settings[key] = draft[key]);
         return "";
     }
 }

@@ -73,6 +73,7 @@ ColumnLayout {
             onTextEdited: root.controller.draft({
                 folderId: text
             })
+            onAccepted: root.controller.submitForm()
         }
         SharedWidgetSquareActionButton {
             icon: "refresh"

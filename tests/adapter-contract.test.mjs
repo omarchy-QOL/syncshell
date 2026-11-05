@@ -14,6 +14,7 @@ function service(overrides = {}) {
     profilePolicy: {},
     configPath: "", endpoint: "", credentialFile: "", tlsCertificate: "",
     expectedDeviceId: "", canControlService: false, canStartService: false,
+    _serviceToggleQueued: false,
     online: true, busy: false, refreshing: false, baseUrl: "http://127.0.0.1:8384",
     homePath: "/home/test", actionError: "", actionNotice: "",
     folders: [], devices: [], pendingFolders: {}, localDeviceId: "",
@@ -167,4 +168,44 @@ test("action notices use Omarchy's wording", () => {
   assert.equal(notice(() => host.addDevice("PEER", "laptop")),
     "laptop added. Add this device on laptop to complete connection.");
   assert.equal(notice(() => host.removeDevice("PEER", "laptop")), "laptop removed from this device.");
+});
+
+test("a queued service toggle waits for the core's answer, not for a running scan", () => {
+  const start = (running) => {
+    const calls = [];
+    const answers = [];
+    const host = service({
+      canControlService: true, lifecycle: { active: true },
+      _actionRequest: "", _actionName: "", _actionTargetId: "",
+      scanningFolderIds() { return []; }, folderLabel: id => id,
+      actionFinished() {},
+      core: { protocolReady: true,
+        action(name, args, callback) { calls.push(name); answers.push(callback); return String(calls.length); } },
+      rescanTracker: { runningFolderIds: running ? ["docs"] : [],
+        reset() { this.runningFolderIds = []; },
+        acceptResult() { this.runningFolderIds = ["docs"]; return true; } },
+    });
+    Object.defineProperty(host, "busy", { get: () => host._actionRequest !== "" });
+    host.rescanFolder("docs");
+    host.rescanTracker.runningFolderIds = running ? ["docs"] : [];
+    return { host, calls, answers };
+  };
+  // Still waiting for the core: the toggle follows its answer.
+  const waiting = start(false);
+  assert.equal(waiting.host.queueServiceToggle(), true);
+  assert.deepEqual(waiting.calls, ["folder.rescan"]);
+  waiting.answers[0](true, {}, null);
+  assert.deepEqual(waiting.calls, ["folder.rescan", "lifecycle.stop"]);
+  // The core has answered and only the scan runs on: the toggle goes now.
+  const scanning = start(true);
+  assert.equal(scanning.host.queueServiceToggle(), true);
+  assert.deepEqual(scanning.calls, ["folder.rescan", "lifecycle.stop"]);
+  // A failed folder action still lets the request through.
+  const failing = start(false);
+  failing.host.queueServiceToggle();
+  failing.answers[0](false, null, { code: "http", message: "HTTP 500" });
+  assert.deepEqual(failing.calls, ["folder.rescan", "lifecycle.stop"]);
+  // Nothing to wait for, or no authority: nothing is queued.
+  const idle = service({ canControlService: true, busy: false, _actionName: "" });
+  assert.equal(idle.queueServiceToggle(), false);
 });

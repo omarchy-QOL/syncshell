@@ -13,7 +13,7 @@ IconTextButton {
     label.textFormat: Text.PlainText
     property bool primary: false
     type: primary ? TextButton.Filled : TextButton.Tonal
-    iconLabel.visible: icon !== "" && !busy
+    iconLabel.visible: icon !== ""
     property bool busy: false
     property string caption: ""
     // Caps the caption width; longer captions end with an ellipsis.
@@ -26,6 +26,35 @@ IconTextButton {
     property string copyValue: ""
     text: feedback || (busy ? busyCaption : maxCaptionWidth > 0 ? elideMetrics.elidedText : caption)
     implicitWidth: fitCaption ? (busy ? busyMetrics.advanceWidth : idleMetrics.advanceWidth) + (icon !== "" && !busy ? iconLabel.implicitWidth + spacing : 0) + horizontalPadding * 2 : Math.max(maxCaptionWidth > 0 ? Math.min(idleMetrics.width, maxCaptionWidth) : idleMetrics.width, busyMetrics.width, feedbackMetrics.width) + (icon !== "" ? iconLabel.implicitWidth + spacing : 0) + horizontalPadding * 2
+    // Omarchy keeps a busy button's icon moving: refresh spins, the others pulse.
+    RotationAnimator {
+        target: root.iconLabel
+        from: 0
+        to: 360
+        duration: 1000
+        loops: Animation.Infinite
+        running: root.busy && root.icon === "refresh"
+        onRunningChanged: if (!running)
+            root.iconLabel.rotation = 0
+    }
+    SequentialAnimation {
+        running: root.busy && root.icon !== "" && root.icon !== "refresh"
+        loops: Animation.Infinite
+        onRunningChanged: if (!running)
+            root.iconLabel.opacity = 1
+        OpacityAnimator {
+            target: root.iconLabel
+            from: 1
+            to: 0.35
+            duration: 500
+        }
+        OpacityAnimator {
+            target: root.iconLabel
+            from: 0.35
+            to: 1
+            duration: 500
+        }
+    }
     TextMetrics {
         id: elideMetrics
         font: root.font
@@ -86,8 +115,13 @@ IconTextButton {
                 clicked();
         }
     }
-    onActiveFocusChanged: if (activeFocus)
-        ensureVisible()
+    // Only when focus moves here: the host hands focus back after a pointer
+    // enters the popout, and that must not scroll the form back to this button.
+    onFocusChanged: if (focus)
+        Qt.callLater(() => {
+            if (activeFocus)
+                ensureVisible();
+        })
     function ensureVisible() {
         var ancestor = parent;
         while (ancestor) {

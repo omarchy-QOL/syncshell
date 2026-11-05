@@ -142,6 +142,12 @@ Item {
                         list.forceActiveFocus();
                         list.currentIndex = 0;
                     }
+                    // Enter takes the highlighted match, as in Omarchy's search.
+                    onAccepted: {
+                        const row = root.filtered[Math.max(0, Math.min(list.currentIndex, root.filtered.length - 1))];
+                        if (row)
+                            root.select(row.value);
+                    }
                 }
                 SharedWidgetSquareActionButton {
                     visible: !!root.filterController

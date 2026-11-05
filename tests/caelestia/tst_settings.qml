@@ -17,7 +17,8 @@ TestCase {
             webUiStyle: "default",
             lifecycleAuthorized: false,
             lifecycleUnit: "syncthing.service",
-            lifecycleConfig: "/private/config.xml"
+            lifecycleConfig: "/private/config.xml",
+            desiredServiceState: "enabled"
         };
     }
     function test_intervals_match_the_core_contract() {

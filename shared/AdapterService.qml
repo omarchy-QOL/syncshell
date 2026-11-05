@@ -63,6 +63,8 @@ QtObject {
     property string folderIdSuggestion: ""
     property string _refreshRequest: ""
     property string _actionRequest: ""
+    signal desiredStateChosen(string value)
+    property bool _serviceToggleQueued: false
     property string _actionName: ""
     property string _actionTargetId: ""
 
@@ -225,6 +227,8 @@ QtObject {
                         code: "invalid_result",
                         message: "Native core returned an invalid rescan result"
                     });
+                } else {
+                    root.releaseRunningScan();
                 }
                 return;
             }
@@ -246,6 +250,33 @@ QtObject {
             actionError = errorText(error, "Operation failed");
         clearAction();
         actionFinished(completed, ok, data || null, error || null);
+        runQueuedToggle();
+    }
+
+    function lifecycleRunning() {
+        return _actionName.indexOf("lifecycle.") === 0;
+    }
+
+    // Runs after the core has answered: a scan left running need not end first.
+    function queueServiceToggle() {
+        if (!busy || lifecycleRunning() || !canControlService)
+            return false;
+        _serviceToggleQueued = true;
+        releaseRunningScan();
+        return true;
+    }
+
+    function releaseRunningScan() {
+        if (_serviceToggleQueued && rescanTracker.runningFolderIds.length > 0)
+            finishAction(true, null, null);
+    }
+
+    function runQueuedToggle() {
+        if (!_serviceToggleQueued || busy)
+            return;
+        _serviceToggleQueued = false;
+        var active = lifecycle.active === true;
+        runAction(active ? "lifecycle.stop" : "lifecycle.start", {}, active ? "Syncthing stopped" : "Syncthing started", "");
     }
 
     function clearAction() {

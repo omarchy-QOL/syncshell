@@ -184,6 +184,31 @@ TestCase {
     function cleanup() {
         controller.destroy();
     }
+    function test_empty_label_comes_from_the_directory() {
+        controller.openForm("add-folder", null, 0);
+        backend.busy = false;
+        backend.actionFinished("folder.suggest-id", true, {
+            folderId: "suggested"
+        }, null);
+        controller.draft({
+            path: "~/work/docs/",
+            folderId: "new"
+        });
+        controller.submitForm();
+        compare(backend.sent.args.label, "docs");
+    }
+    function test_failed_answer_closes_the_dialog() {
+        controller.confirm("folder.forget", {
+            folderId: "a"
+        }, "Forget?", "keep files");
+        controller.acceptConfirmation();
+        backend.busy = false;
+        backend.actionFinished("folder.forget", false, null, {
+            code: "http",
+            message: "Syncthing returned HTTP 500"
+        });
+        compare(controller.view.confirmation, null);
+    }
     function test_vanished_device_invitation_preserves_accept_draft() {
         backend.pendingDevices = [
             {

@@ -110,14 +110,17 @@ FocusScope {
                 }
             }
         }
+        if (!event.isAutoRepeat && event.key === Qt.Key_P && !controller.view.confirmation && !hasForm) {
+            controller.requestServiceKey();
+            event.accepted = true;
+            return;
+        }
         if (event.isAutoRepeat || controller.busy || controller.view.confirmation || hasForm)
             return;
         if (event.key === Qt.Key_R)
             controller.service.rescanAllFolders();
         else if (event.key === Qt.Key_W)
             controller.service.openWebUi();
-        else if (event.key === Qt.Key_P)
-            controller.requestServiceToggle();
         else if (event.key === Qt.Key_S)
             form("settings", null, footerActions.settingsTrigger);
         else if (event.key === Qt.Key_Q)
@@ -375,6 +378,11 @@ FocusScope {
     SharedDialogConfirm {
         parent: root
         controller: root.controller
+    }
+    SharedDialogChoice {
+        parent: root
+        controller: root.controller
+        onDismissed: root.dismissed()
     }
     Connections {
         target: root.controller

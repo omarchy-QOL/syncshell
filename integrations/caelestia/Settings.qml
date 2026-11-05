@@ -9,6 +9,7 @@ SettingsObject {
     property bool lifecycleAuthorized: false
     property string lifecycleUnit: "syncthing.service"
     property string lifecycleConfig: ""
+    property string desiredServiceState: "enabled"
     property string configPath: ""
     property string endpoint: ""
     property string credentialFile: ""

@@ -17,7 +17,8 @@ QQC.Popup {
     readonly property Item tokens: parent
     modal: true
     focus: true
-    closePolicy: QQC.Popup.NoAutoClose
+    // Omarchy's dim answers no; an answer already sent can no longer be taken back.
+    closePolicy: root.controller.busy ? QQC.Popup.NoAutoClose : QQC.Popup.CloseOnPressOutside
     width: Math.min(400, parent.width)
     height: Math.min(parent.height, contentColumn.implicitHeight + padding * 2)
     x: (parent.width - width) / 2
@@ -28,6 +29,8 @@ QQC.Popup {
     onAboutToShow: returnFocus = parent?.Window.window?.activeFocusItem ?? null
     onOpened: cancel.forceActiveFocus()
     onClosed: {
+        if (root.controller.view.confirmation)
+            root.controller.cancelConfirmation();
         const target = returnFocus;
         returnFocus = null;
         if (target)
@@ -90,6 +93,7 @@ QQC.Popup {
         // Omarchy's order: confirm first, focus on the cancel choice.
         RowLayout {
             SharedWidgetBusyButton {
+                id: confirmButton
                 readonly property bool destructive: root.controller.view.confirmation?.destructive !== false
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
@@ -110,6 +114,8 @@ QQC.Popup {
             }
         }
         Keys.onEscapePressed: root.controller.cancelConfirmation()
+        Keys.onLeftPressed: confirmButton.forceActiveFocus()
+        Keys.onRightPressed: cancel.forceActiveFocus()
     }
     Connections {
         target: root.controller

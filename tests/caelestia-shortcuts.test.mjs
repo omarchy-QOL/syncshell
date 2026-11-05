@@ -10,7 +10,7 @@ test("p requests the service toggle on either tab, even with no selection", () =
     for (const selected of [null, { id: "retained", paused: false }]) {
       let toggles = 0;
       const controller = { tab, view: { tab }, folder: selected, device: selected,
-        requestServiceToggle() { toggles++; } };
+        requestServiceKey() { toggles++; } };
       const root = { Window: { window: { activeFocusItem: null } } };
       const context = vm.createContext({ Qt, controller, root, hasForm: false });
       const run = vm.runInContext(handler, context);
@@ -18,9 +18,14 @@ test("p requests the service toggle on either tab, even with no selection", () =
       run(event);
       assert.equal(toggles, 1);
       assert.equal(event.accepted, true);
-      for (const guard of ["repeat", "busy", "form", "confirmation", "editor"]) {
+      // A folder action does not stop p: the controller queues it.
+      controller.busy = true;
+      toggles = 0;
+      run({ key: "P", accepted: false });
+      assert.equal(toggles, 1);
+      controller.busy = false;
+      for (const guard of ["repeat", "form", "confirmation", "editor"]) {
         toggles = 0;
-        controller.busy = guard === "busy";
         controller.form = guard === "form" ? "add-folder" : "";
         context.hasForm = guard === "form";
         controller.confirmation = controller.view.confirmation = guard === "confirmation" ? {} : null;

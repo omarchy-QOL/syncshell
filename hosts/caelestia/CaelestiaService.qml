@@ -186,6 +186,12 @@ QtObject {
             bundleRoot: root.plugin ? root.plugin.dir : ""
             probeIntervalSeconds: root.preferences.valid ? root.settings.probeSeconds : 15
             refreshIntervalSeconds: root.preferences.valid ? root.settings.refreshSeconds : 60
+            desiredServiceState: root.preferences.valid ? root.settings.desiredServiceState : "enabled"
+            onDesiredStateChosen: value => root.settings.desiredServiceState = value
+            onActionFinished: (action, ok) => {
+                if (ok && (action === "lifecycle.enable" || action === "lifecycle.disable"))
+                    root.settings.desiredServiceState = action === "lifecycle.enable" ? "enabled" : "disabled";
+            }
             desktopAuthorized: true
             profilePolicy: ({
                     authorized: true,

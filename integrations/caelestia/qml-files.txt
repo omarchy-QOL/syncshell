@@ -23,6 +23,7 @@ hosts/caelestia/ui/FooterActions.qml
 hosts/caelestia/ui/FooterShortcutHint.qml
 hosts/caelestia/ui/Header.qml
 hosts/caelestia/ui/SettingsPage.qml
+hosts/caelestia/ui/SharedDialogChoice.qml
 hosts/caelestia/ui/SharedDialogConfirm.qml
 hosts/caelestia/ui/SharedWidgetBusyButton.qml
 hosts/caelestia/ui/SharedWidgetDropdown.qml

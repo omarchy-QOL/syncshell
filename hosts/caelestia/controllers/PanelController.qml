@@ -165,6 +165,21 @@ QtObject {
             return false;
         return send(service.lifecycle.active ? "lifecycle.stop" : "lifecycle.start", {});
     }
+    // Omarchy's switch waits for a folder action; its p key does not.
+    function requestServiceKey() {
+        if (!service.busy || service.lifecycleRunning())
+            return requestServiceToggle();
+        return !submittedAction || submittedAction === service._actionName ? service.queueServiceToggle() : false;
+    }
+    readonly property var drift: !view.form && !view.confirmation && service.canControlService ? Model.driftDecision(service.desiredServiceState, service.lifecycle) : null
+    function chooseDrift(item) {
+        if (busy || submittedAction)
+            return false;
+        if (item.side === "system")
+            return send(item.value === "enabled" ? "lifecycle.enable" : "lifecycle.disable", {});
+        service.desiredStateChosen(item.value);
+        return true;
+    }
     function cancelForm() {
         if (!acceptingResults || submittedAction)
             return;
@@ -303,7 +318,7 @@ QtObject {
             send("folder.add-existing", {
                 folderId: d.folderId.trim(),
                 path: Paths.resolveFolderPath(d.path.trim(), service.homePath),
-                label: d.label.trim(),
+                label: d.label.trim() || Model.pathLabel(d.path.trim()),
                 deviceIds: d.deviceIds,
                 pendingDeviceId: d.pendingDeviceId
             });
@@ -388,8 +403,13 @@ QtObject {
                     destructive: false
                 });
             } else {
+                // Omarchy's dialog closes on an answer; the error shows in the header.
                 root.error = failure && failure.message || "Operation failed";
-                root.restoreFocus(root.view.confirmation ? "cancel" : "form");
+                const hadForm = !!root.view.form;
+                root.update({
+                    confirmation: null
+                });
+                root.restoreFocus(hadForm ? "form" : "main");
             }
         }
     }
