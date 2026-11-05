@@ -4,6 +4,8 @@ Notable changes to Syncshell and its shell adapters are documented here.
 
 ## Unreleased
 
+- fit the monochrome icons' view box to the mark so the Omarchy 4.5 bar no
+  longer shrinks them below its built-in icons
 - replace the experimental DMS adapter with native folder, device, sharing
   and invitation workflows, pending desktop acceptance on DMS 2.0.0
 - target DMS 2.0 (Dux Shell) only: `qs.DCommon.Widgets` controls and the 2.0
