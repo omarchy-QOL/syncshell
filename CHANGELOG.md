@@ -4,6 +4,9 @@ Notable changes to Syncshell and its shell adapters are documented here.
 
 ## Unreleased
 
+- keep the syncing file name visible during bulk syncs: the core no longer
+  stalls for up to minutes on lookups and rescans for files Syncthing already
+  reported, and the Omarchy folder card no longer rebuilds on each update
 - fit the monochrome icons' view box to the mark so the Omarchy 4.5 bar no
   longer shrinks them below its built-in icons
 - replace the experimental DMS adapter with native folder, device, sharing
