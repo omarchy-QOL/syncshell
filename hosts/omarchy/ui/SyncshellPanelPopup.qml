@@ -35,6 +35,10 @@ KeyboardPanel {
         return rows;
     }
 
+    function escapeStyled(value) {
+        return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
     function resetKeyboardCursor() {
         cursorActive = false;
         cursorAction = null;
@@ -521,11 +525,12 @@ KeyboardPanel {
             if (!folder)
                 return "Change this folder?";
             if (root.controller.folderConfirmAction === "link")
-                return "Link " + folder.label + " (" + folder.id + ")?\n\nSyncthing will resume synchronization for this folder.";
+                return "Link folder: <b>" + root.escapeStyled(folder.label) + "</b> (folder ID: " + root.escapeStyled(folder.id) + ")?<br><br>Syncthing will resume synchronization for this folder.";
             if (root.controller.folderConfirmAction === "unlink")
-                return "Unlink " + folder.label + " (" + folder.id + ")?\n\nSyncthing will pause synchronization. Its configuration " + "and local files remain.";
-            return "Forget " + folder.label + " (" + folder.id + ")?\n\n" + "This removes only its Syncthing configuration. The " + "directory and data files will not be deleted. " + (folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal " + ".stfolder marker. " : "") + "Rejoining the same remote folder requires this exact " + "Folder ID.";
+                return "Unlink folder: <b>" + root.escapeStyled(folder.label) + "</b> (folder ID: " + root.escapeStyled(folder.id) + ")?<br><br>Syncthing will pause synchronization. Its configuration " + "and local files remain.";
+            return "Forget folder: <b>" + root.escapeStyled(folder.label) + "</b> (folder ID: " + root.escapeStyled(folder.id) + ")?<br><br>" + "This removes only its Syncthing configuration. The " + "directory and data files will not be deleted. " + (folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal " + ".stfolder marker. " : "") + "Rejoining the same remote folder requires this exact " + "Folder ID.";
         }
+        messageFormat: ["link", "unlink", "forget"].indexOf(root.controller.folderConfirmAction) >= 0 ? Text.StyledText : Text.PlainText
         confirmText: root.controller.folderConfirmAction === "create" ? "Create and add" : "Yes"
         cancelText: root.controller.folderConfirmAction === "create" ? "Cancel" : "No"
         background: Commons.Color.popups.background
