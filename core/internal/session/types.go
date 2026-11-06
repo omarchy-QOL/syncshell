@@ -209,14 +209,16 @@ type RescanResult struct {
 
 // ActionArguments is the single protocol-to-session action input shape.
 type ActionArguments struct {
-	FolderID        string   `json:"folderId,omitempty"`
-	Path            string   `json:"path,omitempty"`
-	CreateDirectory bool     `json:"createDirectory,omitempty"`
-	Label           string   `json:"label,omitempty"`
-	DeviceIDs       []string `json:"deviceIds,omitempty"`
-	FolderIDs       []string `json:"folderIds,omitempty"`
-	PendingDeviceID string   `json:"pendingDeviceId,omitempty"`
-	DeviceID        string   `json:"deviceId,omitempty"`
-	DeviceName      string   `json:"deviceName,omitempty"`
-	Theme           string   `json:"theme,omitempty"`
+	FolderID        string            `json:"folderId,omitempty"`
+	Path            string            `json:"path,omitempty"`
+	CreateDirectory bool              `json:"createDirectory,omitempty"`
+	Label           string            `json:"label,omitempty"`
+	DeviceIDs       []string          `json:"deviceIds,omitempty"`
+	FolderIDs       []string          `json:"folderIds,omitempty"`
+	PendingDeviceID string            `json:"pendingDeviceId,omitempty"`
+	DeviceID        string            `json:"deviceId,omitempty"`
+	DeviceName      string            `json:"deviceName,omitempty"`
+	Theme           string            `json:"theme,omitempty"`
+	Profile         string            `json:"profile,omitempty"`
+	Palette         map[string]string `json:"palette,omitempty"`
 }

@@ -20,6 +20,12 @@ KeyboardPanel {
     property bool cursorActive: false
     property var cursorAction: null
     property int sectionCursorIndex: 0
+    readonly property bool confirmationOpen: !!root.controller && (root.controller.folderConfirmOpen || root.controller.deviceConfirmOpen)
+    onConfirmationOpenChanged: {
+        // A mouse-selected dropdown otherwise keeps Return and navigation keys.
+        if (confirmationOpen)
+            focusPanel();
+    }
     readonly property var controlRows: {
         var rows = [[sectionTabs]];
         rows = rows.concat(activeSection === "devices" ? remoteDevices.keyboardRows : folderOverview.keyboardRows);

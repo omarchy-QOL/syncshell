@@ -99,15 +99,16 @@ func (s *Session) eventLoop(ctx context.Context, updates chan PublishedSnapshot)
 		if len(events) > 0 {
 			gap := eventDiscontinuity(cursor, events)
 			cursor = events[len(events)-1].ID
+			// Report files first: a refresh can take a second under load.
+			if s.processActivityEvents(ctx, events, time.Now()) {
+				emitLatest(updates, s.publishActivity(false, time.Now()))
+			}
 			if gap || requiresHydration(events) {
 				published, _ := s.Refresh(ctx)
 				emitLatest(updates, published)
 				nextRefresh = time.Now().Add(s.RefreshInterval())
 				nextLifecycle = time.Now().Add(s.ProbeInterval())
 				nextTelemetry = time.Now().Add(deviceTelemetryInterval)
-			}
-			if s.processActivityEvents(ctx, events, time.Now()) {
-				emitLatest(updates, s.publishActivity(false, time.Now()))
 			}
 		}
 		s.reconcileScheduled(ctx, updates, time.Now(),
