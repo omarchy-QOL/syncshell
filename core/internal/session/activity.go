@@ -15,6 +15,11 @@ const (
 	activityHold  = 10 * time.Second
 	activityCycle = 2500 * time.Millisecond
 	maxActivity   = 12
+	// Syncthing lists a pulled file in LocalIndexUpdated seconds after ItemFinished.
+	finishedItemMemory = 30 * time.Second
+	maxFinishedItems   = 8192
+	// Files often finish in the batch that started them; keep the last name briefly.
+	lastFileHold = 1500 * time.Millisecond
 )
 
 type activityRecord struct {
@@ -42,7 +47,7 @@ func (s *Session) processActivityEvents(
 		case "ItemStarted":
 			changed = s.itemStarted(event, now) || changed
 		case "ItemFinished":
-			changed = s.itemFinished(event) || changed
+			changed = s.itemFinished(event, now) || changed
 		case "DeviceDisconnected":
 			changed = s.deviceDisconnected(event) || changed
 		}
@@ -102,6 +107,21 @@ func (s *Session) remoteProgress(event syncthing.Event, now time.Time) bool {
 	return changed
 }
 
+// rememberFinished lets localIndex skip files the event stream already reported.
+func (s *Session) rememberFinished(folderID, path string, now time.Time) {
+	if s.finishedItems == nil || len(s.finishedItems) >= maxFinishedItems {
+		for key, expires := range s.finishedItems {
+			if !expires.After(now) {
+				delete(s.finishedItems, key)
+			}
+		}
+		if s.finishedItems == nil || len(s.finishedItems) >= maxFinishedItems {
+			s.finishedItems = make(map[string]time.Time)
+		}
+	}
+	s.finishedItems[folderID+"\x00"+path] = now.Add(finishedItemMemory)
+}
+
 func (s *Session) localIndex(ctx context.Context, event syncthing.Event, now time.Time) bool {
 	var data struct {
 		Folder    string   `json:"folder"`
@@ -111,7 +131,16 @@ func (s *Session) localIndex(ctx context.Context, event syncthing.Event, now tim
 		return false
 	}
 	changed := false
-	for _, name := range data.Filenames[:min(len(data.Filenames), 16)] {
+	names := make([]string, 0, 16)
+	for _, name := range data.Filenames {
+		if expires, ok := s.finishedItems[data.Folder+"\x00"+name]; ok && expires.After(now) {
+			continue
+		}
+		if names = append(names, name); len(names) == 16 {
+			break
+		}
+	}
+	for _, name := range names {
 		info, err := s.currentFileInfo(ctx, data.Folder, name)
 		entry := info.Local
 		if entry == nil {
@@ -122,7 +151,10 @@ func (s *Session) localIndex(ctx context.Context, event syncthing.Event, now tim
 			continue
 		}
 		if fileType(entry.Type) == "directory" && !entry.Deleted {
-			_ = s.client.RescanSubdirectory(ctx, data.Folder, name)
+			// Syncthing answers only once the scan ends, which waits for any pull.
+			go func(folderID, subdirectory string) {
+				_ = s.client.RescanSubdirectory(ctx, folderID, subdirectory)
+			}(data.Folder, name)
 			continue
 		}
 		action := "syncing"
@@ -178,7 +210,7 @@ func (s *Session) itemStarted(event syncthing.Event, now time.Time) bool {
 	return s.storeActivity(data.Folder, data.Item, action, "", now)
 }
 
-func (s *Session) itemFinished(event syncthing.Event) bool {
+func (s *Session) itemFinished(event syncthing.Event, now time.Time) bool {
 	var data struct {
 		Folder string `json:"folder"`
 		Item   string `json:"item"`
@@ -186,9 +218,12 @@ func (s *Session) itemFinished(event syncthing.Event) bool {
 	if json.Unmarshal(event.Data, &data) != nil {
 		return false
 	}
+	s.rememberFinished(data.Folder, data.Item, now)
 	changed := false
 	for key, record := range s.activityRecords {
 		if record.activity.FolderID == data.Folder && record.activity.Path == data.Item {
+			last := record.activity
+			s.lastFile, s.lastFileUntil = &last, now.Add(lastFileHold)
 			delete(s.activityRecords, key)
 			changed = true
 		}
@@ -273,6 +308,9 @@ func (s *Session) publishActivity(advance bool, now time.Time) PublishedSnapshot
 	}
 	if len(activity.Files) > 0 {
 		current := activity.Files[s.activityIndex]
+		activity.Current = &current
+	} else if s.lastFile != nil && s.lastFileUntil.After(now) {
+		current := *s.lastFile
 		activity.Current = &current
 	}
 	s.activityMu.Unlock()
