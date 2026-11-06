@@ -16,6 +16,7 @@ function service(overrides = {}) {
     expectedDeviceId: "", canControlService: false, canStartService: false,
     online: true, busy: false, refreshing: false, baseUrl: "http://127.0.0.1:8384",
     homePath: "/home/test", actionError: "", actionNotice: "",
+    folders: [], devices: [], pendingFolders: {}, localDeviceId: "",
     Paths: { resolveFolderPath: path => path },
     core: { protocolReady: true },
     rescanTracker: { reset() {} },
@@ -134,4 +135,36 @@ test("action success, failure and duplicate submissions settle once", () => {
   assert.equal(host.busy, false);
   assert.equal(host.actionNotice, "Folder errors checked");
   assert.equal(finished.length, 2);
+});
+
+test("action notices use Omarchy's wording", () => {
+  const host = service({
+    localDeviceId: "LOCAL",
+    folders: [{ id: "docs", label: "Docs", devices: [{ id: "LOCAL" }] },
+      { id: "work", label: "Work", devices: [{ id: "LOCAL" }, { id: "PEER" }] }],
+    devices: [{ id: "PEER", name: "laptop" }],
+    pendingFolders: { offer: { offeredBy: { PEER: { label: "Photos" } } } },
+    core: { protocolReady: true,
+      action(name, args, callback) { callback(true, {}, null); return "1"; } },
+    actionFinished() {},
+  });
+  const notice = run => (run(), host.actionNotice);
+  assert.equal(notice(() => host.setFolderPaused("docs", true)),
+    "Synchronization for Docs paused. The folder ID, device associations, and data remain.");
+  assert.equal(notice(() => host.setFolderPaused("docs", false)),
+    "Linked Docs. Syncthing resumed the folder with its existing sharing configuration.");
+  assert.match(notice(() => host.forgetFolder("docs")), /^Removed from Syncthing configuration.*Re-add Folder ID docs/);
+  assert.equal(notice(() => host.addFolder({ folderId: "new", label: "New", path: "/n" })),
+    "Added New locally. It is linked but not shared with another device.");
+  assert.equal(notice(() => host.addFolder({ folderId: "new", path: "/n", deviceIds: ["PEER"] })),
+    "Remote devices may have to accept the folder.");
+  assert.equal(notice(() => host.setFolderSharing("docs", ["PEER"])),
+    "Docs shared with laptop; waiting for laptop to accept.");
+  assert.equal(notice(() => host.setFolderSharing("work", ["PEER"])), "Sharing with laptop updated.");
+  assert.equal(notice(() => host.setFolderSharing("work", [])),
+    "Folder sharing removed. The local folder remains configured.");
+  assert.equal(notice(() => host.dismissPendingFolder("offer", "PEER")), "Rejected folder request for Photos.");
+  assert.equal(notice(() => host.addDevice("PEER", "laptop")),
+    "laptop added. Add this device on laptop to complete connection.");
+  assert.equal(notice(() => host.removeDevice("PEER", "laptop")), "laptop removed from this device.");
 });

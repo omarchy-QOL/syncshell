@@ -13,6 +13,9 @@ import (
 
 const maxShowOutput = 64 << 10
 
+// Syncthing may need ten seconds to close its database during a clean stop.
+const actionTimeout = 30 * time.Second
+
 var validUnit = regexp.MustCompile(`^[A-Za-z0-9_.@:-]+[.]service$`)
 
 // Binding is host authority for one exact systemd user unit.
@@ -76,7 +79,7 @@ func (c Controller) Apply(ctx context.Context, unit string, action Action) error
 	if command == "" {
 		command = "systemctl"
 	}
-	actionContext, cancel := context.WithTimeout(ctx, 10*time.Second)
+	actionContext, cancel := context.WithTimeout(ctx, actionTimeout)
 	defer cancel()
 	output, err := exec.CommandContext(actionContext, command,
 		"--user", string(action), unit).CombinedOutput()

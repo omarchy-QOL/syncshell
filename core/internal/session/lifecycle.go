@@ -22,7 +22,11 @@ func (s *Session) lifecycleAction(ctx context.Context, name string) ActionResult
 	if lifecycleReached(name, published) {
 		return ActionResult{OK: true}
 	}
-	if err := s.lifecycle.Apply(ctx, s.binding.Unit, systemduser.Action(name)); err != nil {
+	// Hydration must not observe a partially applied unit transition.
+	s.refreshMu.Lock()
+	err := s.lifecycle.Apply(ctx, s.binding.Unit, systemduser.Action(name))
+	s.refreshMu.Unlock()
+	if err != nil {
 		return rejected("lifecycle_failed", err.Error())
 	}
 	return s.waitForLifecycle(ctx, name)

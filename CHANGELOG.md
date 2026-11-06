@@ -1,6 +1,24 @@
 # Changelog
 
-Notable changes to Syncshell for Omarchy are documented here.
+Notable changes to Syncshell and its shell adapters are documented here.
+
+## Unreleased
+
+- keep the syncing file name visible during bulk syncs: the core no longer
+  stalls for up to minutes on lookups and rescans for files Syncthing already
+  reported, and the Omarchy folder card no longer rebuilds on each update
+- fit the monochrome icons' view box to the mark so the Omarchy 4.5 bar no
+  longer shrinks them below its built-in icons
+- replace the experimental DMS adapter with native folder, device, sharing
+  and invitation workflows, pending desktop acceptance on DMS 2.0.0
+- target DMS 2.0 (Dux Shell) only: `qs.DCommon.Widgets` controls and the 2.0
+  surface roles; DMS 1.6 is no longer supported
+- rename the DMS adapter to `hosts/dux-shell` and `integrations/dux-shell`
+  after the shell's rename; the plugin id and `dms` command are unchanged
+- add adapter-owned Modern and DMS-themed Web UI profiles with explicit
+  cleanup, and require explicit authority for Syncthing service control
+- assemble a reproducible DMS package with bundled Linux workers and a Nix
+  recipe, without installing tools or changing bar placement
 
 ## 0.2.4 - 2026-10-19
 

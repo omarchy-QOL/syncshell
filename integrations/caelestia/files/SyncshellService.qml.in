@@ -1,6 +1,0 @@
-pragma Singleton
-
-import QtQuick
-import "../syncshell/shared"
-
-AdapterService {}

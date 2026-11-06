@@ -7,14 +7,14 @@ cd -- "$root"
 # Models run in Qt, not a JavaScript surrogate with different import semantics.
 QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
   /usr/lib/qt6/bin/qml tests/run.qml
-node --test tests/folder-creation.test.mjs tests/bar-click.test.mjs tests/device-sharing.test.mjs
+node --test tests/folder-creation.test.mjs tests/bar-click.test.mjs tests/device-sharing.test.mjs tests/adapter-contract.test.mjs tests/caelestia-model.test.mjs tests/caelestia-ownership.test.mjs
 
 # Run serially: popup focus tests share the desktop and are timing sensitive.
 for name in architecture plugin-acceptance-lint \
   dropdown-search folder-overview busy-button \
   adapter-service core-process install-recovery refresh-recovery \
   self-removal settings-migration theme-palette \
-  caelestia-adapter dankmaterialshell-adapter illogical-impulse-adapter \
+  caelestia-adapter dux-shell-adapter illogical-impulse-adapter \
   waybar-adapter; do
   printf '\n==> %s\n' "$name"
   bash "tests/$name.test.sh"
