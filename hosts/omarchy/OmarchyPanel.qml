@@ -62,7 +62,6 @@ Panel {
     property bool noticeShown: false
     readonly property var folderRows: buildFolderRows()
     readonly property var currentFolderRow: folderById(currentFolderId)
-    readonly property var visibleFolderRows: currentFolderRow ? [currentFolderRow] : []
     readonly property var pendingOfferRows: pendingOfferOptions()
     readonly property double trackedBytes: folderTotal("globalBytes")
     readonly property int trackedFiles: folderTotal("globalFiles")

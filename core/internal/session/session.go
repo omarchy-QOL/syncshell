@@ -66,6 +66,9 @@ type Session struct {
 	eventsOnce          sync.Once
 	activityMu          sync.Mutex
 	activityRecords     map[string]activityRecord
+	finishedItems       map[string]time.Time
+	lastFile            *Activity
+	lastFileUntil       time.Time
 	activityIndex       int
 	externalLatched     bool
 	deviceSamples       map[string]deviceTransferSample

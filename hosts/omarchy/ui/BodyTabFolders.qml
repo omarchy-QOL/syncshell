@@ -197,10 +197,11 @@ Column {
 
         Repeater {
             id: folderCards
-            model: root.controller.visibleFolderRows
+            // Keep one card alive: its row flickers if every status update rebuilds it.
+            model: root.controller.currentFolderRow ? 1 : 0
 
             BodyTabFoldersCard {
-                required property var modelData
+                readonly property var modelData: root.controller.currentFolderRow
                 width: parent.width
                 folder: modelData
                 controller: root.controller
