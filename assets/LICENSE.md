@@ -18,6 +18,10 @@ runtime by `SharedWidgetMonoIcon.qml`. They must stay pure white on transparent:
 multiplies the source's value channel, so anything darker comes out darker
 still.
 
+Their shared square view box hugs the mark because Omarchy normalizes the whole
+image rect, so transparent margin shrinks the icon; sharing it keeps the mark in
+place across states. Badges must stay inside it, hence the sync badge's scale.
+
 Copyright belongs to the Syncthing contributors. These adapted files remain
 licensed under the Mozilla Public License 2.0:
 
