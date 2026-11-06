@@ -826,30 +826,43 @@ Panel {
         onTriggered: root.showBarTooltip()
     }
 
-    BarIconButton {
+    // WidgetButton, not BarIconButton: the host fits the mark's width, which
+    // includes the side nodes, so its ring would draw smaller than round glyphs.
+    // Sizing the ring to the theme's icon size keeps it optically level.
+    WidgetButton {
         id: button
         anchors.fill: parent
         bar: root.bar
-        iconComponent: Component {
-            Item {
-                opacity: root.syncthing && root.syncthing.online ? 1.0 : 0.55
+        labelVisible: false
+        hasVisualContent: true
+        fixedWidth: vertical ? -1 : Style.bar.iconSlot
+        fixedHeight: vertical ? Style.bar.iconSlot : -1
 
-                // Keep the effect warm under the brand icon for reliable live switches.
-                SharedWidgetMonoIcon {
-                    anchors.fill: parent
-                    source: root.themedIconSource
-                    tint: button.foreground
-                }
+        Item {
+            anchors.centerIn: parent
+            scale: button.pressScale
+            opacity: root.syncthing && root.syncthing.online ? 1.0 : 0.55
 
-                Image {
-                    anchors.fill: parent
-                    source: root.syncthingIconSource
-                    sourceSize.width: width
-                    sourceSize.height: height
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
-                    visible: !root.themedIcon
-                }
+            // Keep the effect warm under the brand icon for reliable live switches.
+            SharedWidgetMonoIcon {
+                anchors.centerIn: parent
+                // The mono view box is 14.5 units; the ring spans 13.31 of them.
+                width: Style.bar.iconSize * 14.5 / 13.31
+                height: width
+                source: root.themedIconSource
+                tint: button.foreground
+            }
+
+            Image {
+                anchors.centerIn: parent
+                width: Style.bar.iconSize
+                height: width
+                source: root.syncthingIconSource
+                sourceSize.width: width
+                sourceSize.height: height
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                visible: !root.themedIcon
             }
         }
         active: root.hasProblems
