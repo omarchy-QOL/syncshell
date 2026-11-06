@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Window
 import Quickshell
 import Quickshell.Io
 import qs.Commons
@@ -839,24 +840,47 @@ Panel {
         fixedHeight: vertical ? Style.bar.iconSlot : -1
 
         Item {
-            anchors.centerIn: parent
+            id: iconBox
+            // A raster drawn at fractional device pixels is resampled and blurs,
+            // so size and place it on whole pixels. Qt's Screen ratio is
+            // integral; the window carries the fractional one.
+            readonly property real dpr: Window.window ? Window.window.devicePixelRatio : 1
+            // The mono view box is 14.5 units; the ring spans 13.31 of them. The
+            // branded disc shares the box so both styles read the same size.
+            readonly property real logicalSize: Style.bar.iconSize * 14.5 / 13.31
+            property real snapX: 0
+            property real snapY: 0
+
+            function align() {
+                var p = button.mapToItem(null, (button.width - width) / 2, (button.height - height) / 2);
+                snapX = Math.round(p.x * dpr) / dpr - p.x;
+                snapY = Math.round(p.y * dpr) / dpr - p.y;
+            }
+
+            width: Math.round(logicalSize * dpr) / dpr
+            height: width
+            x: (button.width - width) / 2 + snapX
+            y: (button.height - height) / 2 + snapY
             scale: button.pressScale
             opacity: root.syncthing && root.syncthing.online ? 1.0 : 0.55
 
+            // The bar moves widgets as neighbours resize; re-snap before each frame.
+            Connections {
+                target: iconBox.Window.window
+                function onAfterAnimating() {
+                    iconBox.align();
+                }
+            }
+
             // Keep the effect warm under the brand icon for reliable live switches.
             SharedWidgetMonoIcon {
-                anchors.centerIn: parent
-                // The mono view box is 14.5 units; the ring spans 13.31 of them.
-                width: Style.bar.iconSize * 14.5 / 13.31
-                height: width
+                anchors.fill: parent
                 source: root.themedIconSource
                 tint: button.foreground
             }
 
             Image {
-                anchors.centerIn: parent
-                width: Style.bar.iconSize
-                height: width
+                anchors.fill: parent
                 source: root.syncthingIconSource
                 sourceSize.width: width
                 sourceSize.height: height
