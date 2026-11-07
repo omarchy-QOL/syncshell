@@ -8,7 +8,9 @@ release; they are not a cross-version interface for retained older services.
 
 `manifest.json` declares one kept-loaded `service` and one `bar-widget` under
 the stable plugin ID `io.github.ilyazar.syncthing`. The panel resolves the
-service with `bar.shell.serviceFor(moduleName)`.
+service with `bar.shell.serviceFor(moduleName)`. Replacement bars return no
+service there, so the panel falls back to the instance the service publishes in
+`hosts/omarchy/Bridge.js`.
 
 The supported update sequence is a normal Omarchy plugin update followed by
 a shell restart. Omarchy may retain an older service before that restart;

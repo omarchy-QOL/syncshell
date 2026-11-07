@@ -12,13 +12,16 @@ import "ui/UiConstants.js" as UiConstants
 import "models/PanelModel.js" as PanelModel
 import "models/ThemePaletteModel.js" as ThemePaletteModel
 import "../../shared/Paths.js" as Paths
+import "Bridge.js" as Bridge
 
 Panel {
     id: root
 
     ipcTarget: moduleName
 
-    readonly property var syncthing: bar && bar.shell && moduleName ? bar.shell.serviceFor(moduleName) : null
+    readonly property var directService: bar && bar.shell && moduleName ? bar.shell.serviceFor(moduleName) : null
+    property var bridgedService: null
+    readonly property var syncthing: directService || bridgedService
     readonly property color foreground: bar ? bar.foreground : Commons.Color.foreground
     readonly property color urgent: bar ? bar.urgent : Commons.Color.urgent
     readonly property color warning: syncthing ? syncthing.warning : ThemePaletteModel.DefaultYellow
@@ -723,6 +726,14 @@ Panel {
         }
     }
     Component.onCompleted: configureService()
+
+    Timer {
+        interval: 1000
+        running: !root.directService
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.bridgedService = Bridge.current()
+    }
 
     Timer {
         id: noticeDisplayTimer
