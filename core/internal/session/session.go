@@ -67,6 +67,8 @@ type Session struct {
 	activityMu          sync.Mutex
 	activityRecords     map[string]activityRecord
 	finishedItems       map[string]time.Time
+	rescansMu           sync.Mutex
+	rescansInFlight     map[string]bool
 	lastFile            *Activity
 	lastFileUntil       time.Time
 	activityIndex       int

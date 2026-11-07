@@ -4,6 +4,8 @@ Notable changes to Syncshell and its shell adapters are documented here.
 
 ## Unreleased
 
+- ask Syncthing to rescan a directory only once while that rescan is still
+  running, so repeated index updates during a pull cannot pile up requests
 - keep the syncing file name visible during bulk syncs: the core no longer
   stalls for up to minutes on lookups and rescans for files Syncthing already
   reported, and the Omarchy folder card no longer rebuilds on each update
