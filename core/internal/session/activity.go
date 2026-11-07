@@ -122,6 +122,37 @@ func (s *Session) rememberFinished(folderID, path string, now time.Time) {
 	s.finishedItems[folderID+"\x00"+path] = now.Add(finishedItemMemory)
 }
 
+// rescanSubdirectory runs in the background: Syncthing answers only once the
+// scan ends, which waits for any pull. A directory already being rescanned is
+// not asked again, so repeated index events cannot pile up requests.
+func (s *Session) rescanSubdirectory(ctx context.Context, folderID, subdirectory string) {
+	key := folderID + "\x00" + subdirectory
+	s.rescansMu.Lock()
+	if s.rescansInFlight[key] {
+		s.rescansMu.Unlock()
+		return
+	}
+	if s.rescansInFlight == nil {
+		s.rescansInFlight = make(map[string]bool)
+	}
+	s.rescansInFlight[key] = true
+	s.rescansMu.Unlock()
+	go func() {
+		defer func() {
+			s.rescansMu.Lock()
+			delete(s.rescansInFlight, key)
+			s.rescansMu.Unlock()
+		}()
+		_ = s.client.RescanSubdirectory(ctx, folderID, subdirectory)
+	}()
+}
+
+func (s *Session) rescanInFlight(folderID, subdirectory string) bool {
+	s.rescansMu.Lock()
+	defer s.rescansMu.Unlock()
+	return s.rescansInFlight[folderID+"\x00"+subdirectory]
+}
+
 func (s *Session) localIndex(ctx context.Context, event syncthing.Event, now time.Time) bool {
 	var data struct {
 		Folder    string   `json:"folder"`
@@ -152,10 +183,7 @@ func (s *Session) localIndex(ctx context.Context, event syncthing.Event, now tim
 		}
 		if fileType(entry.Type) == "directory" && !entry.Deleted {
 			if !s.readOnly {
-				// Syncthing answers only once the scan ends, which waits for any pull.
-				go func(folderID, subdirectory string) {
-					_ = s.client.RescanSubdirectory(ctx, folderID, subdirectory)
-				}(data.Folder, name)
+				s.rescanSubdirectory(ctx, data.Folder, name)
 			}
 			continue
 		}
