@@ -19,7 +19,7 @@ function Card.render(controller, folder)
     local action
     if folder.paused then
         action = SharedWidgetControls.tinted("Forget", "FORGET", "circle-x-filled", "error", function()
-            controller:confirm("Forget " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\n"
+            controller:confirm("Forget folder: " .. Model.folderLabel(folder) .. " (folder ID: " .. folder.id .. ")?\n\n"
                 .. "This removes only its Syncthing configuration. The directory and data files will not be deleted. "
                 .. ((folder.markerName or ".stfolder") == ".stfolder" and "Syncthing will also attempt to remove its internal .stfolder marker. " or "")
                 .. "Rejoining the same remote folder requires this exact Folder ID.",

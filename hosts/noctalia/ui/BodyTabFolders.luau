@@ -34,8 +34,8 @@ function BodyTabFolders.render(controller)
         table.insert(toolbar, ActionButton.render(folder and folder.paused and "Link" or "Unlink",
             linking and BusyIcon.spin(controller, "loader", linkRole, "loader-2", Ui.title) or (folder and folder.paused and "link" or "x"), function()
                 controller:confirm(folder.paused
-                    and ("Link " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\nSyncthing will resume synchronization for this folder.")
-                    or ("Unlink " .. Model.folderLabel(folder) .. " (" .. folder.id .. ")?\n\nSyncthing will pause synchronization. Its configuration and local files remain."),
+                    and ("Link folder: " .. Model.folderLabel(folder) .. " (folder ID: " .. folder.id .. ")?\n\nSyncthing will resume synchronization for this folder.")
+                    or ("Unlink folder: " .. Model.folderLabel(folder) .. " (folder ID: " .. folder.id .. ")?\n\nSyncthing will pause synchronization. Its configuration and local files remain."),
                     folder.paused and "folder.resume" or "folder.pause", { folderId = folder.id })
             end, enabled and folder ~= nil, nil,
             folder and (folder.paused and "Link folder" or "Unlink folder (locally)") or "Select a folder", nil,
