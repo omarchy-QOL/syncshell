@@ -10,6 +10,8 @@ Item {
 
     property bool opened: false
     property string message: ""
+    // StyledText callers must escape any user data they embed.
+    property int messageFormat: Text.PlainText
     property string cancelText: "Cancel"
     property string confirmText: "Confirm"
     property int selectedIndex: 1
@@ -68,7 +70,7 @@ Item {
                     anchors.right: parent.right
                     anchors.top: parent.top
                     text: root.message
-                    textFormat: Text.PlainText
+                    textFormat: root.messageFormat
                     color: root.foreground
                     font.family: root.fontFamily
                     font.pixelSize: Style.font.body
