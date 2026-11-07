@@ -71,7 +71,8 @@ FocusScope {
         else if (event.key === Qt.Key_P && controller.tab === "folders" && controller.folder && !controller.blocked) {
             let folder = controller.folder;
             controller.ask(folder.paused ? "folder.resume" : "folder.pause", {folderId: folder.id},
-                (folder.paused ? "Resume " : "Pause ") + (folder.label || folder.id) + "?", folder.path);
+                (folder.paused ? "Link" : "Unlink") + " folder: " + (folder.label || folder.id) + " (folder ID: " + folder.id + ")?",
+                folder.paused ? "Syncthing will resume synchronization for this folder." : "Syncthing will pause synchronization. Its configuration and local files remain.");
         } else if (event.key === Qt.Key_Q) host.close();
         else return;
         event.accepted = true;

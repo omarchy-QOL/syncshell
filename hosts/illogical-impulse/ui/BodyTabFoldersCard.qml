@@ -123,7 +123,7 @@ ColumnLayout {
                 root.controller.rememberTrigger(source);
                 root.controller.ask("folder.forget", {
                     folderId: root.folder.id
-                }, "Forget " + root.folder.label + "?", "Remove this folder from Syncthing. Directory contents are kept.\n" + root.folder.path);
+                }, "Forget folder: " + (root.folder.label || root.folder.id) + " (folder ID: " + root.folder.id + ")?", "This removes only its Syncthing configuration. The directory and data files will not be deleted. " + (root.folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal .stfolder marker. " : "") + "Rejoining the same remote folder requires this exact Folder ID.");
             }
         }
     }

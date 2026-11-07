@@ -37,7 +37,8 @@ ColumnLayout {
                 root.controller.rememberTrigger(source);
                 var folder = root.controller.folder;
                 root.controller.ask(folder.paused ? "folder.resume" : "folder.pause", {folderId: folder.id},
-                    (folder.paused ? "Resume " : "Pause ") + (folder.label || folder.id) + "?", folder.path);
+                    (folder.paused ? "Link" : "Unlink") + " folder: " + (folder.label || folder.id) + " (folder ID: " + folder.id + ")?",
+                    folder.paused ? "Syncthing will resume synchronization for this folder." : "Syncthing will pause synchronization. Its configuration and local files remain.");
             }
         }
         SharedWidgetNativeText { style: root.style; Layout.fillWidth: true; muted: true; text: root.controller.folderRows.length + " of " + root.controller.service.folders.length + " folders" }
