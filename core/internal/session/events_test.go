@@ -617,3 +617,38 @@ func cancelEventUpdates(
 		t.Fatal("event loop did not cancel")
 	}
 }
+
+func TestSubdirectoryRescanIsNotRepeatedWhileInFlight(t *testing.T) {
+	api := &actionAPI{folders: map[string]syncthing.Folder{},
+		devices: []syncthing.Device{{DeviceID: "LOCAL"}},
+		pending: syncthing.PendingFolders{}, theme: "default",
+		rescanStarted: make(chan struct{}, 1), rescanRelease: make(chan struct{})}
+	coreSession := newActionSession(t, api)
+	ctx := context.Background()
+	coreSession.rescanSubdirectory(ctx, "folder", "directory")
+	select {
+	case <-api.rescanStarted:
+	case <-time.After(2 * time.Second):
+		t.Fatal("first rescan never reached Syncthing")
+	}
+	// Still blocked in Syncthing: the same directory is not asked again.
+	coreSession.rescanSubdirectory(ctx, "folder", "directory")
+	close(api.rescanRelease)
+	for deadline := time.Now().Add(2 * time.Second); coreSession.rescanInFlight("folder", "directory"); {
+		if time.Now().After(deadline) {
+			t.Fatal("finished rescan stayed in flight")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if count := api.rescanCount(); count != 1 {
+		t.Fatalf("rescans while one was in flight: %d", count)
+	}
+	// Once it has finished, the directory can be rescanned again.
+	coreSession.rescanSubdirectory(ctx, "folder", "directory")
+	for deadline := time.Now().Add(2 * time.Second); api.rescanCount() != 2; {
+		if time.Now().After(deadline) {
+			t.Fatalf("a later rescan was dropped: %d", api.rescanCount())
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}
