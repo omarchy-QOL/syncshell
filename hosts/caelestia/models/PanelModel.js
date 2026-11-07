@@ -2,6 +2,14 @@
 
 var overviewPopout = "syncshell-overview";
 
+// Omarchy's folder prompts bold the label; user text must not become markup.
+function escapeStyled(value) {
+    return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function folderPrompt(verb, label, id) {
+    return verb + " folder: <b>" + escapeStyled(label) + "</b> (folder ID: " + escapeStyled(id) + ")?";
+}
+
 function pathLabel(path) {
     var value = String(path || "").replace(/\/+$/, "");
     if (String(path || "").charAt(0) === "/" && value === "")

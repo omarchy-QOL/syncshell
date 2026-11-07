@@ -207,7 +207,8 @@ QtObject {
                 detail: detail,
                 confirm: choice.confirm || "Yes",
                 cancel: choice.cancel || "No",
-                destructive: choice.destructive !== false
+                destructive: choice.destructive !== false,
+                styled: choice.styled === true
             }
         });
         restoreFocus("cancel");
@@ -291,15 +292,18 @@ QtObject {
     function requestFolderLinkChange() {
         if (!folder)
             return;
-        var label = Model.label(folder) + " (" + folder.id + ")";
         if (folder.paused)
             confirm("folder.resume", {
                 folderId: folder.id
-            }, "Link " + label + "?", "Syncthing will resume synchronization for this folder.");
+            }, Model.folderPrompt("Link", Model.label(folder), folder.id), "Syncthing will resume synchronization for this folder.", {
+                styled: true
+            });
         else
             confirm("folder.pause", {
                 folderId: folder.id
-            }, "Unlink " + label + "?", "Syncthing will pause synchronization. Its configuration and local files remain.");
+            }, Model.folderPrompt("Unlink", Model.label(folder), folder.id), "Syncthing will pause synchronization. Its configuration and local files remain.", {
+                styled: true
+            });
     }
     function acceptConfirmation() {
         var c = view.confirmation;

@@ -121,7 +121,9 @@ StyledRect {
                     else
                         root.controller.confirm("folder.forget", {
                             folderId: root.folder.id
-                        }, "Forget " + Model.label(root.folder) + " (" + root.folder.id + ")?", "This removes only its Syncthing configuration. The directory and data files will not be deleted. " + (root.folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal .stfolder marker. " : "") + "Rejoining the same remote folder requires this exact Folder ID.");
+                        }, Model.folderPrompt("Forget", Model.label(root.folder), root.folder.id), "This removes only its Syncthing configuration. The directory and data files will not be deleted. " + (root.folder.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal .stfolder marker. " : "") + "Rejoining the same remote folder requires this exact Folder ID.", {
+                            styled: true
+                        });
                 }
             }
         }

@@ -242,3 +242,9 @@ test("search needs a substring of a path, not scattered letters", () => {
   assert.equal(model.matchesOption(option, "pdfr"), true);
   assert.equal(model.matchesOption(option, ".cache/fx"), true);
 });
+
+test("folder prompts bold the label without letting it add markup", () => {
+  assert.equal(model.folderPrompt("Unlink", "Docs", "a"), "Unlink folder: <b>Docs</b> (folder ID: a)?");
+  assert.equal(model.folderPrompt("Forget", "x & <i>y</i>", "a<b>"),
+    "Forget folder: <b>x &amp; &lt;i&gt;y&lt;/i&gt;</b> (folder ID: a&lt;b&gt;)?");
+});

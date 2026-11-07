@@ -318,7 +318,8 @@ TestCase {
             controller.requestFolderLinkChange();
             compare(backend.sent, null);
             compare(controller.view.confirmation.action, paused ? "folder.resume" : "folder.pause");
-            compare(controller.view.confirmation.title, (paused ? "Link" : "Unlink") + " Docs (a)?");
+            compare(controller.view.confirmation.title, (paused ? "Link" : "Unlink") + " folder: <b>Docs</b> (folder ID: a)?");
+            verify(controller.view.confirmation.styled);
             compare([controller.view.confirmation.confirm, controller.view.confirmation.cancel], ["Yes", "No"]);
             controller.acceptConfirmation();
             compare(backend.sent.action, paused ? "folder.resume" : "folder.pause");

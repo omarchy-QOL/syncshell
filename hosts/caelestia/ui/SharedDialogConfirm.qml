@@ -54,7 +54,7 @@ QQC.Popup {
         StyledText {
             Layout.fillWidth: true
             text: root.controller.view.confirmation?.title || ""
-            textFormat: Text.PlainText
+            textFormat: root.controller.view.confirmation?.styled ? Text.StyledText : Text.PlainText
             font: root.tokens.Tokens.font.title.small
             wrapMode: Text.Wrap
         }
