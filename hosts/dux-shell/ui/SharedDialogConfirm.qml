@@ -62,7 +62,7 @@ FocusScope {
         StyledText {
             width: parent.width
             text: root.text.title
-            textFormat: Text.PlainText
+            textFormat: root.text.styled ? Text.StyledText : Text.PlainText
             font.pixelSize: Theme.fontSizeLarge
             font.weight: Theme.fontWeightMedium
             color: Theme.onSurface

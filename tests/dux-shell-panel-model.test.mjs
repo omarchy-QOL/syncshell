@@ -315,7 +315,7 @@ test("counts and confirmations match the Omarchy panel", () => {
   for (const phrase of ["Folder sharing with it will be ", "removed locally. Local folders and files remain.", "The other device is unchanged."])
     assert.ok(popup.includes(phrase) && (remove.title + " " + remove.message).replace(/\s+/g, " ").includes(phrase.trim()));
   const forget = model.confirmText("folder.forget", { id: "abc", label: "Docs", markerName: ".stfolder" });
-  assert.equal(forget.title, "Forget Docs (abc)?");
+  assert.deepEqual([forget.title, forget.styled], ["Forget folder: <b>Docs</b> (folder ID: abc)?", true]);
   assert.match(forget.message, /directory and data files will not be deleted/);
   assert.match(forget.message, /\.stfolder marker/);
   assert.match(popup, /confirmText: root\.controller\.folderConfirmAction === "create" \? "Create and add" : "Yes"/);
@@ -325,12 +325,16 @@ test("counts and confirmations match the Omarchy panel", () => {
   const reject = model.confirmText("folder.dismiss-pending", { folderId: "abc", label: "Docs", deviceId: "PEER", deviceName: "peer" });
   assert.equal(reject.title, "Reject folder request for Docs (by peer)?");
   assert.equal(reject.message, "This removes the pending announcement without adding the folder.");
-  assert.equal(model.confirmText("folder.pause", { id: "abc", path: "/srv/Docs" }).title, "Unlink Docs (abc)?");
+  assert.equal(model.confirmText("folder.pause", { id: "abc", path: "/srv/Docs" }).title,
+    "Unlink folder: <b>Docs</b> (folder ID: abc)?");
   assert.equal(model.confirmText("folder.pause", { id: "abc", path: "/srv/Docs" }).message,
     "Syncthing will pause synchronization. Its configuration and local files remain.");
   const link = model.confirmText("folder.resume", { id: "abc", path: "/srv/Docs" });
   assert.deepEqual([link.title, link.message, link.confirm, link.cancel],
-    ["Link Docs (abc)?", "Syncthing will resume synchronization for this folder.", "Yes", "No"]);
+    ["Link folder: <b>Docs</b> (folder ID: abc)?", "Syncthing will resume synchronization for this folder.", "Yes", "No"]);
+  // A label is user text: it cannot add markup to the styled prompt.
+  assert.equal(model.confirmText("folder.pause", { id: "a<b>", label: "x & <i>y</i>" }).title,
+    "Unlink folder: <b>x &amp; &lt;i&gt;y&lt;/i&gt;</b> (folder ID: a&lt;b&gt;)?");
   const create = model.confirmText("folder.add-existing", { path: "/srv/a" });
   assert.deepEqual([create.confirm, create.cancel, create.destructive], ["Create and add", "Cancel", false]);
   assert.equal(remove.cancel, "No");

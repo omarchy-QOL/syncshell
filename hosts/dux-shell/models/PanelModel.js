@@ -309,7 +309,15 @@ function formatCount(value) {
 function confirmText(action, target) {
     var text = confirmWording(action, target || {});
     return { title: text.title, message: text.message, confirm: text.confirm || "Yes",
-        cancel: text.cancel || "No", destructive: text.destructive !== false };
+        cancel: text.cancel || "No", destructive: text.destructive !== false, styled: text.styled === true };
+}
+
+// Omarchy's folder prompts bold the label; user text must not become markup.
+function escapeStyled(value) {
+    return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function folderPrompt(verb, label, id) {
+    return verb + " folder: <b>" + escapeStyled(label) + "</b> (folder ID: " + escapeStyled(id) + ")?";
 }
 
 function confirmWording(action, t) {
@@ -318,15 +326,15 @@ function confirmWording(action, t) {
         return { title: "Create directory?", message: "Create " + t.path + " and add it to Syncthing?",
             confirm: "Create and add", cancel: "Cancel", destructive: false };
     if (action === "folder.forget")
-        return { title: "Forget " + folderName(t) + " (" + t.id + ")?",
+        return { title: folderPrompt("Forget", folderName(t), t.id), styled: true,
             message: "This removes only its Syncthing configuration. The directory and data files will not be deleted. "
                 + (t.markerName === ".stfolder" ? "Syncthing will also attempt to remove its internal .stfolder marker. " : "")
                 + "Rejoining the same remote folder requires this exact Folder ID." };
     if (action === "folder.pause")
-        return { title: "Unlink " + folderName(t) + " (" + t.id + ")?",
+        return { title: folderPrompt("Unlink", folderName(t), t.id), styled: true,
             message: "Syncthing will pause synchronization. Its configuration and local files remain." };
     if (action === "folder.resume")
-        return { title: "Link " + folderName(t) + " (" + t.id + ")?",
+        return { title: folderPrompt("Link", folderName(t), t.id), styled: true,
             message: "Syncthing will resume synchronization for this folder." };
     if (action === "device.remove")
         return { title: "Remove " + name + " from this device?",
