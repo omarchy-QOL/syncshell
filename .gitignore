@@ -1,5 +1,6 @@
 # Local capture harness, archives, and project-only Codex workflow.
-/docs/interactive/
+/docs/*
+!/docs/status-colors.md
 /tests/live/*
 !/tests/live/*.sh
 /.agents/skills/
