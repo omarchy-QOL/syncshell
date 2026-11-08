@@ -114,3 +114,22 @@ jobs:
           name: syncshell-runtime
           path: ${{ runner.temp }}/syncshell-runtime.tar.gz
           if-no-files-found: error
+
+  # Apple Silicon Macs, Snapdragon and NVIDIA ARM machines run Omarchy on
+  # aarch64, so test the core and the bundled binary on a native ARM host.
+  arm64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: core/go.mod
+          cache-dependency-path: core/go.sum
+      - name: Core contracts on aarch64
+        run: go -C core test -race ./...
+      - name: Bundled aarch64 core
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+          bash packaging/bundled/verify.sh

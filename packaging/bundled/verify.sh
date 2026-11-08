@@ -18,8 +18,8 @@ verify_mode() {
 }
 
 verify_binary() {
-  local relative=$1 file_arch=$2 goarch=$3
-  local binary="$root/$relative" metadata build_metadata
+  local relative=$1 file_arch=$2 goarch=$3 baseline=$4 page=$5
+  local binary="$root/$relative" metadata build_metadata alignment align
 
   [[ -f $binary && ! -L $binary && -x $binary ]] \
     || fail "$relative is not a regular executable"
@@ -36,6 +36,17 @@ verify_binary() {
     || fail "$relative Go architecture metadata is unexpected"
   grep -Fq $'build\tGOOS=linux' <<<"$build_metadata" \
     || fail "$relative Go operating-system metadata is unexpected"
+  grep -Fq $'build\t'"$baseline" <<<"$build_metadata" \
+    || fail "$relative instruction-set baseline is not $baseline"
+  # Every loadable segment must be aligned to the largest page size the
+  # architecture's kernels use: 4K on x86_64, but 16K on Apple Silicon and 64K
+  # on some ARM servers.
+  alignment=$(readelf -lW -- "$binary" | awk '$1 == "LOAD" { print $NF }')
+  [[ -n $alignment ]] || fail "$relative has no loadable segments"
+  for align in $alignment; do
+    (( align >= page )) \
+      || fail "$relative segments are not aligned for $((page / 1024))K pages"
+  done
   if strings -- "$binary" \
       | rg -n '/home/iz|/home-hdd-cold|BEGIN (RSA |OPENSSH )?PRIVATE KEY' \
         >/dev/null; then
@@ -52,8 +63,8 @@ bash -n "$root/$launcher"
   cd -- "$root"
   sha256sum --check packaging/bundled/SHA256SUMS
 )
-verify_binary bin/x86_64/syncshell-core x86-64 amd64
-verify_binary bin/aarch64/syncshell-core "ARM aarch64" arm64
+verify_binary bin/x86_64/syncshell-core x86-64 amd64 GOAMD64=v1 0x1000
+verify_binary bin/aarch64/syncshell-core "ARM aarch64" arm64 GOARM64=v8.0 0x10000
 
 config="$test_root/config.xml"
 printf '%s\n' \
