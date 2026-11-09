@@ -94,30 +94,6 @@ keyboard with a brief exclusive request, because an exclusive layer receives
 all pointer input on Hyprland. A masked full-screen catcher then dismisses
 outside clicks. Confirmations dim the panel and centre over it instead.
 
-## Release gates
-
-The registry will reference this repository's generated
-`dist/dux-shell/` directory on its default branch. Publishing requires
-an approved release, reproducible package, clean DMS screenshot and actual
-install/update/removal testing. Initial platform claims are limited to the
-platforms tested by the maintainer; a bundled architecture is not proof of
-native execution on it.
-
-Native acceptance is intentionally deferred to the maintainer. In particular,
-verify geometry at all bar edges, More overflow, adjacent forms, nested menus,
-keyboard focus, picker return, light/dark themes and multiple bars/monitors.
-
-Repeat the non-desktop checks from the source checkout with:
-
-```sh
-go -C core test -race ./...
-bash tests/dux-shell-adapter.test.sh
-```
-
-These cover core outcomes against mock APIs, selection/drafts, authorization,
-import boundaries and reproducible packaging. They do not run DMS, prove
-real two-peer synchronization or validate a compositor/NixOS installation.
-
 ## Web UI profiles and removal
 
 The default Web UI is left alone on first startup. Selecting Modern or DMS

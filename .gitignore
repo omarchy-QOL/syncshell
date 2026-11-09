@@ -14,3 +14,7 @@
 
 # Assembled local native plugin.
 /dist/caelestia/
+
+# Local maintainer notes and checklists.
+/hosts/*/NOTES.md
+/integrations/dux-shell/submission.md
