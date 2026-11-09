@@ -177,7 +177,8 @@ Item {
                 Rectangle {
                     anchors.centerIn: parent
                     visible: choice.radio && choice.checked
-                    width: Style.space(7)
+                    // Same parity as the ring, so centring needs no half pixel.
+                    width: indicator.width - 2 * Math.round(indicator.width * 0.28)
                     height: width
                     radius: width / 2
                     color: Style.selectedStateColor(root.foreground, root.accent)
