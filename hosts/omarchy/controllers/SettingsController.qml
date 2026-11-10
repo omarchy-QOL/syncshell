@@ -24,6 +24,9 @@ QtObject {
     property string webUiTheme: SettingsModel.DefaultWebUiTheme
     property string serviceState: SettingsModel.DefaultServiceState
     property int probeIntervalSeconds: SettingsModel.DefaultProbeIntervalSeconds
+    property string folderSort: SettingsModel.DefaultFolderSort
+    property var folderFilters: SettingsModel.DefaultFolderFilters.slice()
+    property var _pendingView: null
     property string currentWebUiTheme: ""
     property string guiAssetsPath: ""
     property string error: ""
@@ -101,6 +104,8 @@ QtObject {
         webUiTheme = parsed.webUiTheme;
         serviceState = parsed.serviceState;
         probeIntervalSeconds = parsed.probeIntervalSeconds;
+        folderSort = parsed.folderSort;
+        folderFilters = parsed.folderFilters;
         _settingsValid = true;
         error = "";
         scheduleReconcile();
@@ -122,6 +127,8 @@ QtObject {
         webUiTheme = values.webUiTheme;
         serviceState = values.serviceState;
         probeIntervalSeconds = values.probeIntervalSeconds;
+        folderSort = values.folderSort;
+        folderFilters = values.folderFilters;
         error = "";
         scheduleReconcile();
     }
@@ -203,6 +210,26 @@ QtObject {
         busy = true;
         error = "";
         settingsProcess.command = ["bash", settingsHelperPath, "set-service-state", settingsTemplatePath, settingsPath, iconStyle, desired];
+        settingsProcess.running = true;
+        return true;
+    }
+
+    // The view is saved when its menu or the panel closes, not on every click.
+    function setFolderView(sort, groups) {
+        var filters = SettingsModel.formatFolderFilters(groups);
+        if (!settingsReady || SettingsModel.FolderSorts.indexOf(sort) < 0)
+            return false;
+        if (sort === folderSort && filters === SettingsModel.formatFolderFilters(folderFilters))
+            return true;
+        if (settingsProcess.running) {
+            _pendingView = {
+                sort: sort,
+                groups: groups
+            };
+            return true;
+        }
+        _settingsAction = "view";
+        settingsProcess.command = ["bash", settingsHelperPath, "set-view", settingsTemplatePath, settingsPath, iconStyle, sort, filters];
         settingsProcess.running = true;
         return true;
     }
@@ -379,7 +406,8 @@ QtObject {
         }
         onExited: function (exitCode) {
             var action = root._settingsAction;
-            root.busy = false;
+            if (action !== "view")
+                root.busy = false;
             if (exitCode === 0) {
                 root.settingsFile.reload();
                 if (root._openAfterEnsure) {
@@ -392,6 +420,8 @@ QtObject {
                 } else if (action === "compare") {
                     root.notice = "Save your settings to recheck them. " + "The temporary template is only a reference.";
                 }
+            } else if (action === "view") {
+                root.error = settingsErrors.text.trim() || "Could not save the folder view";
             } else {
                 root.error = settingsErrors.text.trim() || (action === "service-state" ? "Could not update Syncthing service preference" : "Could not prepare Syncthing plugin settings");
                 if (action === "migrate" || action === "compare")
@@ -399,6 +429,10 @@ QtObject {
             }
             root._openAfterEnsure = false;
             root._settingsAction = "";
+            var pending = root._pendingView;
+            root._pendingView = null;
+            if (pending)
+                root.setFolderView(pending.sort, pending.groups);
         }
     }
 

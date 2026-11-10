@@ -24,7 +24,10 @@ SharedWidgetDropdown {
             totalCount: root.controller.folderRows.length
             foreground: root.foreground
             fontFamily: root.fontFamily
-            onClosed: root.focusResults()
+            onClosed: {
+                root.controller.persistFolderView();
+                root.focusResults();
+            }
         }
     }
     onChanged: function (value) {

@@ -15,6 +15,7 @@ usage() {
   printf '%s\n' \
     'Usage: syncthing-settings.sh ensure <template> <target> <branded|themed>' \
     '       syncthing-settings.sh set-service-state <template> <target> <branded|themed> <enabled|disabled>' \
+    '       syncthing-settings.sh set-view <template> <target> <branded|themed> <folder-sort> <folder-filters>' \
     '       syncthing-settings.sh migrate <target>  # validated JSON on stdin' \
     '       syncthing-settings.sh compare <template> <target>' \
     >&2
@@ -127,6 +128,68 @@ write_service_state() {
   commit_target
 }
 
+write_view() {
+  local template=$1 target=$2 folder_sort=$3 folder_filters=$4 group block
+  group='"(all|ready|active|errors|paused|unknown)"'
+
+  [[ $folder_sort =~ ^(name|active-first|errors-first)$ ]] || usage
+  [[ $folder_filters =~ ^\[($group(,\ $group)*)?\]$ ]] || usage
+  # A file without [view] gets the template's section, comments included.
+  block=$(awk '/^[[:space:]]*\[view\]/ { found = 1 } found' "$template")
+  capture_target "$target"
+  VIEW_BLOCK=$block awk -v folder_sort="$folder_sort" -v folder_filters="$folder_filters" '
+    function write_sort() { print "folder_sort = \"" folder_sort "\""; sort_seen = 1 }
+    function write_filters() { print "folder_filters = " folder_filters; filters_seen = 1 }
+    function finish_view() {
+      if (!sort_seen) write_sort()
+      if (!filters_seen) write_filters()
+    }
+    function any_header(line) {
+      return line ~ /^[[:space:]]*\[[^]]+\][[:space:]]*(#.*)?$/
+    }
+    {
+      if (any_header($0)) {
+        if (in_view) finish_view()
+        in_view = $0 ~ /^[[:space:]]*\[view\][[:space:]]*(#.*)?$/
+        if (in_view) {
+          if (view_seen) duplicate = 1
+          view_seen = 1
+        }
+        print
+        next
+      }
+      if (in_view && $0 ~ /^[[:space:]]*folder_sort[[:space:]]*=/) {
+        if (sort_seen) duplicate = 1
+        else write_sort()
+        next
+      }
+      if (in_view && $0 ~ /^[[:space:]]*folder_filters[[:space:]]*=/) {
+        if (filters_seen) duplicate = 1
+        else write_filters()
+        next
+      }
+      print
+    }
+    END {
+      if (duplicate) exit 3
+      if (in_view) finish_view()
+      if (!view_seen) {
+        if (NR > 0) print ""
+        count = split(ENVIRON["VIEW_BLOCK"], lines, "\n")
+        for (i = 1; i <= count; i++) {
+          if (lines[i] ~ /^[[:space:]]*folder_sort[[:space:]]*=/) write_sort()
+          else if (lines[i] ~ /^[[:space:]]*folder_filters[[:space:]]*=/) write_filters()
+          else print lines[i]
+        }
+      }
+    }
+  ' "$expected" >"$temporary" || {
+    printf 'Could not update the folder view settings safely\n' >&2
+    return 1
+  }
+  commit_target
+}
+
 migrate_settings() {
   local request backup
   IFS= read -r request
@@ -161,6 +224,12 @@ case "${1:-}" in
     [[ $# == 5 ]] || usage
     seed_settings "$2" "$3" "$4"
     write_service_state "$3" "$5"
+    target=$3
+    ;;
+  set-view)
+    [[ $# == 6 ]] || usage
+    seed_settings "$2" "$3" "$4"
+    write_view "$2" "$3" "$5" "$6"
     target=$3
     ;;
   migrate)

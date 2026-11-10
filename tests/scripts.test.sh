@@ -83,6 +83,41 @@ test_settings() {
     || fail "existing settings were overwritten"
 }
 
+test_view_settings() {
+  local helper="$root/hosts/omarchy/scripts/syncthing-settings.sh"
+  local template="$root/hosts/omarchy/config/settings.toml"
+  local older="$test_root/view/older.toml" before
+  mkdir -p -- "$test_root/view"
+  # A file from before [view] gets the template's section, comments included.
+  sed '/^\[view\]/,$d' "$template" >"$older"
+  printf '%s\n' '# owner note' >>"$older"
+  bash "$helper" set-view "$template" "$older" themed active-first \
+    '["ready", "errors"]' >/dev/null
+  grep -Fxq '# owner note' "$older" || fail "view update removed an owner comment"
+  grep -Fxq '[view]' "$older" || fail "view section was not added"
+  grep -Fxq '# "name": alphabetical by folder name' "$older" \
+    || fail "view section lost its comments"
+  grep -Fxq 'folder_sort = "active-first"' "$older" || fail "folder sort was not written"
+  grep -Fxq 'folder_filters = ["ready", "errors"]' "$older" \
+    || fail "folder filters were not written"
+
+  bash "$helper" set-view "$template" "$older" themed name '["all"]' >/dev/null
+  [[ $(grep -c '^\[view\]' "$older") == 1 && $(grep -c '^folder_sort' "$older") == 1 ]] \
+    || fail "view update created a duplicate"
+  grep -Fxq 'folder_filters = ["all"]' "$older" || fail "folder filters were not replaced"
+  bash "$helper" set-view "$template" "$older" themed errors-first '[]' >/dev/null
+  grep -Fxq 'folder_filters = []' "$older" || fail "an empty selection was not written"
+
+  before=$(<"$older")
+  for bad in 'newest ["all"]' 'name ["stopped"]' 'name "ready"' 'name [ready]'; do
+    # shellcheck disable=SC2086
+    if bash "$helper" set-view "$template" "$older" themed $bad >/dev/null 2>&1; then
+      fail "invalid view settings were accepted: $bad"
+    fi
+  done
+  [[ $(<"$older") == "$before" ]] || fail "a refused view update changed the file"
+}
+
 test_installation_status() {
   local sandbox="$test_root/installation-status"
   local fake_bin="$sandbox/bin"
@@ -465,6 +500,7 @@ if [[ ${1:-} == --webui-only ]]; then
 fi
 
 test_settings
+test_view_settings
 test_installation_status
 test_modern_bundle
 test_themes

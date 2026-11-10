@@ -7,6 +7,10 @@ var DefaultProbeIntervalSeconds = 15;
 var MinimumProbeIntervalSeconds = 1;
 var MaximumProbeIntervalSeconds = 3600;
 var SupportedVersion = 2;
+var FolderSorts = ["name", "active-first", "errors-first"];
+var FolderGroups = ["ready", "active", "errors", "paused", "unknown"];
+var DefaultFolderSort = "name";
+var DefaultFolderFilters = FolderGroups.slice();
 
 function stripComment(line) {
     var quote = "";
@@ -29,6 +33,37 @@ function parseValue(raw) {
     return match ? match[2] : null;
 }
 
+// A quoted value or a one-line list of them; "ready" and ["ready"] are the same.
+function parseList(raw) {
+    var value = String(raw || "").trim();
+    var single = parseValue(value);
+    if (single !== null)
+        return [single];
+    if (!/^\[(\s*(["'])[^"']*\2\s*,)*(\s*(["'])[^"']*\4\s*)?,?\s*\]$/.test(value))
+        return null;
+    var items = [];
+    var item = /(["'])([^"']*)\1/g;
+    var found;
+    while ((found = item.exec(value)) !== null)
+        items.push(found[2]);
+    return items;
+}
+
+// "all" anywhere in the list, or every group named, shows every group.
+function folderGroups(items) {
+    if (items.indexOf("all") >= 0)
+        return FolderGroups.slice();
+    return FolderGroups.filter(group => items.indexOf(group) >= 0);
+}
+
+// The plugin always writes a list: ["all"], ["ready"], ["ready", "errors"] or [].
+function formatFolderFilters(groups) {
+    var shown = FolderGroups.filter(group => (groups || []).indexOf(group) >= 0);
+    if (shown.length === FolderGroups.length)
+        return '["all"]';
+    return "[" + shown.map(group => '"' + group + '"').join(", ") + "]";
+}
+
 function parseInteger(raw) {
     var value = String(raw || "").trim();
     return /^(0|[1-9][0-9]*)$/.test(value) ? Number(value) : null;
@@ -47,6 +82,7 @@ function parse(raw, allowOlder) {
     }
     var styleSectionSeen = false;
     var serviceSectionSeen = false;
+    var viewSectionSeen = false;
     var rootStyleSetting = false;
 
     for (let i = 0; i < lines.length; i++) {
@@ -56,16 +92,18 @@ function parse(raw, allowOlder) {
         let header = line.match(/^\[([A-Za-z_][A-Za-z0-9_-]*)\]$/);
         if (header) {
             section = header[1];
-            if (section !== "style" && section !== "service") {
+            if (section !== "style" && section !== "service" && section !== "view") {
                 return invalid("Unknown settings section " + section + " on line " + (i + 1));
             }
-            if ((section === "style" && styleSectionSeen) || (section === "service" && serviceSectionSeen)) {
+            if ((section === "style" && styleSectionSeen) || (section === "service" && serviceSectionSeen) || (section === "view" && viewSectionSeen)) {
                 return invalid("Duplicate settings section " + section + " on line " + (i + 1));
             }
             if (section === "style")
                 styleSectionSeen = true;
             else if (section === "service")
                 serviceSectionSeen = true;
+            else
+                viewSectionSeen = true;
             continue;
         }
         let assignment = line.match(/^([A-Za-z_][A-Za-z0-9_-]*)\s*=\s*(.+)$/);
@@ -85,7 +123,8 @@ function parse(raw, allowOlder) {
         }
         let styleSetting = key === "icon_style" || key === "web_ui_theme";
         let serviceSetting = key === "service_state" || key === "probe_interval_seconds";
-        if ((section === "service" && !serviceSetting) || (section !== "service" && !styleSetting)) {
+        let viewSetting = key === "folder_sort" || key === "folder_filters";
+        if ((section === "service" && !serviceSetting) || (section === "view" && !viewSetting) || (section !== "service" && section !== "view" && !styleSetting)) {
             return invalid("Unknown setting " + (section ? section + "." : "") + key + " on line " + (i + 1));
         }
         if (!section && styleSetting)
@@ -99,6 +138,14 @@ function parse(raw, allowOlder) {
                 return invalid("probe_interval_seconds must be an integer between " + MinimumProbeIntervalSeconds + " and " + MaximumProbeIntervalSeconds);
             }
             values[key] = interval;
+        } else if (key === "folder_filters") {
+            let items = parseList(assignment[2]);
+            if (items === null)
+                return invalid("folder_filters must be a quoted value or a list of them on one line");
+            let unknown = items.filter(item => item !== "all" && FolderGroups.indexOf(item) < 0);
+            if (unknown.length)
+                return invalid("folder_filters accepts all, " + FolderGroups.join(", ") + "; not " + unknown.join(", "));
+            values[key] = folderGroups(items);
         } else {
             let value = parseValue(assignment[2]);
             if (value === null) {
@@ -143,6 +190,14 @@ function parse(raw, allowOlder) {
     if (values.probe_interval_seconds === undefined) {
         values.probe_interval_seconds = sourceVersion < 2 ? 15 : DefaultProbeIntervalSeconds;
     }
+    // [view] is optional: files written before it keep working with the defaults.
+    if (values.folder_sort === undefined)
+        values.folder_sort = DefaultFolderSort;
+    if (FolderSorts.indexOf(values.folder_sort) < 0) {
+        return invalid("folder_sort must be " + FolderSorts.join(", ").replace(/, ([^,]*)$/, ", or $1"));
+    }
+    if (values.folder_filters === undefined)
+        values.folder_filters = DefaultFolderFilters.slice();
 
     return {
         error: "",
@@ -150,7 +205,9 @@ function parse(raw, allowOlder) {
         iconStyle: values.icon_style,
         webUiTheme: values.web_ui_theme,
         serviceState: values.service_state,
-        probeIntervalSeconds: values.probe_interval_seconds
+        probeIntervalSeconds: values.probe_interval_seconds,
+        folderSort: values.folder_sort,
+        folderFilters: values.folder_filters
     };
 }
 
@@ -188,7 +245,7 @@ function migrate(raw) {
 
     raw.split(/\r?\n/).forEach(function (line) {
         var code = stripComment(line).trim();
-        if (code === "[style]" || code === "[service]") {
+        if (code === "[style]" || code === "[service]" || code === "[view]") {
             if (inService)
                 addServiceDefaults();
             inService = code === "[service]";
@@ -231,6 +288,8 @@ function defaults() {
         iconStyle: DefaultIconStyle,
         webUiTheme: DefaultWebUiTheme,
         serviceState: DefaultServiceState,
-        probeIntervalSeconds: DefaultProbeIntervalSeconds
+        probeIntervalSeconds: DefaultProbeIntervalSeconds,
+        folderSort: DefaultFolderSort,
+        folderFilters: DefaultFolderFilters.slice()
     };
 }

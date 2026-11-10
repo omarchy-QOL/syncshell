@@ -12,3 +12,12 @@ web_ui_theme = "omarchy"
 service_state = "enabled"
 # Seconds between probes for external systemd state changes
 probe_interval_seconds = 15
+
+[view]
+# "name": alphabetical by folder name
+# "active-first": syncing or scanning folders first
+# "errors-first": folders with errors first
+folder_sort = "name"
+# Folder groups the selector shows: ["all"], or a list of one or more of
+# "ready", "active", "errors", "paused", "unknown"; [] shows none
+folder_filters = ["all"]

@@ -148,15 +148,38 @@ QtObject {
             iconStyle: "themed",
             webUiTheme: "default",
             serviceState: "disabled",
-            probeIntervalSeconds: 27
+            probeIntervalSeconds: 27,
+            folderSort: "name",
+            folderFilters: ["ready", "active", "errors", "paused", "unknown"]
         };
         compare(SettingsModel.parse(current), expected, "current settings");
         compare(SettingsModel.defaults(), {
             iconStyle: "themed",
             webUiTheme: "omarchy",
             serviceState: "enabled",
-            probeIntervalSeconds: 15
+            probeIntervalSeconds: 15,
+            folderSort: "name",
+            folderFilters: ["ready", "active", "errors", "paused", "unknown"]
         }, "implicit defaults");
+        var all = ["ready", "active", "errors", "paused", "unknown"];
+        // "all" anywhere, or every group named, is all; one group works with or without a list.
+        [['"all"', all], ['["all"]', all], ["['all']", all], ['["all", "errors"]', all],
+         ['["ready", "active", "errors", "paused", "unknown"]', all], ['"ready"', ["ready"]],
+         ['["ready"]', ["ready"]], ['[ "errors" , \'ready\', ]', ["ready", "errors"]], ['[]', []]].forEach(function (pair) {
+            compare(SettingsModel.parse(current + '[view]\nfolder_filters = ' + pair[0] + '\n').folderFilters, pair[1], "filters " + pair[0]);
+        });
+        ["name", "active-first", "errors-first"].forEach(function (sort) {
+            compare(SettingsModel.parse(current + "[view]\nfolder_sort = '" + sort + "'\n").folderSort, sort, "sort " + sort);
+        });
+        [current + '[view]\nfolder_sort = "newest"\n', current + '[view]\nfolder_filters = ["ready", "stopped"]\n',
+         current + '[view]\nfolder_filters = [ready]\n', current + '[view]\nfolder_filters = ["ready",\n"active"]\n',
+         current + '[view]\nfolder_sort = "name"\n[view]\n', current + '[view]\nmore_open = "yes"\n',
+         current + '[view]\nfolder_sort = "name"\nfolder_sort = "name"\n'].forEach(function (raw, index) {
+            compare(!!SettingsModel.parse(raw).error, true, "invalid view " + index);
+        });
+        compare([SettingsModel.formatFolderFilters(all), SettingsModel.formatFolderFilters(["errors", "ready"]),
+                 SettingsModel.formatFolderFilters(["ready"]), SettingsModel.formatFolderFilters([])],
+                ['["all"]', '["ready", "errors"]', '["ready"]', '[]'], "the plugin writes lists");
         ["default", "modern", "omarchy"].forEach(function (theme) {
             compare(SettingsModel.parse(current.replace('"default"', '"' + theme + '"')).webUiTheme, theme, "valid Web UI " + theme);
         });
@@ -181,7 +204,9 @@ QtObject {
             iconStyle: "branded",
             webUiTheme: "omarchy",
             serviceState: "enabled",
-            probeIntervalSeconds: 15
+            probeIntervalSeconds: 15,
+            folderSort: "name",
+            folderFilters: ["ready", "active", "errors", "paused", "unknown"]
         }, "unversioned migration keeps old defaults");
         compare(migrated.additions.length, 2, "missing defaults are listed");
         compare(migrated.text.indexOf('# owner comment') >= 0, true, "legacy comment survives");
