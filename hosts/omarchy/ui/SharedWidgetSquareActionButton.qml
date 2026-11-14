@@ -23,9 +23,5 @@ SharedWidgetBusyButton {
         color: root.interactive ? root.foreground : root.disabledForeground
         fontFamily: root.fontFamily
         fontSize: root.iconSize
-        transform: Translate {
-            x: opticalGlyph.text === "\uf067" || opticalGlyph.text === "\uf00d" ? 1 : 0
-            y: 1
-        }
     }
 }
