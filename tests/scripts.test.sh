@@ -133,6 +133,25 @@ test_installation_status() {
     PATH="$fake_bin" bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
   jq -e '.state == "missing"' <<<"$output" >/dev/null \
     || fail "failed Flatpak lookup reported an installation"
+
+  # No sync databases yet: stop before omarchy runs pacman -S.
+  for tool in mkdir chmod unlink; do
+    ln -s -- "$(command -v "$tool")" "$fake_bin/$tool"
+  done
+  printf '%s\n' '#!/bin/bash' 'exit 1' >"$fake_bin/pacman"
+  printf '%s\n' '#!/bin/bash' 'touch "$HOME/omarchy-called"' \
+    >"$fake_bin/omarchy"
+  chmod 700 -- "$fake_bin/pacman" "$fake_bin/omarchy"
+  if output=$(printf '\n' | HOME="$sandbox/home" \
+      XDG_RUNTIME_DIR="$sandbox/runtime" PATH="$fake_bin" \
+      bash "$root/hosts/omarchy/scripts/syncthing-install.sh" \
+      run install-package 2>&1); then
+    fail "install succeeded without package lists"
+  fi
+  [[ $output == *"Run Omarchy's Update first"* ]] \
+    || fail "missing package lists gave no update hint: $output"
+  [[ ! -e $sandbox/home/omarchy-called ]] \
+    || fail "install ran omarchy without package lists"
 }
 
 test_modern_bundle() {
