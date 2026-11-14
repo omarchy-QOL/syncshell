@@ -81,6 +81,11 @@ ensure_initial_install() {
 install_package() {
   ensure_initial_install
   require_command omarchy
+  # A fresh offline Omarchy install has no sync databases until its first
+  # update, and pacman then only says "target not found".
+  pacman -Si syncthing >/dev/null 2>&1 || fail \
+    "Arch package lists are missing or outdated." \
+    "Run Omarchy's Update first (omarchy update), then install again."
 
   step "Installing the official Arch package through Omarchy"
   omarchy pkg add syncthing
