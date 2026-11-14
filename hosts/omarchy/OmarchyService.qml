@@ -62,6 +62,8 @@ QtObject {
     property string controlError: ""
     readonly property string configuredServiceState: settings.serviceState
     readonly property int probeIntervalSeconds: settings.probeIntervalSeconds
+    readonly property string folderSort: settings.folderSort
+    readonly property var folderFilters: settings.folderFilters
     readonly property string serviceUnitFileState: String(lifecycle.unitFileState || "")
     readonly property var serviceStateDecision: FacadeModel.driftDecision(configuredServiceState, lifecycle)
     readonly property bool serviceStateDrift: settingsReady && canControlService && serviceStateDecision.status === "drift"
@@ -565,6 +567,10 @@ QtObject {
     }
     function cancelSettingsMigration() {
         settings.cancelMigration();
+    }
+
+    function setFolderView(sort, groups) {
+        return settings.setFolderView(sort, groups);
     }
     function clearSettingsNotice() {
         settings.clearNotice();

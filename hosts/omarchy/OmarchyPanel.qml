@@ -46,6 +46,10 @@ Panel {
     property bool folderShowPaused: true
     property bool folderShowUnknown: true
     property string folderSortMode: "name"
+    // A view changed here is saved when its menu or the panel closes; until
+    // then a settings reload must not undo it.
+    property bool folderViewDirty: false
+    property bool applyingSavedFolderView: false
     property string selectedPendingOffer: ""
     property string folderConfirmAction: ""
     property string folderConfirmId: ""
@@ -312,6 +316,55 @@ Panel {
         setAllFolderGroups(true);
         folderSortMode = "name";
     }
+
+    function shownFolderGroups() {
+        var shown = [];
+        if (folderShowReady)
+            shown.push("ready");
+        if (folderShowActive)
+            shown.push("active");
+        if (folderShowErrors)
+            shown.push("errors");
+        if (folderShowPaused)
+            shown.push("paused");
+        if (folderShowUnknown)
+            shown.push("unknown");
+        return shown;
+    }
+
+    function applySavedFolderView() {
+        if (!syncthing || folderViewDirty)
+            return;
+        var groups = syncthing.folderFilters || [];
+        applyingSavedFolderView = true;
+        folderSortMode = syncthing.folderSort === "active-first" ? "active" : syncthing.folderSort === "errors-first" ? "errors" : "name";
+        folderShowReady = groups.indexOf("ready") >= 0;
+        folderShowActive = groups.indexOf("active") >= 0;
+        folderShowErrors = groups.indexOf("errors") >= 0;
+        folderShowPaused = groups.indexOf("paused") >= 0;
+        folderShowUnknown = groups.indexOf("unknown") >= 0;
+        applyingSavedFolderView = false;
+    }
+
+    function persistFolderView() {
+        if (!syncthing || !folderViewDirty)
+            return;
+        var sort = folderSortMode === "active" ? "active-first" : folderSortMode === "errors" ? "errors-first" : "name";
+        if (syncthing.setFolderView(sort, shownFolderGroups()))
+            folderViewDirty = false;
+    }
+
+    function markFolderViewChanged() {
+        if (!applyingSavedFolderView)
+            folderViewDirty = true;
+    }
+
+    onFolderSortModeChanged: markFolderViewChanged()
+    onFolderShowReadyChanged: markFolderViewChanged()
+    onFolderShowActiveChanged: markFolderViewChanged()
+    onFolderShowErrorsChanged: markFolderViewChanged()
+    onFolderShowPausedChanged: markFolderViewChanged()
+    onFolderShowUnknownChanged: markFolderViewChanged()
 
     function folderViewOptions() {
         var labels = folderOptions();
@@ -716,13 +769,19 @@ Panel {
             Qt.callLater(function () {
                 popup.focusPanel();
             });
-        } else if (!preserveStateForFolderPicker) {
+        } else {
+            persistFolderView();
+        }
+        if (!opened && !preserveStateForFolderPicker) {
             if (settingsMigrationOpen)
                 syncthing.cancelSettingsMigration();
             resetTransientState();
         }
     }
-    Component.onCompleted: configureService()
+    Component.onCompleted: {
+        configureService();
+        applySavedFolderView();
+    }
 
     Timer {
         id: noticeDisplayTimer
@@ -754,6 +813,14 @@ Panel {
 
     Connections {
         target: root.syncthing
+
+        function onFolderSortChanged() {
+            root.applySavedFolderView();
+        }
+
+        function onFolderFiltersChanged() {
+            root.applySavedFolderView();
+        }
 
         function onFolderDirectoryRequired(args) {
             root.addSubmissionPending = false;
