@@ -7,6 +7,9 @@ Notable changes to Syncshell and its shell adapters are documented here.
 - remember the folder sort and filters across restarts: Omarchy writes them to
   the new `[view]` section of `settings.toml` when the view options or the
   panel close; files without it keep the defaults
+- edit Omarchy's `settings.toml` in place from one parser: saves keep your
+  comments, quoting, CRLF line endings and symlinks, and a hand edit made
+  while the panel is open is no longer overwritten
 - support Omarchy 4.5 on Apple Silicon Macs (M1, M2, M3 and MacBook Neo) with
   the bundled aarch64 core; verify that it maps on 16K- and 64K-page kernels,
   pin the x86_64 and aarch64 instruction-set baselines, and test it on a

@@ -180,6 +180,26 @@ QtObject {
         compare([SettingsModel.formatFolderFilters(all), SettingsModel.formatFolderFilters(["errors", "ready"]),
                  SettingsModel.formatFolderFilters(["ready"]), SettingsModel.formatFolderFilters([])],
                 ['["all"]', '["ready", "errors"]', '["ready"]', '[]'], "the plugin writes lists");
+        // The writer changes values only: comments, quotes elsewhere and line endings stay.
+        var template = 'version = 2\n\n[style]\nicon_style = "themed"\nweb_ui_theme = "omarchy"\n\n[service]\nservice_state = "enabled"\n\n[view]\n# sort note\nfolder_sort = "name"\n# filter note\nfolder_filters = ["all"]\n';
+        var noted = current.replace('[service]', '[service] # owner') + '# trailing note\n';
+        compare(SettingsModel.withView(noted, "active-first", ["errors", "ready"], template).text,
+                noted + '\n[view]\n# sort note\nfolder_sort = "active-first"\n# filter note\nfolder_filters = ["ready", "errors"]\n', "a missing view comes from the template");
+        var viewed = current + "[view]\nfolder_sort = 'name'  # mine\n";
+        compare(SettingsModel.withView(viewed, "errors-first", [], template).text,
+                current + '[view]\nfolder_sort = "errors-first"  # mine\nfolder_filters = []\n', "a missing key joins its section");
+        var crlf = current.replace(/\n/g, "\r\n");
+        compare(SettingsModel.withServiceState(crlf, "enabled", template).text,
+                crlf.replace('"disabled"', '"enabled"'), "line endings stay");
+        compare(SettingsModel.withServiceState(current.replace(/\n$/, ""), "enabled", template).text,
+                current.replace('"disabled"', '"enabled"').replace(/\n$/, ""), "a missing final newline stays missing");
+        compare(SettingsModel.withServiceState(current, "disabled", template).text, current, "an unchanged value leaves the text");
+        [SettingsModel.withView(current + '[view]\n[view]\n', "name", all, template),
+         SettingsModel.withView(current, "newest", all, template),
+         SettingsModel.withServiceState(current, "stopped", template),
+         SettingsModel.withServiceState('icon_style = "themed"\nweb_ui_theme = "default"\n', "enabled", template)].forEach(function (result, index) {
+            compare(!!result.error && result.text === undefined, true, "refused write " + index);
+        });
         ["default", "modern", "omarchy"].forEach(function (theme) {
             compare(SettingsModel.parse(current.replace('"default"', '"' + theme + '"')).webUiTheme, theme, "valid Web UI " + theme);
         });

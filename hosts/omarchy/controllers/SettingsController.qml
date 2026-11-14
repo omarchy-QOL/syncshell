@@ -26,7 +26,12 @@ QtObject {
     property int probeIntervalSeconds: SettingsModel.DefaultProbeIntervalSeconds
     property string folderSort: SettingsModel.DefaultFolderSort
     property var folderFilters: SettingsModel.DefaultFolderFilters.slice()
-    property var _pendingView: null
+    // Latest requested value per kind; writes run one at a time from the
+    // newest file text.
+    property var _pendingWrites: ({})
+    property var _retryWrite: null
+    property var _activeWrite: null
+    property bool _awaitingReload: false
     property string currentWebUiTheme: ""
     property string guiAssetsPath: ""
     property string error: ""
@@ -88,6 +93,11 @@ QtObject {
             migrationOpen = false;
         if (parsed.error) {
             _settingsValid = false;
+            _awaitingReload = false;
+            if (_retryWrite) {
+                _retryWrite = null;
+                busy = false;
+            }
             error = _migrationCanceled && migrationRequired ? canceledMessage() : "Settings not applied: " + parsed.error;
             if (migrationRequired && !_migrationPrompted) {
                 _migrationPrompted = true;
@@ -109,11 +119,20 @@ QtObject {
         _settingsValid = true;
         error = "";
         scheduleReconcile();
+        _awaitingReload = false;
+        var retry = _retryWrite;
+        _retryWrite = null;
+        if (retry)
+            startWrite(retry.kind, retry.value, true);
+        else
+            flushWrites();
     }
 
     function useImplicitDefaults() {
         var values = SettingsModel.defaults();
         settingsExists = false;
+        _settingsRaw = "";
+        _awaitingReload = false;
         settingsVersion = SettingsModel.SupportedVersion;
         migrationOpen = false;
         migration = ({});
@@ -131,6 +150,7 @@ QtObject {
         folderFilters = values.folderFilters;
         error = "";
         scheduleReconcile();
+        flushWrites();
     }
 
     function openSettings() {
@@ -206,32 +226,73 @@ QtObject {
         var desired = String(state || "");
         if (["enabled", "disabled"].indexOf(desired) < 0 || !settingsReady || busy || settingsProcess.running)
             return false;
-        _settingsAction = "service-state";
         busy = true;
         error = "";
-        settingsProcess.command = ["bash", settingsHelperPath, "set-service-state", settingsTemplatePath, settingsPath, iconStyle, desired];
-        settingsProcess.running = true;
+        queueWrite("service", desired);
         return true;
     }
 
     // The view is saved when its menu or the panel closes, not on every click.
     function setFolderView(sort, groups) {
-        var filters = SettingsModel.formatFolderFilters(groups);
         if (!settingsReady || SettingsModel.FolderSorts.indexOf(sort) < 0)
             return false;
-        if (sort === folderSort && filters === SettingsModel.formatFolderFilters(folderFilters))
-            return true;
-        if (settingsProcess.running) {
-            _pendingView = {
-                sort: sort,
-                groups: groups
-            };
-            return true;
-        }
-        _settingsAction = "view";
-        settingsProcess.command = ["bash", settingsHelperPath, "set-view", settingsTemplatePath, settingsPath, iconStyle, sort, filters];
-        settingsProcess.running = true;
+        queueWrite("view", {
+            sort: sort,
+            groups: groups
+        });
         return true;
+    }
+
+    function queueWrite(kind, value) {
+        var pending = Object.assign({}, _pendingWrites);
+        pending[kind] = value;
+        _pendingWrites = pending;
+        flushWrites();
+    }
+
+    function flushWrites() {
+        if (settingsProcess.running || _awaitingReload || !settingsReady)
+            return;
+        var kind = _pendingWrites.service !== undefined ? "service" : _pendingWrites.view !== undefined ? "view" : "";
+        if (!kind)
+            return;
+        if (!settingsExists) {
+            // Seed the file first; the write runs once it has been read.
+            _settingsAction = "ensure-write";
+            settingsProcess.command = ["bash", settingsHelperPath, "ensure", settingsTemplatePath, settingsPath, iconStyle];
+            settingsProcess.running = true;
+            return;
+        }
+        var pending = Object.assign({}, _pendingWrites);
+        var value = pending[kind];
+        delete pending[kind];
+        _pendingWrites = pending;
+        startWrite(kind, value, false);
+    }
+
+    function startWrite(kind, value, retried) {
+        var template = templateFile.text();
+        var result = kind === "service" ? SettingsModel.withServiceState(_settingsRaw, value, template) : SettingsModel.withView(_settingsRaw, value.sort, value.groups, template);
+        if (result.error || result.text === _settingsRaw) {
+            if (result.error)
+                error = "Settings not saved: " + result.error;
+            if (kind === "service")
+                busy = false;
+            flushWrites();
+            return;
+        }
+        _activeWrite = {
+            kind: kind,
+            value: value,
+            retried: retried
+        };
+        _settingsInput = JSON.stringify({
+            original: _settingsRaw,
+            replacement: result.text
+        });
+        _settingsAction = kind === "service" ? "service-state" : "view";
+        settingsProcess.command = ["bash", settingsHelperPath, "replace", settingsPath];
+        settingsProcess.running = true;
     }
 
     function clearNotice() {
@@ -371,6 +432,7 @@ QtObject {
         printErrors: false
         onLoaded: root.loadSettings(text())
         onLoadFailed: function (fileError) {
+            root._awaitingReload = false;
             if (fileError === FileViewError.FileNotFound)
                 root.useImplicitDefaults();
             else {
@@ -380,6 +442,13 @@ QtObject {
             }
         }
         onFileChanged: reload()
+    }
+
+    // Missing sections are copied from the template, comments included.
+    property FileView templateFile: FileView {
+        path: root.settingsTemplatePath
+        blockLoading: true
+        printErrors: false
     }
 
     property Process backupLocationProcess: Process {
@@ -400,15 +469,30 @@ QtObject {
             id: settingsErrors
         }
         onStarted: {
-            if (root._settingsAction === "migrate")
+            if (["migrate", "service-state", "view"].indexOf(root._settingsAction) >= 0)
                 write(root._settingsInput + "\n");
             root._settingsInput = "";
         }
         onExited: function (exitCode) {
             var action = root._settingsAction;
-            if (action !== "view")
+            var write = root._activeWrite;
+            root._activeWrite = null;
+            if (exitCode === 3 && write && !write.retried) {
+                // The file changed since it was read: reread it and try once more.
+                root._retryWrite = write;
+                root._awaitingReload = true;
+                root._settingsAction = "";
+                root.settingsFile.reload();
+                return;
+            }
+            if (action === "ensure-write" && exitCode !== 0) {
+                // Without a file there is nothing to write into; drop the queue.
+                root._pendingWrites = ({});
+            }
+            if (action !== "view" && !(action === "ensure-write" && exitCode === 0))
                 root.busy = false;
             if (exitCode === 0) {
+                root._awaitingReload = true;
                 root.settingsFile.reload();
                 if (root._openAfterEnsure) {
                     Quickshell.execDetached(["omarchy", "launch", "config-editor", root.settingsPath]);
@@ -429,10 +513,8 @@ QtObject {
             }
             root._openAfterEnsure = false;
             root._settingsAction = "";
-            var pending = root._pendingView;
-            root._pendingView = null;
-            if (pending)
-                root.setFolderView(pending.sort, pending.groups);
+            if (exitCode !== 0)
+                root.flushWrites();
         }
     }
 

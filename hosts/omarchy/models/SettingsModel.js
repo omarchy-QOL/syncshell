@@ -283,6 +283,132 @@ function migrate(raw) {
     };
 }
 
+// The lines of one [section] in a template, comments included, without the
+// blank lines that separate it from the next section.
+function templateSection(templateRaw, section) {
+    var lines = String(templateRaw || "").split(/\r?\n/);
+    var block = [];
+    var inside = false;
+    for (let i = 0; i < lines.length; i++) {
+        let header = stripComment(lines[i]).trim().match(/^\[([^\]]+)\]$/);
+        if (header) {
+            if (inside)
+                break;
+            inside = header[1] === section;
+        }
+        if (inside)
+            block.push(lines[i]);
+    }
+    while (block.length && !block[block.length - 1].trim())
+        block.pop();
+    return block;
+}
+
+// Rewrites only the values of `entries` ([key, formatted value] pairs) inside
+// [section], so comments, spacing, key order and line endings survive a save.
+function editSection(raw, section, entries, templateRaw) {
+    var text = String(raw || "");
+    var newline = text.indexOf("\r\n") >= 0 ? "\r\n" : "\n";
+    var lines = text.length ? text.split(/\r?\n/) : [];
+    var finalNewline = !text.length || /\n$/.test(text);
+    if (finalNewline && lines.length)
+        lines.pop();
+    var keys = entries.map(entry => entry[0]);
+    var values = ({});
+    entries.forEach(entry => values[entry[0]] = entry[1]);
+
+    function edit(block, start, end) {
+        var seen = ({});
+        var last = start;
+        for (let i = start; i < end; i++) {
+            let code = stripComment(block[i]);
+            if (code.trim())
+                last = i + 1;
+            let assignment = code.match(/^(\s*([A-Za-z_][A-Za-z0-9_-]*)\s*=\s*)(.*?)(\s*)$/);
+            if (!assignment || keys.indexOf(assignment[2]) < 0)
+                continue;
+            block[i] = assignment[1] + values[assignment[2]] + assignment[4] + block[i].slice(code.length);
+            seen[assignment[2]] = true;
+        }
+        var missing = keys.filter(key => !seen[key]).map(key => key + " = " + values[key]);
+        block.splice.apply(block, [last, 0].concat(missing));
+    }
+
+    var start = -1;
+    var end = lines.length;
+    for (let i = 0; i < lines.length; i++) {
+        let header = stripComment(lines[i]).trim().match(/^\[([^\]]+)\]$/);
+        if (!header)
+            continue;
+        if (start >= 0) {
+            end = i;
+            break;
+        }
+        if (header[1] === section)
+            start = i + 1;
+    }
+    if (start >= 0) {
+        edit(lines, start, end);
+    } else {
+        // A missing section comes from the template, comments included.
+        let block = templateSection(templateRaw, section);
+        if (!block.length)
+            block = ["[" + section + "]"];
+        edit(block, 1, block.length);
+        while (lines.length && !lines[lines.length - 1].trim())
+            lines.pop();
+        if (lines.length)
+            lines.push("");
+        lines = lines.concat(block);
+    }
+    var result = lines.join(newline);
+    return finalNewline ? result + newline : result;
+}
+
+// Returns the complete new file, or an error; a file that does not parse is
+// never rewritten, and neither is a result that would not parse back.
+function rewrite(raw, section, entries, templateRaw, expect) {
+    var current = parse(raw);
+    if (current.error)
+        return {
+            error: current.error
+        };
+    var text = editSection(raw, section, entries, templateRaw);
+    var checked = parse(text);
+    if (checked.error)
+        return {
+            error: checked.error
+        };
+    if (!expect(checked))
+        return {
+            error: "Could not update " + section + " settings safely"
+        };
+    return {
+        error: "",
+        text: text,
+        values: checked
+    };
+}
+
+function withServiceState(raw, state, templateRaw) {
+    if (["enabled", "disabled"].indexOf(state) < 0)
+        return {
+            error: "service_state must be enabled or disabled"
+        };
+    return rewrite(raw, "service", [["service_state", '"' + state + '"']], templateRaw, checked => checked.serviceState === state);
+}
+
+function withView(raw, sort, groups, templateRaw) {
+    if (FolderSorts.indexOf(sort) < 0)
+        return {
+            error: "folder_sort must be " + FolderSorts.join(", ")
+        };
+    var filters = formatFolderFilters(groups);
+    return rewrite(raw, "view", [["folder_sort", '"' + sort + '"'], ["folder_filters", filters]], templateRaw, function (checked) {
+        return checked.folderSort === sort && formatFolderFilters(checked.folderFilters) === filters;
+    });
+}
+
 function defaults() {
     return {
         iconStyle: DefaultIconStyle,
