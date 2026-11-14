@@ -8,6 +8,7 @@ ShellRoot {
     property int step: 0
     property int ticks: 0
     property string older: ""
+    property string hand: ""
     OmarchyService {
         id: service
     }
@@ -85,10 +86,21 @@ ShellRoot {
                 root.check(!!service.settingsError, "late completion preserves validation error");
                 source.setText(root.older.replace('version = 1', 'version = 2'));
                 root.step = 6;
-            } else {
+            } else if (root.step === 6) {
                 if (!service.settingsReady)
                     return;
                 root.check(!service.settingsError, "corrected save recovers automatically");
+                // As if the file changed after the panel read it: the write is
+                // refused, the file reread and the write retried once, silently.
+                root.hand = settings._settingsRaw;
+                settings._settingsRaw += "# stale copy\n";
+                service.setFolderView("errors-first", ["ready"]);
+                root.step = 7;
+            } else {
+                if (settings.settingsProcess.running || settings._awaitingReload || settings._settingsRaw.indexOf('folder_sort = "errors-first"') < 0)
+                    return;
+                root.check(!service.settingsError, "a retried write reports no error");
+                root.check(settings._settingsRaw === root.hand.replace('folder_sort = "name"', 'folder_sort = "errors-first"').replace('folder_filters = ["all"]', 'folder_filters = ["ready"]'), "the retry writes from the current file");
                 service.core.terminate();
                 console.log("settings migration controller tests passed");
                 Qt.quit();
