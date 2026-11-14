@@ -1,5 +1,6 @@
 # Local capture harness, archives, and project-only Codex workflow.
-/docs/interactive/
+/docs/*
+!/docs/status-colors.md
 /tests/live/*
 !/tests/live/*.sh
 /.agents/skills/
@@ -13,3 +14,7 @@
 
 # Assembled local native plugin.
 /dist/caelestia/
+
+# Local maintainer notes and checklists.
+/hosts/*/NOTES.md
+/integrations/dux-shell/submission.md
