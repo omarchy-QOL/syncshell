@@ -14,7 +14,7 @@ trap cleanup EXIT
 usage() {
   printf '%s\n' \
     'Usage: syncthing-settings.sh ensure <template> <target> <branded|themed>' \
-    '       syncthing-settings.sh set-service-state <template> <target> <branded|themed> <enabled|disabled>' \
+    '       syncthing-settings.sh replace <target>  # validated JSON on stdin' \
     '       syncthing-settings.sh migrate <target>  # validated JSON on stdin' \
     '       syncthing-settings.sh compare <template> <target>' \
     >&2
@@ -63,7 +63,7 @@ check_target() {
   if [[ $(realpath -e -- "$original_path") != "$resolved_path" ]] \
       || ! cmp -s -- "$expected" "$resolved_path"; then
     printf 'Settings changed since the preview; review the file again\n' >&2
-    return 1
+    exit 3
   fi
 }
 
@@ -74,67 +74,21 @@ commit_target() {
   temporary=""
 }
 
-write_service_state() {
-  local target=$1 service_state=$2
-
-  [[ $service_state == "enabled" || $service_state == "disabled" ]] || usage
-  capture_target "$target"
-  awk -v service_state="$service_state" '
-    function write_state() {
-      print "service_state = \"" service_state "\""
-      state_seen = 1
-    }
-    function service_header(line) {
-      return line ~ /^[[:space:]]*\[service\][[:space:]]*(#.*)?$/
-    }
-    function any_header(line) {
-      return line ~ /^[[:space:]]*\[[^]]+\][[:space:]]*(#.*)?$/
-    }
-    {
-      if (any_header($0)) {
-        if (in_service && !state_seen) write_state()
-        in_service = service_header($0)
-        if (in_service) {
-          if (service_seen) duplicate_service = 1
-          service_seen = 1
-        }
-        print
-        next
-      }
-      if (in_service &&
-          $0 ~ /^[[:space:]]*service_state[[:space:]]*=/) {
-        if (state_seen) duplicate_state = 1
-        else write_state()
-        next
-      }
-      print
-    }
-    END {
-      if (duplicate_service || duplicate_state) exit 3
-      if (!service_seen) {
-        if (NR > 0) print ""
-        print "[service]"
-        write_state()
-        print "probe_interval_seconds = 15"
-      } else if (in_service && !state_seen) {
-        write_state()
-      }
-    }
-  ' "$expected" >"$temporary" || {
-    printf 'Could not update service settings safely\n' >&2
-    return 1
-  }
-  commit_target
-}
-
-migrate_settings() {
-  local request backup
+# The panel computes the whole new file; this only commits it if the file
+# still holds what the panel read.
+read_request() {
+  local request
   IFS= read -r request
   jq -e '(.original | type) == "string" and (.replacement | type) == "string"' \
     <<<"$request" >/dev/null
   capture_target "$1"
   jq -j '.original' <<<"$request" >"$expected"
   jq -j '.replacement' <<<"$request" >"$temporary"
+}
+
+migrate_settings() {
+  local backup
+  read_request "$1"
   check_target
   backup=$(mktemp -- "$resolved_path.before-port.XXXXXX")
   cp -p -- "$resolved_path" "$backup"
@@ -157,11 +111,11 @@ case "${1:-}" in
     seed_settings "$2" "$3" "$4"
     target=$3
     ;;
-  set-service-state)
-    [[ $# == 5 ]] || usage
-    seed_settings "$2" "$3" "$4"
-    write_service_state "$3" "$5"
-    target=$3
+  replace)
+    [[ $# == 2 ]] || usage
+    read_request "$2"
+    commit_target
+    target=$2
     ;;
   migrate)
     [[ $# == 2 ]] || usage

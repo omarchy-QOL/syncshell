@@ -7,6 +7,10 @@ var DefaultProbeIntervalSeconds = 15;
 var MinimumProbeIntervalSeconds = 1;
 var MaximumProbeIntervalSeconds = 3600;
 var SupportedVersion = 2;
+var FolderSorts = ["name", "active-first", "errors-first"];
+var FolderGroups = ["ready", "active", "errors", "paused", "unknown"];
+var DefaultFolderSort = "name";
+var DefaultFolderFilters = FolderGroups.slice();
 
 function stripComment(line) {
     var quote = "";
@@ -29,6 +33,37 @@ function parseValue(raw) {
     return match ? match[2] : null;
 }
 
+// A quoted value or a one-line list of them; "ready" and ["ready"] are the same.
+function parseList(raw) {
+    var value = String(raw || "").trim();
+    var single = parseValue(value);
+    if (single !== null)
+        return [single];
+    if (!/^\[(\s*(["'])[^"']*\2\s*,)*(\s*(["'])[^"']*\4\s*)?,?\s*\]$/.test(value))
+        return null;
+    var items = [];
+    var item = /(["'])([^"']*)\1/g;
+    var found;
+    while ((found = item.exec(value)) !== null)
+        items.push(found[2]);
+    return items;
+}
+
+// "all" anywhere in the list, or every group named, shows every group.
+function folderGroups(items) {
+    if (items.indexOf("all") >= 0)
+        return FolderGroups.slice();
+    return FolderGroups.filter(group => items.indexOf(group) >= 0);
+}
+
+// The plugin always writes a list: ["all"], ["ready"], ["ready", "errors"] or [].
+function formatFolderFilters(groups) {
+    var shown = FolderGroups.filter(group => (groups || []).indexOf(group) >= 0);
+    if (shown.length === FolderGroups.length)
+        return '["all"]';
+    return "[" + shown.map(group => '"' + group + '"').join(", ") + "]";
+}
+
 function parseInteger(raw) {
     var value = String(raw || "").trim();
     return /^(0|[1-9][0-9]*)$/.test(value) ? Number(value) : null;
@@ -47,6 +82,7 @@ function parse(raw, allowOlder) {
     }
     var styleSectionSeen = false;
     var serviceSectionSeen = false;
+    var viewSectionSeen = false;
     var rootStyleSetting = false;
 
     for (let i = 0; i < lines.length; i++) {
@@ -56,16 +92,18 @@ function parse(raw, allowOlder) {
         let header = line.match(/^\[([A-Za-z_][A-Za-z0-9_-]*)\]$/);
         if (header) {
             section = header[1];
-            if (section !== "style" && section !== "service") {
+            if (section !== "style" && section !== "service" && section !== "view") {
                 return invalid("Unknown settings section " + section + " on line " + (i + 1));
             }
-            if ((section === "style" && styleSectionSeen) || (section === "service" && serviceSectionSeen)) {
+            if ((section === "style" && styleSectionSeen) || (section === "service" && serviceSectionSeen) || (section === "view" && viewSectionSeen)) {
                 return invalid("Duplicate settings section " + section + " on line " + (i + 1));
             }
             if (section === "style")
                 styleSectionSeen = true;
             else if (section === "service")
                 serviceSectionSeen = true;
+            else
+                viewSectionSeen = true;
             continue;
         }
         let assignment = line.match(/^([A-Za-z_][A-Za-z0-9_-]*)\s*=\s*(.+)$/);
@@ -85,7 +123,8 @@ function parse(raw, allowOlder) {
         }
         let styleSetting = key === "icon_style" || key === "web_ui_theme";
         let serviceSetting = key === "service_state" || key === "probe_interval_seconds";
-        if ((section === "service" && !serviceSetting) || (section !== "service" && !styleSetting)) {
+        let viewSetting = key === "folder_sort" || key === "folder_filters";
+        if ((section === "service" && !serviceSetting) || (section === "view" && !viewSetting) || (section !== "service" && section !== "view" && !styleSetting)) {
             return invalid("Unknown setting " + (section ? section + "." : "") + key + " on line " + (i + 1));
         }
         if (!section && styleSetting)
@@ -99,6 +138,14 @@ function parse(raw, allowOlder) {
                 return invalid("probe_interval_seconds must be an integer between " + MinimumProbeIntervalSeconds + " and " + MaximumProbeIntervalSeconds);
             }
             values[key] = interval;
+        } else if (key === "folder_filters") {
+            let items = parseList(assignment[2]);
+            if (items === null)
+                return invalid("folder_filters must be a quoted value or a list of them on one line");
+            let unknown = items.filter(item => item !== "all" && FolderGroups.indexOf(item) < 0);
+            if (unknown.length)
+                return invalid("folder_filters accepts all, " + FolderGroups.join(", ") + "; not " + unknown.join(", "));
+            values[key] = folderGroups(items);
         } else {
             let value = parseValue(assignment[2]);
             if (value === null) {
@@ -143,6 +190,14 @@ function parse(raw, allowOlder) {
     if (values.probe_interval_seconds === undefined) {
         values.probe_interval_seconds = sourceVersion < 2 ? 15 : DefaultProbeIntervalSeconds;
     }
+    // [view] is optional: files written before it keep working with the defaults.
+    if (values.folder_sort === undefined)
+        values.folder_sort = DefaultFolderSort;
+    if (FolderSorts.indexOf(values.folder_sort) < 0) {
+        return invalid("folder_sort must be " + FolderSorts.join(", ").replace(/, ([^,]*)$/, ", or $1"));
+    }
+    if (values.folder_filters === undefined)
+        values.folder_filters = DefaultFolderFilters.slice();
 
     return {
         error: "",
@@ -150,7 +205,9 @@ function parse(raw, allowOlder) {
         iconStyle: values.icon_style,
         webUiTheme: values.web_ui_theme,
         serviceState: values.service_state,
-        probeIntervalSeconds: values.probe_interval_seconds
+        probeIntervalSeconds: values.probe_interval_seconds,
+        folderSort: values.folder_sort,
+        folderFilters: values.folder_filters
     };
 }
 
@@ -188,7 +245,7 @@ function migrate(raw) {
 
     raw.split(/\r?\n/).forEach(function (line) {
         var code = stripComment(line).trim();
-        if (code === "[style]" || code === "[service]") {
+        if (code === "[style]" || code === "[service]" || code === "[view]") {
             if (inService)
                 addServiceDefaults();
             inService = code === "[service]";
@@ -226,11 +283,139 @@ function migrate(raw) {
     };
 }
 
+// The lines of one [section] in a template, comments included, without the
+// blank lines that separate it from the next section.
+function templateSection(templateRaw, section) {
+    var lines = String(templateRaw || "").split(/\r?\n/);
+    var block = [];
+    var inside = false;
+    for (let i = 0; i < lines.length; i++) {
+        let header = stripComment(lines[i]).trim().match(/^\[([^\]]+)\]$/);
+        if (header) {
+            if (inside)
+                break;
+            inside = header[1] === section;
+        }
+        if (inside)
+            block.push(lines[i]);
+    }
+    while (block.length && !block[block.length - 1].trim())
+        block.pop();
+    return block;
+}
+
+// Rewrites only the values of `entries` ([key, formatted value] pairs) inside
+// [section], so comments, spacing, key order and line endings survive a save.
+function editSection(raw, section, entries, templateRaw) {
+    var text = String(raw || "");
+    var newline = text.indexOf("\r\n") >= 0 ? "\r\n" : "\n";
+    var lines = text.length ? text.split(/\r?\n/) : [];
+    var finalNewline = !text.length || /\n$/.test(text);
+    if (finalNewline && lines.length)
+        lines.pop();
+    var keys = entries.map(entry => entry[0]);
+    var values = ({});
+    entries.forEach(entry => values[entry[0]] = entry[1]);
+
+    function edit(block, start, end) {
+        var seen = ({});
+        var last = start;
+        for (let i = start; i < end; i++) {
+            let code = stripComment(block[i]);
+            if (code.trim())
+                last = i + 1;
+            let assignment = code.match(/^(\s*([A-Za-z_][A-Za-z0-9_-]*)\s*=\s*)(.*?)(\s*)$/);
+            if (!assignment || keys.indexOf(assignment[2]) < 0)
+                continue;
+            block[i] = assignment[1] + values[assignment[2]] + assignment[4] + block[i].slice(code.length);
+            seen[assignment[2]] = true;
+        }
+        var missing = keys.filter(key => !seen[key]).map(key => key + " = " + values[key]);
+        block.splice.apply(block, [last, 0].concat(missing));
+    }
+
+    var start = -1;
+    var end = lines.length;
+    for (let i = 0; i < lines.length; i++) {
+        let header = stripComment(lines[i]).trim().match(/^\[([^\]]+)\]$/);
+        if (!header)
+            continue;
+        if (start >= 0) {
+            end = i;
+            break;
+        }
+        if (header[1] === section)
+            start = i + 1;
+    }
+    if (start >= 0) {
+        edit(lines, start, end);
+    } else {
+        // A missing section comes from the template, comments included.
+        let block = templateSection(templateRaw, section);
+        if (!block.length)
+            block = ["[" + section + "]"];
+        edit(block, 1, block.length);
+        while (lines.length && !lines[lines.length - 1].trim())
+            lines.pop();
+        if (lines.length)
+            lines.push("");
+        lines = lines.concat(block);
+    }
+    var result = lines.join(newline);
+    return finalNewline ? result + newline : result;
+}
+
+// Returns the complete new file, or an error; a file that does not parse is
+// never rewritten, and neither is a result that would not parse back.
+function rewrite(raw, section, entries, templateRaw, expect) {
+    var current = parse(raw);
+    if (current.error)
+        return {
+            error: current.error
+        };
+    var text = editSection(raw, section, entries, templateRaw);
+    var checked = parse(text);
+    if (checked.error)
+        return {
+            error: checked.error
+        };
+    if (!expect(checked))
+        return {
+            error: "Could not update " + section + " settings safely"
+        };
+    return {
+        error: "",
+        text: text,
+        values: checked
+    };
+}
+
+function withServiceState(raw, state, templateRaw) {
+    if (["enabled", "disabled"].indexOf(state) < 0)
+        return {
+            error: "service_state must be enabled or disabled"
+        };
+    return rewrite(raw, "service", [["service_state", '"' + state + '"']], templateRaw, checked => checked.serviceState === state);
+}
+
+function withView(raw, sort, groups, templateRaw) {
+    if (FolderSorts.indexOf(sort) < 0)
+        return {
+            error: "folder_sort must be " + FolderSorts.join(", ")
+        };
+    var filters = formatFolderFilters(groups);
+    return rewrite(raw, "view", [["folder_sort", '"' + sort + '"'], ["folder_filters", filters]], templateRaw, function (checked) {
+        return checked.folderSort === sort && formatFolderFilters(checked.folderFilters) === filters;
+    });
+}
+
 function defaults() {
     return {
         iconStyle: DefaultIconStyle,
         webUiTheme: DefaultWebUiTheme,
         serviceState: DefaultServiceState,
-        probeIntervalSeconds: DefaultProbeIntervalSeconds
+        probeIntervalSeconds: DefaultProbeIntervalSeconds,
+        folderSort: DefaultFolderSort,
+        folderFilters: DefaultFolderFilters.slice()
     };
 }
