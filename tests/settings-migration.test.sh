@@ -63,7 +63,9 @@ cmp "$test_root/before.toml" "$target"
 grep -q 'changed since the preview' "$test_root/error"
 [[ $(find "$test_root" -name '*.before-port.*' | wc -l) == 1 ]]
 # Ordinary preference writes also retain managed symlinks.
-bash "$helper" set-service-state "$template" "$target" themed enabled >/dev/null
+jq -nc --rawfile original "$target" \
+  '{original: $original, replacement: ($original | sub("service_state = \"[a-z]+\""; "service_state = \"enabled\""))}' \
+  | bash "$helper" replace "$target" >/dev/null
 [[ -L $target && $(stat -c %a "$test_root/owner.toml") == 640 ]]
 grep -q '^service_state = "enabled"$' "$target"
 printf 'settings writer tests passed\n'
