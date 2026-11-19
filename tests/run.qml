@@ -148,15 +148,58 @@ QtObject {
             iconStyle: "themed",
             webUiTheme: "default",
             serviceState: "disabled",
-            probeIntervalSeconds: 27
+            probeIntervalSeconds: 27,
+            folderSort: "name",
+            folderFilters: ["ready", "active", "errors", "paused", "unknown"]
         };
         compare(SettingsModel.parse(current), expected, "current settings");
         compare(SettingsModel.defaults(), {
             iconStyle: "themed",
             webUiTheme: "omarchy",
             serviceState: "enabled",
-            probeIntervalSeconds: 15
+            probeIntervalSeconds: 15,
+            folderSort: "name",
+            folderFilters: ["ready", "active", "errors", "paused", "unknown"]
         }, "implicit defaults");
+        var all = ["ready", "active", "errors", "paused", "unknown"];
+        // "all" anywhere, or every group named, is all; one group works with or without a list.
+        [['"all"', all], ['["all"]', all], ["['all']", all], ['["all", "errors"]', all],
+         ['["ready", "active", "errors", "paused", "unknown"]', all], ['"ready"', ["ready"]],
+         ['["ready"]', ["ready"]], ['[ "errors" , \'ready\', ]', ["ready", "errors"]], ['[]', []]].forEach(function (pair) {
+            compare(SettingsModel.parse(current + '[view]\nfolder_filters = ' + pair[0] + '\n').folderFilters, pair[1], "filters " + pair[0]);
+        });
+        ["name", "active-first", "errors-first"].forEach(function (sort) {
+            compare(SettingsModel.parse(current + "[view]\nfolder_sort = '" + sort + "'\n").folderSort, sort, "sort " + sort);
+        });
+        [current + '[view]\nfolder_sort = "newest"\n', current + '[view]\nfolder_filters = ["ready", "stopped"]\n',
+         current + '[view]\nfolder_filters = [ready]\n', current + '[view]\nfolder_filters = ["ready",\n"active"]\n',
+         current + '[view]\nfolder_sort = "name"\n[view]\n', current + '[view]\nmore_open = "yes"\n',
+         current + '[view]\nfolder_sort = "name"\nfolder_sort = "name"\n'].forEach(function (raw, index) {
+            compare(!!SettingsModel.parse(raw).error, true, "invalid view " + index);
+        });
+        compare([SettingsModel.formatFolderFilters(all), SettingsModel.formatFolderFilters(["errors", "ready"]),
+                 SettingsModel.formatFolderFilters(["ready"]), SettingsModel.formatFolderFilters([])],
+                ['["all"]', '["ready", "errors"]', '["ready"]', '[]'], "the plugin writes lists");
+        // The writer changes values only: comments, quotes elsewhere and line endings stay.
+        var template = 'version = 2\n\n[style]\nicon_style = "themed"\nweb_ui_theme = "omarchy"\n\n[service]\nservice_state = "enabled"\n\n[view]\n# sort note\nfolder_sort = "name"\n# filter note\nfolder_filters = ["all"]\n';
+        var noted = current.replace('[service]', '[service] # owner') + '# trailing note\n';
+        compare(SettingsModel.withView(noted, "active-first", ["errors", "ready"], template).text,
+                noted + '\n[view]\n# sort note\nfolder_sort = "active-first"\n# filter note\nfolder_filters = ["ready", "errors"]\n', "a missing view comes from the template");
+        var viewed = current + "[view]\nfolder_sort = 'name'  # mine\n";
+        compare(SettingsModel.withView(viewed, "errors-first", [], template).text,
+                current + '[view]\nfolder_sort = "errors-first"  # mine\nfolder_filters = []\n', "a missing key joins its section");
+        var crlf = current.replace(/\n/g, "\r\n");
+        compare(SettingsModel.withServiceState(crlf, "enabled", template).text,
+                crlf.replace('"disabled"', '"enabled"'), "line endings stay");
+        compare(SettingsModel.withServiceState(current.replace(/\n$/, ""), "enabled", template).text,
+                current.replace('"disabled"', '"enabled"').replace(/\n$/, ""), "a missing final newline stays missing");
+        compare(SettingsModel.withServiceState(current, "disabled", template).text, current, "an unchanged value leaves the text");
+        [SettingsModel.withView(current + '[view]\n[view]\n', "name", all, template),
+         SettingsModel.withView(current, "newest", all, template),
+         SettingsModel.withServiceState(current, "stopped", template),
+         SettingsModel.withServiceState('icon_style = "themed"\nweb_ui_theme = "default"\n', "enabled", template)].forEach(function (result, index) {
+            compare(!!result.error && result.text === undefined, true, "refused write " + index);
+        });
         ["default", "modern", "omarchy"].forEach(function (theme) {
             compare(SettingsModel.parse(current.replace('"default"', '"' + theme + '"')).webUiTheme, theme, "valid Web UI " + theme);
         });
@@ -181,7 +224,9 @@ QtObject {
             iconStyle: "branded",
             webUiTheme: "omarchy",
             serviceState: "enabled",
-            probeIntervalSeconds: 15
+            probeIntervalSeconds: 15,
+            folderSort: "name",
+            folderFilters: ["ready", "active", "errors", "paused", "unknown"]
         }, "unversioned migration keeps old defaults");
         compare(migrated.additions.length, 2, "missing defaults are listed");
         compare(migrated.text.indexOf('# owner comment') >= 0, true, "legacy comment survives");

@@ -25,62 +25,42 @@ test_settings() {
   grep -Eq '^probe_interval_seconds[[:space:]]*=[[:space:]]*15$' "$target" \
     || fail "service probe interval was not seeded"
 
-  printf '%s\n' '' '# retained owner comment' '[future]' \
-    'retained_value = "untouched"' >>"$target"
-
-  bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" set-service-state \
-    "$root/hosts/omarchy/config/settings.toml" "$target" themed disabled \
-    >/dev/null
-  grep -Eq '^service_state[[:space:]]*=[[:space:]]*"disabled"' "$target" \
-    || fail "service state was not updated"
-  [[ $(grep -c '^service_state[[:space:]]*=' "$target") == 1 ]] \
-    || fail "service state update created a duplicate"
-  grep -Eq '^icon_style[[:space:]]*=[[:space:]]*"themed"' "$target" \
-    || fail "service state update changed icon style"
-  grep -Fxq '# retained owner comment' "$target" \
-    || fail "service state update removed an owner comment"
-  grep -Fxq 'retained_value = "untouched"' "$target" \
-    || fail "service state update removed an additive field"
-
-  local legacy="$test_root/settings/config/legacy.toml"
-  printf '%s\n' \
-    'icon_style = "branded"' \
-    'web_ui_theme = "default"' \
-    >"$legacy"
-  bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" set-service-state \
-    "$root/hosts/omarchy/config/settings.toml" "$legacy" branded disabled \
-    >/dev/null
-  grep -Fxq '[service]' "$legacy" \
-    || fail "legacy settings did not receive a service section"
-  grep -Eq '^service_state[[:space:]]*=[[:space:]]*"disabled"' "$legacy" \
-    || fail "legacy settings did not receive the service state"
-  grep -Fxq 'web_ui_theme = "default"' "$legacy" \
-    || fail "legacy settings were not preserved"
-
-  local invalid="$test_root/settings/config/invalid.toml"
-  local invalid_before
-  printf '%s\n' \
-    'icon_style = "branded"' \
-    'web_ui_theme = "default"' \
-    '[service]' \
-    'service_state = "enabled"' \
-    'service_state = "disabled"' \
-    >"$invalid"
-  invalid_before=$(<"$invalid")
-  if bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" \
-      set-service-state "$root/hosts/omarchy/config/settings.toml" \
-      "$invalid" branded enabled \
-      >/dev/null 2>&1; then
-    fail "invalid service settings update succeeded"
-  fi
-  [[ $(<"$invalid") == "$invalid_before" ]] \
-    || fail "failed service settings update changed the file"
-
   printf '%s\n' '# user-owned' >"$target"
   bash "$root/hosts/omarchy/scripts/syncthing-settings.sh" ensure \
     "$root/hosts/omarchy/config/settings.toml" "$target" branded >/dev/null
   [[ $(<"$target") == "# user-owned" ]] \
     || fail "existing settings were overwritten"
+}
+
+# The panel computes the new text; replace only commits it unchanged-since-read.
+test_replace_settings() {
+  local helper="$root/hosts/omarchy/scripts/syncthing-settings.sh"
+  local dir="$test_root/replace" target link before
+  target="$dir/owner.toml"
+  link="$dir/settings.toml"
+  mkdir -p -- "$dir"
+  printf '%s\n' 'old = 1' >"$target"
+  chmod 640 -- "$target"
+  ln -s owner.toml "$link"
+
+  jq -nc '{original: "old = 1\n", replacement: "new = 2\n"}' \
+    | bash "$helper" replace "$link" >/dev/null
+  [[ $(<"$target") == "new = 2" ]] || fail "replace did not commit the new text"
+  [[ -L $link ]] || fail "replace broke the settings symlink"
+  [[ $(stat -c %a "$target") == 640 ]] || fail "replace changed the file mode"
+
+  before=$(<"$target")
+  local status=0
+  jq -nc '{original: "old = 1\n", replacement: "lost = 3\n"}' \
+    | bash "$helper" replace "$link" >/dev/null 2>&1 || status=$?
+  [[ $status == 3 ]] || fail "a stale replace did not exit 3 (got $status)"
+  [[ $(<"$target") == "$before" ]] || fail "a stale replace changed the file"
+
+  if printf '%s\n' 'not json' | bash "$helper" replace "$link" >/dev/null 2>&1; then
+    fail "replace accepted a malformed request"
+  fi
+  [[ $(<"$target") == "$before" ]] || fail "a malformed request changed the file"
+  [[ -z $(find "$dir" -name '.settings*') ]] || fail "replace left temporary files"
 }
 
 test_installation_status() {
@@ -133,6 +113,25 @@ test_installation_status() {
     PATH="$fake_bin" bash "$root/hosts/omarchy/scripts/syncthing-install.sh" status)
   jq -e '.state == "missing"' <<<"$output" >/dev/null \
     || fail "failed Flatpak lookup reported an installation"
+
+  # No sync databases yet: stop before omarchy runs pacman -S.
+  for tool in mkdir chmod unlink; do
+    ln -s -- "$(command -v "$tool")" "$fake_bin/$tool"
+  done
+  printf '%s\n' '#!/bin/bash' 'exit 1' >"$fake_bin/pacman"
+  printf '%s\n' '#!/bin/bash' 'touch "$HOME/omarchy-called"' \
+    >"$fake_bin/omarchy"
+  chmod 700 -- "$fake_bin/pacman" "$fake_bin/omarchy"
+  if output=$(printf '\n' | HOME="$sandbox/home" \
+      XDG_RUNTIME_DIR="$sandbox/runtime" PATH="$fake_bin" \
+      bash "$root/hosts/omarchy/scripts/syncthing-install.sh" \
+      run install-package 2>&1); then
+    fail "install succeeded without package lists"
+  fi
+  [[ $output == *"Run Omarchy's Update first"* ]] \
+    || fail "missing package lists gave no update hint: $output"
+  [[ ! -e $sandbox/home/omarchy-called ]] \
+    || fail "install ran omarchy without package lists"
 }
 
 test_modern_bundle() {
@@ -465,6 +464,7 @@ if [[ ${1:-} == --webui-only ]]; then
 fi
 
 test_settings
+test_replace_settings
 test_installation_status
 test_modern_bundle
 test_themes

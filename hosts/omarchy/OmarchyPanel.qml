@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Window
 import Quickshell
 import Quickshell.Io
 import qs.Commons
@@ -45,6 +46,10 @@ Panel {
     property bool folderShowPaused: true
     property bool folderShowUnknown: true
     property string folderSortMode: "name"
+    // A view changed here is saved when its menu or the panel closes; until
+    // then a settings reload must not undo it.
+    property bool folderViewDirty: false
+    property bool applyingSavedFolderView: false
     property string selectedPendingOffer: ""
     property string folderConfirmAction: ""
     property string folderConfirmId: ""
@@ -62,7 +67,6 @@ Panel {
     property bool noticeShown: false
     readonly property var folderRows: buildFolderRows()
     readonly property var currentFolderRow: folderById(currentFolderId)
-    readonly property var visibleFolderRows: currentFolderRow ? [currentFolderRow] : []
     readonly property var pendingOfferRows: pendingOfferOptions()
     readonly property double trackedBytes: folderTotal("globalBytes")
     readonly property int trackedFiles: folderTotal("globalFiles")
@@ -312,6 +316,55 @@ Panel {
         setAllFolderGroups(true);
         folderSortMode = "name";
     }
+
+    function shownFolderGroups() {
+        var shown = [];
+        if (folderShowReady)
+            shown.push("ready");
+        if (folderShowActive)
+            shown.push("active");
+        if (folderShowErrors)
+            shown.push("errors");
+        if (folderShowPaused)
+            shown.push("paused");
+        if (folderShowUnknown)
+            shown.push("unknown");
+        return shown;
+    }
+
+    function applySavedFolderView() {
+        if (!syncthing || folderViewDirty)
+            return;
+        var groups = syncthing.folderFilters || [];
+        applyingSavedFolderView = true;
+        folderSortMode = syncthing.folderSort === "active-first" ? "active" : syncthing.folderSort === "errors-first" ? "errors" : "name";
+        folderShowReady = groups.indexOf("ready") >= 0;
+        folderShowActive = groups.indexOf("active") >= 0;
+        folderShowErrors = groups.indexOf("errors") >= 0;
+        folderShowPaused = groups.indexOf("paused") >= 0;
+        folderShowUnknown = groups.indexOf("unknown") >= 0;
+        applyingSavedFolderView = false;
+    }
+
+    function persistFolderView() {
+        if (!syncthing || !folderViewDirty)
+            return;
+        var sort = folderSortMode === "active" ? "active-first" : folderSortMode === "errors" ? "errors-first" : "name";
+        if (syncthing.setFolderView(sort, shownFolderGroups()))
+            folderViewDirty = false;
+    }
+
+    function markFolderViewChanged() {
+        if (!applyingSavedFolderView)
+            folderViewDirty = true;
+    }
+
+    onFolderSortModeChanged: markFolderViewChanged()
+    onFolderShowReadyChanged: markFolderViewChanged()
+    onFolderShowActiveChanged: markFolderViewChanged()
+    onFolderShowErrorsChanged: markFolderViewChanged()
+    onFolderShowPausedChanged: markFolderViewChanged()
+    onFolderShowUnknownChanged: markFolderViewChanged()
 
     function folderViewOptions() {
         var labels = folderOptions();
@@ -716,13 +769,19 @@ Panel {
             Qt.callLater(function () {
                 popup.focusPanel();
             });
-        } else if (!preserveStateForFolderPicker) {
+        } else {
+            persistFolderView();
+        }
+        if (!opened && !preserveStateForFolderPicker) {
             if (settingsMigrationOpen)
                 syncthing.cancelSettingsMigration();
             resetTransientState();
         }
     }
-    Component.onCompleted: configureService()
+    Component.onCompleted: {
+        configureService();
+        applySavedFolderView();
+    }
 
     Timer {
         id: noticeDisplayTimer
@@ -754,6 +813,14 @@ Panel {
 
     Connections {
         target: root.syncthing
+
+        function onFolderSortChanged() {
+            root.applySavedFolderView();
+        }
+
+        function onFolderFiltersChanged() {
+            root.applySavedFolderView();
+        }
 
         function onFolderDirectoryRequired(args) {
             root.addSubmissionPending = false;
@@ -827,30 +894,66 @@ Panel {
         onTriggered: root.showBarTooltip()
     }
 
-    BarIconButton {
+    // WidgetButton, not BarIconButton: the host fits the mark's width, which
+    // includes the side nodes, so its ring would draw smaller than round glyphs.
+    // Sizing the ring to the theme's icon size keeps it optically level.
+    WidgetButton {
         id: button
         anchors.fill: parent
         bar: root.bar
-        iconComponent: Component {
-            Item {
-                opacity: root.syncthing && root.syncthing.online ? 1.0 : 0.55
+        labelVisible: false
+        hasVisualContent: true
+        fixedWidth: vertical ? -1 : Style.bar.iconSlot
+        fixedHeight: vertical ? Style.bar.iconSlot : -1
 
-                // Keep the effect warm under the brand icon for reliable live switches.
-                MonoIcon {
-                    anchors.fill: parent
-                    source: root.themedIconSource
-                    tint: button.foreground
-                }
+        Item {
+            id: iconBox
+            // A raster drawn at fractional device pixels is resampled and blurs,
+            // so size and place it on whole pixels. Qt's Screen ratio is
+            // integral; the window carries the fractional one.
+            readonly property real dpr: Window.window ? Window.window.devicePixelRatio : 1
+            // The mono view box is 14.5 units; the ring spans 13.31 of them. The
+            // branded disc shares the box so both styles read the same size.
+            readonly property real logicalSize: Style.bar.iconSize * 14.5 / 13.31
+            property real snapX: 0
+            property real snapY: 0
 
-                Image {
-                    anchors.fill: parent
-                    source: root.syncthingIconSource
-                    sourceSize.width: width
-                    sourceSize.height: height
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
-                    visible: !root.themedIcon
+            function align() {
+                var p = button.mapToItem(null, (button.width - width) / 2, (button.height - height) / 2);
+                snapX = Math.round(p.x * dpr) / dpr - p.x;
+                snapY = Math.round(p.y * dpr) / dpr - p.y;
+            }
+
+            width: Math.round(logicalSize * dpr) / dpr
+            height: width
+            x: (button.width - width) / 2 + snapX
+            y: (button.height - height) / 2 + snapY
+            scale: button.pressScale
+            opacity: root.syncthing && root.syncthing.online ? 1.0 : 0.55
+
+            // The bar moves widgets as neighbours resize; re-snap before each frame.
+            Connections {
+                target: iconBox.Window.window
+                function onAfterAnimating() {
+                    iconBox.align();
                 }
+            }
+
+            // Keep the effect warm under the brand icon for reliable live switches.
+            SharedWidgetMonoIcon {
+                anchors.fill: parent
+                source: root.themedIconSource
+                tint: button.foreground
+            }
+
+            Image {
+                anchors.fill: parent
+                source: root.syncthingIconSource
+                sourceSize.width: width
+                sourceSize.height: height
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                visible: !root.themedIcon
             }
         }
         active: root.hasProblems
@@ -867,7 +970,7 @@ Panel {
         onPressed: root.toggle()
     }
 
-    SyncthingPanelPopup {
+    SyncshellPanelPopup {
         id: popup
         anchorItem: button
         controller: root

@@ -165,6 +165,102 @@ func TestLifecycleActionsRequireAndRetainTargetAuthority(t *testing.T) {
 	}
 }
 
+func TestRefreshCannotReclassifyAnAuthorizedStop(t *testing.T) {
+	directory := t.TempDir()
+	active := filepath.Join(directory, "active")
+	apiActive := filepath.Join(directory, "api-active")
+	enabled := filepath.Join(directory, "enabled")
+	calls := filepath.Join(directory, "calls")
+	entered := filepath.Join(directory, "stop-entered")
+	release := filepath.Join(directory, "stop-release")
+	for path, value := range map[string]string{
+		active: "active", apiActive: "active", enabled: "enabled", calls: "0",
+	} {
+		writeState(t, path, value)
+	}
+	healthDuringStop := make(chan struct{}, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/rest/noauth/health" {
+			if _, err := os.Stat(entered); err == nil {
+				if _, err := os.Stat(release); os.IsNotExist(err) {
+					select {
+					case healthDuringStop <- struct{}{}:
+					default:
+					}
+				}
+			}
+		}
+		(lifecycleAPI{activeFile: apiActive}).ServeHTTP(w, r)
+	}))
+	defer server.Close()
+	configPath := filepath.Join(directory, "config.xml")
+	config := fmt.Sprintf(`<configuration><gui tls="false"><address>%s</address><apikey>%s</apikey></gui></configuration>`,
+		strings.TrimPrefix(server.URL, "http://"), sessionTestKey)
+	if err := os.WriteFile(configPath, []byte(config), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	command := lifecycleSystemctl(t, directory, configPath, active, enabled, calls)
+	script, err := os.ReadFile(command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The API can still answer while systemd is stopping its process.
+	stop := fmt.Sprintf("stop) printf 'inactive\\n' >%q; touch %q; "+
+		"while [[ ! -e %q ]]; do sleep 0.005; done; "+
+		"printf 'inactive\\n' >%q ;;", active, entered, release, apiActive)
+	script = []byte(strings.Replace(string(script),
+		fmt.Sprintf("stop) printf 'inactive\\n' >%q ;;", active), stop, 1))
+	if err := os.WriteFile(command, script, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	coreSession, err := New(ctx, Config{
+		Discovery:      syncthing.DiscoveryOptions{ConfigPath: configPath},
+		Lifecycle:      systemduser.Binding{Authorized: true, Unit: "syncthing.service", ConfigPath: configPath},
+		SystemdCommand: command,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	actionDone := make(chan ActionResult, 1)
+	go func() { actionDone <- coreSession.Act(ctx, "lifecycle.stop", ActionArguments{}) }()
+	for {
+		if _, err := os.Stat(entered); err == nil {
+			break
+		}
+		if ctx.Err() != nil {
+			t.Fatal("stop did not begin")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	refreshDone := make(chan struct{})
+	go func() { coreSession.Refresh(ctx); close(refreshDone) }()
+	select {
+	case <-healthDuringStop:
+		select {
+		case <-refreshDone:
+		case <-ctx.Done():
+			t.Fatal("overlapping refresh did not finish")
+		}
+	case <-time.After(300 * time.Millisecond):
+	}
+	writeState(t, release, "release")
+	select {
+	case result := <-actionDone:
+		if !result.OK {
+			t.Fatalf("authorized stop failed: %#v", result)
+		}
+	case <-ctx.Done():
+		t.Fatal("stop did not finish")
+	}
+	<-refreshDone
+	state := coreSession.Current().State.Lifecycle
+	if state.Classification != "stopped-candidate" || !state.CanControl || !state.CanStart {
+		t.Fatalf("controlled stop lost lifecycle authority: %#v", state)
+	}
+}
+
 type lifecycleAPI struct{ activeFile string }
 
 func (a lifecycleAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

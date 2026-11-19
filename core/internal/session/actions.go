@@ -65,12 +65,34 @@ func (s *Session) Act(ctx context.Context, action string, arguments ActionArgume
 		return s.openWebUI(ctx, arguments.DeviceID)
 	case "webui.set-theme":
 		return s.setWebUITheme(ctx, arguments.Theme)
+	case "webui.apply-profile":
+		return s.applyWebProfile(ctx, arguments)
+	case "webui.remove-profile":
+		return s.removeWebProfile(ctx)
 	default:
 		return rejected("unsupported_action", "action is not supported")
 	}
 }
 
 func validateActionArguments(action string, arguments ActionArguments) *ActionResult {
+	if action == "webui.apply-profile" {
+		base := arguments
+		base.Profile = ""
+		base.Palette = nil
+		if validation := validateActionArguments("folder.rescan-all", base); validation != nil {
+			return validation
+		}
+		if (arguments.Profile == "modern" && len(arguments.Palette) == 0) ||
+			(arguments.Profile == "themed" && len(arguments.Palette) == 12) {
+			return nil
+		}
+		result := rejected("invalid_action", "Web UI profile arguments are invalid")
+		return &result
+	}
+	if arguments.Profile != "" || len(arguments.Palette) != 0 {
+		result := rejected("invalid_action", "palette arguments require a profile action")
+		return &result
+	}
 	if arguments.CreateDirectory && action != "folder.add-existing" {
 		result := rejected("invalid_action", "directory creation is only valid when adding a folder")
 		return &result
@@ -101,7 +123,7 @@ func validateActionArguments(action string, arguments ActionArguments) *ActionRe
 		valid = folderOnly
 	case "folder.dismiss-pending":
 		valid = pendingFolderOnly
-	case "folder.recheck-errors", "folder.rescan-all", "folder.suggest-id",
+	case "folder.recheck-errors", "folder.rescan-all", "folder.suggest-id", "webui.remove-profile",
 		"lifecycle.start", "lifecycle.stop", "lifecycle.enable", "lifecycle.disable":
 		valid = empty
 	case "folder.add-existing":

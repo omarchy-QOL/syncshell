@@ -10,6 +10,7 @@ import (
 	"github.com/omarchy-QOL/syncshell/core/internal/desktop"
 	"github.com/omarchy-QOL/syncshell/core/internal/syncthing"
 	"github.com/omarchy-QOL/syncshell/core/internal/systemduser"
+	"github.com/omarchy-QOL/syncshell/core/internal/webprofile"
 )
 
 // Config constructs one authoritative session.
@@ -19,6 +20,7 @@ type Config struct {
 	SystemdCommand      string
 	ProbeInterval       time.Duration
 	DesiredServiceState string
+	WebProfile          webprofile.Policy
 }
 
 type deviceTransferSample struct {
@@ -48,6 +50,7 @@ type Session struct {
 	target         syncthing.Target
 	binding        systemduser.Binding
 	lifecycle      systemduser.Controller
+	webProfile     webprofile.Policy
 
 	refreshMu sync.Mutex
 	actionMu  sync.Mutex
@@ -63,6 +66,11 @@ type Session struct {
 	eventsOnce          sync.Once
 	activityMu          sync.Mutex
 	activityRecords     map[string]activityRecord
+	finishedItems       map[string]time.Time
+	rescansMu           sync.Mutex
+	rescansInFlight     map[string]bool
+	lastFile            *Activity
+	lastFileUntil       time.Time
 	activityIndex       int
 	externalLatched     bool
 	deviceSamples       map[string]deviceTransferSample
@@ -93,6 +101,7 @@ func New(ctx context.Context, config Config) (*Session, error) {
 		target:              target,
 		binding:             config.Lifecycle,
 		lifecycle:           systemduser.Controller{Command: config.SystemdCommand},
+		webProfile:          config.WebProfile,
 		probeInterval:       interval,
 		refreshInterval:     60 * time.Second,
 		desiredServiceState: desired,

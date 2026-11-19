@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.75 0.75 14.5 14.5">
   <defs>
     <mask id="bite" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16">
       <rect x="0" y="0" width="16" height="16" style="fill:#fff"/>
@@ -20,7 +20,7 @@
     <circle id="node-tr" cx="13.519591" cy="5.396935" r="1.7" style="fill:#fff"/>
     <circle id="node-br" cx="12.006814" cy="12.538330" r="1.7" style="fill:#fff"/>
   </g>
-  <g id="badge" transform="translate(11.5,11.5) scale(1.35) translate(-11.5,-11.5)">
+  <g id="badge" transform="translate(11,11.5) scale(1.2) translate(-11.5,-11.5)">
     <path d="m11.5 14v-1c-1.5 0-1.5 0-1.5-2h1l-1.5-2L8 11h1c0 3 0 3 2.5 3z"
       style="fill:#fff"/>
     <path d="M11.5 9v1c1.5 0 1.5 0 1.5 2h-1l1.5 2 1.5-2h-1c0-3 0-3-2.5-3z"

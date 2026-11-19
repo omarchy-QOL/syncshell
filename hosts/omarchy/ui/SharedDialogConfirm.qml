@@ -1,0 +1,150 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import qs.Commons
+import qs.Commons as Commons
+import qs.Ui
+
+Item {
+    id: root
+
+    property bool opened: false
+    property string message: ""
+    // StyledText callers must escape any user data they embed.
+    property int messageFormat: Text.PlainText
+    property string cancelText: "Cancel"
+    property string confirmText: "Confirm"
+    property int selectedIndex: 1
+    property bool confirmFirst: false
+    property bool equalWidthActions: false
+    property bool destructiveConfirmation: true
+    property color background: Commons.Color.background
+    property color foreground: Commons.Color.foreground
+    property color scrim: Util.alpha(background, 0.7)
+    property color selectedBackground: Util.alpha(Commons.Color.foreground, 0.08)
+    property color selectedText: Commons.Color.accent
+    property string fontFamily: Style.font.family
+
+    signal canceled
+    signal confirmed
+
+    visible: opened
+    implicitWidth: Style.space(390)
+    onOpenedChanged: if (opened)
+        selectedIndex = confirmFirst ? 1 : 0
+
+    Rectangle {
+        anchors.fill: parent
+        color: root.scrim
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.canceled()
+        }
+
+        BorderSurface {
+            id: card
+            width: Math.min(parent.width - Style.space(12), root.implicitWidth)
+            height: card.contentTopInset + card.contentBottomInset + messageText.implicitHeight + Style.space(12) + Style.spacing.controlHeight
+            anchors.centerIn: parent
+            color: root.background
+            borderSpec: Border.flat(root.selectedText, Style.normalBorderWidth)
+            padding: Style.space(12)
+            radius: Style.cornerRadius
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {}
+            }
+
+            Item {
+                anchors.fill: parent
+                anchors.topMargin: card.contentTopInset
+                anchors.rightMargin: card.contentRightInset
+                anchors.bottomMargin: card.contentBottomInset
+                anchors.leftMargin: card.contentLeftInset
+
+                Text {
+                    id: messageText
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    text: root.message
+                    textFormat: root.messageFormat
+                    color: root.foreground
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.body
+                    wrapMode: Text.WordWrap
+                }
+
+                Row {
+                    id: actions
+                    anchors.left: root.equalWidthActions ? parent.left : undefined
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    spacing: Style.space(6)
+
+                    Repeater {
+                        model: root.confirmFirst ? [
+                            {
+                                text: root.confirmText,
+                                confirm: true
+                            },
+                            {
+                                text: root.cancelText,
+                                confirm: false
+                            }
+                        ] : [
+                            {
+                                text: root.cancelText,
+                                confirm: false
+                            },
+                            {
+                                text: root.confirmText,
+                                confirm: true
+                            }
+                        ]
+
+                        BorderSurface {
+                            id: actionButton
+
+                            required property int index
+                            required property var modelData
+
+                            readonly property bool selected: root.selectedIndex === actionButton.index
+                            readonly property bool destructive: actionButton.modelData.confirm && root.destructiveConfirmation
+
+                            width: root.equalWidthActions ? (actions.width - actions.spacing) / 2 : Style.space(76)
+                            height: Style.spacing.controlHeight
+                            color: actionButton.selected ? (actionButton.destructive ? Util.alpha(Commons.Color.urgent, 0.22) : root.selectedBackground) : "transparent"
+                            borderSpec: Border.flat(actionButton.destructive ? (actionButton.selected ? Commons.Color.urgent : Util.alpha(Commons.Color.urgent, 0.56)) : (actionButton.selected ? root.selectedText : Util.alpha(root.foreground, 0.38)), Style.normalBorderWidth)
+                            radius: 0
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: actionButton.modelData.text
+                                textFormat: Text.PlainText
+                                color: actionButton.destructive ? (actionButton.selected ? Commons.Color.urgent : root.foreground) : (actionButton.selected ? root.selectedText : root.foreground)
+                                font.family: root.fontFamily
+                                font.pixelSize: Style.font.caption
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onEntered: root.selectedIndex = actionButton.index
+                                onClicked: {
+                                    if (actionButton.modelData.confirm)
+                                        root.confirmed();
+                                    else
+                                        root.canceled();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

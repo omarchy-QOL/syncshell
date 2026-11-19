@@ -4,9 +4,17 @@ set -euo pipefail
 [[ ${1:-} == stream ]]
 shift
 exit_on_request=false
+exclusive_lock=
 for argument in "$@"; do
   [[ $argument != --test-exit-on-request ]] || exit_on_request=true
+  [[ $argument != --test-exclusive-lock=* ]] || exclusive_lock=${argument#*=}
 done
+
+if [[ -n $exclusive_lock ]]; then
+  exec 9>"$exclusive_lock"
+  flock -n 9 || exit 88
+  trap 'sleep 0.2; exit 0' TERM
+fi
 
 printf '%s\n' \
   '{"v":2,"type":"hello","build":{"version":"test"}}' \

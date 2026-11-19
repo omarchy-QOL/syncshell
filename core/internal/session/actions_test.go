@@ -24,6 +24,7 @@ type actionAPI struct {
 	devices           []syncthing.Device
 	pending           syncthing.PendingFolders
 	theme             string
+	guiAssets         string
 	rescans           int
 	status            syncthing.FolderStatus
 	errors            []syncthing.FolderError
@@ -622,6 +623,9 @@ func TestActionArgumentShapesRejectUnrelatedFields(t *testing.T) {
 		{"webui.open", ActionArguments{}, map[string]bool{"deviceId": true}},
 		{"webui.set-theme", ActionArguments{Theme: "default"},
 			map[string]bool{"theme": true}},
+		{"webui.apply-profile", ActionArguments{Profile: "modern"},
+			map[string]bool{"profile": true}},
+		{"webui.remove-profile", ActionArguments{}, map[string]bool{}},
 		{"lifecycle.start", ActionArguments{}, map[string]bool{}},
 		{"lifecycle.stop", ActionArguments{}, map[string]bool{}},
 		{"lifecycle.enable", ActionArguments{}, map[string]bool{}},
@@ -637,6 +641,8 @@ func TestActionArgumentShapesRejectUnrelatedFields(t *testing.T) {
 		"deviceId":        func(value *ActionArguments) { value.DeviceID = "OTHER" },
 		"deviceName":      func(value *ActionArguments) { value.DeviceName = "Other" },
 		"theme":           func(value *ActionArguments) { value.Theme = "other" },
+		"profile":         func(value *ActionArguments) { value.Profile = "modern" },
+		"palette":         func(value *ActionArguments) { value.Palette = map[string]string{"mode": "dark"} },
 	}
 	for _, shape := range shapes {
 		t.Run(shape.name, func(t *testing.T) {
@@ -942,7 +948,11 @@ func (a *actionAPI) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		}
 		writer.WriteHeader(http.StatusOK)
 	case request.URL.Path == "/rest/system/paths":
-		a.write(writer, `{"guiAssets":"/tmp/gui","baseDir-userHome":"/tmp"}`)
+		assets := a.guiAssets
+		if assets == "" {
+			assets = "/tmp/gui"
+		}
+		a.writeValue(writer, map[string]string{"guiAssets": assets, "baseDir-userHome": "/tmp"})
 	case request.URL.Path == "/rest/config/defaults/folder":
 		a.write(writer, `{"id":"","label":"","path":"","paused":false,"devices":[]}`)
 	case request.URL.Path == "/rest/config/defaults/device":

@@ -172,6 +172,59 @@ func TestActivityNormalizationRotationAndCleanup(t *testing.T) {
 	}
 }
 
+func TestLastFileStaysVisibleBriefly(t *testing.T) {
+	now := time.Unix(100, 0)
+	coreSession := &Session{
+		activityRecords: make(map[string]activityRecord),
+		current:         PublishedSnapshot{Revision: 1},
+	}
+	batch := []syncthing.Event{
+		{Type: "ItemStarted", Data: []byte(`{"folder":"folder","item":"dir/small.txt","action":"update"}`)},
+		{Type: "ItemFinished", Data: []byte(`{"folder":"folder","item":"dir/small.txt"}`)},
+	}
+	coreSession.processActivityEvents(context.Background(), batch, now)
+	shown := coreSession.publishActivity(false, now)
+	if shown.State.Activity.Current == nil || shown.State.Activity.Current.Detail != "small.txt" {
+		t.Fatalf("batched file never reached the panel: %#v", shown.State.Activity)
+	}
+	if len(shown.State.Activity.Files) != 0 {
+		t.Fatalf("finished file still counted as active: %#v", shown.State.Activity.Files)
+	}
+	cleared := coreSession.publishActivity(false, now.Add(lastFileHold+time.Millisecond))
+	if cleared.State.Activity.Current != nil {
+		t.Fatalf("finished file outlived its hold: %#v", cleared.State.Activity.Current)
+	}
+}
+
+func TestLocalIndexSkipsFilesAlreadyReportedFinished(t *testing.T) {
+	api := &actionAPI{folders: map[string]syncthing.Folder{},
+		devices: []syncthing.Device{{DeviceID: "LOCAL"}},
+		pending: syncthing.PendingFolders{}, theme: "default"}
+	coreSession := newActionSession(t, api)
+	if _, err := coreSession.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	now := time.Unix(100, 0)
+	events := []syncthing.Event{
+		{Type: "ItemFinished", Data: []byte(`{"folder":"folder","item":"directory"}`)},
+		{Type: "LocalIndexUpdated", Data: []byte(`{"folder":"folder","filenames":["directory"]}`)},
+	}
+	coreSession.processActivityEvents(context.Background(), events, now)
+	time.Sleep(50 * time.Millisecond)
+	if got := api.rescanCount(); got != 0 {
+		t.Fatalf("pulled directory was rescanned %d times", got)
+	}
+	later := []syncthing.Event{{Type: "LocalIndexUpdated",
+		Data: []byte(`{"folder":"folder","filenames":["directory"]}`)}}
+	coreSession.processActivityEvents(context.Background(), later, now.Add(finishedItemMemory+time.Second))
+	for deadline := time.Now().Add(2 * time.Second); api.rescanCount() != 1; {
+		if time.Now().After(deadline) {
+			t.Fatalf("local directory change was not rescanned: rescans=%d", api.rescanCount())
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}
+
 func TestLocalIndexUsesCurrentFileInformation(t *testing.T) {
 	api := &actionAPI{folders: map[string]syncthing.Folder{},
 		devices: []syncthing.Device{{DeviceID: "LOCAL"}},
@@ -187,9 +240,14 @@ func TestLocalIndexUsesCurrentFileInformation(t *testing.T) {
 		t.Fatal("local index did not change activity")
 	}
 	published := coreSession.publishActivity(false, now)
-	if len(published.State.Activity.Files) != 2 || api.rescanCount() != 1 {
-		t.Fatalf("unexpected indexed activity: %#v rescans=%d",
-			published.State.Activity, api.rescanCount())
+	if len(published.State.Activity.Files) != 2 {
+		t.Fatalf("unexpected indexed activity: %#v", published.State.Activity)
+	}
+	for deadline := time.Now().Add(2 * time.Second); api.rescanCount() != 1; {
+		if time.Now().After(deadline) {
+			t.Fatalf("directory was not rescanned: rescans=%d", api.rescanCount())
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
 	actions := make(map[string]string)
 	for _, activity := range published.State.Activity.Files {
@@ -557,5 +615,40 @@ func cancelEventUpdates(
 		}
 	case <-time.After(3 * time.Second):
 		t.Fatal("event loop did not cancel")
+	}
+}
+
+func TestSubdirectoryRescanIsNotRepeatedWhileInFlight(t *testing.T) {
+	api := &actionAPI{folders: map[string]syncthing.Folder{},
+		devices: []syncthing.Device{{DeviceID: "LOCAL"}},
+		pending: syncthing.PendingFolders{}, theme: "default",
+		rescanStarted: make(chan struct{}, 1), rescanRelease: make(chan struct{})}
+	coreSession := newActionSession(t, api)
+	ctx := context.Background()
+	coreSession.rescanSubdirectory(ctx, "folder", "directory")
+	select {
+	case <-api.rescanStarted:
+	case <-time.After(2 * time.Second):
+		t.Fatal("first rescan never reached Syncthing")
+	}
+	// Still blocked in Syncthing: the same directory is not asked again.
+	coreSession.rescanSubdirectory(ctx, "folder", "directory")
+	close(api.rescanRelease)
+	for deadline := time.Now().Add(2 * time.Second); coreSession.rescanInFlight("folder", "directory"); {
+		if time.Now().After(deadline) {
+			t.Fatal("finished rescan stayed in flight")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if count := api.rescanCount(); count != 1 {
+		t.Fatalf("rescans while one was in flight: %d", count)
+	}
+	// Once it has finished, the directory can be rescanned again.
+	coreSession.rescanSubdirectory(ctx, "folder", "directory")
+	for deadline := time.Now().Add(2 * time.Second); api.rescanCount() != 2; {
+		if time.Now().After(deadline) {
+			t.Fatalf("a later rescan was dropped: %d", api.rescanCount())
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
 }
