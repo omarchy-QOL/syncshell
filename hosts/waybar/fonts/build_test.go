@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -112,6 +113,8 @@ func render(t *testing.T, svg []byte) image.Image {
 	return img
 }
 
+var viewBoxPattern = regexp.MustCompile(`<svg[^>]*\sviewBox="([^"]+)"`)
+
 func TestOutlinesMatchSourceSVGs(t *testing.T) {
 	f := bundledFont(t)
 	for i, name := range []string{"default", "notify", "sync"} {
@@ -144,11 +147,17 @@ func TestOutlinesMatchSourceSVGs(t *testing.T) {
 				}
 			}
 			path.WriteString("Z")
-			svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="white" d="%s"/></svg>`, &path)
 			original, err := os.ReadFile("../../../assets/mono/status-" + name + ".svg")
 			if err != nil {
 				t.Fatal(err)
 			}
+			// The contours use the 16-unit artwork canvas; the source may crop
+			// its view box to the mark, so compare both through that same box.
+			box := viewBoxPattern.FindSubmatch(original)
+			if box == nil {
+				t.Fatal("source SVG has no viewBox")
+			}
+			svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="%s"><path fill="white" d="%s"/></svg>`, box[1], &path)
 			want, got := render(t, original), render(t, []byte(svg))
 			var difference, coverage float64
 			for y := 0; y < 256; y++ {
